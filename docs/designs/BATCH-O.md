@@ -1,6 +1,6 @@
 # Design — Batch O: Owner and administration (organization, people, keys, usage and billing, guided settings)
 
-Status: **DRAFT — awaiting Chris's approval (IN-00)**. Written 2026-10-10. Scope and acceptance: `docs/PLAN.md` →
+Status: **APPROVED** (Chris, 2026-10-10). Written 2026-10-10. Scope and acceptance: `docs/PLAN.md` →
 Batch O. Cards O-1 … O-4. Depends on Batches B and C (and D-1 for project reads). Tool list: `docs/TOOL-CATALOG.md`
 section Owner and administration. Follows the Robinson Tool Contract §11 — the same role as the Stripe MCP's G-6.
 

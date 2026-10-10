@@ -1,6 +1,6 @@
 # Design — Batch E: Neon backend services (Auth, Data API, storage, Functions, triggers, logs)
 
-Status: **DRAFT — awaiting Chris's approval (IN-00)**. Written 2026-10-10. Scope and acceptance: `docs/PLAN.md` →
+Status: **APPROVED** (Chris, 2026-10-10). Written 2026-10-10. Scope and acceptance: `docs/PLAN.md` →
 Batch E. Cards E-1, E-2. Depends on Batches B, C, D, P. Tool list: `docs/TOOL-CATALOG.md` section Neon backend services.
 
 Why late: Neon made these generally available on 2026-09-18 (changelog). None of Chris's current projects uses them

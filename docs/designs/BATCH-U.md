@@ -1,6 +1,6 @@
 # Design — Batch U: Universal tools (every other Neon operation)
 
-Status: **DRAFT — awaiting Chris's approval (IN-00)**. Written 2026-10-10. Scope and acceptance: `docs/PLAN.md` →
+Status: **APPROVED** (Chris, 2026-10-10). Written 2026-10-10. Scope and acceptance: `docs/PLAN.md` →
 Batch U. Card U-1. Depends on Batches B and C (and A-4's vendored description).
 
 Goal: hand-built tools cover the common jobs comfortably; four universal tools reach **every** operation in Neon's API —
