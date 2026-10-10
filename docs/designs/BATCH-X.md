@@ -1,7 +1,7 @@
 # Design — Batch X: Undo, real-account checks
 
 Status: **APPROVED** (Chris, 2026-10-10). Written 2026-10-10. Scope and acceptance: `docs/PLAN.md` →
-Batch X. Cards X-1 … X-4.
+Batch X. Cards X-1 … X-3.
 
 ## 0. Verify before starting
 
@@ -58,6 +58,5 @@ Done when: report committed; the run is cleaned up (a second cleanup finds nothi
 | Undo for every clean opposite, SQL by LSN | `tests/unit/undo.test.js` |
 | Read-only smoke on the real account | `docs/audits/smoke-<date>.md` |
 | Writes proven in the scratch project only | `docs/audits/scratch-<date>.md` |
-| Toolkit note delivered | X-4 PR |
 
 ## Amendments

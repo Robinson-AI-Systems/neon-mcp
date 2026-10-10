@@ -36,7 +36,7 @@ Postgres); CI with a deliberately failing test run recorded red, then green. Car
 `audits/2026-10-10-prior-tools.md`: 300 covered, 30 dropped with reasons, 3 gaps added as card D-9
 (`neon_branch_compare_data`, `neon_schema_list_migrations`, `neon_health_reindex`); SQL guard amendment (BATCH-B). Needs from
 Cortiware, oldReplit, Household-Assistant and Appliance Desk checked. Totals now **173 hand-built + 4 universal = 177
-tools, 54 cards** (the entry below is the original plan's count).
+tools, 53 cards** (old-toolkit decision note dropped) (the entry below is the original plan's count).
 
 **2026-10-10 — Plan written (initial commits):** research audit (Neon API ≈180 operations, the old toolkit's 204 tools
 with 13 verified bugs including 17 unreachable tools and a SQL path that never authenticates, the official Neon
@@ -46,5 +46,5 @@ owner inputs, go-live checklist, decisions, roadmap, owner guide, work index wit
 
 ## Blocked
 
-Nothing in engineering. Owner inputs open: IN-02 … IN-14
+Nothing in engineering. Owner inputs open: IN-02 … IN-13 (IN-14 answered: not needed)
 (`OWNER-INPUTS.md`); none blocks A-2 … A-4.

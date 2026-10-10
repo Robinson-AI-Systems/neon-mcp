@@ -50,4 +50,4 @@ covered by the design; write the card when its predecessor is real.
 | U Universal | U-1 | JIT |
 | R Hub-ready doors (RTC 1) | R-1 passes · R-2 HTTPS API, manifest, OpenAPI, rate limits · R-3 conformance in CI | JIT |
 | E Neon backend services | E-1 Auth + Data API · E-2 storage, Functions, triggers, logs | JIT |
-| X Close-out | X-1 undo · X-2 read-only smoke · X-3 scratch-project write check · X-4 toolkit note | JIT |
+| X Close-out | X-1 undo · X-2 read-only smoke · X-3 scratch-project write check | JIT |
