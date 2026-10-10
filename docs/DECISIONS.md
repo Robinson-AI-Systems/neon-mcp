@@ -67,7 +67,7 @@ They became generally available on 2026-09-18 and none of Chris's projects uses 
 one of their operations with the same guards meanwhile.
 
 **2026-10-10 — Structured DDL tools not rebuilt.** The old toolkit's 34 one-statement schema and row tools are replaced by
-the guarded `sql_execute` and `workflow_safe_migration`: one well-tested path is safer and costs agents far less context.
+the guarded `neon_sql_execute` and `neon_workflow_safe_migration`: one well-tested path is safer and costs agents far less context.
 
 **2026-10-10 — Repository process mirrors the Stripe MCP (IN-01 pending confirmation).** Public repository, no automated
 review; the implementer self-reviews every diff against AI-PR-READ-FIRST; if an organization-wide reviewer posts anyway,
@@ -77,11 +77,16 @@ its threads are answered and resolved, never waited for.
 his Robinson toolkit repositories, to be checked against this plan. 333 distinct prior names were found (old local
 toolkit 204, the TypeScript toolkit and its standalone Neon server 165, the HTTPS toolkit API 167, plans and docs 46,
 an auto-generated index 41 — heavily overlapping); every one is mapped in `docs/audits/2026-10-10-prior-tools.md`.
-300 are covered by catalog tools (many as the guarded `sql_execute`, per the DDL decision above), 30 are dropped with
+300 are covered by catalog tools (many as the guarded `neon_sql_execute`, per the DDL decision above), 30 are dropped with
 reasons (no Neon API behind them — metrics, Postgres logs, alerts, webhooks, encryption/SSL/password switches, project
 clone, branch merge, backup export — or generated/speculative names), and 3 were real gaps, now added in a new card D-9:
-`branch_compare_data`, `schema_list_migrations`, `health_reindex`. Two catalog rows gained an option
-(`schema_enable_extension` `update: true`; `schema_list_objects` publications) and the SQL guard got a dated amendment
+`neon_branch_compare_data`, `neon_schema_list_migrations`, `neon_health_reindex`. Two catalog rows gained an option
+(`neon_schema_enable_extension` `update: true`; `neon_schema_list_objects` publications) and the SQL guard got a dated amendment
 (BATCH-B) because the mapping showed `REINDEX` pointed at a tool that could not run it and several statement types had
 no class; unclassified statements now fail closed as `destructive`. Totals: 173 hand-built + 4 universal = 177 tools;
 54 cards.
+
+**2026-10-10 — Every tool name starts with `neon_` (cross-server consistency).** GitHub, Vercel and Neon all have
+"projects", "branches", "members" and "workflows"; several Robinson servers are often loaded in one chat, and some
+clients do not namespace tool names by server. Every tool here is therefore `neon_<area>_<verb>_<object>` (contract §3
+as clarified on 2026-10-10). Renamed mechanically across the plan; no behavior changed.

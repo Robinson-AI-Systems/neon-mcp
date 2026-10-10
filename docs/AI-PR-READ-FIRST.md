@@ -7,10 +7,10 @@ applicable item in the PR description saying how it is honored.
 1. "Production" is decided only by `classifyTarget` (B-2) from Neon's own data (`default`, `protected`, profile branches,
    project-wide tools) — never from a branch name, an argument or the deprecated `primary` field.
 2. Every write with `productionEffect: 'write'` on a production target is refused in `preview` mode and needs `confirm`
-   in `production` mode — through every door (MCP, `neon_call`, HTTPS, `api_write`). Production access turns on only in
+   in `production` mode — through every door (MCP, `neon_call`, HTTPS, `neon_api_write`). Production access turns on only in
    two steps (tool + setup-page passphrase) and never on a preview deployment of this server.
-3. Restores and resets on production always keep the old state (`preserve_under_name`); `snapshot_restore` never
-   finalizes; `snapshot_finalize_restore` stands alone, production-guarded (the 2026-09-28 Appliance Desk incident).
+3. Restores and resets on production always keep the old state (`preserve_under_name`); `neon_snapshot_restore` never
+   finalizes; `neon_snapshot_finalize_restore` stands alone, production-guarded (the 2026-09-28 Appliance Desk incident).
 4. Deletions never pass `hard_delete`; the inverse (`recover`) is stored.
 5. Protected resources (this server's own database, the other Robinson servers') are refused even with confirm and
    production access; the list is edited only on the setup page.

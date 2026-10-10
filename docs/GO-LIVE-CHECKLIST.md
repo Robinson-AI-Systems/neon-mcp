@@ -31,7 +31,7 @@ Legend: **Owner** = only Chris · **Agent** = Claude can do it once you say go.
 | Done | Item | Where / how | Today | How you know it worked |
 |---|---|---|---|---|
 | [ ] | Organization key added, named `robinson-neon-mcp-owner` (IN-04) | Neon console → API keys, then setup page (Owner) | None | "Review my Neon account" returns the admin overview |
-| [ ] | Spending alert set to a number you are comfortable with | Ask Claude (Owner confirms) | Unknown | `billing_get_spending_alert` shows it |
+| [ ] | Spending alert set to a number you are comfortable with | Ask Claude (Owner confirms) | Unknown | `neon_billing_get_spending_alert` shows it |
 
 ## 4. Production access, per organization
 
@@ -45,7 +45,7 @@ Legend: **Owner** = only Chris · **Agent** = Claude can do it once you say go.
 
 ### Appliance Desk
 
-Run `workflow_app_readiness` for Appliance Desk and work through what it lists. The full list with explanations is
+Run `neon_workflow_app_readiness` for Appliance Desk and work through what it lists. The full list with explanations is
 `docs/APP-NEEDS-APPLIANCE-DESK.md`; the app's own checklist (`appliance-desk/docs/GO-LIVE-CHECKLIST.md` §6) stays the
 authority for the app.
 
@@ -54,5 +54,5 @@ authority for the app.
 | [ ] | Profile facts confirmed and IDs entered on the setup page (IN-13) | Not entered |
 | [ ] | Production branch protected | Done in the app's project on 2026-09-29 (readiness re-checks it) |
 | [ ] | History (restore window) long enough for your comfort, on your current plan | Not checked by this server yet |
-| [ ] | Snapshot before risky migrations (the app's own runbook asks for one) | Available as `snapshot_create` once D-7 is built |
+| [ ] | Snapshot before risky migrations (the app's own runbook asks for one) | Available as `neon_snapshot_create` once D-7 is built |
 | [ ] | Optional: one fresh database branch per preview deployment (the app's ROADMAP; your call on timing) | Not turned on |

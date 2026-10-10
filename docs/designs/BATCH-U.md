@@ -17,16 +17,16 @@ used. Research audit Appendix A marks which operations are "U".
 
 ## 1. Decisions
 
-**U1. Tools:** `api_search(query)` (method, path, operationId, summary, and the marks: reads / changes / deletes / spend /
-production / access / secret / deprecated), `api_describe(operationId)` (parameters and body trimmed from the
-description), `api_read(operationId, params)` (GET; Batch C result rules apply), `api_write(operationId, params, body)`
+**U1. Tools:** `neon_api_search(query)` (method, path, operationId, summary, and the marks: reads / changes / deletes / spend /
+production / access / secret / deprecated), `neon_api_describe(operationId)` (parameters and body trimmed from the
+description), `neon_api_read(operationId, params)` (GET; Batch C result rules apply), `neon_api_write(operationId, params, body)`
 (POST/PATCH/PUT/DELETE; `full` profile only; passes need `allow_writes`).
 
 **U2. Only what Neon describes.** Every request is checked against the vendored description: unknown operation, unknown
 parameter, missing required field, wrong type → refused in words. Deprecated operations (all "Auth (legacy)") are
 refused with the current operation's name.
 
-**U3. `api_write` always needs `confirm`** (and supports `dryRun`); the preview shows the operation in plain words, the
+**U3. `neon_api_write` always needs `confirm`** (and supports `dryRun`); the preview shows the operation in plain words, the
 exact parameters, and the target as it is now (read first when the path has a project/branch/endpoint ID).
 
 **U4. The guards apply by reading the path.** A path with `{project_id}` and `{branch_id}` (or `{endpoint_id}`) →
@@ -42,8 +42,8 @@ updates computes, projects, branches, snapshots or storage are treated as spend,
 the secret patterns is removed — the safe default until the table is updated.
 
 **U6. Hand-built tools win.** If a hand-built tool covers the operation (`src/neon/hand-built-map.js`, from Appendix A),
-`api_write` refuses and names it, so curated checks (preserve-on-restore, exact SQL previews, last-admin protection) are
-never bypassed. `api_read` allows any GET (reads are harmless) but prefers suggesting the hand-built tool in its note.
+`neon_api_write` refuses and names it, so curated checks (preserve-on-restore, exact SQL previews, last-admin protection) are
+never bypassed. `neon_api_read` allows any GET (reads are harmless) but prefers suggesting the hand-built tool in its note.
 
 **U7. Read-back and undo.** After a write, read the target back when the response or the path has an ID (otherwise
 `confirmed: null`); undo for operations whose inverse is clear in the table (set/unset pairs, delete with Neon recovery).
@@ -54,9 +54,9 @@ never bypassed. `api_read` allows any GET (reads are harmless) but prefers sugge
 Files: `src/tools/universal.js`, `src/neon/openapi-index.js` (search and validation), `src/neon/operation-marks.js`,
 `src/neon/hand-built-map.js`.
 Tests: unknown operation and unknown parameter refused; deprecated refused naming the replacement; no-confirm changes
-nothing; `api_write` on `deleteProjectBranch` refused naming `branch_delete`; a production branch path in preview mode
+nothing; `neon_api_write` on `deleteProjectBranch` refused naming `neon_branch_delete`; a production branch path in preview mode
 refused; protected resource refused; an unlisted create on computes treated as spend; a credential-create response has no
-secret (key-scan) and a one-time link; `api_search "custom domain"` and `"vpc endpoint"` find the right operations; 30
+secret (key-scan) and a one-time link; `neon_api_search "custom domain"` and `"vpc endpoint"` find the right operations; 30
 random GET operations' request shapes validate against the description.
 
 ## 5. Stop-and-ask points
@@ -69,6 +69,6 @@ random GET operations' request shapes validate against the description.
 |---|---|
 | Every request validated against Neon's description | `tests/unit/universal.test.js` |
 | Safe defaults for unknown spend and secrets | same |
-| Same guards as hand-built tools | write-contract through `api_write` |
+| Same guards as hand-built tools | write-contract through `neon_api_write` |
 
 ## Amendments

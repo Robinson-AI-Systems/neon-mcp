@@ -59,13 +59,13 @@ next bounded implementation.
 ## Batch P — Project profiles (`designs/BATCH-P.md`)
 - [ ] `known_apps` with the Appliance Desk profile, each item traceable to the app's code and docs; no real IDs committed.
 - [ ] App guard refuses schema-owner DDL, migrations-table writes, production/shared-preview branch and pinned-endpoint changes, app-role password resets and Neon Auth for apps using other auth — unless `outsideApp`.
-- [ ] `workflow_app_readiness` covers every row of the example profile and works with an inline spec; `workflow_project_setup` idempotent; `profile_draft` from codebase findings.
+- [ ] `neon_workflow_app_readiness` covers every row of the example profile and works with an inline spec; `neon_workflow_project_setup` idempotent; `neon_profile_draft` from codebase findings.
 
 ## Batch W — Workflows (`designs/BATCH-W.md`)
 - [ ] All 9 workflows; safe migration applies only after preview and confirm and verifies (bug N4 cannot recur); recovery never swaps production without confirm; all writes confirmed and logged.
 
 ## Batch U — Universal tools (`designs/BATCH-U.md`)
-- [ ] Four `api_*` tools; requests validated against Neon's description; deprecated operations refused; safe defaults for unknown spend and secrets; hand-built tools win; same guards.
+- [ ] Four `neon_api_*` tools; requests validated against Neon's description; deprecated operations refused; safe defaults for unknown spend and secrets; hand-built tools win; same guards.
 
 ## Batch R — Hub-ready doors, RTC 1 (`designs/BATCH-R.md`)
 - [ ] Passes per RTC §2 (preview mode, read-only, 24 h, 60 calls/minute by default).

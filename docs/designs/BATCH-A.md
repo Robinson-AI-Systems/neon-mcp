@@ -71,7 +71,7 @@ returns the first result. Objects that accept annotations (branches; a new proje
 `GET /projects/{project_id}/operations/{operation_id}` once a second until every operation is `finished` or `skipped`,
 any is `failed`/`error`/`cancelled` (→ plain-English error with the operation's action), or the budget ends (stored
 setting `operation_wait_seconds`, default 20, maximum 45 — under Vercel's function limit). Out of budget → the tool
-returns `{ done: 'pending', operations, next: 'operation_get with waitSeconds' }` and `confirmed: null`. Never an
+returns `{ done: 'pending', operations, next: 'neon_operation_get with waitSeconds' }` and `confirmed: null`. Never an
 unbounded loop.
 
 **A11. The server counts its own Neon API calls.** Neon allows 700 requests a minute. Every call through the client

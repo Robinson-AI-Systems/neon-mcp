@@ -24,33 +24,33 @@ keys stored, they answer in words: "add an organization API key on the setup pag
 need `confirm` and appear in the change log, through any door (contract §11). They are not gated by production mode
 (they change people and settings, not databases), except transfers, which move production databases (`Pr`).
 
-**O2. People.** `member_invite` (messages a person: the preview shows each email and the role; at most 10 per call);
-`member_set_role` (raising access is `A`; the preview says what the new role can do, from Neon's permission table);
-`member_remove`. The server **refuses** removing or demoting the last admin, and changing the role of the person whose
+**O2. People.** `neon_member_invite` (messages a person: the preview shows each email and the role; at most 10 per call);
+`neon_member_set_role` (raising access is `A`; the preview says what the new role can do, from Neon's permission table);
+`neon_member_remove`. The server **refuses** removing or demoting the last admin, and changing the role of the person whose
 key the server is using (self-lockout); Chris does those in the console (guided). Project access: explicit project roles
-(`access_set_project_role`, Neon's newer per-project roles; clearing the role returns the member to the organization
-default) and legacy email sharing (`access_share_project`, `access_revoke_share`).
+(`neon_access_set_project_role`, Neon's newer per-project roles; clearing the role returns the member to the organization
+default) and legacy email sharing (`neon_access_share_project`, `neon_access_revoke_share`).
 
-**O3. API keys.** `apikey_list` shows names, kind (personal / organization / project-scoped and which project), created
-date — never a key. `apikey_create` either puts the new key on the one-time page or, with `storeAsServerKey: true`,
+**O3. API keys.** `neon_apikey_list` shows names, kind (personal / organization / project-scoped and which project), created
+date — never a key. `neon_apikey_create` either puts the new key on the one-time page or, with `storeAsServerKey: true`,
 stores it directly as one of this server's keys without anyone seeing it (the way to rotate this server's own keys). New
-keys this server creates are named `robinson-neon-mcp-<purpose>-<date>`. `apikey_revoke` refuses keys this server uses
+keys this server creates are named `robinson-neon-mcp-<purpose>-<date>`. `neon_apikey_revoke` refuses keys this server uses
 (known by ID when created here; by the `robinson-neon-mcp-` name prefix that `docs/DEPLOY.md` tells Chris to use for keys
 he creates himself) until a replacement is stored.
 
-**O4. Transfers move production.** `transfer_request_create` (to another Neon account; the claim link grants the project
-to whoever opens it, so it goes to the one-time page) and `transfer_projects_between_orgs` are production-guarded; the
+**O4. Transfers move production.** `neon_transfer_request_create` (to another Neon account; the claim link grants the project
+to whoever opens it, so it goes to the one-time page) and `neon_transfer_projects_between_orgs` are production-guarded; the
 preview lists the projects, their default branches, and integrations Neon says need reconfiguring after a move (Vercel,
 GitHub). Accepting a transfer is done by the receiving side (universal tool or console).
 
-**O5. Usage and dollars.** `billing_usage(period, by: 'project' | 'branch', projects?)` reads consumption v2 (legacy
+**O5. Usage and dollars.** `neon_billing_usage(period, by: 'project' | 'branch', projects?)` reads consumption v2 (legacy
 endpoint for legacy plans), converts each metric to dollars with the stored price table (B-4) and adds a month-end
 projection (month-to-date ÷ days elapsed × days in month). Every dollar figure is labelled "estimate from Neon's
 published prices as of <date>; your Neon invoice is the authority". Consumption reads do not wake computes (Neon says
-so). `billing_estimate_change` runs the same spend estimators as B-4 for a described change without doing it.
+so). `neon_billing_estimate_change` runs the same spend estimators as B-4 for a described change without doing it.
 
 **O6. The spending alert is only an alert.** Neon emails admins at 80% and 100% and does **not** suspend computes; both
-tools say so. Setting or removing it needs `confirm`. Hard limits on spend are the project quotas (`project_set_quotas`)
+tools say so. Setting or removing it needs `confirm`. Hard limits on spend are the project quotas (`neon_project_set_quotas`)
 and this server's own spend caps (B-4).
 
 **O7. Admin overview** (`neon_admin_overview`): one call, every item `ok` / `needs_attention` (why, and the tool or guided
@@ -64,37 +64,37 @@ resources); and every guided setting's state (unknown until checked).
 **O8. Guided settings and the full dashboard map.** `src/data/dashboard-map.js` holds one entry per console setting,
 each `{ setting, url, steps: [{ n, action, target, value? }], expected, verifyWith?: { tool, args, field, equals } }`
 (contract §11). O-4 walks Neon's console once (read-only, with Chris or a browser-capable agent while Chris watches),
-records the date and fills every row below; `admin_list_guided_settings` lists them by page and `admin_check_setting`
+records the date and fills every row below; `neon_admin_list_guided_settings` lists them by page and `neon_admin_check_setting`
 reads back the ones Neon exposes. A guided setting is never reported done unless verified or Chris says so. Steps that
 involve keys never reveal a key; steps that buy something (plan upgrade, AI Gateway credits) end with "this costs money —
 only Chris clicks the final button" and the server never claims it.
 
 | Console page (2026-09-18 layout) | Setting | API? |
 |---|---|---|
-| Organization → Billing | Plan (Free/Launch/Scale/Business), payment method, billing address and tax ID, invoices, AI Gateway credits | No → guided; plan read back with `org_list` |
-| Organization → Billing | Spending alert | Yes (`billing_*_spending_alert`) |
-| Organization → Members | Members, invitations, roles | Yes (`member_*`) |
-| Organization → API keys | Personal, organization, project-scoped keys | Yes (`apikey_*`) |
+| Organization → Billing | Plan (Free/Launch/Scale/Business), payment method, billing address and tax ID, invoices, AI Gateway credits | No → guided; plan read back with `neon_org_list` |
+| Organization → Billing | Spending alert | Yes (`neon_billing_*_spending_alert`) |
+| Organization → Members | Members, invitations, roles | Yes (`neon_member_*`) |
+| Organization → API keys | Personal, organization, project-scoped keys | Yes (`neon_apikey_*`) |
 | Organization → Integrations | Vercel (Neon-managed or Vercel-managed), GitHub, monitoring/log export (Scale) | No → guided |
 | Organization → Settings | Name, email-domain auto-provisioning, SSO/SAML (Enterprise), delete organization | No → guided |
 | Profile menu → Account settings | Name, email, login methods and two-step login (through the login provider), delete account | No → guided |
-| Project → Settings → General | Name, default branch, transfer, delete | Yes (`project_*`, `branch_set_default`, `transfer_*`) |
-| Project → Settings → Postgres | History retention, default compute settings, logical replication, preload libraries, maintenance window, audit level | Yes (`project_*`, `security_*`) |
-| Project → Settings → Networking | IP allow, private networking/VPC endpoints, block public connections | Yes (`security_*`; VPC through `api_*`) |
-| Project → Settings → Credentials | Scoped service credentials (private beta) | Yes, through `api_*` (secrets on the one-time page) |
-| Project → Settings → Auth / Functions | Neon Auth, Functions settings | Yes (Batch E tools / `api_*`) |
+| Project → Settings → General | Name, default branch, transfer, delete | Yes (`neon_project_*`, `neon_branch_set_default`, `neon_transfer_*`) |
+| Project → Settings → Postgres | History retention, default compute settings, logical replication, preload libraries, maintenance window, audit level | Yes (`neon_project_*`, `neon_security_*`) |
+| Project → Settings → Networking | IP allow, private networking/VPC endpoints, block public connections | Yes (`neon_security_*`; VPC through `neon_api_*`) |
+| Project → Settings → Credentials | Scoped service credentials (private beta) | Yes, through `neon_api_*` (secrets on the one-time page) |
+| Project → Settings → Auth / Functions | Neon Auth, Functions settings | Yes (Batch E tools / `neon_api_*`) |
 | Project → Settings → HIPAA compliance | HIPAA and the BAA | Partly → guided only (legal agreement, irreversible) |
-| Project → Settings → Sharing | Email shares, project roles | Yes (`access_*`) |
+| Project → Settings → Sharing | Email shares, project roles | Yes (`neon_access_*`) |
 | Branch pages | Protection, expiry, restore, schema diff, computes, roles, databases, Data API, Auth, storage | Yes (Batch D/E tools) |
-| Monitoring, SQL editor, Tables editor | Charts and editors | Reading only; `health_*`, `sql_*` cover the data |
+| Monitoring, SQL editor, Tables editor | Charts and editors | Reading only; `neon_health_*`, `neon_sql_*` cover the data |
 
-**O9. Security review** (`admin_review_security`): organization-wide version of `security_review` plus people and keys:
+**O9. Security review** (`neon_admin_review_security`): organization-wide version of `neon_security_review` plus people and keys:
 admin count, members with Admin who have not logged in recently (when Neon reports it), keys older than the warning age,
 default branches not protected in projects with data, projects open to the public internet without IP allow on plans that
 have it, organizations with production access enabled on this server, connections and passes to this server and their
 expiry; guided checks for SSO and two-step login.
 
-**O10. Activity** (`admin_activity(period)`): Neon operations across projects (paged, capped at 500 with a handle) merged
+**O10. Activity** (`neon_admin_activity(period)`): Neon operations across projects (paged, capped at 500 with a handle) merged
 with this server's change log, by day, in Denver time — "what happened, through anything".
 
 ## 2. Schema
@@ -104,23 +104,23 @@ None. Settings seeded (insert when missing): `admin` = `{ key_age_warn_days: 180
 ## 4. Work units
 
 ### O-1 — Organizations, members, project access (M, medium effort)
-Tools: `org_list`, `member_list`, `member_invite`, `member_set_role`, `member_remove`, `access_list`,
-`access_set_project_role`, `access_share_project`, `access_revoke_share`. Tests: invite preview shows emails and role;
+Tools: `neon_org_list`, `neon_member_list`, `neon_member_invite`, `neon_member_set_role`, `neon_member_remove`, `neon_access_list`,
+`neon_access_set_project_role`, `neon_access_share_project`, `neon_access_revoke_share`. Tests: invite preview shows emails and role;
 last-admin and self-lockout refused; access widening needs confirm through every door; org-key requirement answered in
 words when missing.
 
 ### O-2 — API keys and transfers (M, medium effort)
-Tools: `apikey_list`, `apikey_create`, `apikey_revoke`, `transfer_request_create`, `transfer_projects_between_orgs`.
+Tools: `neon_apikey_list`, `neon_apikey_create`, `neon_apikey_revoke`, `neon_transfer_request_create`, `neon_transfer_projects_between_orgs`.
 Tests: new key never in a result (one-time page) or stored directly; revoking a server key refused; claim link on the
 one-time page; transfer preview lists integrations to reconfigure; production guard on transfers.
 
 ### O-3 — Usage, estimates, spending alert (M)
-Tools: `billing_usage`, `billing_estimate_change`, `billing_get_spending_alert`, `billing_set_spending_alert`. Tests:
+Tools: `neon_billing_usage`, `neon_billing_estimate_change`, `neon_billing_get_spending_alert`, `neon_billing_set_spending_alert`. Tests:
 hand-computed dollars from a consumption fixture; projection; legacy-plan path; "alert only" wording; caps unaffected.
 
 ### O-4 — Admin overview, guided settings, dashboard map, security review, activity (M, medium effort)
-Tools: `neon_admin_overview`, `admin_list_guided_settings`, `admin_check_setting`, `admin_review_security`,
-`admin_activity`; `neon_where_is_setting` upgraded to read the full map. Tests: every overview item has a state on
+Tools: `neon_admin_overview`, `neon_admin_list_guided_settings`, `neon_admin_check_setting`, `neon_admin_review_security`,
+`neon_admin_activity`; `neon_where_is_setting` upgraded to read the full map. Tests: every overview item has a state on
 fixtures; every map entry has steps and an expected result; every `verifyWith` names a real read tool and field; purchase
 steps never end in a claim; activity merges operations and change log in order.
 

@@ -23,7 +23,7 @@ read-back, verify, change-log row — extended for Neon with metadata the guards
 access: boolean, secret: boolean, key: 'project' | 'org', projectWide: boolean, inverse: (args, before, after) →
 { tool, args } | null }`. `plan()` always reads the target from Neon first (never trusts arguments for what exists).
 `readAfter()` runs after `waitForOperations` (A10); a pending wait gives `confirmed: 'pending'` and a change-log row that
-`operation_get` later completes.
+`neon_operation_get` later completes.
 
 **B2. "Production" is decided by one function, from Neon's own data** (`src/neon/production.js`,
 `classifyTarget(ctx, target)`), never from names or arguments. A target is **production** when any of these is true:
@@ -57,19 +57,19 @@ read by `neon_get_settings` and edited **only on the setup page** behind the pas
 that key).
 
 **B5. The SQL guard classifies every statement with the real PostgreSQL parser** (`src/neon/sql-guard.js`,
-`libpg-query`). Unparseable SQL is refused with the parser's message. One string = one statement in `sql_query` and
-`sql_execute`; several statements go in `sql_execute_transaction` as an array. Classes:
+`libpg-query`). Unparseable SQL is refused with the parser's message. One string = one statement in `neon_sql_query` and
+`neon_sql_execute`; several statements go in `neon_sql_execute_transaction` as an array. Classes:
 
 | Class | Statements (parser node types) | Rule |
 |---|---|---|
-| `read` | `SelectStmt` without `INTO` or locking clause, `VariableShowStmt`, `ExplainStmt` whose inner statement is `read` (ANALYZE allowed) | `sql_query`, inside `BEGIN READ ONLY`, row cap, statement timeout. Production reads allowed when setting `sql.production_reads` is true (IN-09) |
+| `read` | `SelectStmt` without `INTO` or locking clause, `VariableShowStmt`, `ExplainStmt` whose inner statement is `read` (ANALYZE allowed) | `neon_sql_query`, inside `BEGIN READ ONLY`, row cap, statement timeout. Production reads allowed when setting `sql.production_reads` is true (IN-09) |
 | `write` | `InsertStmt`; `UpdateStmt`/`DeleteStmt` **with** a `WHERE` that is not a constant-true expression; `MergeStmt`; locking `SELECT`; `SELECT … INTO` | Non-production: preview (EXPLAIN estimate), no confirm. Production: B3 + exact-count preview (B6) + guarded apply (B7) |
 | `ddl` | `CreateStmt`, `IndexStmt` (non-concurrent), `ViewStmt`, `CreateFunctionStmt`, `CreateSchemaStmt`, `CommentStmt`, `AlterTableStmt` with only additive subcommands (add column, add constraint, set default, attach), `CreatePublicationStmt`, `GrantStmt` (also **access**) | Non-production: preview, no confirm (grant: confirm). Production: B3 + schema-diff preview on a throwaway branch + lock warning + guarded apply. Profiled app's schema: refused without `outsideApp: true` (P-1) |
 | `destructive` | `DropStmt` (any object), `TruncateStmt`, `UpdateStmt`/`DeleteStmt` without `WHERE` (or `WHERE true`, `WHERE 1=1`), `AlterTableStmt` with `DROP COLUMN`, `ALTER COLUMN TYPE`, `SET NOT NULL`, `DROP CONSTRAINT`, `SET UNLOGGED`; `RenameStmt`; `RevokeStmt`; `DropOwnedStmt`; `ReassignOwnedStmt`; `DoStmt` and `CallStmt` (opaque code); `VacuumStmt` with `FULL`; `ClusterStmt` | Always `confirm`. Production: B3 + exact preview (B6) + guarded apply (B7). Full-table `UPDATE`/`DELETE` additionally need `allowFullTable: true` |
-| `refused` | `TransactionStmt` (the tool controls transactions), `VariableSetStmt` (except `SET LOCAL` of `statement_timeout`/`lock_timeout`/`search_path` inside `sql_execute_transaction`), `AlterSystemStmt`, `CreateRoleStmt`/`AlterRoleStmt`/`DropRoleStmt` (use `role_*`; a password in SQL would be logged), `CopyStmt`, `LoadStmt`, `CheckPointStmt`, `ListenStmt`/`NotifyStmt`, `CreatedbStmt`/`DropdbStmt` (use `database_*`), `CreateExtensionStmt`/`AlterExtensionStmt`/`DropExtensionStmt` (use `schema_*_extension`), non-FULL `VacuumStmt` (use `health_vacuum_analyze`), `ReindexStmt` (use `health_reindex`), `IndexStmt` with `CONCURRENTLY` (use `schema_create_index`) | Refused with the name of the right tool |
+| `refused` | `TransactionStmt` (the tool controls transactions), `VariableSetStmt` (except `SET LOCAL` of `statement_timeout`/`lock_timeout`/`search_path` inside `neon_sql_execute_transaction`), `AlterSystemStmt`, `CreateRoleStmt`/`AlterRoleStmt`/`DropRoleStmt` (use `neon_role_*`; a password in SQL would be logged), `CopyStmt`, `LoadStmt`, `CheckPointStmt`, `ListenStmt`/`NotifyStmt`, `CreatedbStmt`/`DropdbStmt` (use `neon_database_*`), `CreateExtensionStmt`/`AlterExtensionStmt`/`DropExtensionStmt` (use `neon_schema_*_extension`), non-FULL `VacuumStmt` (use `neon_health_vacuum_analyze`), `ReindexStmt` (use `neon_health_reindex`), `IndexStmt` with `CONCURRENTLY` (use `neon_schema_create_index`) | Refused with the name of the right tool |
 
 Function calls anywhere in a statement are checked against a deny list — `pg_terminate_backend`, `pg_cancel_backend`
-(use `sql_stop_query`), `pg_reload_conf`, `set_config`, `pg_advisory_lock*`, `dblink*`, `lo_import`, `lo_export`,
+(use `neon_sql_stop_query`), `pg_reload_conf`, `set_config`, `pg_advisory_lock*`, `dblink*`, `lo_import`, `lo_export`,
 `pg_read_file`, `pg_read_binary_file`, `pg_ls_dir`, `pg_sleep` over 5 seconds — refused with the right tool where one
 exists. The READ ONLY transaction is the second line of defense for `read` (Postgres itself rejects writes inside
 functions).
@@ -86,7 +86,7 @@ cost is shown (under one cent for a short preview at Neon's published rate).
 
 **B7. Guarded apply.** A production SQL write applies only when the call passes `confirm: true` and the `previewToken`
 from a preview of the **same** SQL on the **same** target in the last 30 minutes. The server: records
-`pg_current_wal_lsn()` (the restore point, stored as `restore_lsn`, used by undo X-1 and `workflow_recover_data`); opens
+`pg_current_wal_lsn()` (the restore point, stored as `restore_lsn`, used by undo X-1 and `neon_workflow_recover_data`); opens
 one transaction with `SET LOCAL lock_timeout` and `statement_timeout` from settings; runs the statements; compares
 affected rows with the preview's expected rows within `sql.affected_rows_tolerance` (default 0 = exact); on a difference
 rolls back and reports both numbers; otherwise commits and reads back (row counts or schema). Non-production writes use
@@ -100,7 +100,7 @@ $1.50/branch-month with 10 included on Launch and 25 on Scale, egress $0.10/GB a
 totals are cents. Every `$` tool's `spend()` computes the **worst-case monthly increase** from the target's current
 state (read in `plan()`), e.g. raising a compute's maximum from 2 to 4 CU with scale-to-zero off = 2 × 730 h × $0.106 =
 $154.76/month. Where Neon's charge depends on usage that cannot be known (history storage, snapshot size), the preview
-gives the rate, last month's usage of that metric when readable (`billing_usage`), and says it is an estimate. Rules:
+gives the rate, last month's usage of that metric when readable (`neon_billing_usage`), and says it is an estimate. Rules:
 every `$` change needs `confirm`; a change whose worst-case increase is above `spend.cap_per_change_cents` (default
 $25, IN-10) or that would take today's confirmed increases above `spend.cap_per_day_cents` (default $50) is refused with
 the numbers and how to raise the cap. Free-plan accounts: the preview says the plan limit that would block it instead.
@@ -112,7 +112,7 @@ presigned links, passes) always need `confirm`; the preview names the person or 
 **B10. Plain-English errors** (`src/neon/errors.js`, shape copied from the Workspace server): what happened, likely
 cause, what to do, one technical line with Neon's request ID or the SQLSTATE. Rules: 401 (key revoked or wrong — "add a
 new key on the setup page"); 403 (this key kind cannot do this — names the kind that can, from A5); 404; 409/423
-(another operation is running — "wait and retry; `operation_list` shows it"); 422 with the parameter; 429; plan limits in
+(another operation is running — "wait and retry; `neon_operation_list` shows it"); 422 with the parameter; 429; plan limits in
 Neon's message (protected branches, branch count, compute size, project count) → the plan page link; "cannot delete a
 branch that has children"; compute waking (connection reset on first query → one automatic reconnect for reads only).
 SQLSTATE: `42P01`, `42703`, `42501` (permission), `23505`, `23503`, `23502`, `25006` (write in read-only), `57014`
@@ -186,7 +186,7 @@ guarded apply, restore point).
 Tests (classification table-driven, ≥60 statements, one per row of B5 plus tricky ones: `DELETE … WHERE 1=1`,
 `WITH d AS (DELETE …) SELECT …` → write, `SELECT … FOR UPDATE` → write, `EXPLAIN ANALYZE DELETE` → destructive,
 `SELECT pg_terminate_backend(1)` → refused, two statements in one string → refused, comment-hidden statements,
-dollar-quoted `DO` → destructive); on real Postgres: a write inside `sql_query` fails with 25006 in plain words; guarded
+dollar-quoted `DO` → destructive); on real Postgres: a write inside `neon_sql_query` fails with 25006 in plain words; guarded
 apply rolls back when affected rows differ from expected; restore LSN recorded; `previewToken` for different SQL or a
 different target is refused; preview branch deleted after success and after failure (fake Neon); fallback to estimate
 needs `acceptEstimate`.
@@ -243,16 +243,16 @@ returns structured steps for "change plan" and never claims it is done.
 (Dated entries only.)
 
 **2026-10-10 — Gap check against prior toolkits** (`docs/audits/2026-10-10-prior-tools.md`). Mapping the old toolkits'
-structured DDL, grant, RLS, replication and statistics tools to `sql_execute` showed statements B5 did not place, and
+structured DDL, grant, RLS, replication and statistics tools to `neon_sql_execute` showed statements B5 did not place, and
 that `ReindexStmt` pointed at a tool that cannot reindex. Changes to B5 (B-3 adds one test row each):
-1. `ReindexStmt` → refused with "use `health_reindex`" (new tool, D-9); `AlterExtensionStmt` → refused with "use
-   `schema_enable_extension` (`update: true`)".
+1. `ReindexStmt` → refused with "use `neon_health_reindex`" (new tool, D-9); `AlterExtensionStmt` → refused with "use
+   `neon_schema_enable_extension` (`update: true`)".
 2. `ddl` also covers `CreateEnumStmt`, `AlterEnumStmt` (add value), `CompositeTypeStmt`, `CreateSeqStmt`,
    `CreateTrigStmt`, `CreatePolicyStmt`, `CreateTableAsStmt`, and `AlterTableStmt` `ENABLE ROW LEVEL SECURITY`;
    `write` also covers `RefreshMatViewStmt`; `destructive` also covers `AlterPolicyStmt`, `AlterTableStmt`
    `DISABLE`/`NO FORCE ROW LEVEL SECURITY`, and `AlterSeqStmt`.
 3. Function calls that change server state without a table write are classed by the function, never as `read`:
    `pg_stat_statements_reset`, `pg_stat_reset*`, `setval`, `pg_create_logical_replication_slot` → `write` (so only
-   `sql_execute`, never `sql_query`); `pg_drop_replication_slot` → `destructive`.
+   `neon_sql_execute`, never `neon_sql_query`); `pg_drop_replication_slot` → `destructive`.
 4. **Fail closed:** any parser node type not named in B5 is classed `destructive` (always confirm, exact preview on
    production) until a reviewed amendment places it; the result says it was unclassified.

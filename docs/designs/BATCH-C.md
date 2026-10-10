@@ -21,9 +21,9 @@ small results with handles, MCP tool annotations, workflows. Sources: Anthropic,
 
 **C1. Two listing modes per connection.** `catalog` (default for claude.ai, whose client does tool search): every tool
 in the profile, listing description ≤160 characters starting with the action (`PRODUCTION:` first for tools whose usual
-target is production, e.g. `snapshot_finalize_restore`); longer guidance lives in property descriptions and
-`neon_describe_tool`. `compact` (default for every other client): the meta-tools, `neon_whoami`, `api_search` (once
-Batch U exists) and the read-only `workflow_*` tools — about 20 tools, under 5,000 tokens, reaching everything.
+target is production, e.g. `neon_snapshot_finalize_restore`); longer guidance lives in property descriptions and
+`neon_describe_tool`. `compact` (default for every other client): the meta-tools, `neon_whoami`, `neon_api_search` (once
+Batch U exists) and the read-only `neon_workflow_*` tools — about 20 tools, under 5,000 tokens, reaching everything.
 
 **C2. Meta-tools.** `neon_search_tools(query, area?, audience?, limit=10)` → names, one-line descriptions, flags;
 `neon_describe_tool(name)` → full schema and guidance; `neon_call(name, args)` → dispatches into the **wrapped** handler,

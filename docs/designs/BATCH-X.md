@@ -20,7 +20,7 @@ JWKS ↔ previous values; member role ↔ previous role; spending alert ↔ prev
 **SQL changes:** undo restores the branch to the `restore_lsn` recorded before the change (B-7), **always** preserving
 the current state under a name; the preview lists everything else written to that branch since (operations, this
 server's change log, and "the app may have written too: the preserved branch keeps those rows" for profiled projects),
-and suggests `workflow_recover_data` (copy rows back) when other writes happened since. No inverse (says so and suggests
+and suggests `neon_workflow_recover_data` (copy rows back) when other writes happened since. No inverse (says so and suggests
 the right opposite): logical replication on, members removed (re-invite), keys revoked (create a new one), passwords
 reset (rotate again), snapshots deleted, objects deleted past 7 days. Undo of an undo works where both have inverses.
 

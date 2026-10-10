@@ -669,7 +669,7 @@
     },
     {
       "id": "P-2",
-      "title": "workflow_app_readiness",
+      "title": "neon_workflow_app_readiness",
       "batch": "P",
       "design": "docs/designs/BATCH-P.md",
       "dependencies": [
@@ -687,7 +687,7 @@
     },
     {
       "id": "P-3",
-      "title": "workflow_project_setup and profile_draft",
+      "title": "neon_workflow_project_setup and neon_profile_draft",
       "batch": "P",
       "design": "docs/designs/BATCH-P.md",
       "dependencies": [
@@ -705,7 +705,7 @@
     },
     {
       "id": "W-1",
-      "title": "workflow_safe_migration",
+      "title": "neon_workflow_safe_migration",
       "batch": "W",
       "design": "docs/designs/BATCH-W.md",
       "dependencies": [
@@ -723,7 +723,7 @@
     },
     {
       "id": "W-2",
-      "title": "workflow_recover_data",
+      "title": "neon_workflow_recover_data",
       "batch": "W",
       "design": "docs/designs/BATCH-W.md",
       "dependencies": [
@@ -741,7 +741,7 @@
     },
     {
       "id": "W-3",
-      "title": "workflow_database_health, workflow_usage_and_cost",
+      "title": "neon_workflow_database_health, neon_workflow_usage_and_cost",
       "batch": "W",
       "design": "docs/designs/BATCH-W.md",
       "dependencies": [
@@ -759,7 +759,7 @@
     },
     {
       "id": "W-4",
-      "title": "workflow_branch_cleanup",
+      "title": "neon_workflow_branch_cleanup",
       "batch": "W",
       "design": "docs/designs/BATCH-W.md",
       "dependencies": [
@@ -777,7 +777,7 @@
     },
     {
       "id": "W-5",
-      "title": "workflow_rotate_credentials",
+      "title": "neon_workflow_rotate_credentials",
       "batch": "W",
       "design": "docs/designs/BATCH-W.md",
       "dependencies": [
@@ -795,7 +795,7 @@
     },
     {
       "id": "W-6",
-      "title": "workflow_secure_project, workflow_go_live_check",
+      "title": "neon_workflow_secure_project, neon_workflow_go_live_check",
       "batch": "W",
       "design": "docs/designs/BATCH-W.md",
       "dependencies": [
@@ -813,7 +813,7 @@
     },
     {
       "id": "W-7",
-      "title": "workflow_find",
+      "title": "neon_workflow_find",
       "batch": "W",
       "design": "docs/designs/BATCH-W.md",
       "dependencies": [

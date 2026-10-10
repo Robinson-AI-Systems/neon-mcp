@@ -37,30 +37,30 @@ its CI uses throwaway local Postgres), `backups_outside_neon` (informational).
 refuses, unless the call passes `outsideApp: true` (and still with every other guard):
 - DDL on a database the profile's `schema_owner` owns, on a production or shared-preview branch ("Appliance Desk's
   Prisma migrations own this schema; a direct change makes the next `prisma migrate deploy` fail or drift. Write a
-  migration in the app instead, or preview it with `dev_migration_preview`.");
+  migration in the app instead, or preview it with `neon_dev_migration_preview`.");
 - writes to the migrations table itself;
 - deleting, resetting, restoring or renaming a production or shared-preview branch, or deleting/moving a pinned endpoint
   ("the app's preview guard checks this host; replacing it breaks every preview until the app is updated");
-- resetting the password of an `app_roles` role (use `workflow_rotate_credentials`, which lists the env vars to update);
+- resetting the password of an `app_roles` role (use `neon_workflow_rotate_credentials`, which lists the env vars to update);
 - enabling Neon Auth when `auth` is `'other'`.
 DML on production app tables is not blocked by the app guard (the production guard already needs production access and
 confirm) but the preview says "this changes Appliance Desk's live data outside the app; the app's audit history will not
 show it". Reads are never blocked. Branches matching `branch_naming` patterns are labelled in results.
 
-**P4. `workflow_app_readiness(app | spec)`** checks every row of a profile — or of an inline `spec` for a project being
+**P4. `neon_workflow_app_readiness(app | spec)`** checks every row of a profile — or of an inline `spec` for a project being
 built today — and returns per row: done / fixed (with confirm) / needs you (link + steps) / needs a decision (`IN-xx`).
 Fixes it can make, each previewed and confirmed: protect the production branch, set history retention to the profile's
 minimum ($), set a snapshot schedule ($), turn off scale-to-zero on production when the profile asks ($). It never runs
-migrations, never changes the schema, never creates the app's roles' passwords outside `workflow_rotate_credentials`.
+migrations, never changes the schema, never creates the app's roles' passwords outside `neon_workflow_rotate_credentials`.
 
-**P5. `workflow_project_setup(description)`** is for a **new** project: from a short plain description (name, region or
+**P5. `neon_workflow_project_setup(description)`** is for a **new** project: from a short plain description (name, region or
 "near Vercel", databases, whether a migration tool will own the schema, whether previews get their own branches) it
 previews and then creates: the project, databases, an app role, default branch protected (plan permitting), dev-branch
 defaults, an optional snapshot schedule ($, confirm), and returns a draft profile row (`status: 'draft'`) and the text of
 the project's `APP-NEEDS-<APP>.md` for Chris or the project's agent to commit in that project's repo. Connection strings
 only through the one-time page. Running it twice changes nothing (finds the project by name and annotation).
 
-**P6. `profile_draft(findings)`** turns what an agent found in a codebase — env var names, the migration tool and its
+**P6. `neon_profile_draft(findings)`** turns what an agent found in a codebase — env var names, the migration tool and its
 table, branch names in code, hosts pinned by guards, restore scripts, auth library — into a draft profile and APP-NEEDS
 text. It never fetches code itself.
 
@@ -77,16 +77,16 @@ asks for the project, preview endpoint and production branch IDs (IN-13).
 ## 4. Work units
 
 ### P-1 — `known_apps`, Appliance Desk seed, app guard (M, medium effort)
-Tools: `profile_list`, `profile_get`, `profile_update`. Tests: each refusal in P3 on fixtures, and `outsideApp` letting it
+Tools: `neon_profile_list`, `neon_profile_get`, `neon_profile_update`. Tests: each refusal in P3 on fixtures, and `outsideApp` letting it
 through to the other guards; a project without a profile is unaffected; a test lists every seeded fact with the
 appliance-desk file it came from (the PR body carries that table).
 
-### P-2 — `workflow_app_readiness` (L, medium effort)
+### P-2 — `neon_workflow_app_readiness` (L, medium effort)
 Tests with fixtures for every row of the Appliance Desk file: protected main → done; unprotected → one confirmed fix →
 read-back; Neon Auth enabled while `auth: 'other'` → needs you; migrations table present and latest migration recorded →
 done; inline spec behaves like a profile.
 
-### P-3 — `workflow_project_setup` and `profile_draft` (M)
+### P-3 — `neon_workflow_project_setup` and `neon_profile_draft` (M)
 Tests: a new project from a description (run twice → nothing new); draft profile and doc text returned, never committed
 anywhere; findings with an unknown migration tool are reported, not guessed.
 
