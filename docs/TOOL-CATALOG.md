@@ -4,6 +4,11 @@ Every tool this server will have, by area — the product scope. The implementin
 else goes in `docs/ROADMAP.md` and the PR report. One row per tool (so the totals can be counted by a script:
 `python3 -c` snippet at the end). When a tool merges, its Card cell gains `built #<PR>`.
 
+**Built so far:** none. A-1 (#1) created the empty registry (`src/tools/index.js`) and the starting
+`scripts/check-writes.mjs` (every registered tool named `neon_*`, declares `writes`; write tools expose `dryRun`/`confirm`
+and a write contract) and `scripts/check-budgets.mjs` (descriptions ≤160 characters, catalog ≤20,000 tokens). The first
+tools are `neon_whoami` and `neon_list_accounts` (A-5).
+
 Tools serve three audiences (Robinson Tool Contract §3, tagged on every tool): **B** builder (building or testing with
 Neon), **Ow** owner (setting up and administering the account), **Op** operator (day-to-day use).
 

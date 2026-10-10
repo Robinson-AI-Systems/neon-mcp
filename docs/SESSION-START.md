@@ -8,7 +8,8 @@ only when a step below names them, a section at a time. `AGENTS.md` still govern
 Work happens in whatever workspace you were given (a cloud agent workspace, a Vercel Sandbox, a laptop). Code reaches
 GitHub only as git commits pushed to an `ai/*` branch. Never copy source files through tool output.
 
-1. `git fetch origin && git status -sb && git log --oneline -5`; `npm ci` once per checkout.
+1. `git fetch origin && git status -sb && git log --oneline -5`; `npm ci` once per checkout. In a shallow or
+   single-branch clone, also `git fetch origin main:refs/remotes/origin/main` (the docs check compares with it).
 2. `sed -n '1,40p' docs/STATUS.md` → the **Next** section names the card.
 3. Resume note? `ls docs/pr-cards/*.progress.md 2>/dev/null` — if your card has one, continue from its "Next step".
    Do not restart work it lists as done.
@@ -29,12 +30,17 @@ widening default key, connection or pass permissions; committing to `main`; skip
 2. Drift check: `docs/implementation-contracts/DRIFT-PROTOCOL.md` **checklist A** (table in the PR, card corrected
    first).
 3. Build one work unit → its tests → run them (`npx vitest run <files>`; `npm run test:db -- <file>` when it touches
-   SQL — this server's own tables or the SQL tools) → `npm run check` → **commit locally** → update the resume note
+   SQL — this server's own tables or the SQL tools; it starts a throwaway local Postgres when `initdb` exists, also as
+   root, else push and let CI's `db` job run it) → `npm run check` → **commit locally** → update the resume note
    (§4). Repeat. Red → fix one failing file at a time, then the full check once.
+   Test tools you already have (A-1): `makeFakeNeon()` in `test/helpers/fake-neon.js` (pass its `fetch` to the Neon
+   client; it fails on any request Neon's description does not allow), fixtures in `test/helpers/neon-fixtures.js`,
+   `openIsolatedSchema()` / `neonShapedQuery()` in `test/helpers/pg-neon-adapter.js`.
 4. **Code first, then docs.** In an implementation PR, edit only the docs checklist B names.
 5. When the card is complete: update the docs **as if this PR had already merged** (card `MERGED (#n)`, STATUS,
    `work-index.json`, TOOL-CATALOG marks, ARCHITECTURE when infra changed — checklist B), push once, open the PR,
-   then follow PLAYBOOK Steps 5–9.
+   then follow PLAYBOOK Steps 5–9 (open the PR, wait for CI and merge with the REST commands there; the merge gate is
+   the check named `ci`, green at the exact head).
 
 ## 4. Resume note — so stopping never loses your place
 

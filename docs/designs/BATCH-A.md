@@ -267,3 +267,14 @@ Done when: a reviewer pretending to be Chris can follow it without a question.
 ## Amendments
 
 (Dated entries only.)
+
+**2026-10-10 — A-1 vendors the fallback API description (drift check A of A-1, mechanical).** The live
+`https://neon.com/api_spec/release/v2.json` answered HTTP 403 from the build workspace's proxy, so row A3's fallback
+(`@neondatabase/api-client@2.7.3` `public-v2-for-users.gen.yaml`, 163 operations) is the source either way. A-1 commits it
+unmodified as `vendor/neon-openapi/v2.yaml` with `SOURCE.md` (URL, date, SHA-256 `dacf72ea…059c44`, counts) because the
+fake Neon server validates every request against it; reading it from `node_modules` would have added
+`@neondatabase/api-client` and `axios` as dependencies. The secret scan skips that one file only while its SHA-256
+matches `SOURCE.md` (Neon's documentation examples contain example branch IDs and endpoint hosts). A-4 keeps: retrying the
+live download and re-vendoring in its own commit, `scripts/openapi-find.mjs`, `scripts/neon-api-drift.mjs`,
+`src/neon/openapi-index.js` (it may reuse `test/helpers/neon-spec.js`'s route matcher; runtime YAML parsing needs `yaml`
+moved to `dependencies`, or A-4 converts the file to JSON with a new hash), and the research audit's Appendix A.

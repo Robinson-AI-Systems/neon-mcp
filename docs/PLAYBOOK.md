@@ -101,6 +101,16 @@ OWNER-INPUTS for new questions, DECISIONS for decisions. PR title `<type>: <plai
 English: what Chris can now ask for; acceptance with evidence; owner decisions (IN-xx or none); review dispositions;
 what is not included; CI runs used. Delete the resume note in the final commit.
 
+**Commands (REST; `gh pr …` uses GraphQL, which some workspaces block).** `R=Robinson-AI-Systems/neon-mcp`,
+`export GH_PAGER=cat`:
+
+```bash
+git fetch origin main && git push -u origin HEAD                       # one push per CI cycle
+gh api repos/$R/pulls -f title="feat: …" -f head=<branch> -f base=main -F body=@/path/pr-body.md --jq .number
+gh api -X PATCH repos/$R/pulls/<n> -F body=@/path/pr-body.md            # update the description
+gh api -X PATCH repos/$R/pulls/<n> -f base=main                         # retarget a stacked PR
+```
+
 ## Step 7 — Review
 
 1. Production, SQL, secrets, keys, guards, spend, auth, passes: re-read `docs/AI-PR-READ-FIRST.md` and write one line
@@ -123,11 +133,28 @@ confirm the tool counts shown match the PR.
 expected-head SHA (merge commits). Stacks merge bottom-up, retargeting each PR to `main` first. After the lower PR
 merges, sync the successor once onto final `main`.
 
+```bash
+gh api -X PUT repos/$R/pulls/<n>/merge -f sha=<exact head sha> -f merge_method=merge
+```
+
+Then check the push-to-`main` run once (Step 10 command with the merge commit's SHA) and record it in STATUS.
+
 ## Step 10 — Waiting and stopping
 
 - External waits are checkpoints: check once, act on anything new, then build the immediate successor.
-- A quiet bounded CI wait is allowed: at most 60 seconds per wait, 10 minutes total
-  (`timeout 300 gh run watch <id> --exit-status --interval 60 > /tmp/ci-wait.log 2>&1`); timeout means pending.
+- A quiet bounded CI wait is allowed: one `sleep 60` per command, at most 15 checks (~15 minutes) per push; still
+  pending after that means pending — record it and do other work. The merge gate is the check run named **`ci`**:
+
+```bash
+sleep 60; gh api "repos/$R/commits/<sha>/check-runs?per_page=50" \
+  --jq '.check_runs[] | [.name, .status, (.conclusion // "-"), .html_url] | @tsv'
+```
+
+  A red run: open the failing job's log with `gh api repos/$R/actions/jobs/<job id>/logs | tail -80` (job id from
+  `gh api repos/$R/actions/runs/<run id>/jobs --jq '.jobs[] | [.id,.name,.conclusion] | @tsv'`).
+- Review threads (an organization-wide bot may post even though IN-01 says none): reply with
+  `gh api -X POST repos/$R/pulls/<n>/comments/<comment id>/replies -f body="…"`; list them with
+  `gh api repos/$R/pulls/<n>/comments --jq '.[] | [.id, .path, .line, .body[0:80]] | @tsv'`.
 - Before ending a turn: commit, update the resume note and STATUS (exact head, pending gates, next action), and tell
   Chris in plain English.
 
