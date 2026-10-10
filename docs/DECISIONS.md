@@ -99,3 +99,7 @@ bearer key is sent, because the old toolkit's SQL path never authenticated. (4) 
 Neon branch, endpoint and organization IDs and Vercel IDs (AGENTS hard limits), and skips the vendored description only
 while its SHA-256 matches `SOURCE.md`. (5) CI runs on Node 24 with `npm ci --ignore-scripts` from the committed lockfile;
 the database job uses the ECR mirror of Postgres 17 (Docker Hub's anonymous limit broke Appliance Desk CI).
+
+**2026-10-10 — Plan approved; no automated review (Chris).** "I approve the plans, and I don't want the automated review
+at this time." IN-00 and IN-01 answered; designs marked APPROVED. An organization-wide Codex reviewer may still post
+until Chris turns it off for this repository; agents answer and resolve its threads but never wait for one.

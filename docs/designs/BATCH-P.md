@@ -1,6 +1,6 @@
 # Design — Batch P: Project profiles (any app whose own code manages part of its Neon project)
 
-Status: **DRAFT — awaiting Chris's approval (IN-00)**. Written 2026-10-10. Scope and acceptance: `docs/PLAN.md` →
+Status: **APPROVED** (Chris, 2026-10-10). Written 2026-10-10. Scope and acceptance: `docs/PLAN.md` →
 Batch P. Cards P-1 … P-3. Depends on Batches B, D and V.
 
 The Neon MCP is a general development tool. Some apps Chris builds manage part of their Neon project in their own code:

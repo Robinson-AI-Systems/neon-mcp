@@ -9,9 +9,7 @@ database tables yet. No Neon key has been added anywhere; nothing touches a real
 
 - **Next card: A-2 — database schema** ([card](pr-cards/A-2.md), READY). Then **A-3** — connector login, two PRs
   ([card](pr-cards/A-3.md), READY). Then A-4 … A-7 (write each card just in time from `designs/BATCH-A.md` §4).
-- **Owner (Chris):** IN-00 — A-1 was built at Chris's request to make this repository implementation-ready
-  (2026-10-10); a one-line "Yes, I approve the Neon MCP plan" still records formal approval of the designs. IN-01
-  pending confirmation (public repo, no automated review — the implementer self-reviews every diff). Neither blocks A-2.
+- **Answered 2026-10-10 (Chris):** IN-00 — plan approved ("I approve the plans"); IN-01 — repository public, **no automated review** ("I don't want the automated review at this time"); the implementer self-reviews every diff.
 - **Queue:** A → B → C → D → V → O → P → W → U → R → E → X (`MASTER-ROADMAP.md`).
 
 ## Environment
@@ -48,5 +46,5 @@ owner inputs, go-live checklist, decisions, roadmap, owner guide, work index wit
 
 ## Blocked
 
-Nothing in engineering. Owner inputs open: IN-00 (formal plan approval), IN-01 (pending confirmation), IN-02 … IN-14
+Nothing in engineering. Owner inputs open: IN-02 … IN-14
 (`OWNER-INPUTS.md`); none blocks A-2 … A-4.

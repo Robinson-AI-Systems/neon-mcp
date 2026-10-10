@@ -1,6 +1,6 @@
 # Design — Batch D: Neon core (projects, branches, computes, databases, roles, connections, SQL, schema, snapshots, project security)
 
-Status: **DRAFT — awaiting Chris's approval (IN-00)**. Written 2026-10-10. Scope and acceptance: `docs/PLAN.md` →
+Status: **APPROVED** (Chris, 2026-10-10). Written 2026-10-10. Scope and acceptance: `docs/PLAN.md` →
 Batch D. Cards D-1 … D-9. Depends on Batches B and C. Tool list: `docs/TOOL-CATALOG.md` sections Projects, Operations,
 Branches, Computes, Databases and Postgres roles, Connections, SQL, Schema, Health, Snapshots, Project security.
 

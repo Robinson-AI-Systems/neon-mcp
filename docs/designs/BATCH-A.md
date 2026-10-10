@@ -1,6 +1,6 @@
 # Design — Batch A: Foundation (repo, tests, login, key store, Neon client, SQL connection layer)
 
-Status: **DRAFT — awaiting Chris's approval (IN-00)**. Written 2026-10-10 by Claude (Opus 5.5) for an empty repository.
+Status: **APPROVED** (Chris, 2026-10-10). Written 2026-10-10 by Claude (Opus 5.5) for an empty repository.
 Scope and acceptance: `docs/PLAN.md` → Batch A. Cards A-1 … A-7. Research behind every decision:
 `docs/audits/2026-10-10-research.md`.
 

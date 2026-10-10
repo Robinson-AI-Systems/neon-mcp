@@ -1,6 +1,6 @@
 # Design — Batch V: Developer tools (build and test with Neon)
 
-Status: **DRAFT — awaiting Chris's approval (IN-00)**. Written 2026-10-10. Scope and acceptance: `docs/PLAN.md` →
+Status: **APPROVED** (Chris, 2026-10-10). Written 2026-10-10. Scope and acceptance: `docs/PLAN.md` →
 Batch V. Cards V-1 … V-4. Depends on Batch D (branches, SQL guard and schema tools exist). Tool list:
 `docs/TOOL-CATALOG.md` section Developer tools. Follows the Robinson Tool Contract §10.
 

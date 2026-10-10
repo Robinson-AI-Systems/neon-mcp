@@ -11,7 +11,7 @@ Written 2026-10-10 for an empty repository. [STATUS](STATUS.md) holds current st
 
 | Stage | Batches | Why in this place | Owner gate |
 |---|---|---|---|
-| 1 Foundation | A | Nothing works without it (A-1 merged) | IN-00 (formal plan approval); IN-01 pending confirmation (same as Stripe); IN-02/IN-03/IN-04 only before A-5 is tried for real |
+| 1 Foundation | A | Nothing works without it (A-1 merged) | IN-02/IN-03/IN-04 only before A-5 is tried for real |
 | 2 Safety | B → C | Every later tool is built on the safety layer (production, SQL and spend guards) and the context rules | IN-07 (protected resources list), IN-09 (production reads), IN-10 (spend caps) — mechanisms build without them |
 | 3 Everyday Neon and building | D → V | The everyday jobs (projects, branches, computes, SQL, schema, snapshots, security), then the developer tools that make building any project on Neon fast (throwaway branches, seeds, checkpoints, migration previews, masked copies, cleanup) | IN-12 (dev branch defaults) |
 | 4 Owning the account | O | Members, keys, usage in dollars, spending alert, the admin overview and every console setting as a guided step | IN-04 (organization key, only to use these for real) |

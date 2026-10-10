@@ -1,6 +1,6 @@
 # Design — Batch B: Trust layer (safety layer, production guard, SQL guard, spend guard, errors, shaping, profiles)
 
-Status: **DRAFT — awaiting Chris's approval (IN-00)**. Written 2026-10-10. Scope and acceptance: `docs/PLAN.md` →
+Status: **APPROVED** (Chris, 2026-10-10). Written 2026-10-10. Scope and acceptance: `docs/PLAN.md` →
 Batch B. Cards B-1 … B-8. Depends on Batch A. This is the batch that makes the server safe to point at Chris's real
 databases; every later tool is built on it.
 
