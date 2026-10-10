@@ -25,7 +25,8 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 **Profile:** `R` read_only and up · `E` everyday and up · `F` full only. Every read tool is in `R`.
 **Key:** tools marked `org key` need the organization API key (IN-04); all others work with a project-scoped key.
 
-Old toolkit names (`neon_list_branches`, …) map to these in `docs/TOOLKIT-NAME-MAP.md`, written in D-1.
+Old toolkit names (`neon_list_branches`, …) map to these in `docs/TOOLKIT-NAME-MAP.md`, written in D-1 from the gap check
+`docs/audits/2026-10-10-prior-tools.md`, which maps every prior Neon tool name from every Robinson toolkit (333).
 
 ## Server about itself (`neon_*`) — 18
 
@@ -73,7 +74,7 @@ Old toolkit names (`neon_list_branches`, …) map to these in `docs/TOOLKIT-NAME
 | `operation_list` | Recent operations on a project (what Neon did, when, status), filter by branch or compute | — | Op | R | D-1 |
 | `operation_get` | One operation; `waitSeconds` (≤45) waits for it to finish and then reads the target back | — | B Op | R | D-1 |
 
-## Branches (`branch_*`) — 12
+## Branches (`branch_*`) — 13
 
 | Tool | What it does | Flags | Aud | Profile | Card |
 | --- | --- | --- | --- | --- | --- |
@@ -89,6 +90,7 @@ Old toolkit names (`neon_list_branches`, …) map to these in `docs/TOOLKIT-NAME
 | `branch_reset_from_parent` | Replace a branch's data with its parent's latest state (production: keeps the old state under a new name) | C D Pr | B Op | F | D-2 |
 | `branch_restore` | Restore a branch to a point in time or LSN from its own or another branch's history (production: always keeps the old state under a new name) | C D Pr | Op | F | D-2 |
 | `branch_compare_schema` | Schema difference between two branches (or two points in time) for one database, as a readable diff | — | B Op | R | D-2 |
+| `branch_compare_data` | Row differences for chosen tables between two branches (or a branch and a point in time): counts, then added / removed / changed rows by primary key, capped with a handle; tables without a primary key compare by count and checksum only | — | B Op | R | D-9 |
 
 ## Computes (`compute_*`) — 10
 
@@ -143,7 +145,7 @@ The SQL guard (`docs/designs/BATCH-B.md` B-3) classifies every statement with th
 | `sql_stop_query` | Cancel a running query, or end its session (production: confirm) | C Pr | Op | E | D-5 |
 | `sql_list_slow_queries` | Slowest and most frequent queries from `pg_stat_statements` (offers to enable the extension when missing) | — | B Op | R | D-5 |
 
-## Schema (`schema_*`) — 12
+## Schema (`schema_*`) — 13
 
 | Tool | What it does | Flags | Aud | Profile | Card |
 | --- | --- | --- | --- | --- | --- |
@@ -152,21 +154,23 @@ The SQL guard (`docs/designs/BATCH-B.md` B-3) classifies every statement with th
 | `schema_describe_table` | Columns, types, defaults, indexes, constraints, foreign keys, triggers, RLS policies for one table | — | B Op | R | D-6 |
 | `schema_get_ddl` | The schema as SQL (one table or a whole database) | — | B | R | D-6 |
 | `schema_search` | Find tables and columns by name | — | B Op | R | D-6 |
-| `schema_list_objects` | Views, materialized views, functions, enums, sequences, triggers or policies (by kind) | — | B Op | R | D-6 |
+| `schema_list_objects` | Views, materialized views, functions, enums, sequences, triggers, policies or publications (by kind) | — | B Op | R | D-6 |
 | `schema_list_extensions` | Installed and available extensions with versions | — | B Op | R | D-6 |
-| `schema_enable_extension` | Install an extension (production: confirm) | C* Pr | B Op | E | D-6 |
+| `schema_enable_extension` | Install an extension, or update an installed one to a newer version with `update: true` (production: confirm) | C* Pr | B Op | E | D-6 |
 | `schema_disable_extension` | Remove an extension (preview lists dependent objects) | C D Pr | Op | F | D-6 |
 | `schema_create_index` | Create an index, CONCURRENTLY by default (production: confirm) | C* Pr | B Op | E | D-6 |
 | `schema_drop_index` | Drop an index (preview shows its recent use) | C D Pr | Op | F | D-6 |
 | `schema_generate_types` | TypeScript types (or Zod schemas) generated from the tables | — | B | R | D-6 |
+| `schema_list_migrations` | The app's migration history read from its own table (Prisma `_prisma_migrations`, Drizzle, Knex, Flyway, golang-migrate detected): applied, failed or rolled back, with dates; given the repo's migration names, also which are not applied yet. Read-only — applying stays with the app or `workflow_safe_migration` | — | B Op | R | D-9 |
 
-## Health (`health_*`) — 3
+## Health (`health_*`) — 4
 
 | Tool | What it does | Flags | Aud | Profile | Card |
 | --- | --- | --- | --- | --- | --- |
 | `health_check` | Database health in one call (any of 15 checks): sizes, cache hit rate, connections, locks, long-running queries, bloat, autovacuum, unused/duplicate indexes, transaction-ID age, replication | — | Op | R | D-6 |
 | `health_suggest_indexes` | Index suggestions from scan statistics and slow queries, each with the exact CREATE INDEX statement | — | B Op | R | D-6 |
 | `health_vacuum_analyze` | VACUUM (ANALYZE) a table or database (production: confirm; load warning) | C* Pr | Op | E | D-6 |
+| `health_reindex` | Rebuild a bloated or invalid index, or all indexes of a table, `CONCURRENTLY` by default (preview shows sizes before and the bloat estimate; production: confirm; never a whole database or system catalogs) | C* Pr | Op | E | D-9 |
 
 ## Snapshots (`snapshot_*`) — 7
 
@@ -335,14 +339,17 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
 - Official connector's docs search (`search`, `fetch`, `list_docs_resources`, `get_doc_resource`) and `send_feedback`:
   ROADMAP (research server).
 - Project webhooks (old toolkit): Neon has no such API (research audit N5).
+- Other prior-toolkit tools with no Neon API behind them (gap check 2026-10-10, `docs/audits/2026-10-10-prior-tools.md`):
+  metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
+  checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
 ## Totals
 
-**170 hand-built tools plus 4 universal `api_*` tools = 174**, plus guided settings for every dashboard-only setting.
-By section: server 18, projects 11, operations 2, branches 12, computes 10, databases and roles 11, connections 2, SQL 8,
-schema 12, health 3, snapshots 7, project security 7, owner and administration 23, backend services 17, developer tools
-12, project profiles 6, workflows 9, universal 4. By profile column: `read_only` 77 tools, `everyday` 117 (77 + 40),
-`full` 174 (B-6 prints the exact numbers from the registry; a mismatch with this file fails `check-budgets`). In compact mode (`docs/designs/BATCH-C.md`) an agent loads about 20 tools up
+**173 hand-built tools plus 4 universal `api_*` tools = 177**, plus guided settings for every dashboard-only setting.
+By section: server 18, projects 11, operations 2, branches 13, computes 10, databases and roles 11, connections 2, SQL 8,
+schema 13, health 4, snapshots 7, project security 7, owner and administration 23, backend services 17, developer tools
+12, project profiles 6, workflows 9, universal 4. By profile column: `read_only` 79 tools, `everyday` 120 (79 + 41),
+`full` 177 (B-6 prints the exact numbers from the registry; a mismatch with this file fails `check-budgets`). In compact mode (`docs/designs/BATCH-C.md`) an agent loads about 20 tools up
 front and reaches the rest through `neon_search_tools` / `neon_call`.
 
 Count check (run from the repo root; prints each section and the total):

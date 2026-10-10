@@ -41,7 +41,7 @@ covered by the design; write the card when its predecessor is real.
 | A Foundation | A-1 repo, CI, fake Neon, checks · A-2 schema · A-3 login · A-4 Neon client + vendored description + waiter + budget · A-5 key store, setup page, one-time secrets · A-6 SQL connection layer · A-7 DEPLOY.md | A-1 [card](pr-cards/A-1.md); rest JIT |
 | B Trust | B-1 safety layer · B-2 production guard + self-protection · B-3 SQL guard · B-4 spend guard · B-5 errors · B-6 shaping, secrets, profiles · B-7 check-writes · B-8 server tools | JIT |
 | C Context | C-1 small results · C-2 listing modes + budgets | JIT |
-| D Neon core | D-1 projects/operations · D-2 branches · D-3 computes · D-4 databases/roles/connections · D-5 SQL · D-6 schema/health · D-7 snapshots · D-8 project security | JIT |
+| D Neon core | D-1 projects/operations · D-2 branches · D-3 computes · D-4 databases/roles/connections · D-5 SQL · D-6 schema/health · D-7 snapshots · D-8 project security · D-9 data checks/reindex | JIT |
 | V Developer tools | V-1 dev branches, runs, cleanup · V-2 seeds · V-3 reset, checkpoints, migration preview · V-4 masked copies, tuning, integration check | JIT |
 | O Owner and administration | O-1 organizations, members, access · O-2 keys, transfers · O-3 usage, estimates, spending alert · O-4 admin overview, guided settings, map, security review, activity | JIT |
 | P Project profiles | P-1 known_apps + Appliance Desk + app guard · P-2 readiness · P-3 project setup + draft profile | JIT |

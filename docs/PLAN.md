@@ -41,7 +41,7 @@ next bounded implementation.
 - [ ] Budgets enforced in CI: compact <5,000 tokens, everyday catalog <20,000, descriptions ≤160 characters, results ≤8 KB or a handle, registry counts match TOOL-CATALOG.
 
 ## Batch D — Neon core (`designs/BATCH-D.md`)
-- [ ] Every Projects, Operations, Branches, Computes, Databases/roles, Connections, SQL, Schema, Health, Snapshots and Project security tool in TOOL-CATALOG built and marked.
+- [ ] Every Projects, Operations, Branches, Computes, Databases/roles, Connections, SQL, Schema, Health, Snapshots and Project security tool in TOOL-CATALOG built and marked, including the D-9 data checks and index maintenance added by the gap check (2026-10-10).
 - [ ] No password or connection string in any result; production restores always preserve; snapshot restore never finalizes; deletions recoverable.
 - [ ] Regression tests for old-toolkit bugs N2, N3, N6, N7, N8, N10. `docs/TOOLKIT-NAME-MAP.md` complete.
 

@@ -4,7 +4,7 @@ Status: **DRAFT — awaiting Chris's approval (IN-00)**. Written 2026-10-10. Sco
 Batch C. Cards C-1, C-2. Depends on Batch B. Every later tool is built to these rules, so this batch comes before any
 area tools. Same design as the Stripe MCP's Batch C (copied from its `src/core/` when available, A2).
 
-Why: a 174-tool server listed the ordinary way costs tens of thousands of tokens before an agent does anything, and
+Why: a 177-tool server listed the ordinary way costs tens of thousands of tokens before an agent does anything, and
 Neon's full objects (projects with settings, branches with every counter, SQL result sets) cost thousands more per
 result. Current practice (October 2026): tool search in the client, progressive disclosure (search → describe → call),
 small results with handles, MCP tool annotations, workflows. Sources: Anthropic, "Code execution with MCP"

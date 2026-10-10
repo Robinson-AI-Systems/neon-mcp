@@ -66,7 +66,7 @@ that key).
 | `write` | `InsertStmt`; `UpdateStmt`/`DeleteStmt` **with** a `WHERE` that is not a constant-true expression; `MergeStmt`; locking `SELECT`; `SELECT … INTO` | Non-production: preview (EXPLAIN estimate), no confirm. Production: B3 + exact-count preview (B6) + guarded apply (B7) |
 | `ddl` | `CreateStmt`, `IndexStmt` (non-concurrent), `ViewStmt`, `CreateFunctionStmt`, `CreateSchemaStmt`, `CommentStmt`, `AlterTableStmt` with only additive subcommands (add column, add constraint, set default, attach), `CreatePublicationStmt`, `GrantStmt` (also **access**) | Non-production: preview, no confirm (grant: confirm). Production: B3 + schema-diff preview on a throwaway branch + lock warning + guarded apply. Profiled app's schema: refused without `outsideApp: true` (P-1) |
 | `destructive` | `DropStmt` (any object), `TruncateStmt`, `UpdateStmt`/`DeleteStmt` without `WHERE` (or `WHERE true`, `WHERE 1=1`), `AlterTableStmt` with `DROP COLUMN`, `ALTER COLUMN TYPE`, `SET NOT NULL`, `DROP CONSTRAINT`, `SET UNLOGGED`; `RenameStmt`; `RevokeStmt`; `DropOwnedStmt`; `ReassignOwnedStmt`; `DoStmt` and `CallStmt` (opaque code); `VacuumStmt` with `FULL`; `ClusterStmt` | Always `confirm`. Production: B3 + exact preview (B6) + guarded apply (B7). Full-table `UPDATE`/`DELETE` additionally need `allowFullTable: true` |
-| `refused` | `TransactionStmt` (the tool controls transactions), `VariableSetStmt` (except `SET LOCAL` of `statement_timeout`/`lock_timeout`/`search_path` inside `sql_execute_transaction`), `AlterSystemStmt`, `CreateRoleStmt`/`AlterRoleStmt`/`DropRoleStmt` (use `role_*`; a password in SQL would be logged), `CopyStmt`, `LoadStmt`, `CheckPointStmt`, `ListenStmt`/`NotifyStmt`, `CreatedbStmt`/`DropdbStmt` (use `database_*`), `CreateExtensionStmt`/`DropExtensionStmt` (use `schema_*_extension`), non-FULL `VacuumStmt`/`ReindexStmt` (use `health_vacuum_analyze`), `IndexStmt` with `CONCURRENTLY` (use `schema_create_index`) | Refused with the name of the right tool |
+| `refused` | `TransactionStmt` (the tool controls transactions), `VariableSetStmt` (except `SET LOCAL` of `statement_timeout`/`lock_timeout`/`search_path` inside `sql_execute_transaction`), `AlterSystemStmt`, `CreateRoleStmt`/`AlterRoleStmt`/`DropRoleStmt` (use `role_*`; a password in SQL would be logged), `CopyStmt`, `LoadStmt`, `CheckPointStmt`, `ListenStmt`/`NotifyStmt`, `CreatedbStmt`/`DropdbStmt` (use `database_*`), `CreateExtensionStmt`/`AlterExtensionStmt`/`DropExtensionStmt` (use `schema_*_extension`), non-FULL `VacuumStmt` (use `health_vacuum_analyze`), `ReindexStmt` (use `health_reindex`), `IndexStmt` with `CONCURRENTLY` (use `schema_create_index`) | Refused with the name of the right tool |
 
 Function calls anywhere in a statement are checked against a deny list — `pg_terminate_backend`, `pg_cancel_backend`
 (use `sql_stop_query`), `pg_reload_conf`, `set_config`, `pg_advisory_lock*`, `dblink*`, `lo_import`, `lo_export`,
@@ -241,3 +241,18 @@ returns structured steps for "change plan" and never claims it is done.
 ## Amendments
 
 (Dated entries only.)
+
+**2026-10-10 — Gap check against prior toolkits** (`docs/audits/2026-10-10-prior-tools.md`). Mapping the old toolkits'
+structured DDL, grant, RLS, replication and statistics tools to `sql_execute` showed statements B5 did not place, and
+that `ReindexStmt` pointed at a tool that cannot reindex. Changes to B5 (B-3 adds one test row each):
+1. `ReindexStmt` → refused with "use `health_reindex`" (new tool, D-9); `AlterExtensionStmt` → refused with "use
+   `schema_enable_extension` (`update: true`)".
+2. `ddl` also covers `CreateEnumStmt`, `AlterEnumStmt` (add value), `CompositeTypeStmt`, `CreateSeqStmt`,
+   `CreateTrigStmt`, `CreatePolicyStmt`, `CreateTableAsStmt`, and `AlterTableStmt` `ENABLE ROW LEVEL SECURITY`;
+   `write` also covers `RefreshMatViewStmt`; `destructive` also covers `AlterPolicyStmt`, `AlterTableStmt`
+   `DISABLE`/`NO FORCE ROW LEVEL SECURITY`, and `AlterSeqStmt`.
+3. Function calls that change server state without a table write are classed by the function, never as `read`:
+   `pg_stat_statements_reset`, `pg_stat_reset*`, `setval`, `pg_create_logical_replication_slot` → `write` (so only
+   `sql_execute`, never `sql_query`); `pg_drop_replication_slot` → `destructive`.
+4. **Fail closed:** any parser node type not named in B5 is classed `destructive` (always confirm, exact preview on
+   production) until a reviewed amendment places it; the result says it was unclassified.

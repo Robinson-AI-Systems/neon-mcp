@@ -22,6 +22,13 @@ Stripe MCP. **No code exists yet.** No Neon key has been added anywhere. Nothing
 
 ## Recent work (newest first)
 
+**2026-10-10 — Gap check against prior toolkits:** every Neon tool name Chris built or planned in any Robinson toolkit
+(333 names across `robinsons-toolkit-mcp`, `robinsonai-mcp-servers`, `robinsons-toolkit-api`) mapped in
+`audits/2026-10-10-prior-tools.md`: 300 covered, 30 dropped with reasons, 3 gaps added as card D-9
+(`branch_compare_data`, `schema_list_migrations`, `health_reindex`); SQL guard amendment (BATCH-B). Needs from
+Cortiware, oldReplit, Household-Assistant and Appliance Desk checked. Totals now **173 hand-built + 4 universal = 177
+tools, 54 cards** (the entry below is the original plan's count).
+
 **2026-10-10 — Plan written (initial commits):** research audit (Neon API ≈180 operations, the old toolkit's 204 tools
 with 13 verified bugs including 17 unreachable tools and a SQL path that never authenticates, the official Neon
 connector compared, credentials, coverage matrix), AGENTS, START-HERE, SESSION-START, PLAYBOOK, drift protocol, PLAN,

@@ -21,5 +21,7 @@ Not approved scope. An item moves into a design only with Chris's approval (a da
 - **Port fixes back** to the Stripe MCP or Workspace MCP when a copied file is improved here (e.g. secret requests in
   both directions, the operations waiter pattern).
 - **YardSync and other project profiles** when their database code exists (`profile_draft` drafts them).
-- **Point-in-time row diff** ("what rows changed in this table since Tuesday") as its own tool, if `workflow_recover_data`
-  shows it is needed often.
+- ~~Point-in-time row diff as its own tool~~ — promoted to `branch_compare_data` (D-9) by the gap check, 2026-10-10.
+- **Migration SQL generated from a branch schema diff** (prior plan name `neon_merge_branch_to_parent`): Neon has no
+  branch merge; today the agent writes the SQL and `workflow_safe_migration` applies it. Build a generator only if the
+  change log shows agents repeatedly hand-writing diffs.

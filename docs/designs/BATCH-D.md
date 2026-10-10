@@ -1,7 +1,7 @@
 # Design — Batch D: Neon core (projects, branches, computes, databases, roles, connections, SQL, schema, snapshots, project security)
 
 Status: **DRAFT — awaiting Chris's approval (IN-00)**. Written 2026-10-10. Scope and acceptance: `docs/PLAN.md` →
-Batch D. Cards D-1 … D-8. Depends on Batches B and C. Tool list: `docs/TOOL-CATALOG.md` sections Projects, Operations,
+Batch D. Cards D-1 … D-9. Depends on Batches B and C. Tool list: `docs/TOOL-CATALOG.md` sections Projects, Operations,
 Branches, Computes, Databases and Postgres roles, Connections, SQL, Schema, Health, Snapshots, Project security.
 
 "Port" means: take the matching old toolkit tool (`robinsons-toolkit-mcp` `handlers/neon.js`) only as a reminder of what
@@ -70,8 +70,9 @@ change (`replace` / `add` / `remove`); the preview warns when the list would not
 app needs (for a Vercel app: Vercel functions have no fixed IPs unless Secure Compute — the preview says IP allow will
 block it) and when the plan does not include IP Allow. `security_set_logical_replication` only enables (D7).
 
-**D11. Old-name map.** D-1 adds `docs/TOOLKIT-NAME-MAP.md`: every old toolkit `neon_*` name (204) → new name, or
-"removed, because …" (research audit §2, bugs N1–N13, "Not rebuilt" in TOOL-CATALOG).
+**D11. Old-name map.** D-1 adds `docs/TOOLKIT-NAME-MAP.md`: every prior `neon_*` name from every Robinson toolkit (333,
+gap check `docs/audits/2026-10-10-prior-tools.md`) → new name, or "removed, because …" (research audit §2, bugs N1–N13,
+"Not rebuilt" in TOOL-CATALOG). It is generated from the gap check's mapping table, not rewritten by hand.
 
 ## 4. Work units (each: unit tests, write-contract for every write, fake-Neon fixtures validated against the vendored description, TOOL-CATALOG marks)
 
@@ -110,6 +111,27 @@ computes that move; schedule change is `$`.
 Tools: `security_*` (7). Extra tests: IP allow add/remove computes the exact new list; preview warning for Vercel apps;
 logical replication preview says it cannot be undone.
 
+### D-9 — Data checks and index maintenance (S) — added by the gap check 2026-10-10
+Tools: `branch_compare_data`, `schema_list_migrations`, `health_reindex` (3). Prior tools they replace:
+`neon_get_branch_data_diff`, `neon_list_migrations`, `neon_reindex_database` (TS toolkit, `robinsonai-mcp-servers`).
+- `branch_compare_data`: one read-only connection per side (`sql/read` path); per table `count(*)` first, then rows
+  keyed by primary key in pages of 500, compared by `md5(row::text)`; tables over `rowLimit` (default 50 000) or without
+  a primary key report count and an ordered checksum only; result capped at 8 KB with a handle (C-1). Point-in-time side
+  uses a throwaway child branch at that timestamp (`B6` mechanics, deleted afterwards). Never reads a protected
+  resource (B4).
+- `schema_list_migrations`: detects the migration table by name (`_prisma_migrations`, `__drizzle_migrations`,
+  `knex_migrations`, `flyway_schema_history`, `schema_migrations`), reads it read-only and reports applied / failed
+  (`finished_at IS NULL` or `rolled_back_at` for Prisma) / rolled back; with `expected: [names]` also lists names not
+  applied. A failed Prisma migration is reported in words ("deploys stop until it is resolved; fix with
+  `prisma migrate resolve` in the app") — the tool never edits the table.
+- `health_reindex`: `REINDEX INDEX|TABLE … CONCURRENTLY` by default (never `DATABASE`/`SYSTEM`); preview reads index
+  sizes and the bloat estimate from the `health_check` query; production: B3 + confirm; runs outside a transaction (as
+  `schema_create_index` does) with `lock_timeout` from settings; an invalid leftover `_ccnew` index after a failure is
+  reported with the exact drop statement.
+Extra tests: data compare on real Postgres with added/removed/changed rows and a table without a primary key;
+migration detection for Prisma (including a failed row) and Drizzle fixtures; reindex concurrently on real Postgres and
+the production confirm path through the write-contract helper.
+
 ## 5. Stop-and-ask points
 
 1. Any D0 row false: amend before that card.
@@ -120,9 +142,13 @@ logical replication preview says it cannot be undone.
 
 | PLAN Batch D line | Evidence |
 |---|---|
-| Every listed tool built, catalog marked | TOOL-CATALOG Card column `built #n` |
+| Every listed tool built, catalog marked | TOOL-CATALOG Card column `built #n` (D-1 … D-9) |
 | No secrets in results | key-scan test over the D suites |
 | Old-toolkit bugs N2, N3, N6, N7, N8, N10 cannot recur | regression tests named in D-2, D-4, D-5 |
 | Production restores preserve; snapshot restore never finalizes | `tests/unit/branches.test.js`, `tests/unit/snapshots.test.js` |
 
 ## Amendments
+
+**2026-10-10 — Gap check against prior toolkits.** Card D-9 added (`branch_compare_data`, `schema_list_migrations`,
+`health_reindex`); `schema_enable_extension` gains `update: true`; `schema_list_objects` lists publications; D11 now
+covers all 333 prior names. Reasons: `docs/audits/2026-10-10-prior-tools.md`, DECISIONS 2026-10-10.

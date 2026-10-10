@@ -481,6 +481,24 @@
       "ownerInputs": []
     },
     {
+      "id": "D-9",
+      "title": "Data checks and index maintenance",
+      "batch": "D",
+      "design": "docs/designs/BATCH-D.md",
+      "dependencies": [
+        "D-8"
+      ],
+      "card": "docs/pr-cards/D-9.md",
+      "status": "PLANNED",
+      "migration": "none",
+      "budget": 350,
+      "units": [
+        "D-9"
+      ],
+      "readiness": "WRITE_CARD_AT_START",
+      "ownerInputs": []
+    },
+    {
       "id": "V-1",
       "title": "Dev branches, runs, cleanup",
       "batch": "V",

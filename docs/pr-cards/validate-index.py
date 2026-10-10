@@ -20,7 +20,7 @@ errors = []
 REQUIRED_BATCHES = ['A', 'B', 'C', 'D', 'V', 'O', 'P', 'W', 'U', 'R', 'E', 'X']
 REQUIRED_UNITS = set("""
 A-1 A-2 A-3 A-4 A-5 A-6 A-7 B-1 B-2 B-3 B-4 B-5 B-6 B-7 B-8 C-1 C-2
-D-1 D-2 D-3 D-4 D-5 D-6 D-7 D-8 V-1 V-2 V-3 V-4 O-1 O-2 O-3 O-4 P-1 P-2 P-3
+D-1 D-2 D-3 D-4 D-5 D-6 D-7 D-8 D-9 V-1 V-2 V-3 V-4 O-1 O-2 O-3 O-4 P-1 P-2 P-3
 W-1 W-2 W-3 W-4 W-5 W-6 W-7 U-1 R-1 R-2 R-3 E-1 E-2 X-1 X-2 X-3 X-4
 """.split())
 
