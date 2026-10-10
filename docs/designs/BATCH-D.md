@@ -70,14 +70,14 @@ change (`replace` / `add` / `remove`); the preview warns when the list would not
 app needs (for a Vercel app: Vercel functions have no fixed IPs unless Secure Compute — the preview says IP allow will
 block it) and when the plan does not include IP Allow. `neon_security_set_logical_replication` only enables (D7).
 
-**D11. Old-name map.** D-1 adds `docs/TOOLKIT-NAME-MAP.md`: every prior `neon_*` name from every Robinson toolkit (333,
-gap check `docs/audits/2026-10-10-prior-tools.md`) → new name, or "removed, because …" (research audit §2, bugs N1–N13,
-"Not rebuilt" in TOOL-CATALOG). It is generated from the gap check's mapping table, not rewritten by hand.
+**D11. No compatibility with the old toolkits (Chris, 2026-10-10).** The older Robinson toolkits were used only as a
+completeness checklist (`docs/audits/2026-10-10-prior-tools.md`). No old-name map, aliases or legacy shims are built;
+agents use this server's own tool names.
 
 ## 4. Work units (each: unit tests, write-contract for every write, fake-Neon fixtures validated against the vendored description, TOOL-CATALOG marks)
 
 ### D-1 — Projects, operations, regions (M)
-Tools: `neon_project_*` (11), `neon_operation_list`, `neon_operation_get` (13). Plus `docs/TOOLKIT-NAME-MAP.md`.
+Tools: `neon_project_*` (11), `neon_operation_list`, `neon_operation_get` (13).
 Extra tests: `neon_project_delete` preview lists every branch and database and the recovery date; `neon_project_create` result has
 no connection URI (key-scan) and offers the one-time link; `neon_operation_get` with `waitSeconds` stops at the budget.
 

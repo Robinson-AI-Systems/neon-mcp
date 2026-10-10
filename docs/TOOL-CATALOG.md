@@ -30,8 +30,6 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 **Profile:** `R` read_only and up · `E` everyday and up · `F` full only. Every read tool is in `R`.
 **Key:** tools marked `org key` need the organization API key (IN-04); all others work with a project-scoped key.
 
-Old toolkit names (`neon_list_branches`, …) map to these in `docs/TOOLKIT-NAME-MAP.md`, written in D-1 from the gap check
-`docs/audits/2026-10-10-prior-tools.md`, which maps every prior Neon tool name from every Robinson toolkit (333).
 
 ## Server about itself (`neon_*`) — 18
 

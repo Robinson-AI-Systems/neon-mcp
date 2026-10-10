@@ -18,4 +18,4 @@ go in `CHANGES-SINCE-DESIGN.md`. New designs start from `TEMPLATE.md`.
 | U Universal tools | [BATCH-U](BATCH-U.md) | Approved 2026-10-10 (Chris, IN-00) |
 | R Hub-ready doors (RTC 1) | [BATCH-R](BATCH-R.md) | Approved 2026-10-10 (Chris, IN-00) |
 | E Neon backend services | [BATCH-E](BATCH-E.md) | Approved 2026-10-10 (Chris, IN-00) |
-| X Undo, real-account checks, toolkit decision | [BATCH-X](BATCH-X.md) | Approved 2026-10-10 (Chris, IN-00) |
+| X Undo, real-account checks | [BATCH-X](BATCH-X.md) | Approved 2026-10-10 (Chris, IN-00) |

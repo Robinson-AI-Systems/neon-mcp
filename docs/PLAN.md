@@ -43,7 +43,7 @@ next bounded implementation.
 ## Batch D — Neon core (`designs/BATCH-D.md`)
 - [ ] Every Projects, Operations, Branches, Computes, Databases/roles, Connections, SQL, Schema, Health, Snapshots and Project security tool in TOOL-CATALOG built and marked, including the D-9 data checks and index maintenance added by the gap check (2026-10-10).
 - [ ] No password or connection string in any result; production restores always preserve; snapshot restore never finalizes; deletions recoverable.
-- [ ] Regression tests for old-toolkit bugs N2, N3, N6, N7, N8, N10. `docs/TOOLKIT-NAME-MAP.md` complete.
+- [ ] Regression tests for old-toolkit bugs N2, N3, N6, N7, N8, N10.
 
 ## Batch V — Developer tools (`designs/BATCH-V.md`)
 - [ ] Every dev tool refuses production; every created object recorded and annotated; dev branches always expire.
@@ -75,6 +75,6 @@ next bounded implementation.
 ## Batch E — Neon backend services (`designs/BATCH-E.md`)
 - [ ] Every listed tool built; profiled apps' auth choice respected; OAuth client secrets typed on the setup page only; no object bytes or presigned URLs in results.
 
-## Batch X — Undo, real-account checks, toolkit decision (`designs/BATCH-X.md`)
+## Batch X — Undo, real-account checks (`designs/BATCH-X.md`)
 - [ ] Undo for every clean opposite, including SQL changes by restore LSN with the current state preserved.
-- [ ] Read-only smoke report on the real account; write check in the scratch project only; toolkit decision note delivered.
+- [ ] Read-only smoke report on the real account; write check in the scratch project only.
