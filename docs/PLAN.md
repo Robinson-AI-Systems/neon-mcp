@@ -1,0 +1,80 @@
+# PLAN — remaining scope and acceptance
+
+Written 2026-10-10 for an empty repository. Order is in [MASTER-ROADMAP](MASTER-ROADMAP.md); current head and blockers in
+[STATUS](STATUS.md). AGENTS owns workflow rules. This file owns acceptance; designs own semantic decisions; cards own the
+next bounded implementation.
+
+## Rules that apply to every batch
+
+- Every write tool passes the nine write-contract checks (`docs/designs/BATCH-B.md` §3) through every door that exists.
+- Every Neon request shape validates against the vendored API description (fake Neon); every SQL path passes on real
+  throwaway Postgres; schema changes to this server's tables are additive and idempotent.
+- `npm run check` green: secret scan, docs check, index validation, lint, write-safety, core imports, token budgets.
+- No secret in code, docs, tests, logs, PR text, result handles or tool results (key-scan test); no real Neon/Vercel IDs
+  or host names in the repo.
+- No real Neon account in tests or CI; no write to any production branch or real project; no purchases and no spend
+  increases (AGENTS hard limits). Real-account checks only in Batch X, read-only or in the scratch project.
+- Owner inputs are inputs, not things to invent: build the mechanism, keep the dependent behavior off, list the `IN-xx`.
+- Money shown in dollars and cents, stored in cents (unit rates in micro-dollars); times shown America/Denver, stored UTC.
+- The PR description carries the card's acceptance checklist with evidence.
+
+## Batch A — Foundation (`designs/BATCH-A.md`)
+- [ ] CI runs check, unit and database jobs on every PR; a failing test turns it red.
+- [ ] Connector login with organization, optional project scope, mode (preview only until enabled; always preview on a preview deployment of this server), profile and listing; lockout after 5 tries in 15 minutes; tokens stored hashed; settings survive refresh.
+- [ ] Keys stored only encrypted, by kind (project / org / personal); added only on the setup page; the narrowest key used per tool; key-scan test passes.
+- [ ] One Neon client (`@neon/sdk` raw, exact version), vendored API description pinned by date and hash, retries only on 423/429, bounded operation waits, database-counted API budget.
+- [ ] One-time-secret page (shown once, then gone) and secret requests (typed once, consumed once).
+- [ ] SQL connection layer never leaks a connection string and refuses this server's own database.
+- [ ] `docs/DEPLOY.md` followable by Chris.
+
+## Batch B — Trust layer (`designs/BATCH-B.md`)
+- [ ] `defineWrite` with operation-aware read-back, request-key dedupe, change log, inverse.
+- [ ] Production guard from Neon's own data; production access in two steps; self-protection absolute.
+- [ ] SQL guard: parser classification, read-only transactions, exact previews on a throwaway branch, guarded apply with expected rows and restore LSN.
+- [ ] Spend guard: dollar previews from the stored price table, per-change and daily caps; no tool buys or changes the plan.
+- [ ] Plain-English errors (Neon and Postgres), result shaping, secret removal, profiles.
+- [ ] `check-writes` fails on every undeclared or incomplete write declaration; server tools (settings, connections, production enable/disable, where-is-setting).
+
+## Batch C — Cheap on context (`designs/BATCH-C.md`)
+- [ ] Summaries, `fields`, `detail`, handles (secret-free), annotations, structured output; SQL row caps.
+- [ ] Catalog and compact listing; meta-tools route through the wrapped handlers.
+- [ ] Budgets enforced in CI: compact <5,000 tokens, everyday catalog <20,000, descriptions ≤160 characters, results ≤8 KB or a handle, registry counts match TOOL-CATALOG.
+
+## Batch D — Neon core (`designs/BATCH-D.md`)
+- [ ] Every Projects, Operations, Branches, Computes, Databases/roles, Connections, SQL, Schema, Health, Snapshots and Project security tool in TOOL-CATALOG built and marked.
+- [ ] No password or connection string in any result; production restores always preserve; snapshot restore never finalizes; deletions recoverable.
+- [ ] Regression tests for old-toolkit bugs N2, N3, N6, N7, N8, N10. `docs/TOOLKIT-NAME-MAP.md` complete.
+
+## Batch V — Developer tools (`designs/BATCH-V.md`)
+- [ ] Every dev tool refuses production; every created object recorded and annotated; dev branches always expire.
+- [ ] Deterministic seed scenarios with exact previews; checkpoints and fast restores; migration preview never writes the target.
+- [ ] Masked copies refuse unmasked personal columns; query tuning on a copy; integration check; cleanup touches only recorded objects.
+
+## Batch O — Owner and administration (`designs/BATCH-O.md`)
+- [ ] Every listed tool built; owner tools need the organization key and say so in words without it.
+- [ ] People changes, key creation and transfers confirmed, previewed, logged; last-admin and self-lockout refused; new keys never in a result.
+- [ ] Usage in dollars with the price-table date and a month-end projection; spending alert described as alert-only.
+- [ ] Owner side complete: admin overview; every console settings page in the dashboard map as structured guided steps with read-back where Neon exposes the value (contract §11).
+
+## Batch P — Project profiles (`designs/BATCH-P.md`)
+- [ ] `known_apps` with the Appliance Desk profile, each item traceable to the app's code and docs; no real IDs committed.
+- [ ] App guard refuses schema-owner DDL, migrations-table writes, production/shared-preview branch and pinned-endpoint changes, app-role password resets and Neon Auth for apps using other auth — unless `outsideApp`.
+- [ ] `workflow_app_readiness` covers every row of the example profile and works with an inline spec; `workflow_project_setup` idempotent; `profile_draft` from codebase findings.
+
+## Batch W — Workflows (`designs/BATCH-W.md`)
+- [ ] All 9 workflows; safe migration applies only after preview and confirm and verifies (bug N4 cannot recur); recovery never swaps production without confirm; all writes confirmed and logged.
+
+## Batch U — Universal tools (`designs/BATCH-U.md`)
+- [ ] Four `api_*` tools; requests validated against Neon's description; deprecated operations refused; safe defaults for unknown spend and secrets; hand-built tools win; same guards.
+
+## Batch R — Hub-ready doors, RTC 1 (`designs/BATCH-R.md`)
+- [ ] Passes per RTC §2 (preview mode, read-only, 24 h, 60 calls/minute by default).
+- [ ] HTTPS tool API, manifest (`modes: ['preview','production']`, `devTools: true`) and OpenAPI per RTC §1/§7; rate limits shared across instances (overlapping-request test).
+- [ ] Same nine write-contract checks through MCP, `neon_call` and HTTPS; RTC 1 conformance green in CI when the hub's package exists.
+
+## Batch E — Neon backend services (`designs/BATCH-E.md`)
+- [ ] Every listed tool built; profiled apps' auth choice respected; OAuth client secrets typed on the setup page only; no object bytes or presigned URLs in results.
+
+## Batch X — Undo, real-account checks, toolkit decision (`designs/BATCH-X.md`)
+- [ ] Undo for every clean opposite, including SQL changes by restore LSN with the current state preserved.
+- [ ] Read-only smoke report on the real account; write check in the scratch project only; toolkit decision note delivered.

@@ -36,8 +36,8 @@ Old toolkit names (`neon_list_branches`, …) map to these in `docs/TOOLKIT-NAME
 | `neon_check_key_access` | Re-probe every stored key: what each can reach (projects, org actions), which tools are blocked and which key kind would fix it | — | Ow | R | B-8 |
 | `neon_list_connections` | Claude connections and passes: organization, mode, profile, listing, rate limit, last used | — | Ow | R | B-8 |
 | `neon_revoke_connection` | Switch a connection or pass off at once | C | Ow | F | B-8 |
-| `neon_enable_production` | Allow production writes for one organization (also needs the passphrase on the setup page within 10 minutes) | C | Ow | F | B-8 |
-| `neon_disable_production` | Stop production writes for one organization immediately | C | Ow | F | B-8 |
+| `neon_enable_production` | Allow production writes for one organization (also needs the passphrase on the setup page within 10 minutes) | C | Ow | F | B-2 |
+| `neon_disable_production` | Stop production writes for one organization immediately | C | Ow | F | B-2 |
 | `neon_recent_changes` | What changed through this server (filter by tool, project, branch, date; previews hidden unless asked) | — | Ow Op | R | B-8 |
 | `neon_undo_change` | Undo one change-log entry with a clean opposite (recover a deleted branch, restore a setting, roll a branch back to the recorded point before a SQL change); says plainly when there is none | C | Op | E | X-1 |
 | `neon_search_tools` | Find tools by plain words; one line each with flags (compact mode's front door) | — | B Ow Op | R | C-2 |
