@@ -90,3 +90,12 @@ no class; unclassified statements now fail closed as `destructive`. Totals: 173 
 "projects", "branches", "members" and "workflows"; several Robinson servers are often loaded in one chat, and some
 clients do not namespace tool names by server. Every tool here is therefore `neon_<area>_<verb>_<object>` (contract §3
 as clarified on 2026-10-10). Renamed mechanically across the plan; no behavior changed.
+
+**2026-10-10 — A-1 foundation choices.** (1) Neon's API description is vendored in A-1, not A-4, because the fake Neon
+server validates every request against it and the live file was unreachable (BATCH-A amendment). (2) The fake validates
+request bodies **strictly** — an unknown field fails the test — because misspelled or invented fields were the old
+toolkit's commonest Neon bug; response fixtures are checked loosely (Neon adds fields). (3) The fake answers 401 when no
+bearer key is sent, because the old toolkit's SQL path never authenticated. (4) The secret scan also refuses real-looking
+Neon branch, endpoint and organization IDs and Vercel IDs (AGENTS hard limits), and skips the vendored description only
+while its SHA-256 matches `SOURCE.md`. (5) CI runs on Node 24 with `npm ci --ignore-scripts` from the committed lockfile;
+the database job uses the ECR mirror of Postgres 17 (Docker Hub's anonymous limit broke Appliance Desk CI).

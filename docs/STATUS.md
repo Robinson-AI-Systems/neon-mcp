@@ -1,26 +1,37 @@
 # STATUS — current work, blockers and next action
 
-Updated 2026-10-10. Repository created by Chris; plan written by Claude (Opus 5.5) in the same planning system as the
-Stripe MCP. **No code exists yet.** No Neon key has been added anywhere. Nothing touches any database.
+Updated 2026-10-10. **A-1 merged (#1): the repository is ready for implementation.** Package (Node 24), committed
+lockfile, fake Neon API that checks every request against Neon's own API description, throwaway-Postgres database tests,
+secret/docs/index/lint/write-safety/core-import/budget checks, and CI with one merge gate (`ci`). No tools, endpoints or
+database tables yet. No Neon key has been added anywhere; nothing touches a real database or Neon account.
 
 ## Next
 
-- **Waiting for Chris:** IN-00 — approve this plan (the designs in `docs/designs/`). In plain words: "Yes, I approve the
-  Neon MCP plan" is enough; or say what to change.
-- **Ready once approved:** A-1 — repository, test harness, fake Neon server, CI and doc checks ([card](pr-cards/A-1.md)).
-  Then A-2 … A-7 (JIT).
-- **Pending confirmation:** IN-01 — repository public, no automated review (the implementer self-reviews every diff), the
-  same choice Chris made for the Stripe MCP on 2026-10-10.
+- **Next card: A-2 — database schema** ([card](pr-cards/A-2.md), READY). Then **A-3** — connector login, two PRs
+  ([card](pr-cards/A-3.md), READY). Then A-4 … A-7 (write each card just in time from `designs/BATCH-A.md` §4).
+- **Owner (Chris):** IN-00 — A-1 was built at Chris's request to make this repository implementation-ready
+  (2026-10-10); a one-line "Yes, I approve the Neon MCP plan" still records formal approval of the designs. IN-01
+  pending confirmation (public repo, no automated review — the implementer self-reviews every diff). Neither blocks A-2.
 - **Queue:** A → B → C → D → V → O → P → W → U → R → E → X (`MASTER-ROADMAP.md`).
 
 ## Environment
 
-- Repo: `Robinson-AI-Systems/neon-mcp`, default branch `main`. The first commits (this plan) were made locally on `main`
-  because the repository was empty; every later change goes through an `ai/*` branch and a PR.
+- Repo: `Robinson-AI-Systems/neon-mcp`, default branch `main`; every change goes through an `ai/*` branch and a PR.
+- CI: `.github/workflows/ci.yml` — jobs `check`, `unit`, `db` and the aggregate `ci` (the merge gate). Proof that it
+  really fails and passes: PR #1 description (red-proof run and final green run).
+- Commands: `npm ci`, `npm run check`, `npm test`, `npm run test:db` (`docs/ARCHITECTURE.md` "Test harness").
 - Vercel project, this server's own Neon database and Neon API keys: not created yet (IN-02, IN-03, IN-04).
 - Runtime: Node 24.x (Vercel stopped deploying Node 20 on 2026-10-01; see DECISIONS).
 
 ## Recent work (newest first)
+
+**2026-10-10 — A-1 foundation merged (#1), by Claude (Opus 5.5):** `package.json` (Node 24.x, ES modules, exact
+versions) and `package-lock.json`; Neon's API description vendored (fallback source; the live URL was unreachable — BATCH-A
+amendment); `test/helpers/fake-neon.js` (validates requests, operations, 423/429), schema-valid fixtures, proof that the
+real `@neon/sdk` works through it; secret scan with planted-key tests; docs, index, lint, write-safety, core-import and
+budget checks with tests; throwaway Postgres harness (read-only transactions, timeouts, rollback proven on real
+Postgres); CI with a deliberately failing test run recorded red, then green. Cards A-2 and A-3 written.
+
 
 **2026-10-10 — Gap check against prior toolkits:** every Neon tool name Chris built or planned in any Robinson toolkit
 (333 names across `robinsons-toolkit-mcp`, `robinsonai-mcp-servers`, `robinsons-toolkit-api`) mapped in
@@ -37,5 +48,5 @@ owner inputs, go-live checklist, decisions, roadmap, owner guide, work index wit
 
 ## Blocked
 
-Nothing in engineering. Owner inputs open: IN-00 (blocks starting), IN-01 (pending confirmation), IN-02 … IN-14
-(`OWNER-INPUTS.md`); none blocks A-1 … A-4.
+Nothing in engineering. Owner inputs open: IN-00 (formal plan approval), IN-01 (pending confirmation), IN-02 … IN-14
+(`OWNER-INPUTS.md`); none blocks A-2 … A-4.

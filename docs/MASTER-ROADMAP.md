@@ -4,13 +4,14 @@ Written 2026-10-10 for an empty repository. [STATUS](STATUS.md) holds current st
 
 ## What is next
 
-**Next:** A-1 ([card](pr-cards/A-1.md)) — as soon as Chris approves the plan (IN-00).
+**Done:** A-1 foundation (#1). **Next:** A-2 database schema ([card](pr-cards/A-2.md)), then A-3 connector login
+([card](pr-cards/A-3.md), two PRs). Both cards are READY.
 
 ## Order and why
 
 | Stage | Batches | Why in this place | Owner gate |
 |---|---|---|---|
-| 1 Foundation | A | Nothing works without it | IN-00 (plan approval); IN-01 pending confirmation (same as Stripe); IN-02/IN-03/IN-04 only before A-5 is tried for real |
+| 1 Foundation | A | Nothing works without it (A-1 merged) | IN-00 (formal plan approval); IN-01 pending confirmation (same as Stripe); IN-02/IN-03/IN-04 only before A-5 is tried for real |
 | 2 Safety | B → C | Every later tool is built on the safety layer (production, SQL and spend guards) and the context rules | IN-07 (protected resources list), IN-09 (production reads), IN-10 (spend caps) — mechanisms build without them |
 | 3 Everyday Neon and building | D → V | The everyday jobs (projects, branches, computes, SQL, schema, snapshots, security), then the developer tools that make building any project on Neon fast (throwaway branches, seeds, checkpoints, migration previews, masked copies, cleanup) | IN-12 (dev branch defaults) |
 | 4 Owning the account | O | Members, keys, usage in dollars, spending alert, the admin overview and every console setting as a guided step | IN-04 (organization key, only to use these for real) |
@@ -38,7 +39,7 @@ covered by the design; write the card when its predecessor is real.
 
 | Batch | Cards | Card status |
 |---|---|---|
-| A Foundation | A-1 repo, CI, fake Neon, checks · A-2 schema · A-3 login · A-4 Neon client + vendored description + waiter + budget · A-5 key store, setup page, one-time secrets · A-6 SQL connection layer · A-7 DEPLOY.md | A-1 [card](pr-cards/A-1.md); rest JIT |
+| A Foundation | A-1 repo, CI, fake Neon, checks · A-2 schema · A-3 login · A-4 Neon client + vendored description + waiter + budget · A-5 key store, setup page, one-time secrets · A-6 SQL connection layer · A-7 DEPLOY.md | A-1 MERGED (#1); A-2 [card](pr-cards/A-2.md) and A-3 [card](pr-cards/A-3.md) READY; rest JIT |
 | B Trust | B-1 safety layer · B-2 production guard + self-protection · B-3 SQL guard · B-4 spend guard · B-5 errors · B-6 shaping, secrets, profiles · B-7 check-writes · B-8 server tools | JIT |
 | C Context | C-1 small results · C-2 listing modes + budgets | JIT |
 | D Neon core | D-1 projects/operations · D-2 branches · D-3 computes · D-4 databases/roles/connections · D-5 SQL · D-6 schema/health · D-7 snapshots · D-8 project security · D-9 data checks/reindex | JIT |

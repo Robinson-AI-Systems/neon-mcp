@@ -5,7 +5,7 @@ An answer is "applied" only once the setting and its behavior are verified. Plai
 
 | ID | Status | Question | Blocks | Recommended / safe default |
 |---|---|---|---|---|
-| IN-00 | **Open — awaiting Chris** | Approve this plan (all designs in `docs/designs/`) so building can start. | Starting A-1 | — |
+| IN-00 | **Open — formal approval** (2026-10-10: Chris asked for this repository to be made implementation-ready; A-1 was built on that request) | Approve this plan (all designs in `docs/designs/`). A one-line "Yes, I approve the Neon MCP plan" records it; or say what to change. | Nothing technically; recorded before Batch B (the safety layer) | — |
 | IN-01 | **Pending Chris's confirmation** (mirrors his Stripe decision of 2026-10-10: "public; no Codex review") | Keep this repository public? Should an AI service automatically review PRs here? | Nothing | Public (free CI, secret scanning on); no automated review — the implementer inspects every diff itself and writes a self-review in the PR (AGENTS "Review") |
 | IN-02 | Awaiting Chris (before A-5 is tried for real) | Create a Vercel project `neon-mcp` and a Neon database for this server (free tiers). Claude can do both with your Vercel and Neon connectors once you say go. This server then refuses to ever change its own database. | Real deployment | Free tiers; no purchase |
 | IN-03 | Awaiting Chris (with IN-02) | Set two secrets in Vercel yourself: `ADMIN_PASSPHRASE` (the passphrase for the login and setup pages) and `TOKEN_ENCRYPTION_KEY` (DEPLOY.md shows how to make it). Claude never sees them. | Real deployment | — |
