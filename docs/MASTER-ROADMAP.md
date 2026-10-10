@@ -17,7 +17,7 @@ Written 2026-10-10 for an empty repository. [STATUS](STATUS.md) holds current st
 | 4 Owning the account | O | Members, keys, usage in dollars, spending alert, the admin overview and every console setting as a guided step | IN-04 (organization key, only to use these for real) |
 | 5 Projects | P → W | Optional project profiles (Appliance Desk is the first example) and the one-sentence jobs | IN-13 (Appliance Desk profile details, only to use it for real) |
 | 6 Everything else | U → R | Universal access to every other Neon operation; the contract doors Robinson's Toolkit uses | IN-11 (pass rate limit) |
-| 7 Later | E → X | Neon's new backend services (the universal tools reach them meanwhile); undo, real-account checks and the toolkit decision close out | IN-05, IN-06, IN-14 |
+| 7 Later | E → X | Neon's new backend services (the universal tools reach them meanwhile); undo, real-account checks close out | IN-05, IN-06 |
 | Production | GO-LIVE-CHECKLIST | Only after Chris enables production access per organization | IN-08 |
 
 ## Implementing agent — paste this
@@ -50,4 +50,4 @@ covered by the design; write the card when its predecessor is real.
 | U Universal | U-1 | JIT |
 | R Hub-ready doors (RTC 1) | R-1 passes · R-2 HTTPS API, manifest, OpenAPI, rate limits · R-3 conformance in CI | JIT |
 | E Neon backend services | E-1 Auth + Data API · E-2 storage, Functions, triggers, logs | JIT |
-| X Close-out | X-1 undo · X-2 read-only smoke · X-3 scratch-project write check · X-4 toolkit note | JIT |
+| X Close-out | X-1 undo · X-2 read-only smoke · X-3 scratch-project write check | JIT |

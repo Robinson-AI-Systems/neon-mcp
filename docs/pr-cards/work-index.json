@@ -342,7 +342,7 @@
     },
     {
       "id": "D-1",
-      "title": "Projects, operations, regions, toolkit name map",
+      "title": "Projects, operations, regions",
       "batch": "D",
       "design": "docs/designs/BATCH-D.md",
       "dependencies": [
@@ -1006,26 +1006,6 @@
       "readiness": "WRITE_CARD_AT_START",
       "ownerInputs": [
         "IN-06"
-      ]
-    },
-    {
-      "id": "X-4",
-      "title": "Toolkit decision note",
-      "batch": "X",
-      "design": "docs/designs/BATCH-X.md",
-      "dependencies": [
-        "X-3"
-      ],
-      "card": "docs/pr-cards/X-4.md",
-      "status": "PLANNED",
-      "migration": "none",
-      "budget": 0,
-      "units": [
-        "X-4"
-      ],
-      "readiness": "WRITE_CARD_AT_START",
-      "ownerInputs": [
-        "IN-14"
       ]
     }
   ]

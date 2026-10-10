@@ -1,7 +1,7 @@
-# Design — Batch X: Undo, real-account checks, toolkit decision
+# Design — Batch X: Undo, real-account checks
 
 Status: **APPROVED** (Chris, 2026-10-10). Written 2026-10-10. Scope and acceptance: `docs/PLAN.md` →
-Batch X. Cards X-1 … X-4.
+Batch X. Cards X-1 … X-3.
 
 ## 0. Verify before starting
 
@@ -36,9 +36,6 @@ checkpoint, preview and apply a migration on a branch, protect and unprotect the
 clean up the run. Refuses to run against any other project. Report `docs/audits/scratch-<date>.md`. No purchases: stays
 within the plan's included limits (it checks branch count and compute size first).
 
-**X4. Toolkit decision note:** one page for Chris — keep Robinson's Toolkit's `neon` namespace (204 tools, 17
-unreachable, SQL path broken — research audit §2) for local use, retire it, or point its compound tools at this server;
-the work each needs. Chris decides (IN-14); a later card does it.
 
 ## 4. Work units
 
@@ -49,8 +46,6 @@ the right action; undo of an undo.
 Done when: report committed; every failure fixed or listed as a known gap with its card.
 ### X-3 — Scratch-project write check (M, medium effort)
 Done when: report committed; the run is cleaned up (a second cleanup finds nothing).
-### X-4 — Toolkit decision note (S, docs)
-
 ## 5. Stop-and-ask points
 
 1. X2 or X3 needs a key or project that does not exist yet: stop; IN-06 / IN-04.
@@ -63,6 +58,5 @@ Done when: report committed; the run is cleaned up (a second cleanup finds nothi
 | Undo for every clean opposite, SQL by LSN | `tests/unit/undo.test.js` |
 | Read-only smoke on the real account | `docs/audits/smoke-<date>.md` |
 | Writes proven in the scratch project only | `docs/audits/scratch-<date>.md` |
-| Toolkit note delivered | X-4 PR |
 
 ## Amendments
