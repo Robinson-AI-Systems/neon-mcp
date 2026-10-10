@@ -129,8 +129,7 @@ and cents; stored in integer cents (unit rates in integer micro-dollars).
   not a cause; never skip, weaken or quarantine a test.
 - **The `ci` check is the single merge gate**, green at the exact head.
 - **Review:** read `docs/AI-PR-READ-FIRST.md` for anything touching production, SQL, secrets, keys, guards, spend, auth or
-  passes, and record how each applicable constraint is honored. **This repo has no automated review** (IN-01, pending
-  Chris's confirmation — same as his Stripe decision of 2026-10-10): never wait for or request one. Before merging,
+  passes, and record how each applicable constraint is honored. **This repo has no automated review** (IN-01, Chris, 2026-10-10): never wait for or request one. Before merging,
   inspect the whole diff yourself against AI-PR-READ-FIRST and write "Self-review: <findings and dispositions>" in the PR;
   fix blocking findings (security, production data, secrets, spend, contract, acceptance) in one patch. If an
   organization-wide automated reviewer posts anyway, fix or answer each of its threads and resolve them; never wait for
