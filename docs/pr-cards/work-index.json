@@ -259,16 +259,20 @@
         "B-2"
       ],
       "card": "docs/pr-cards/B-4.md",
-      "status": "PLANNED",
+      "status": "MERGED",
       "migration": "none",
       "budget": 350,
       "units": [
         "B-4"
       ],
-      "readiness": "WRITE_CARD_AT_START",
+      "readiness": "READY",
       "ownerInputs": [
         "IN-10"
-      ]
+      ],
+      "pr": [
+        25
+      ],
+      "note": "Private B-4 spending safety methods/rates/atomic daily admission implemented; future $ tools must wire the guard and B-1 write contract. Owner IN-10 approved; runtime defaults verified in local PostgreSQL."
     },
     {
       "id": "B-5",
