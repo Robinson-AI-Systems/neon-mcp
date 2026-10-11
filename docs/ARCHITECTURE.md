@@ -115,3 +115,7 @@ exposed as MCP tools until the Batch B SQL/production guards are implemented.
 Node **24.x** (`package.json` `engines`; Vercel stopped deploying Node 20 on 2026-10-01). Plain ES modules, no build
 step. Dependencies (exact versions): `@modelcontextprotocol/sdk` 1.32.1, `@neon/sdk` 7.0.1, `@neondatabase/serverless`
 1.2.0, `libpg-query` 18.1.5; dev: `eslint` 10.12.0, `pg` 8.23.1, `vitest` 5.0.3, `yaml` 2.9.1.
+
+## B-1 audited write reservation
+
+The generic write lifecycle lives in `src/core/write.js`; Neon-specific API/wait calls live in `src/neon/write-neon.js`. The existing `change_log` table has an additive partial unique index on `request_key` for real (non-preview) writes. `reserveWrite` atomically records intent before any external mutation, and retries return the existing audit state without resending. `completeWrite` only transitions a pending row. Preview rows never reserve keys. Logs hold safe summaries and identifier-only inverse metadata, never raw before/after state. Until B-2/B-4, no write handlers are registered and every required policy guard must be explicitly injected; missing guards deny execution.

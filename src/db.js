@@ -221,6 +221,46 @@ export function createDb(sql = productionSql()) {
         AND ciphertext IS NOT NULL AND consumed_at IS NULL RETURNING ciphertext`;
       return rows[0] || null;
     },
+    /** Reserve an external write exactly once before sending it to Neon. */
+    async reserveWrite({ orgId, projectId = null, branchId = null, mode, connectionId = null,
+      tool, target, summary, production = false, requestKey, spendCents = null }) {
+      if (!orgId || !tool || !summary || !/^rmcp_[a-z0-9_]{5,128}$/.test(requestKey || ''))
+        throw new TypeError('Invalid audit reservation');
+      const rows = await sql`INSERT INTO change_log
+        (neon_org, project_id, branch_id, mode, connection, tool, target, summary,
+         dry_run, production, spend_month_cents, request_key, confirmed)
+        VALUES (${orgId}, ${projectId}, ${branchId}, ${mode}, ${connectionId}, ${tool},
+          ${target}, ${summary}, FALSE, ${production}, ${spendCents}, ${requestKey}, 'pending')
+        ON CONFLICT DO NOTHING RETURNING id`;
+      if (rows.length) return { created: true, id: rows[0].id };
+      const existing = await sql`SELECT id, neon_org, tool, project_id, branch_id, target, confirmed FROM change_log
+        WHERE request_key = ${requestKey} AND dry_run = FALSE LIMIT 1`;
+      return { created: false, existing: existing[0] || null };
+    },
+    /** A preview never reserves a request key and contains no raw customer data. */
+    async recordWritePreview({ orgId, projectId = null, branchId = null,
+      mode, connectionId = null, tool, target, summary, production = false }) {
+      if (!orgId || !tool || typeof summary !== 'string')
+        throw new TypeError('Invalid write preview');
+      const rows = await sql`INSERT INTO change_log
+        (neon_org, project_id, branch_id, mode, connection, tool, target,
+         summary, dry_run, production, confirmed)
+        VALUES (${orgId}, ${projectId}, ${branchId}, ${mode}, ${connectionId},
+          ${tool}, ${target}, ${summary}, TRUE, ${production}, 'preview') RETURNING id`;
+      return rows[0].id;
+    },
+    /** Pending remains uncertain; once finalized, no retry may overwrite the outcome. */
+    async completeWrite({ id, orgId, confirmed, operationIds = [], inverse = null }) {
+      if (!id || !orgId || !['true','false','pending'].includes(confirmed) ||
+          !Array.isArray(operationIds) || operationIds.some(x => typeof x !== 'string'))
+        throw new TypeError('Invalid write audit completion');
+      const rows = await sql`UPDATE change_log
+        SET confirmed = ${confirmed}, operation_ids = ${operationIds},
+          inverse = ${inverse ? JSON.stringify(inverse) : null}::jsonb
+        WHERE id = ${id} AND neon_org = ${orgId} AND dry_run = FALSE
+          AND confirmed = 'pending' RETURNING id`;
+      return rows.length === 1;
+    },
     async initSchema() {
       // Additive foundation migration; intentionally never alters or deletes existing data.
       await sql`CREATE TABLE IF NOT EXISTS neon_orgs (
@@ -278,6 +318,8 @@ export function createDb(sql = productionSql()) {
         restore_lsn TEXT, inverse JSONB, undone_by BIGINT
       )`;
       await sql`CREATE INDEX IF NOT EXISTS change_log_request_key ON change_log (request_key, at)`;
+      await sql`CREATE UNIQUE INDEX IF NOT EXISTS change_log_one_apply_key
+        ON change_log (request_key) WHERE request_key IS NOT NULL AND dry_run = FALSE`;
       await sql`CREATE TABLE IF NOT EXISTS one_time_secrets (
         id TEXT PRIMARY KEY, neon_org TEXT, kind TEXT NOT NULL,
         label TEXT NOT NULL, ciphertext TEXT NOT NULL,

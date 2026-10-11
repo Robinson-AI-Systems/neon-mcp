@@ -184,15 +184,18 @@
         "A-7"
       ],
       "card": "docs/pr-cards/B-1.md",
-      "status": "PLANNED",
+      "status": "MERGED",
       "migration": "none",
       "budget": 500,
       "units": [
         "B-1"
       ],
-      "readiness": "WRITE_CARD_AT_START",
+      "readiness": "READY",
       "ownerInputs": [],
-      "note": "A-7 deployment instructions merged #16; write B-1 card from approved BATCH-B after inspecting latest main"
+      "note": "Provider-neutral write lifecycle, partial unique audit claim and contract tests; all guards injected fail-closed",
+      "pr": [
+        17
+      ]
     },
     {
       "id": "B-2",
