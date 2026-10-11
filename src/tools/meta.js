@@ -13,7 +13,14 @@ export const tools=[
    limit:{type:'integer',minimum:1,maximum:20},offset:{type:'integer',minimum:0,maximum:10000}})},
  {name:'neon_call',description:'Call an allowed tool by name through its normal authenticated safety and result guards.',
   writes:false,profiles,audience:['builder','owner','operator'],area:'discovery',
-  inputSchema:schema({name:{type:'string',pattern:'^neon_[a-z0-9_]+,description:'Describe a tool available to this connection, including its input schema and safety hints.',
+  inputSchema:schema({name:{type:'string',pattern:'^neon_[a-z0-9_]+$',maxLength:90},
+   args:{type:'object'}},)},
+ {name:'neon_batch',description:'Run at most ten authorized read-only tools in order; reject the entire batch if any write appears.',
+  writes:false,profiles,audience:['builder','operator'],area:'discovery',
+  inputSchema:schema({calls:{type:'array',minItems:1,maxItems:10,items:{type:'object',
+   properties:{name:{type:'string',pattern:'^neon_[a-z0-9_]+$'},args:{type:'object'}},
+   required:['name'],additionalProperties:false}}})},
+ {name:'neon_describe_tool',description:'Describe a tool available to this connection, including its input schema and safety hints.',
   writes:false,profiles,audience:['builder','owner','operator'],area:'discovery',
   inputSchema:schema({name:{type:'string',pattern:'^neon_[a-z0-9_]+$',maxLength:90}})}
 ];
