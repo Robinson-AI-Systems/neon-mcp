@@ -45,10 +45,11 @@ export function createOAuthHandlers({ db, env = process.env }) {
     const hidden = fields.map(name => '<input type="hidden" name="' + name + '" value="' + escapeHtml(p[name]) + '">').join('');
     const orgList = orgs.map(org => '<option value="' + escapeHtml(org.id) + '"' +
       (p.neon_org === org.id ? ' selected' : '') + '>' + escapeHtml(org.label) + '</option>').join('');
+    const defaultListing = p.default_listing || 'compact';
     const profileList = PROFILES.map(value => '<option value="' + value + '"' +
       ((p.profile || 'everyday') === value ? ' selected' : '') + '>' + value + '</option>').join('');
     const listingList = LISTINGS.map(value => '<option value="' + value + '"' +
-      ((p.listing || 'catalog') === value ? ' selected' : '') + '>' + value + '</option>').join('');
+      ((p.listing || defaultListing) === value ? ' selected' : '') + '>' + value + '</option>').join('');
     const selected = orgs.find(org => org.id === (p.neon_org || orgs[0]?.id));
     const canProduction = env.VERCEL_ENV === 'production' && selected?.production_enabled === true;
     const modeList = '<option value="preview">Preview — production changes disabled</option>' +
@@ -88,6 +89,8 @@ export function createOAuthHandlers({ db, env = process.env }) {
     const summaries = await db.listNeonKeySummaries(selectedOrgId);
     const scopes = summaries.filter(item => item.kind === 'project' &&
       !item.revoked_at && item.reach?.verified === true).map(item => item.project_id);
+    const default_listing=/claude|anthropic/i.test(client.client_name||'')?'catalog':'compact';
+    p={...p,default_listing};
     if (req.method === 'GET') return send(res, 200, authorizePage(p, orgs, '', scopes), 'text/html; charset=utf-8');
     if (!env.ADMIN_PASSPHRASE) return bad(res, 503, 'server_not_configured', 'Admin passphrase is not configured');
     const verdict = await evaluateLogin({ ip: clientIp(req), supplied: p.passphrase,
@@ -101,7 +104,7 @@ export function createOAuthHandlers({ db, env = process.env }) {
     const chosenMode = p.mode || 'preview';
     if (!selected || !MODES.includes(chosenMode) ||
       (chosenMode === 'production' && (env.VERCEL_ENV !== 'production' || !selected.production_enabled)) ||
-      !PROFILES.includes(p.profile || 'everyday') || !LISTINGS.includes(p.listing || 'catalog') ||
+      !PROFILES.includes(p.profile || 'everyday') || !LISTINGS.includes(p.listing || defaultListing) ||
       (p.project_scope && !scopes.includes(p.project_scope))) {
       return send(res, 400, authorizePage(p, orgs, 'Invalid org, mode, or connection settings'), 'text/html; charset=utf-8');
     }
@@ -109,7 +112,7 @@ export function createOAuthHandlers({ db, env = process.env }) {
     await db.createAuthCode({ code, clientId: p.client_id, redirectUri: p.redirect_uri,
       codeChallenge: p.code_challenge, codeChallengeMethod: 'S256', neonOrg: p.neon_org,
       projectScope: p.project_scope || null, mode: chosenMode,
-      profile: p.profile || 'everyday', listing: p.listing || 'catalog' });
+      profile: p.profile || 'everyday', listing: p.listing || default_listing });
     const destination = new URL(p.redirect_uri);
     destination.searchParams.set('code', code);
     if (typeof p.state === 'string') destination.searchParams.set('state', p.state);
