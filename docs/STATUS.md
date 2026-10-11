@@ -1,3 +1,5 @@
+**C-1a result selection (PR #38):** typed provider summaries and safe `detail`/dotted `fields` are applied after secret scrubbing at MCP dispatch. Unknown paths are reported; protected prototype keys are rejected. C-1 remains IN_PROGRESS: result-store handles and annotations follow; production OFF.
+
 **B-8d guarded owner settings (PR #37):** full unscoped organization owner with a stored org key can preview/confirm reductions of spending caps or SQL read policy, with database compare-and-swap and audit. No limit increase, pricing, protected-list editing or production activation. B-8 complete; next C-1 context-efficient results, handles and annotations.
 
 **B-8c key re-probe (PR #36):** owner-only production-deployment read verifies active stored key scopes via Neon SDK, returning nonsecret capabilities; never enables production. Next guarded settings edits; no live accounts accessed by CI.

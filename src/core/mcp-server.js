@@ -6,17 +6,26 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprot
 import { requireMcpToken } from './mcp-auth.js';
 import { isToolAllowed } from './profiles.js';
 import { scrubNeonResult, redactNeonText } from './scrub.js';
-import { shapeResult } from './result-rules.js';
+import { shapeResult, selectResult } from './result-rules.js';
 
+const displayTool=item=>{
+  const {writes:_writes,profiles:_profiles,...publicTool}=item;
+  if(item.writes!==false)return publicTool;
+  return {...publicTool,inputSchema:{...item.inputSchema,
+   properties:{...item.inputSchema?.properties,
+    detail:{type:'string',enum:['summary','full'],description:'Choose brief (default) or full details.'},
+    fields:{type:'string',maxLength:512,description:'Comma-separated dotted fields to select.'}}}};
+};
 const allowedTool=(item,connection,env)=>isToolAllowed(item,connection,
   {productionDeployment:env?.VERCEL_ENV==='production'});
-function safeMcpResult(result){
+function safeMcpResult(result,{args={},tool}={}){
   if(!result || !Array.isArray(result.content))return {isError:true,content:[{type:'text',text:'Invalid tool response'}]};
   return {isError:result.isError===true,content:result.content.map(item=>{
     if(item?.type!=='text')return {type:'text',text:'Non-text output unavailable'};
     let value;
     try { value=JSON.parse(item.text); } catch { return {type:'text',text:redactNeonText(item.text)}; }
-    return {type:'text',text:JSON.stringify(shapeResult(scrubNeonResult(value)))};
+    return {type:'text',text:JSON.stringify(shapeResult(tool?.writes===false
+      ? selectResult(scrubNeonResult(value),args) : scrubNeonResult(value)))};
   })};
 }
 export async function dispatchReadOnlyTool({ registry, name, args, connection, db, env=process.env }) {
@@ -28,7 +37,7 @@ export async function dispatchReadOnlyTool({ registry, name, args, connection, d
   if (typeof handler !== 'function') {
     return {isError:true,content:[{type:'text',text:'Tool unavailable'}]};
   }
-  try { return safeMcpResult(await handler(args || {},{connection,db,env})); }
+  try { return safeMcpResult(await handler(args || {},{connection,db,env}),{args:args||{},tool:item}); }
   catch {
     return {isError:true,content:[{type:'text',text:'Could not read account details; check server setup'}]};
   }
@@ -41,7 +50,7 @@ export function createMcpHandler({ db, registry, env = process.env }) {
       {capabilities:{tools:{}}});
     server.setRequestHandler(ListToolsRequestSchema,async()=>({tools:registry.tools
       .filter(t=>allowedTool(t,connection,env))
-      .map(({writes:_writes,profiles:_profiles,...publicTool})=>publicTool)}));
+      .map(displayTool)}));
     server.setRequestHandler(CallToolRequestSchema,async request=>
       dispatchReadOnlyTool({registry,name:request.params?.name,args:request.params?.arguments,connection,db,env}));
     const transport = new StreamableHTTPServerTransport({sessionIdGenerator:undefined});

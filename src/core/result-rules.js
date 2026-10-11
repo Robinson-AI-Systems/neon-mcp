@@ -33,3 +33,40 @@ export function shapeResult(value,{production=false}={}){
   }
   return visit(value,0);
 }
+
+// C-1: projection is always downstream of the secret scrub; never resolve inherited keys.
+import {summarizeResources} from '../tools/summaries.js';
+const forbidden=new Set(['__proto__','prototype','constructor']);
+export function projectFields(source,fields){
+ if(typeof fields!=='string'||fields.length>512)throw new TypeError('Invalid field list');
+ const paths=fields.split(',').map(x=>x.trim()).filter(Boolean);
+ if(!paths.length||paths.length>20)throw new TypeError('Select 1 to 20 fields');
+ const output={},unknown=[];
+ for(const path of paths){
+  const parts=path.split('.');
+  if(parts.length>12||parts.some(x=>!x||forbidden.has(x)||!/^[a-zA-Z0-9_-]+$/.test(x)))
+   throw new TypeError('Invalid field path');
+  let src=source;
+  for(const part of parts){
+   if(src!==null&&typeof src==='object'&&Object.hasOwn(src,part))src=src[part];
+   else{src=undefined;break;}
+  }
+  if(src===undefined){unknown.push(path);continue;}
+  let target=output;
+  for(const part of parts.slice(0,-1)){
+   if(!Object.hasOwn(target,part))target[part]={};
+   if(target[part]===null||typeof target[part]!=='object'||Array.isArray(target[part])){
+    unknown.push(path);target=null;break;
+   }
+   target=target[part];
+  }
+  if(target)target[parts.at(-1)]=src;
+ }
+ return unknown.length?{...output,unknownFields:unknown}:output;
+}
+export function selectResult(value,args={}){
+ if(args?.fields!==undefined)return projectFields(value,args.fields);
+ if(args?.detail!==undefined&&!['summary','full'].includes(args.detail))
+  throw new TypeError('Detail must be summary or full');
+ return args.detail==='full'?value:summarizeResources(value);
+}
