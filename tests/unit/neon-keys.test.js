@@ -55,3 +55,18 @@ it('does not store a key that fails Neon identity or project checks',async()=>{
     .rejects.toThrow(/cannot access/);
   expect(await vault.listKeys(fx.IDS.org)).toEqual([]);
 });
+
+it('rechecks an encrypted stored project key without revealing bytes or using a wider key',async()=>{
+ const fake=makeFakeNeon();
+ fake.when('getAuthDetails').resolves({account_id:'fake-owner',auth_method:'api_key_user'});
+ fake.when('listProjects').resolves({projects:[fx.project()],pagination:{}});
+ const db=createFakeDb();
+ const vault=createKeyVault({db,env:{...env,VERCEL_ENV:'production'},fetch:fake.fetch});
+ await vault.storeKey({orgId:fx.IDS.org,projectId:fx.IDS.project,kind:'project',key});
+ const out=await vault.checkStoredKeyAccess({orgId:fx.IDS.org});
+ expect(out.checked).toBe(1);
+ expect(out.keys[0]).toMatchObject({kind:'project',reachable:true,organizationActions:false});
+ expect(JSON.stringify(out)).not.toContain(key);
+ expect(JSON.stringify(out)).not.toContain('key_enc');
+ fake.assertClean();
+});

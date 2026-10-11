@@ -365,9 +365,10 @@
       "ownerInputs": [],
       "pr": [
         34,
-        35
+        35,
+        36
       ],
-      "note": "B-8a read tools #34 and B-8b independently guarded, org-scoped connector/pass revocation #35. Stored settings writes and actual key access re-probe remain."
+      "note": "Reads #34, revocation #35, key re-probe #36; stored settings writes remain."
     },
     {
       "id": "C-1",

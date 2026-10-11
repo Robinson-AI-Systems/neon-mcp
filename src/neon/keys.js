@@ -65,5 +65,30 @@ export function createKeyVault({db,env=process.env,fetch}={}) {
   }
   async function listKeys(orgId) { return db.listNeonKeySummaries(orgId); }
   async function revokeKey({orgId,id}) {return db.revokeNeonKey({orgId,id});}
-  return {storeKey,keyFor,listKeys,revokeKey};
+
+  // Probe only the exact encrypted scope; never silently escalate a project key to an org key.
+  async function checkStoredKeyAccess({orgId}) {
+    if(typeof orgId!=='string'||!orgId)throw new TypeError('Organization required');
+    if(isPreview())throw new Error('Key re-probes are unavailable on preview deployments');
+    const rows=(await listKeys(orgId)).filter(row=>!row.revoked_at);
+    const keys=[];
+    for(const row of rows){
+      if(!VALID_KINDS.has(row.kind))continue;
+      const publicFields={id:row.id,kind:row.kind,projectId:row.project_id||null,last4:row.last4};
+      try{
+        const saved=await db.getEncryptedNeonKey({orgId,kind:row.kind,
+          projectId:row.project_id||null});
+        if(!saved?.key_enc)throw new Error('Missing key');
+        const key=decryptSecret(saved.key_enc,{env,context:aad(orgId,row.kind,row.project_id||null)});
+        const reach=await verify({key,orgId,kind:row.kind,projectId:row.project_id||null});
+        keys.push({...publicFields,reachable:true,projectCount:reach.projects,
+          organizationActions:reach.method==='api_key_org'});
+      }catch{
+        keys.push({...publicFields,reachable:false,
+          reason:'Access could not be verified. Check this key on the owner setup page.'});
+      }
+    }
+    return {checked:keys.length,keys};
+  }
+  return {storeKey,keyFor,listKeys,revokeKey,checkStoredKeyAccess};
 }
