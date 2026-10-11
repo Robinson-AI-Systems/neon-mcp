@@ -1,3 +1,5 @@
+**B-6 result safety and profile filtering (PR #32):** shared nested provider secret scrub, audit snapshot minimization, safe additive money/size/Denver-time display, metadata-based profile enforcement and home-page counts. No SQL tools published, no owner approvals changed. Next: B-7 declaration enforcement.
+
 # STATUS — current work, blockers and next action
 
 **Workflow guidance (#31, docs only):** AGENTS, SESSION-START §6 and PLAYBOOK Step 4 now direct agents without a local checkout, terminal or PostgreSQL to use authenticated GitHub REST for branch/PR/file operations and GitHub Actions check/unit/disposable-db logs as remote test evidence. They must state local tests were unavailable, fix CI failures, self-review and merge only on green exact-head `ci`. This adds no product capability and does not change B-6 as the next approved unit.

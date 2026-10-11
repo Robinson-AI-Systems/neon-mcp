@@ -309,14 +309,18 @@
         "B-5"
       ],
       "card": "docs/pr-cards/B-6.md",
-      "status": "PLANNED",
+      "status": "MERGED",
       "migration": "none",
       "budget": 400,
       "units": [
         "B-6"
       ],
-      "readiness": "WRITE_CARD_AT_START",
-      "ownerInputs": []
+      "readiness": "READY",
+      "ownerInputs": [],
+      "pr": [
+        32
+      ],
+      "note": "B-6 recursive secret scrub, audit minimization, additive display shaping, MCP profile filtering and homepage counts; B-7 follows."
     },
     {
       "id": "B-7",
