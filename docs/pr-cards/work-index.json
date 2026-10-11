@@ -287,14 +287,18 @@
         "B-1"
       ],
       "card": "docs/pr-cards/B-5.md",
-      "status": "PLANNED",
+      "status": "MERGED",
       "migration": "none",
       "budget": 300,
       "units": [
         "B-5"
       ],
       "readiness": "WRITE_CARD_AT_START",
-      "ownerInputs": []
+      "ownerInputs": [],
+      "pr": [
+        30
+      ],
+      "note": "HTTP/plan/SQLSTATE normalization and read-only one-reconnect behavior, #30; B-6 inherits error formatting and owns comprehensive scrub/profile shaping."
     },
     {
       "id": "B-6",
