@@ -56,7 +56,9 @@ A-3b adds authorization and token endpoints, OAuth discovery, and a default-deny
 random 32-byte base64url environment variable and is never read during module import. `src/neon/keys.js`
 verifies incoming project/organization keys through the guarded Neon client and persists ciphertext in
 `neon_keys` only after confirming identity and project reach. The narrowest key is selected for
-back-end calls. Organization-key operations are refused from preview deployments. No setup page exists yet.
+back-end calls. Organization-key operations are refused from preview deployments. A-5b adds `src/core/one-time.js` and DB methods for ciphertext-only ten-minute outbound and
+inbound secrets. Outbound secrets are deleted atomically when viewed; incoming requests are filled and
+consumed once, with organization scope. The setup page will be added by A-5c.
 
 ## Endpoints (A-3b, not deployed)
 

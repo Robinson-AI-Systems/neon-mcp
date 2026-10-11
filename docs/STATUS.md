@@ -1,6 +1,8 @@
 # STATUS — current work, blockers and next action
 
-Updated 2026-10-11. **A-5a encrypted key storage merged (#12):** authenticated ciphertext, scoped organization and
+Updated 2026-10-11. **A-5b one-time secret exchange merged (#13):** inbound and outbound ciphertext, expiry, org-bound
+single-use consumption through guarded backend functions, disposable database and fake-unit tests.
+**A-5a encrypted key storage merged (#12):** authenticated ciphertext, scoped organization and
 project key persistence, verified Neon identity/reach, fail-closed missing credentials, and fake/isolated-Postgres tests.
 **A-4b shared budget and API description tooling merged (#11):** database-atomic 500/minute API admission
 across serverless instances, secret-safe key hashing, pinned OpenAPI lookup/diff tools, isolated-Postgres coverage.
@@ -14,7 +16,7 @@ expiry indexes exist in code and are verified by isolated-Postgres tests. No liv
 
 ## Next
 
-- **Next: A-5b — one-time inbound and outbound secret exchange** (`pr-cards/A-5.md`). Then A-5c secure setup and read tools; then A-6 → A-7.
+- **Next: A-5c — authenticated secure setup page and read-only account tools** (`pr-cards/A-5.md`). Then A-6 SQL connection and A-7 deployment guide.
 - **Answered 2026-10-10 (Chris):** IN-00 — plan approved ("I approve the plans"); IN-01 — **no automated review** ("I don't want the automated review at this time"); the repository stays public as Chris created it; the implementer self-reviews every diff.
 - **Queue:** A → B → C → D → V → O → P → W → U → R → E → X (`MASTER-ROADMAP.md`).
 
@@ -28,6 +30,10 @@ expiry indexes exist in code and are verified by isolated-Postgres tests. No liv
 - Runtime: Node 24.x (Vercel stopped deploying Node 20 on 2026-10-01; see DECISIONS).
 
 ## Recent work (newest first)
+
+**2026-10-11 — A-5b one-time secrets (#13):** an outbound encrypted view-once link, inbound secret
+request submission and consume-once retrieval, scoped by organization and 10-minute expiry. No secret in any URL.
+
 
 **2026-10-11 — A-5a encrypted key vault (#12):** AES-256-GCM AAD scope binding; stored key ciphertext only; API
 identity and project visibility verified via fake/real-capable Neon client with database-backed budget; key reach tests.
