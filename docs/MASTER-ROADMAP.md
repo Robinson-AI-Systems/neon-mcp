@@ -5,7 +5,7 @@ Written 2026-10-10 for an empty repository. [STATUS](STATUS.md) holds current st
 ## What is next
 
 **Done:** A-1 (#1), A-2 (#7), A-3 (#8/#9), A-4 (#10/#11), A-5 (#12/#13/#14), A-6 (#15), A-7 (#16).
-**Next:** B-3 SQL guard (B-2 completed #18/#19/#20); IN-09 production-read decision pending, then B-4 spend guard with IN-10 pending.
+**Next:** D-1 projects, operations and regions (B-8 and C-1/C-2 complete through PR #45). Production stays disabled; D-5 owns public SQL, X-3 owns scratch restore verification.
 
 ## Order and why
 
