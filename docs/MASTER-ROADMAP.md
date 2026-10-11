@@ -5,7 +5,7 @@ Written 2026-10-10 for an empty repository. [STATUS](STATUS.md) holds current st
 ## What is next
 
 **Done:** A-1 (#1), A-2 (#7), A-3 (#8/#9), A-4 (#10/#11), A-5 (#12/#13/#14), A-6 (#15), A-7 (#16).
-**Next:** B-2b owner-only protected-resource editor and two-step production enable (B-2a guard foundation #18); owner gates remain open.
+**Next:** B-2c owner-only two-step production enable (B-2a #18, protected-resource editor #19); owner gates remain open.
 
 ## Order and why
 

@@ -4,6 +4,8 @@ import { createKeyVault } from '../../src/neon/keys.js';
 import { createOneTimeSecrets } from '../../src/core/one-time.js';
 import { evaluateLogin,clientIp,LOCKOUT_WINDOW_MINUTES } from '../../src/core/oauth.js';
 import { publicOrigin,send,paramsOf,only,escapeHtml } from '../../src/core/http.js';
+import { configuredSelfResource } from '../../src/core/self-resource.js';
+import { mergeWithSelf,validateProtectedResources } from '../../src/core/protected-resources.js';
 
 function page(message='',p={}) {
   const input=(name,type='text',value='')=>'<label>'+escapeHtml(name)+
@@ -16,6 +18,10 @@ function page(message='',p={}) {
   const add=form('add_key',org()+input('orgLabel')+input('projectId')+input('key','password')+
     input('label')+'<input type="hidden" name="kind" value="project">');
   const revoke=form('revoke_key',org()+input('keyId','number'));
+  const listProtected=form('list_protected_resources',org());
+  const protectedEditor=form('save_protected_resources',org()+
+    '<p>Enter a JSON list of other protected projects or branches. Your server project is always protected separately.</p>'+
+    '<textarea name="resourcesJson" rows="6" required aria-label="Protected resources JSON">[]</textarea>');
   const outbound=form('view_once',org()+input('onceId','text',p.once||''));
   const inbound=form('submit_secret',org()+input('requestId','text',p.secret_request||'')+
     input('secret','password'));
@@ -25,7 +31,10 @@ function page(message='',p={}) {
     '<p>The owner passphrase is required for every operation. AI tools never accept keys.</p>'+
     (message?'<p role="status">'+escapeHtml(message)+'</p>':'')+
     '<h2>List keys</h2>'+list+'<h2>Add scoped key</h2>'+add+
-    '<h2>Revoke a key</h2>'+revoke+'<h2>View secret once</h2>'+outbound+
+    '<h2>Revoke a key</h2>'+revoke+
+    '<h2>Protected resources (owner only)</h2>'+
+    '<p>Your Neon MCP database cannot be removed from protection. Configure and verify its own project in Vercel first.</p>'+
+    listProtected+protectedEditor+'<h2>View secret once</h2>'+outbound+
     '<h2>Supply requested secret</h2>'+inbound+'</main></body></html>';
 }
 export function createSetupHandler({db,vault,exchange,env=process.env}={}) {
@@ -71,6 +80,26 @@ export function createSetupHandler({db,vault,exchange,env=process.env}={}) {
           return send(res,400,{error:'invalid_key_id'});
         const ok=await vault.revokeKey({orgId,id:Number(p.keyId)});
         return send(res,200,page(ok?'Key revoked.':'No active scoped key matched.'),
+          'text/html; charset=utf-8');
+      }
+      if(p.action==='list_protected_resources'){
+        const configured=configuredSelfResource(env);
+        if(configured.org!==orgId)return send(res,403,{error:'self_organization_mismatch'});
+        const entries=mergeWithSelf(await db.getProtectedResources(),configured);
+        return send(res,200,page(JSON.stringify(entries)),'text/html; charset=utf-8');
+      }
+      if(p.action==='save_protected_resources'){
+        const configured=configuredSelfResource(env);
+        if(configured.org!==orgId)return send(res,403,{error:'self_organization_mismatch'});
+        if(typeof p.resourcesJson!=='string'||p.resourcesJson.length>16000)
+          return send(res,400,{error:'invalid_resources'});
+        let parsed;
+        try {parsed=JSON.parse(p.resourcesJson);}catch{
+          return send(res,400,{error:'invalid_resources'});
+        }
+        const entries=mergeWithSelf(validateProtectedResources(parsed),configured);
+        await db.saveProtectedResourcesFromSetup(entries.filter(x=>x.kind!=='self'));
+        return send(res,200,page('Protected resources saved; your Neon MCP database remains protected.'),
           'text/html; charset=utf-8');
       }
       if(p.action==='view_once'){

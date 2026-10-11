@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { createFakeDb } from '../../test/helpers/fake-db.js';
 import { createOneTimeSecrets } from '../../src/core/one-time.js';
 import { createSetupHandler } from '../../api/neon/setup.js';
+import {configuredSelfResource} from '../../src/core/self-resource.js';
 import { createOAuthHandlers } from '../../src/core/oauth-handlers.js';
 import { dispatchReadOnlyTool } from '../../src/core/mcp-server.js';
 import { registry } from '../../src/tools/index.js';
@@ -89,6 +90,55 @@ describe('owner-only setup route',()=>{
       action:'list_keys',orgId:'org-fake-one',passphrase:'wrong'},headers))).statusCode).toBe(401);
     expect((await invoke(handler,req('POST',{action:'list_keys',orgId:'org-fake-one',
       passphrase:env.ADMIN_PASSPHRASE},headers))).statusCode).toBe(429);
+  });
+});
+describe('protected resource owner setup',()=>{
+  const envSelf={...env,DATABASE_URL:'postgresql://user:FAKE@localhost/database',
+    NEON_MCP_SELF_ORG_ID:'org-fake-one',NEON_MCP_SELF_PROJECT_ID:'prj-self',
+    NEON_MCP_SELF_ENDPOINT_HOST:'localhost'};
+  function guarded() {
+    const db=createFakeDb({orgs:[{id:'org-fake-one',label:'Fake Org',production_enabled:false}]});
+    const store=[];
+    db.getProtectedResources=async()=>store.at(-1)||[];
+    db.saveProtectedResourcesFromSetup=async entries=>{store.push(structuredClone(entries));};
+    const vault={listKeys:async()=>[],storeKey:async()=>({}),revokeKey:async()=>false};
+    const exchange=createOneTimeSecrets({db,env:envSelf});
+    return {handler:createSetupHandler({db,vault,exchange,env:envSelf}),store};
+  }
+  it('requires owner Vercel self identity and rejects mismatched DB host',()=>{
+    expect(configuredSelfResource(envSelf)).toEqual({org:'org-fake-one',project_id:'prj-self'});
+    expect(()=>configuredSelfResource({...envSelf,NEON_MCP_SELF_ENDPOINT_HOST:'wrong.example.test'})).toThrow();
+    expect(()=>configuredSelfResource({...envSelf,DATABASE_URL:''})).toThrow();
+  });
+  it('only stores other protected resources; includes self on read and refuses changed owner org',async()=>{
+    const {handler,store}=guarded(),headers={origin:envSelf.PUBLIC_BASE_URL};
+    const resourcesJson=JSON.stringify([{kind:'self',org:'org-fake-one',
+      project_id:'prj-self',label:'Attempt to override self'},
+      {kind:'robinson',org:'org-fake-one',project_id:'prj-other',label:'Other server'}]);
+    const body={action:'save_protected_resources',orgId:'org-fake-one',
+      passphrase:envSelf.ADMIN_PASSPHRASE,resourcesJson};
+    expect((await invoke(handler,req('POST',body))).statusCode).toBe(403);
+    const saved=await invoke(handler,req('POST',body,headers));
+    expect(saved.statusCode).toBe(200);
+    expect(store).toEqual([[{kind:'robinson',org:'org-fake-one',project_id:'prj-other',
+      label:'Other server'}]]);
+    const result=await invoke(handler,req('POST',{action:'list_protected_resources',
+      orgId:'org-fake-one',passphrase:envSelf.ADMIN_PASSPHRASE},headers));
+    expect(result.body).toContain('Neon MCP own database');
+    expect(result.body).toContain('prj-self');
+    expect((await invoke(handler,req('POST',{...body,orgId:'org-other'},headers))).statusCode).toBe(403);
+  });
+  it('refuses invalid JSON, duplicates, missing owner passphrase and injection',async()=>{
+    const {handler,store}=guarded(),headers={origin:envSelf.PUBLIC_BASE_URL};
+    const body={action:'save_protected_resources',orgId:'org-fake-one',
+      passphrase:envSelf.ADMIN_PASSPHRASE,resourcesJson:'not json'};
+    expect((await invoke(handler,req('POST',body,headers))).statusCode).toBe(400);
+    const duplicate=[{kind:'other',org:'org-fake-one',project_id:'prj-one',label:'A'}];
+    expect((await invoke(handler,req('POST',{...body,
+      resourcesJson:JSON.stringify([...duplicate,...duplicate])},headers))).statusCode).toBe(400);
+    const denied=await invoke(handler,req('POST',{...body,passphrase:'incorrect'},headers));
+    expect(denied.statusCode).toBe(401);
+    expect(store).toHaveLength(0);
   });
 });
 describe('MCP read-only boundary and known-key project scope',()=>{

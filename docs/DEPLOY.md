@@ -63,3 +63,9 @@ A project key's reach depends on Neon's actual permissions. Until X-2/X-3 are ap
 - **Unwanted deployment / regression:** disable connector access, roll back Vercel to the last approved deployment, and revoke affected Neon API keys in Neon's dashboard if needed. **Do not drop, reset or restore any database as a rollback shortcut.** If an operation might have reached production, stop and ask the owner before doing anything further.
 
 Deployment and all production resources remain **not configured** until checked and approved by the owner. Completion of this guide closes **documentation card A-7**, not IN-02/IN-03/IN-04 or the go-live checklist.
+
+## Owner-only future write-safety configuration (B-2b)
+
+**Do not do this unless you have separately approved the relevant real setup.** Before the future guarded write tools may operate, the owner must identify **this server's own Neon project**, using only Vercel environment variables (never chat or GitHub): `NEON_MCP_SELF_ORG_ID`, `NEON_MCP_SELF_PROJECT_ID`, and `NEON_MCP_SELF_ENDPOINT_HOST`. Read the project and organization IDs from Neon's dashboard; the endpoint host must exactly equal the hostname in the dedicated `DATABASE_URL` (never copy the password here). If any value is missing or the host differs, the guard refuses writes. The extra values are not required for today's read-only startup.
+
+The owner can use **Protected resources** at `/api/neon/setup` after entering their passphrase. Enter an array of objects such as `[{"kind":"other","org":"org-fake","project_id":"prj-fake","label":"Other private database"}]` using IDs from your private dashboard, never source code. This list is an owner decision (IN-07). The server's own project is added automatically and cannot be removed via the editor. If you are unsure which project belongs to Neon MCP, **do not enable writes**.
