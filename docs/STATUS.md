@@ -1,5 +1,7 @@
 # STATUS — current work, blockers and next action
 
+**B-3a classifier PR #22 (prepared for merge):** parser-only fail-closed classification with 100+ fixtures; B-3 remains IN_PROGRESS. SQL read runner, disposable exact preview, bound token, LSN and guarded apply still pending; no SQL tool exposed. **IN-09 and IN-10 defaults approved by owner 2026-10-11**, but neither stored runtime setting has yet been verified or applied. Production activation stays OFF. Next: B-3b bounded, authorized read-only SQL runner.
+
 **B-2 completed (#18/#19/#20):** trusted production classifier, absolute protection, secure owner resource editor and owner-production access two-step request/passphrase mechanism. All production flags remain OFF; X-2/X-3 and IN-07/08 approval gates are enforced by default. Only two internal control tools are newly visible to full-profile connectors on an approved production deployment; no Neon project write tools yet.
 
 **B-2b protected-resources owner editor merged (#19):** owner-only form secured by same-origin POST and passphrase, own-project environment/host verification, immutable automatic self protection, safe list editing and tests. Production access still disabled; B-2c is next.
@@ -31,7 +33,7 @@ expiry indexes exist in code and are verified by isolated-Postgres tests. No liv
 
 ## Next
 
-- **Next: B-3 — SQL guard and preview/apply safety.** IN-09 (production reads) needs an owner decision before B-3 merges. B-4 spending rules need IN-10. No real-account activation.
+- **Next: B-3 — SQL guard and preview/apply safety.** IN-09 (200-row production read-only SQL) and IN-10 ($25/change, $50/day) approved 2026-10-11, not yet applied. B-3 runner/preview/apply and B-4 spending guard remain to implement. No real-account activation.
 - **Answered 2026-10-10 (Chris):** IN-00 — plan approved ("I approve the plans"); IN-01 — **no automated review** ("I don't want the automated review at this time"); the repository stays public as Chris created it; the implementer self-reviews every diff.
 - **Queue:** A → B → C → D → V → O → P → W → U → R → E → X (`MASTER-ROADMAP.md`).
 

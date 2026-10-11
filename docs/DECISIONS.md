@@ -120,3 +120,5 @@ purpose (the merge gate must be green at the exact head). The waste was pushing 
 started overlapping full runs. Rule added to SESSION-START §6: never push while your PR's run is in progress; collect all
 failures, fix them together, push once; run checks locally first; "re-run failed jobs" only for infrastructure hiccups.
 CI cancels an obsolete PR run when a newer push arrives.
+
+**2026-10-11 — Owner-approved policy defaults, no activation.** Chris replied "I approve your defaults" to IN-09 (read-only production SQL, at most 200 result rows) and IN-10 (spending cap $25/change and $50/day). These are implementation policy decisions only. They do not enable production write mode, procure paid resources, or authorize a real-account operation. Defaults become *applied* only after durable runtime settings and guards are tested and verified.
