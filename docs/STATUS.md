@@ -1,5 +1,7 @@
 # STATUS — current work, blockers and next action
 
+**B-1 guarded write lifecycle merged (#17):** durable atomic change-log reservation, request-key deduplication, confirmation, fail-closed safety interfaces and operation-aware Neon adapter; test fixtures exercise all nine contract cases. No new write tool is exposed.
+
 **A-7 deployment instructions merged (#16):** owner-only, preview-first guidance in `docs/DEPLOY.md`; no infrastructure, keys, credentials, or live access created. Batch A documentation complete; Batch B safety layer next.
 
 Updated 2026-10-11. **A-6 SQL connection layer merged (#15):** guarded Neon URI lookup, self-database
@@ -23,7 +25,7 @@ expiry indexes exist in code and are verified by isolated-Postgres tests. No liv
 
 ## Next
 
-- **Next: B-1 — safety layer and durable change log** (JIT card from `docs/designs/BATCH-B.md`); no deployment or real Neon provisioning without IN-02/IN-03/IN-04.
+- **Next: B-2 — production guard, protected resources and two-step owner enable** (JIT from `docs/designs/BATCH-B.md`). Owner inputs IN-07/08 remain gated; no live infrastructure.
 - **Answered 2026-10-10 (Chris):** IN-00 — plan approved ("I approve the plans"); IN-01 — **no automated review** ("I don't want the automated review at this time"); the repository stays public as Chris created it; the implementer self-reviews every diff.
 - **Queue:** A → B → C → D → V → O → P → W → U → R → E → X (`MASTER-ROADMAP.md`).
 
