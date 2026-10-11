@@ -355,7 +355,7 @@
         "B-7"
       ],
       "card": "docs/pr-cards/B-8.md",
-      "status": "IN_PROGRESS",
+      "status": "MERGED",
       "migration": "none",
       "budget": 400,
       "units": [
@@ -366,9 +366,10 @@
       "pr": [
         34,
         35,
-        36
+        36,
+        37
       ],
-      "note": "Reads #34, revocation #35, key re-probe #36; stored settings writes remain."
+      "note": "Server reads #34, connection revocation #35, stored key re-probe #36, guarded settings tightening #37."
     },
     {
       "id": "C-1",

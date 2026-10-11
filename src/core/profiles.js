@@ -1,6 +1,6 @@
 // B-6: only registry metadata and trusted connection scope determine visibility.
 const profiles=new Set(['read_only','everyday','full']);
-const internalControls=new Set(['neon_enable_production','neon_disable_production','neon_revoke_connection']);
+const internalControls=new Set(['neon_enable_production','neon_disable_production','neon_revoke_connection','neon_update_settings']);
 export function isToolAllowed(tool, connection, {productionDeployment=false}={}) {
   if(!tool || !profiles.has(connection?.profile) ||
       !Array.isArray(tool.profiles) || !tool.profiles.includes(connection.profile))return false;
