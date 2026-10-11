@@ -3,6 +3,7 @@
 import { classifySql } from './sql-guard.js';
 import { classifyTarget } from './production.js';
 import { checkProtectedTarget } from '../core/protected-resources.js';
+import { formatSqlError } from './errors.js';
 
 const refused = (code, message) => ({ done: false, code, message });
 const identifier = x => typeof x === 'string' && /^[a-zA-Z0-9_-]{2,120}$/.test(x);
@@ -48,6 +49,9 @@ export async function runAuthorizedSqlRead({ ctx, target, text, params = [], sql
   if (trusted.production && !policy.productionReads)
     return refused('production_reads_disabled', 'Production SQL reads are switched off in settings.');
   let result;
+  // Only AST-proven read-only SQL may open a second scoped connection after a reset.
+  // No retry for authorization failures, ordinary SQL errors or any SQL write path.
+  for (let attempt = 0; attempt < 2; attempt++) {
   try {
     result = await sqlLayer({ neonOrg: orgId, projectScope: scope || null },
       { projectId: target.projectId, branchId: target.branchId, database: target.database,
@@ -70,15 +74,17 @@ export async function runAuthorizedSqlRead({ ctx, target, text, params = [], sql
           return answer;
         } catch (error) {
           if (began) { try { await client.query('ROLLBACK'); } catch { /* cleanup best-effort */ } }
-          return refused(error?.code === '25006' ? 'read_only_violation' :
-            error?.code === '57014' ? 'sql_timeout' : 'sql_failed',
-          error?.code === '25006' ? 'PostgreSQL refused a write in a read-only transaction.' :
-            error?.code === '57014' ? 'The read-only SQL statement timed out.' :
-              'The SQL query could not be completed safely.');
+          const safe = formatSqlError(error);
+          return { ...refused(safe.code, safe.message),
+            action: safe.action, technical: safe.technical,
+            ...(safe.retryableRead ? { retryableRead: true } : {}) };
         }
       });
   } catch {
     return refused('connection_unavailable', 'The SQL connection could not be opened safely.');
+  }
+  if (result?.retryableRead === true && attempt === 0) continue;
+  break;
   }
   // Never reflect provider errors or unchecked output from the SQL layer.
   return result?.done === true || result?.done === false
