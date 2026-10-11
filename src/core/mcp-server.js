@@ -26,6 +26,16 @@ export const publicToolMetadata=item=>{
 };
 const allowedTool=(item,connection,env)=>isToolAllowed(item,connection,
   {productionDeployment:env?.VERCEL_ENV==='production'});
+const compactCore=new Set(['neon_search_tools','neon_describe_tool','neon_call',
+ 'neon_batch','neon_get_result','neon_whoami','neon_api_search']);
+export function listVisibleToolMetadata({registry,connection,env,listing}) {
+ const mode=['catalog','compact'].includes(listing)?listing:
+  connection?.listing==='catalog'?'catalog':'compact';
+ return registry.tools.filter(t=>allowedTool(t,connection,env) &&
+  (mode==='catalog'||compactCore.has(t.name)||
+   (t.name.startsWith('neon_workflow_')&&t.writes===false)))
+  .map(publicToolMetadata);
+}
 async function safeMcpResult(result,{args={},tool,db,connection}={}){
  if(!result||!Array.isArray(result.content))return {isError:true,content:[{type:'text',text:'Invalid tool response'}]};
  const content=[];
@@ -74,9 +84,8 @@ export function createMcpHandler({ db, registry, env = process.env }) {
     if (!connection) return;
     const server = new Server({name:'robinson-neon-mcp',version:'0.1.0'},
       {capabilities:{tools:{}}});
-    server.setRequestHandler(ListToolsRequestSchema,async()=>({tools:registry.tools
-      .filter(t=>allowedTool(t,connection,env))
-      .map(publicToolMetadata)}));
+    server.setRequestHandler(ListToolsRequestSchema,async()=>({tools:listVisibleToolMetadata({
+      registry,connection,env,listing:req.query?.listing})}));
     server.setRequestHandler(CallToolRequestSchema,async request=>
       dispatchReadOnlyTool({registry,name:request.params?.name,args:request.params?.arguments,connection,db,env}));
     const transport = new StreamableHTTPServerTransport({sessionIdGenerator:undefined});
