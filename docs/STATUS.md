@@ -1,3 +1,5 @@
+**C-2d listing modes (PR #44):** `catalog` lists all authorized tools and `compact` exposes only guarded meta, whoami, result retrieval and future read-only workflows; `?listing=` override changes display only. OAuth defaults catalog for Claude-identified clients, compact for other clients, with user selection preserved. Token/schema budgets follow. Production stays OFF.
+
 **C-2c read-only batch (PR #43):** `neon_batch` preflights every requested name, denies entire batches containing writes or nested gateways and dispatches at most ten reads through the ordinary scoped, scrubbed wrapper. Next: compact listing and exact token/schema budget verification. Production remains OFF.
 
 **C-2b guarded meta-call (PR #42):** `neon_call` delegates only to the same authenticated, profile-filtered MCP dispatch path; nested `neon_call`/`neon_batch` are denied, output scrub and scope are retained. Next: read-only batch, listing mode and enforced token budgets. No production activation.
