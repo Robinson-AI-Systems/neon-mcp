@@ -36,7 +36,8 @@ export async function applyGuardedSql({ ctx, target, statements, params, request
       typeof sqlLayer !== 'function' || typeof verifyReadBack !== 'function' ||
       typeof ctx?.checkApp !== 'function' || typeof ctx?.sqlSpendAdmission !== 'function' ||
       typeof db?.reserveWrite !== 'function' || typeof db?.completeWrite !== 'function' ||
-      typeof db?.consumeSqlPreview !== 'function' || typeof db?.recordSqlRestoreLsn !== 'function')
+      typeof db?.consumeSqlPreview !== 'function' || typeof db?.recordSqlRestoreLsn !== 'function' ||
+      typeof db?.getSqlAffectedRowsTolerance !== 'function')
     return deny('not_authorized', 'SQL apply needs an authenticated, fully guarded server context.');
   if (confirm !== true) return deny('needs_confirmation', 'Confirm the proposed SQL changes before applying.');
   const classification = await Promise.all(statements.map(classifySql));
@@ -62,6 +63,13 @@ export async function applyGuardedSql({ ctx, target, statements, params, request
     return deny('preview_required', 'Production SQL needs an unexpired exact-preview token.');
   if (!production && previewToken != null)
     return deny('unexpected_preview', 'A production preview token cannot be used for development SQL.');
+  // Stored, bounded policy is read before claiming/consuming a token or opening SQL.
+  // Never let an unconfigured runner silently accept more affected rows.
+  let tolerance;
+  try { tolerance = await db.getSqlAffectedRowsTolerance(); }
+  catch { return deny('settings_unavailable', 'SQL affected-row safety settings are unavailable.'); }
+  if (!Number.isSafeInteger(tolerance) || tolerance < 0 || tolerance > 100)
+    return deny('settings_unavailable', 'SQL affected-row tolerance must be set to an integer from 0 to 100.');
   const targetName = target.projectId + '/' + target.branchId;
   // Reserve the request before consuming a token. A duplicate must never consume another token.
   let claimed;
@@ -126,7 +134,7 @@ export async function applyGuardedSql({ ctx, target, statements, params, request
             if (!Number.isSafeInteger(count) && classification[i].kind !== 'ddl')
               throw new Error('unverified_row_count');
             counts.push(Number.isSafeInteger(count) ? count : 0);
-            if (expected && !estimated && counts[i] !== expected[i]) {
+            if (expected && !estimated && Math.abs(counts[i] - expected[i]) > tolerance) {
               await client.query('ROLLBACK');
               begun = false;
               return { status: 'mismatch', counts };
@@ -164,5 +172,6 @@ export async function applyGuardedSql({ ctx, target, statements, params, request
     code: 'apply_uncertain', message: 'The SQL outcome is uncertain; inspect the audit before retrying.',
     restorePointRecorded: restoreLsnSaved };
   return { done: true, confirmed: true, production, affectedRows,
-    estimatedPreview: estimated, restorePointRecorded: restoreLsnSaved };
+    estimatedPreview: estimated, affectedRowsTolerance: tolerance,
+    restorePointRecorded: restoreLsnSaved };
 }
