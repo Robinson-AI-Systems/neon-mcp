@@ -109,6 +109,8 @@ const cases = [
   ['refused', 'SELECT pg_reload_conf()'],
   ['refused', "SELECT set_config('work_mem', '5MB', true)"],
   ['refused', 'SELECT pg_advisory_lock(1)'],
+  ['refused', 'SELECT pg_advisory_xact_lock(1)'],
+  ['refused', 'SELECT pg_try_advisory_lock(1)'],
   ['refused', "SELECT pg_read_file('/etc/passwd')"],
   ['refused', "SELECT pg_read_binary_file('/etc/passwd')"],
   ['refused', "SELECT pg_ls_dir('/')"],
@@ -127,7 +129,7 @@ describe('B-3 fail-closed PostgreSQL AST guard', () => {
     expect(cases.length).toBeGreaterThanOrEqual(60);
   });
   it('refuses invalid or missing input without leaking SQL into errors', async () => {
-    for (const value of [null, '', ' ', 'SELECT FROM very_secret_table', 'SELECT 1; SELECT 2']) {
+    for (const value of [null, '', ' ', 'SELECT * FROM WHERE very_secret_table', 'SELECT 1; SELECT 2']) {
       const answer = await classifySql(value);
       expect(answer.kind).toBe('refused');
       expect(JSON.stringify(answer)).not.toContain('very_secret_table');
