@@ -30,7 +30,7 @@ next bounded implementation.
 ## Batch B — Trust layer (`designs/BATCH-B.md`)
 - [ ] `defineWrite` with operation-aware read-back, request-key dedupe, change log, inverse.
 - [x] Production guard from Neon's own data; production access in two steps; self-protection absolute (#18/#19/#20; live activation gated OFF).
-- [ ] SQL guard: parser classification, read-only transactions, exact previews on a throwaway branch, guarded apply with expected rows and restore LSN.
+- [x] SQL guard: parser classification, read-only transactions, exact previews on a throwaway branch, guarded apply with expected rows and restore LSN. Private foundation #22/#23/#24/#26–#29; D-5 owns public tools and trusted admission; X-3 proves live scratch restore.
 - [ ] Spend guard: dollar previews from the stored price table, per-change and daily caps; no tool buys or changes the plan.
 - [ ] Plain-English errors (Neon and Postgres), result shaping, secret removal, profiles.
 - [ ] `check-writes` fails on every undeclared or incomplete write declaration; server tools (settings, connections, production enable/disable, where-is-setting).
