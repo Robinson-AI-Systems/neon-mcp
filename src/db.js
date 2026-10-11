@@ -331,8 +331,28 @@ export function createDb(sql = productionSql()) {
           now() + interval '30 minutes') RETURNING id`;
       return rows[0]?.id;
     },
+    /** Estimate token exists only for verified resource/budget exhaustion. */
+    async recordSqlEstimate({ orgId, target, tokenHash, identityHash, estimatedRows }) {
+      if (!orgId || !target?.projectId || !target?.branchId ||
+          !/^[a-f0-9]{64}$/.test(tokenHash || '') ||
+          !/^[a-f0-9]{64}$/.test(identityHash || '') ||
+          !Array.isArray(estimatedRows) || estimatedRows.length < 1 ||
+          estimatedRows.length > 20 ||
+          estimatedRows.some(n => !Number.isSafeInteger(n) || n < 0))
+        throw new TypeError('Invalid SQL estimate');
+      const rows = await sql`INSERT INTO change_log
+        (neon_org, project_id, branch_id, mode, tool, target,
+         summary, dry_run, production, confirmed, sql_preview_hash, sql_scope_hash,
+         sql_expected_rows, sql_estimate, sql_preview_expires_at)
+        VALUES (${orgId}, ${target.projectId}, ${target.branchId}, 'preview', 'neon_sql_execute',
+          ${target.projectId + '/' + target.branchId}, 'Non-executing SQL estimate',
+          TRUE, TRUE, 'preview', ${tokenHash}, ${identityHash},
+          ${JSON.stringify(estimatedRows)}::jsonb, TRUE,
+          now() + interval '30 minutes') RETURNING id`;
+      return rows[0]?.id;
+    },
     /** Atomically consumes a bound preview; never accepts caller-supplied expected rows. */
-    async consumeSqlPreview({ orgId, tokenHash, identityHash, target }) {
+    async consumeSqlPreview({ orgId, tokenHash, identityHash, target, acceptEstimate = false }) {
       if (!orgId || !target?.projectId || !target?.branchId ||
           !/^[a-f0-9]{64}$/.test(tokenHash || '') ||
           !/^[a-f0-9]{64}$/.test(identityHash || ''))
@@ -342,7 +362,8 @@ export function createDb(sql = productionSql()) {
           AND branch_id = ${target.branchId} AND sql_preview_hash = ${tokenHash}
           AND sql_scope_hash = ${identityHash} AND dry_run = TRUE
           AND sql_preview_used_at IS NULL AND sql_preview_expires_at > now()
-        RETURNING sql_expected_rows, sql_schema_hash, production`;
+          AND (sql_estimate = FALSE OR ${acceptEstimate === true} = TRUE)
+        RETURNING sql_expected_rows, sql_schema_hash, production, sql_estimate`;
       return rows[0] || null;
     },
     /** Persist a validated pre-write WAL restore point on the exact pending SQL audit. */
@@ -478,6 +499,7 @@ export function createDb(sql = productionSql()) {
       await sql`ALTER TABLE change_log ADD COLUMN IF NOT EXISTS sql_schema_hash TEXT`;
       await sql`ALTER TABLE change_log ADD COLUMN IF NOT EXISTS sql_preview_expires_at TIMESTAMPTZ`;
       await sql`ALTER TABLE change_log ADD COLUMN IF NOT EXISTS sql_preview_used_at TIMESTAMPTZ`;
+      await sql`ALTER TABLE change_log ADD COLUMN IF NOT EXISTS sql_estimate BOOLEAN NOT NULL DEFAULT FALSE`;
       await sql`CREATE UNIQUE INDEX IF NOT EXISTS change_log_sql_preview_hash
         ON change_log (sql_preview_hash) WHERE sql_preview_hash IS NOT NULL`;
       await sql`CREATE INDEX IF NOT EXISTS change_log_request_key ON change_log (request_key, at)`;
