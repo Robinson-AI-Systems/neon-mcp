@@ -4,8 +4,8 @@ Written 2026-10-10 for an empty repository. [STATUS](STATUS.md) holds current st
 
 ## What is next
 
-**Done:** A-1 foundation (#1), A-2 schema (#7), A-3 connector login (#8/#9). **Next:** A-4 Neon client,
-operations waiter and API budget (JIT card from approved BATCH-A design).
+**Done:** A-1 (#1), A-2 (#7), A-3 (#8/#9), A-4 (#10/#11), A-5 (#12/#13/#14).
+**Next:** A-6 SQL connection layer, then A-7 deployment guide.
 
 ## Order and why
 
@@ -39,7 +39,7 @@ covered by the design; write the card when its predecessor is real.
 
 | Batch | Cards | Card status |
 |---|---|---|
-| A Foundation | A-1 repo, CI, fake Neon, checks · A-2 schema · A-3 login · A-4 Neon client + vendored description + waiter + budget · A-5 key store, setup page, one-time secrets · A-6 SQL connection layer · A-7 DEPLOY.md | A-1 MERGED (#1), A-2 MERGED (#7), A-3 MERGED (#8/#9); rest JIT |
+| A Foundation | A-1 repo, CI, fake Neon, checks · A-2 schema · A-3 login · A-4 Neon client + vendored description + waiter + budget · A-5 key store, setup page, one-time secrets · A-6 SQL connection layer · A-7 DEPLOY.md | A-1 MERGED (#1), A-2 MERGED (#7), A-3 MERGED (#8/#9), A-4 MERGED (#10/#11), A-5 MERGED (#12/#13/#14); rest JIT |
 | B Trust | B-1 safety layer · B-2 production guard + self-protection · B-3 SQL guard · B-4 spend guard · B-5 errors · B-6 shaping, secrets, profiles · B-7 check-writes · B-8 server tools | JIT |
 | C Context | C-1 small results · C-2 listing modes + budgets | JIT |
 | D Neon core | D-1 projects/operations · D-2 branches · D-3 computes · D-4 databases/roles/connections · D-5 SQL · D-6 schema/health · D-7 snapshots · D-8 project security · D-9 data checks/reindex | JIT |
