@@ -50,7 +50,7 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 | `neon_undo_change` | Undo one change-log entry with a clean opposite (recover a deleted branch, restore a setting, roll a branch back to the recorded point before a SQL change); says plainly when there is none | C | Op | E | X-1 |
 | `neon_search_tools` | Find tools by plain words; one line each with flags (compact mode's front door) | — | B Ow Op | R | C-2 (built #41) |
 | `neon_describe_tool` | Full instructions and arguments for one tool | — | B Ow Op | R | C-2 (built #41) |
-| `neon_call` | Run any tool in the profile by name, through the same guards | as the tool | B Ow Op | R | C-2 |
+| `neon_call` | Run any tool in the profile by name, through the same guards | as the tool | B Ow Op | R | C-2 (built #42) |
 | `neon_batch` | Up to 10 read calls in one round trip | — | B Op | R | C-2 |
 | `neon_get_result` | Page through a big result kept behind a handle (24 hours, same connection only) | — | B Op | R | C-1 (built #40) |
 | `neon_create_pass` | Make a short-lived pass for the HTTPS API and Robinson's Toolkit (shown once on the setup page; preview mode, read-only, 24 h by default; RTC §2) | C A S | Ow | F | R-1 |

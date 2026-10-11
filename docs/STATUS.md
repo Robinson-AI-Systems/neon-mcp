@@ -1,3 +1,5 @@
+**C-2b guarded meta-call (PR #42):** `neon_call` delegates only to the same authenticated, profile-filtered MCP dispatch path; nested `neon_call`/`neon_batch` are denied, output scrub and scope are retained. Next: read-only batch, listing mode and enforced token budgets. No production activation.
+
 **C-2a discovery (PR #41):** Authenticated, profile/production-filtered `neon_search_tools` and `neon_describe_tool` provide bounded discovery and the public schema without exposing denied tools. C-2 remains IN_PROGRESS; next `neon_call`, guarded batch, listing modes and budgets. Production remains OFF.
 
 **C-1c scoped result retrieval (PR #40):** `neon_get_result` retrieves only the authenticated caller's nonsecret stored results, with bounded item/encoded-fragment pages, optional safe field projection, MCP annotations and structured content for output-schema tools. C-1 complete. Next: C-2 listing modes, meta-tools, token budgets; production remains disabled.
