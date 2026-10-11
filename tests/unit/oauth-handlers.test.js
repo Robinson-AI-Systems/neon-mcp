@@ -174,3 +174,22 @@ describe('personal-use OAuth HTTP endpoints', () => {
     expect(other.statusCode).toBe(401);
   });
 });
+
+describe('C-2 OAuth client listing defaults',()=>{
+ it('defaults other clients to compact and a registered Claude client to catalog',async()=>{
+  const {db,h}=createFixture();
+  for(const [label,expected] of [['Personal agent','compact'],['Claude Desktop','catalog']]){
+   const response=await call(h.register,request('POST',{redirect_uris:[callback],client_name:label}));
+   const client=json(response);
+   const p=authorizeArgs(client);
+   delete p.listing;
+   const page=await call(h.authorize,request('GET',p));
+   expect(page.body).toContain('value="'+expected+'" selected');
+   const posted=await call(h.authorize,request('POST',{...p,passphrase:env.ADMIN_PASSPHRASE}));
+   expect(posted.statusCode).toBe(302);
+   const code=new URL(posted.headers.Location).searchParams.get('code');
+   const stored=await db.consumeAuthCode(code);
+   expect(stored.listing).toBe(expected);
+  }
+ });
+});
