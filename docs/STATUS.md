@@ -1,3 +1,5 @@
+**B-8c key re-probe (PR #36):** owner-only production-deployment read verifies active stored key scopes via Neon SDK, returning nonsecret capabilities; never enables production. Next guarded settings edits; no live accounts accessed by CI.
+
 **B-7 declaration enforcement (PR #33):** static check-writes now verifies production effects, spend/secret flags, one-time route for secret tools, org-key profile, destructive profile, registered handlers and duplicate names. Unit negative fixtures cover each B13 violation. Next B-8 server tools (JIT, split into read and guarded-write PRs).
 
 **B-6 result safety and profile filtering (PR #32):** shared nested provider secret scrub, audit snapshot minimization, safe additive money/size/Denver-time display, metadata-based profile enforcement and home-page counts. No SQL tools published, no owner approvals changed. Next: B-7 declaration enforcement.

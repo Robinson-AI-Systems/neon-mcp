@@ -41,7 +41,7 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 | --- | --- | --- | --- | --- | --- |
 | `neon_whoami` | Organization, key kinds held (last 4 only), connection mode (preview/production), profile, listing, API description date, price-table date, today's Neon API budget | — | B Ow Op | R | A-5 (built #14) |
 | `neon_list_accounts` | Organizations this server holds keys for, key kinds and projects covered, whether production access is enabled | — | Ow Op | R | A-5 |
-| `neon_check_key_access` | Re-probe every stored key: what each can reach (projects, org actions), which tools are blocked and which key kind would fix it | — | Ow | R | B-8 |
+| `neon_check_key_access` | Re-probe every stored key: what each can reach (projects, org actions), which tools are blocked and which key kind would fix it | — | Ow | R | B-8 (built #36) |
 | `neon_list_connections` | Claude connections and passes: organization, mode, profile, listing, rate limit, last used | — | Ow | R | B-8 (built #34) |
 | `neon_revoke_connection` | Switch a connection or pass off at once | C | Ow | F | B-8 (built #35) |
 | `neon_enable_production` | Request production access for one organization (NOT activation; needs owner passphrase and typed approval within ten minutes, plus release gates after X-2/X-3) | C | Ow | F | B-2 (built #20) |
