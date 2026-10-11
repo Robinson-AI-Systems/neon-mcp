@@ -51,6 +51,6 @@ it('executes the fixed DDL statement list twice, in order', async () => {
   await db.initSchema();
   expect(queries).toEqual([...first, ...first]);
   expect(first.filter((q) => /CREATE TABLE IF NOT EXISTS/.test(q))).toHaveLength(12);
-  expect(first.filter((q) => /CREATE (?:UNIQUE )?INDEX IF NOT EXISTS/.test(q))).toHaveLength(10);
+  expect(first.filter((q) => /CREATE (?:UNIQUE )?INDEX IF NOT EXISTS/.test(q))).toHaveLength(11);
   expect(first.some(q => /CREATE UNIQUE INDEX IF NOT EXISTS change_log_one_apply_key/.test(q))).toBe(true);
 });
