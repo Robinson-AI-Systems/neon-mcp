@@ -1,4 +1,5 @@
 import { describe,expect,it } from 'vitest';
+import * as neonRaw from '@neon/sdk/raw';
 import { createFakeDb } from '../../test/helpers/fake-db.js';
 import { makeFakeNeon } from '../../test/helpers/fake-neon.js';
 import { createSqlLayer } from '../../src/neon/sql.js';
@@ -22,6 +23,9 @@ function fixture(uri='postgresql://fake_user@db.fake.invalid/test') {
   return {fake,calls,run,stats:()=>({released,ended,opened})};
 }
 describe('bounded Neon SQL layer',()=>{
+  it('uses the actual pinned generated SDK function name',()=>{
+    expect(typeof neonRaw.getConnectionUri).toBe('function');
+  });
   it('uses Neon connection URI operation, safe client and releases every connection',async()=>{
     const {fake,calls,run,stats}=fixture();
     const out=await run(ctx,target,async client=>{

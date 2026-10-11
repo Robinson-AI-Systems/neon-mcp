@@ -43,7 +43,8 @@ export function createSqlLayer({db,vault,env=process.env,fetch,poolFactory=defau
         branch_id:branchId,database_name:database,role_name:role,pooled,
         ...(endpointId?{endpoint_id:endpointId}:{})
       }};
-      const response=await call(client,'getConnectionURI',parameters);
+      // The official SDK 7.0.1 export is getConnectionUri (normalized from OpenAPI getConnectionURI).
+      const response=await call(client,'getConnectionUri',parameters);
       if(response.error||typeof response.data?.uri!=='string')
         throw new Error('Connection URI is unavailable');
       uri=response.data.uri;
