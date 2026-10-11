@@ -141,6 +141,44 @@ export function createDb(sql = productionSql()) {
       const rows = await sql`DELETE FROM rate_limits WHERE window_start < ${before} RETURNING key`;
       return rows.length;
     },
+    async saveNeonOrg({ orgId, label }) {
+      if (!orgId || typeof label !== 'string' || !label.trim())
+        throw new TypeError('Organization ID and label are required');
+      await sql`INSERT INTO neon_orgs (id, label) VALUES (${orgId}, ${label})
+        ON CONFLICT (id) DO UPDATE SET label = EXCLUDED.label`;
+    },
+    async getNeonOrg(orgId) {
+      const rows = await sql`SELECT id, label, production_enabled, is_default
+        FROM neon_orgs WHERE id = ${orgId}`;
+      return rows[0] || null;
+    },
+    async saveEncryptedNeonKey({ orgId, kind, projectId = null, keyEnc, last4, label = null, reach = {} }) {
+      if (!orgId || !['project','org','personal'].includes(kind) ||
+          (kind === 'project') !== Boolean(projectId) || !keyEnc || typeof last4 !== 'string' ||
+          last4.length !== 4) throw new TypeError('Invalid scoped encrypted key metadata');
+      const rows = await sql`INSERT INTO neon_keys
+        (org_id, kind, project_id, key_enc, last4, label, reach, checked_at)
+        VALUES (${orgId}, ${kind}, ${projectId}, ${keyEnc}, ${last4}, ${label},
+          ${JSON.stringify(reach)}::jsonb, now()) RETURNING id`;
+      return { id: rows[0].id };
+    },
+    async listNeonKeySummaries(orgId) {
+      return await sql`SELECT id, org_id, kind, project_id, last4, label, reach,
+        added_at, checked_at, revoked_at FROM neon_keys WHERE org_id = ${orgId}
+        ORDER BY added_at DESC`;
+    },
+    async getEncryptedNeonKey({ orgId, kind, projectId = null }) {
+      const rows = await sql`SELECT id, key_enc, kind, org_id, project_id FROM neon_keys
+        WHERE org_id = ${orgId} AND kind = ${kind} AND
+          COALESCE(project_id, '') = COALESCE(${projectId}, '') AND revoked_at IS NULL
+        LIMIT 1`;
+      return rows[0] || null;
+    },
+    async revokeNeonKey({ orgId, id }) {
+      const rows = await sql`UPDATE neon_keys SET revoked_at = now()
+        WHERE id = ${id} AND org_id = ${orgId} AND revoked_at IS NULL RETURNING id`;
+      return rows.length > 0;
+    },
     async initSchema() {
       // Additive foundation migration; intentionally never alters or deletes existing data.
       await sql`CREATE TABLE IF NOT EXISTS neon_orgs (

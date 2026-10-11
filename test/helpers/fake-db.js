@@ -6,6 +6,7 @@ import { hashToken } from '../../src/core/oauth.js';
 export function createFakeDb({ clock = () => Date.now(), orgs = [] } = {}) {
   const rows = new Map(), tables = new Set(), clients = new Map(), codes = new Map(), tokens = new Map();
   const attempts = [], orgRows = new Map(orgs.map((org) => [org.id, structuredClone(org)]));
+  const keys = [], limits = new Map();
   return {
     async initSchema() { SCHEMA_TABLES.forEach((name) => tables.add(name)); },
     async listTables() { return [...tables]; },
@@ -89,6 +90,45 @@ export function createFakeDb({ clock = () => Date.now(), orgs = [] } = {}) {
     },
     async listNeonOrgs() {
       return structuredClone([...orgRows.values()].sort((a,b) => Number(!!b.is_default) - Number(!!a.is_default)));
+    },
+    async saveNeonOrg({orgId,label}) {
+      const prior=orgRows.get(orgId);
+      orgRows.set(orgId,{id:orgId,label,production_enabled:prior?.production_enabled||false,
+        is_default:prior?.is_default||false});
+    },
+    async getNeonOrg(orgId) {return structuredClone(orgRows.get(orgId)||null);},
+    async saveEncryptedNeonKey({orgId,kind,projectId=null,keyEnc,last4,label=null,reach={}}) {
+      if(keys.some(v=>v.org_id===orgId&&v.kind===kind&&v.project_id===projectId&&!v.revoked_at))
+        throw new Error('duplicate active key');
+      const id=keys.length+1;
+      keys.push({id,org_id:orgId,kind,project_id:projectId,key_enc:keyEnc,last4,label,
+        reach:structuredClone(reach),added_at:new Date(),checked_at:new Date(),revoked_at:null});
+      return {id};
+    },
+    async listNeonKeySummaries(orgId) {
+      return structuredClone(keys.filter(v=>v.org_id===orgId).map(({key_enc:_cipher,...rest})=>rest));
+    },
+    async getEncryptedNeonKey({orgId,kind,projectId=null}) {
+      const row=keys.find(v=>v.org_id===orgId&&v.kind===kind&&v.project_id===projectId&&!v.revoked_at);
+      return row?structuredClone({id:row.id,org_id:row.org_id,kind:row.kind,
+        project_id:row.project_id,key_enc:row.key_enc}):null;
+    },
+    async revokeNeonKey({orgId,id}) {
+      const row=keys.find(v=>v.org_id===orgId&&v.id===id&&!v.revoked_at);
+      if(!row)return false;
+      row.revoked_at=new Date();return true;
+    },
+    async consumeApiBudget({keyHash,windowStart,limit=500}) {
+      const id=keyHash+'|'+windowStart.toISOString(),count=limits.get(id)||0;
+      if(count>=limit)return {allowed:false,count};
+      limits.set(id,count+1);return {allowed:true,count:count+1};
+    },
+    async pruneApiBudget({before}) {
+      let removed=0;
+      for(const key of limits.keys()) if(Date.parse(key.split('|')[1])<before.getTime()){
+        limits.delete(key);removed++;
+      }
+      return removed;
     },
     async tokenRowsForTest() { return structuredClone([...tokens.values()]); }
   };
