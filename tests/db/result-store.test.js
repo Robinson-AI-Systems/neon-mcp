@@ -32,3 +32,18 @@ it('refuses invalid handles, unscoped reads and excessive retention',async()=>{
   body:{},expiresAt:new Date(Date.now()+3*86400000)})).rejects.toThrow();
  await expect(db.readResultHandle({handle:'wrong',connection:conn})).rejects.toThrow();
 });
+
+it('retrieves a real stored page through the same authenticated MCP connection only',async()=>{
+ const {handlers}=await import('../../src/tools/results.js');
+ const {resultScope}=await import('../../src/core/result-store.js');
+ const connection={clientId:'db-client',neonOrg:'org-fake',projectScope:null,mode:'preview',profile:'read_only'};
+ const handle='res_'+'e'.repeat(40);
+ await db.saveResultHandle({handle,connection:resultScope(connection),summary:'stored',
+  body:{records:[{id:'fake-one'},{id:'fake-two'}]},expiresAt:new Date(Date.now()+60000)});
+ const result=await handlers.neon_get_result({handle,page:0,pageSize:1},{connection,db});
+ const body=JSON.parse(result.content[0].text);
+ expect(body).toMatchObject({handle,source:'records',total:2,nextPage:1});
+ expect(body.items[0].id).toBe('fake-one');
+ const other=await handlers.neon_get_result({handle},{connection:{...connection,clientId:'other-client'},db});
+ expect(other.isError).toBe(true);
+});
