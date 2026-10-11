@@ -62,16 +62,16 @@ describe('check-docs-updated (DRIFT-PROTOCOL B minimum)', () => {
 describe('check-writes and check-budgets (starting form)', () => {
   const read = { name: 'neon_list_projects', writes: false, description: 'List projects.' };
   it('pass on well-formed tools', () => {
-    const write = { name: 'neon_create_branch', writes: true, description: 'Create a branch.', writeContract: {},
+    const write = { name: 'neon_create_branch', writes: true, description: 'Create a branch.', writeContract: 'defineWrite-v1', productionEffect: 'write', destructive: false, spend: false, secret: false, key: 'project',
       inputSchema: { properties: { dryRun: {}, confirm: {} } } };
     expect(checkWrites([read, write])).toEqual([]);
     expect(checkBudgets([read, write])).toEqual([]);
   });
   it('fail a write tool without dryRun/confirm or contract, an unprefixed name and a missing writes flag', () => {
-    expect(checkWrites([{ name: 'neon_delete_branch', writes: true }])).toEqual([
+    expect(checkWrites([{ name: 'neon_delete_branch', writes: true }])).toEqual(expect.arrayContaining([
       'neon_delete_branch: write tool missing dryRun/confirm inputs',
       'neon_delete_branch: write tool missing declared write contract (defineWrite)'
-    ]);
+    ]));
     expect(checkWrites([{ name: 'list_projects', writes: false }])[0]).toMatch(/start with neon_/);
     expect(checkWrites([{ name: 'neon_x' }])[0]).toMatch(/declare writes/);
   });
@@ -80,5 +80,34 @@ describe('check-writes and check-budgets (starting form)', () => {
     expect(checkBudgets([{ ...read, description: '' }])[0]).toMatch(/missing description/);
     const many = Array.from({ length: 600 }, (_, i) => ({ name: `neon_t${i}`, description: 'd'.repeat(150) }));
     expect(checkBudgets(many).at(-1)).toMatch(/catalog ~\d+ tokens > 20000/);
+  });
+});
+
+describe('B-7 static write declarations and handler reachability',()=>{
+  const write={name:'neon_example_write',writes:true,writeContract:'defineWrite-v1',
+    inputSchema:{properties:{dryRun:{type:'boolean'},confirm:{type:'boolean'}}},
+    productionEffect:'write',destructive:false,spend:false,secret:false,key:'project',
+    profiles:['full']};
+  const bad=(updates,handlers=null)=>checkWrites([{...write,...updates}],handlers);
+  it('requires productionEffect and key kind',()=>{
+    expect(bad({productionEffect:undefined}).join(' ')).toMatch(/productionEffect/);
+    expect(bad({key:undefined}).join(' ')).toMatch(/key kind/);
+  });
+  it('requires spend, secret and destructive declarations',()=>{
+    for(const field of ['spend','secret','destructive'])
+      expect(bad({[field]:undefined}).join(' ')).toContain(field);
+  });
+  it('requires secret one-time page route and allows a correct route',()=>{
+    expect(bad({secret:true}).join(' ')).toMatch(/one-time setup-page/);
+    expect(bad({secret:true,secretRoute:'/api/neon/setup',oneTimeOnly:true})).toEqual([]);
+  });
+  it('rejects a destructive read_only tool and org key without full-only',()=>{
+    expect(bad({destructive:true,profiles:['read_only','full']}).join(' ')).toMatch(/destructive/);
+    expect(bad({key:'org',profiles:['everyday','full']}).join(' ')).toMatch(/org-key/);
+  });
+  it('rejects missing reachable handlers and duplicate declarations',()=>{
+    expect(bad({},{}).join(' ')).toMatch(/missing reachable handler/);
+    expect(checkWrites([write,write],{neon_example_write:()=>{}}).join(' ')).toMatch(/duplicate/);
+    expect(bad({},{neon_example_write:()=>{}})).toEqual([]);
   });
 });
