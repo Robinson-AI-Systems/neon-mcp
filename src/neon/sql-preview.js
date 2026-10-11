@@ -6,6 +6,7 @@ import { classifyTarget } from './production.js';
 import { checkProtectedTarget } from '../core/protected-resources.js';
 import { call } from './client.js';
 import { waitForOperations } from './operations.js';
+import { createSqlEstimatedPreview } from './sql-estimate.js';
 
 const fail = (code, message) => ({ done: false, code, message });
 const hash = x => createHash('sha256').update(x).digest('hex');
@@ -52,12 +53,18 @@ export async function createSqlExactPreview({ ctx, target, statements, params,
   if (await ctx.checkApp(target, statementsInfo) !== true)
     return fail('application_owned', 'Another application owns this schema or resource.');
   // No permission defaults: B-4 must explicitly admit preview spend in the correct organization.
-  if (await ctx.previewAdmission({ orgId, target, estimatedCostCents: 1 }) !== true)
+  if (await ctx.previewAdmission({ orgId, target, estimatedCostCents: 1 }) !== true) {
+    if (typeof ctx.verifyPreviewFallback === 'function' &&
+        await ctx.verifyPreviewFallback({ orgId, target, reason: 'budget_exhausted' }) === true)
+      return createSqlEstimatedPreview({ ctx, target, statements, params, requestKey,
+        reason: 'budget_exhausted', sqlLayer, allowFullTable: ctx.allowFullTable });
     return fail('spend_refused', 'Spending safety did not approve a disposable preview branch.');
+  }
   const token = randomBytes(32).toString('base64url');
   const tokenHash = hash(token);
   const identityHash = sqlScopeHash({ orgId, target, statements, params });
-  let createdChild = null, cleaned = false, countRows = null, schemaHash = null, error = null;
+  let createdChild = null, cleaned = true, countRows = null, schemaHash = null;
+  let error = null, fallbackReason = null;
   try {
     const expires = new Date(now() + 3600000).toISOString().replace('.000Z', 'Z');
     const result = await call(neonClient, 'createProjectBranch', {
@@ -67,6 +74,11 @@ export async function createSqlExactPreview({ ctx, target, statements, params,
         endpoints: [{ type: 'read_write', autoscaling_limit_min_cu: 0.25,
           autoscaling_limit_max_cu: 0.25 }] }
     }, { write: true, requestKey });
+    if (result.error?.status === 422 && typeof ctx.verifyPreviewFallback === 'function' &&
+        await ctx.verifyPreviewFallback({ orgId, target, reason: 'branch_limit' }) === true) {
+      fallbackReason = 'branch_limit';
+      throw new Error('verified_branch_limit');
+    }
     const branch = result.data?.branch;
     if (!branch || result.confirmed !== true || !validId(branch.id) ||
         branch.id === target.branchId || branch.project_id !== target.projectId ||
@@ -123,6 +135,9 @@ export async function createSqlExactPreview({ ctx, target, statements, params,
   }
   if (!cleaned) return fail('preview_cleanup_pending',
     'Disposable branch cleanup is unverified. Inspect the returned preview operation before trying again.');
+  if (error && fallbackReason)
+    return createSqlEstimatedPreview({ ctx, target, statements, params, requestKey,
+      reason: fallbackReason, sqlLayer, allowFullTable: ctx.allowFullTable });
   if (error) return fail('preview_failed', error);
   try {
     await ctx.db.recordSqlPreview({ orgId, target, tokenHash, identityHash,
