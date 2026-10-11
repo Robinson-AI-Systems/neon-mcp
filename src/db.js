@@ -456,7 +456,7 @@ export function createDb(sql = productionSql()) {
         (projectId!==null && (typeof projectId!=='string' || projectId.length>120)))
         throw new TypeError('Invalid change-log filter');
       return sql`SELECT id,project_id,branch_id,tool,target,summary,mode,production,dry_run,
-          confirmed,created_at,spend_month_cents
+          confirmed,at AS created_at,spend_month_cents
         FROM change_log WHERE neon_org = ${orgId}
           AND (${tool}::text IS NULL OR tool = ${tool})
           AND (${projectId}::text IS NULL OR project_id = ${projectId})
