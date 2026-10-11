@@ -6,6 +6,7 @@ import { evaluateLogin,clientIp,LOCKOUT_WINDOW_MINUTES } from '../../src/core/oa
 import { publicOrigin,send,paramsOf,only,escapeHtml } from '../../src/core/http.js';
 import { configuredSelfResource } from '../../src/core/self-resource.js';
 import { mergeWithSelf,validateProtectedResources } from '../../src/core/protected-resources.js';
+import { activationEligible } from '../../src/core/owner-activation.js';
 
 function page(message='',p={}) {
   const input=(name,type='text',value='')=>'<label>'+escapeHtml(name)+
@@ -22,6 +23,8 @@ function page(message='',p={}) {
   const protectedEditor=form('save_protected_resources',org()+
     '<p>Enter a JSON list of other protected projects or branches. Your server project is always protected separately.</p>'+
     '<textarea name="resourcesJson" rows="6" required aria-label="Protected resources JSON">[]</textarea>');
+  const approve=form('approve_production',org()+input('approvalPhrase'));
+  const disable=form('disable_production',org());
   const outbound=form('view_once',org()+input('onceId','text',p.once||''));
   const inbound=form('submit_secret',org()+input('requestId','text',p.secret_request||'')+
     input('secret','password'));
@@ -34,7 +37,10 @@ function page(message='',p={}) {
     '<h2>Revoke a key</h2>'+revoke+
     '<h2>Protected resources (owner only)</h2>'+
     '<p>Your Neon MCP database cannot be removed from protection. Configure and verify its own project in Vercel first.</p>'+
-    listProtected+protectedEditor+'<h2>View secret once</h2>'+outbound+
+    listProtected+protectedEditor+
+    '<h2>Production access (OWNER ONLY)</h2>'+
+    '<p>OFF until owner-approved X-2/X-3 checks and protected-list confirmation. An agent request alone NEVER enables writes. To approve a pending request from the last 10 minutes, type ENABLE_PRODUCTION in the approval field and enter your passphrase.</p>'+
+    approve+disable+'<h2>View secret once</h2>'+outbound+
     '<h2>Supply requested secret</h2>'+inbound+'</main></body></html>';
 }
 export function createSetupHandler({db,vault,exchange,env=process.env}={}) {
@@ -101,6 +107,21 @@ export function createSetupHandler({db,vault,exchange,env=process.env}={}) {
         await db.saveProtectedResourcesFromSetup(entries.filter(x=>x.kind!=='self'));
         return send(res,200,page('Protected resources saved; your Neon MCP database remains protected.'),
           'text/html; charset=utf-8');
+      }
+      if(p.action==='approve_production'){
+        if(p.approvalPhrase!=='ENABLE_PRODUCTION')
+          return send(res,400,{error:'explicit_approval_required'});
+        if(!await activationEligible({env,db,orgId}))
+          return send(res,403,{error:'production_gate_not_approved'});
+        const ok=await db.completeProductionEnable({orgId});
+        return send(res,ok?200:409,page(ok?'Owner approved production access for this organization.':
+          'No pending request valid in the last ten minutes.'),'text/html; charset=utf-8');
+      }
+      if(p.action==='disable_production'){
+        if(env.VERCEL_ENV!=='production')return send(res,403,{error:'preview_cannot_change_production'});
+        const ok=await db.disableProduction({orgId});
+        return send(res,ok?200:404,page(ok?'Production access disabled and pending request canceled.':
+          'Organization unavailable.'),'text/html; charset=utf-8');
       }
       if(p.action==='view_once'){
         const viewed=await exchange.takeOneTimeSecret({id:p.onceId,org:orgId});

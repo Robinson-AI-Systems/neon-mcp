@@ -127,3 +127,7 @@ The generic write lifecycle lives in `src/core/write.js`; Neon-specific API/wait
 ## B-2b owner protection editor
 
 `src/core/self-resource.js` derives the server's own organization/project from owner-controlled Vercel settings only after confirming `DATABASE_URL` uses the owner-declared endpoint hostname; no secrets are echoed. The passphrase- and Origin-guarded `/api/neon/setup` protects edits to `settings.protected_resources` and always reconstructs its own `self` entry on reads. Missing or mismatched config fails closed. This step does not activate or expose production writes; the remaining two-step owner flow is B-2c.
+
+## B-2c owner permission workflow
+
+`src/tools/owner-production.js` uses the B-1 `defineWrite` audited contract only for two internal access controls, with no Neon API mutations. MCP dispatch permits these two controls only to authenticated full-profile connectors on a production deployment; all other external writes remain unavailable. `src/core/owner-activation.js` denies requests unless the owner independently released X-2/X-3, confirmed IN-07 protection and configured the own-project identity. `settings.production_intent:<org>` holds a 10-minute pending request; the owner passphrase, exact typed confirmation and one atomic Postgres consume+enable are mandatory. Disable revokes production immediately and cancels pending intent. No state was activated by this PR.

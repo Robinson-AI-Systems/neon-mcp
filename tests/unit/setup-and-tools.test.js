@@ -146,10 +146,11 @@ describe('MCP read-only boundary and known-key project scope',()=>{
     const db=createFakeDb({orgs:[{id:'org-fake-one',label:'Fake',production_enabled:false}]});
     await db.saveEncryptedNeonKey({orgId:'org-fake-one',kind:'project',projectId:'proj-fake-one',
       keyEnc:'fake-ciphertext-only',last4:'1234',reach:{verified:true}});
-    expect(registry.tools.map(t=>t.name)).toEqual(['neon_whoami','neon_list_accounts']);
+    expect(registry.tools.map(t=>t.name)).toEqual(['neon_whoami','neon_list_accounts',
+      'neon_enable_production','neon_disable_production']);
     const connection={neonOrg:'org-fake-one',projectScope:'proj-fake-one',
       mode:'preview',profile:'read_only',listing:'catalog'};
-    for(const tool of registry.tools) {
+    for(const tool of registry.tools.filter(t=>t.writes===false)) {
       const output=await dispatchReadOnlyTool({registry,name:tool.name,db,connection,args:{}});
       expect(output.isError).not.toBe(true);
       const text=JSON.stringify(output);
