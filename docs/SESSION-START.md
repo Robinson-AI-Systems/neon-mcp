@@ -100,10 +100,22 @@ production lines without running tests. Look up every external API parameter bef
 package instead, in that package's types and documentation — a wrong parameter is the most common CI failure.
 Run the full `npm run check` and `npm test` before every push: CI should only confirm what you already know.
 
-**No shell?** If your workspace cannot run commands (you edit through a GitHub connector), you cannot validate locally:
-open the PR as a **draft** after the first slice and push **each slice once the previous run has finished** — CI is
-your test runner (this replaces "one push
-per CI cycle"). Read failures from check-run annotations and fix them before adding the next slice.
+**No local checkout, terminal, or PostgreSQL? Use the GitHub REST route (owner directive, 2026-10-11).**
+Do not treat an unavailable local testing environment as an implementation blocker. Use GitHub REST API operations
+via `gh api` when a terminal works, or the connected GitHub plugin's REST-backed actions when it does not:
+- Verify `main`, open PRs, branches and exact head SHA; read the relevant repository files and reviews.
+- Make real commits on an `ai/*` branch using GitHub's contents/git REST operations, never directly on `main`.
+  Open a draft PR when incremental validation is needed.
+- Let GitHub Actions run the actual tests: `check`, `unit`, disposable-Postgres `db`, and the aggregate `ci`.
+  Inspect `GET /repos/{owner}/{repo}/commits/{sha}/check-runs`, then failed-job logs via
+  `GET /repos/{owner}/{repo}/actions/jobs/{job_id}/logs`; use check-run annotations if logs cannot be fetched.
+- Wait until **all jobs** from one head finish, collect and fix every failure, then commit the next correction.
+  Review the PR diff/threads; merge with the expected exact head SHA only after aggregate `ci` is green.
+
+**REST is a repository/CI access route, not a local test runner.** Explicitly record which local commands could
+not run, cite the GitHub Actions test evidence, and never claim local or live Neon tests occurred. Do not skip, weaken
+or bypass tests, owner approval, security, spending or production restrictions. Without a shell, save each coherent
+slice as a branch commit; do not push another fix while that head's CI is running.
 
 **CI cadence: one complete run per fix batch.** Every push starts a full CI run, and that is intended: the merge gate
 must be green at the exact head, because a fix in one place can break another. So make each run count:

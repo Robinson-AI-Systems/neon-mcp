@@ -79,6 +79,14 @@ docs check (`scripts/check-docs-updated.mjs`), index validation (`docs/pr-cards/
 | A door (HTTPS API, `neon_call`) | `npx vitest run tests/doors/` |
 | Listing or descriptions | `node scripts/check-budgets.mjs --print` |
 
+**If the whole checkout/terminal is unavailable:** follow [SESSION-START §6](SESSION-START.md#6-keep-moving-problems-are-not-blockers)
+and use GitHub REST through the connected GitHub plugin (or `gh api` if available). Edit/commit on an `ai/*`
+branch and let GitHub Actions execute `check`, `unit` and disposable-Postgres `db`. Inspect
+`GET /repos/{owner}/{repo}/commits/{sha}/check-runs` and
+`GET /repos/{owner}/{repo}/actions/jobs/{job_id}/logs` (or check-run annotations).
+REST supplies access to the remote CI results, **not local execution**; record the limitation.
+Do not merge without an exact-head successful aggregate `ci`, self-review and the normal approval gates.
+
 ### 4c. Registries that break CI when you forget them
 
 `src/tools/index.js` module list · TOOL-CATALOG row · `profiles` metadata · `src/neon/operation-marks.js` (U-1 onward) ·

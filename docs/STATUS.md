@@ -1,5 +1,8 @@
 # STATUS — current work, blockers and next action
 
+**Workflow guidance (#31, docs only):** AGENTS, SESSION-START §6 and PLAYBOOK Step 4 now direct agents without a local checkout, terminal or PostgreSQL to use authenticated GitHub REST for branch/PR/file operations and GitHub Actions check/unit/disposable-db logs as remote test evidence. They must state local tests were unavailable, fix CI failures, self-review and merge only on green exact-head `ci`. This adds no product capability and does not change B-6 as the next approved unit.
+
+
 **B-5 plain-English errors completed (#30):** `src/neon/errors.js` now normalizes Neon 401/403/404/409/423/422/429, plan/branch constraints and 14 PostgreSQL SQLSTATE families to redacted, actionable messages with safe technical IDs. The Neon client uses the formatter; the private SQL read runner maps driver failures and reconnects only once on an AST-verified read-only connection reset, never a write. Tests cover mapping, redaction and replay limits. Next: B-6 result shaping, secret removal and profile filtering (JIT card); no live Neon account, new tools, production activation or spend.
 
 

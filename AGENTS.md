@@ -40,6 +40,12 @@ test recipes and remaining-work guidance. Open only the relevant section; this i
     fix; stop only for a hard limit or an owner decision the current step needs (SESSION-START §6).
 13. **Thin slices, then a recovery point.** Run each slice's tests and lint before writing the next (≤ ~150 lines between
     runs); end every turn right after a push whose resume note names the exact next action.
+14. **GitHub REST fallback when local execution is unavailable (owner directive, 2026-10-11).** Do not stall because
+    this chat workspace lacks a usable checkout, terminal or local PostgreSQL. Use authenticated GitHub REST API
+    operations (through `gh api` where available, otherwise the GitHub connector's REST-backed actions) for repository
+    inspection, branch commits, PRs, check runs and job logs. Let GitHub Actions run required unit and disposable-Postgres
+    tests; REST does not execute local tests. Report that local tests were unavailable and require exact-head green `ci`
+    before merge. Follow `docs/SESSION-START.md` §6 and PLAYBOOK Steps 4–10; never bypass reviews, owner gates or CI.
 
 ## What this is
 
