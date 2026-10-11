@@ -1,3 +1,4 @@
+import { validateSettingTightening } from './core/setting-constraints.js';
 // The Neon MCP service's own tables. No agent tool may run SQL against this database.
 import { neon } from '@neondatabase/serverless';
 import { hashToken } from './core/oauth.js';
@@ -462,6 +463,15 @@ export function createDb(sql = productionSql()) {
           AND (${projectId}::text IS NULL OR project_id = ${projectId})
           AND (${includePreviews}::boolean = true OR dry_run = false)
         ORDER BY id DESC LIMIT ${limit}`;
+    },
+
+    /** Compare-and-swap only a policy tightening; all other settings stay owner-page managed. */
+    async updateTightenedSetting({key,prior,value}) {
+      validateSettingTightening(key,prior,value);
+      const rows=await sql`UPDATE settings SET value = ${JSON.stringify(value)}::jsonb,
+        updated_at = now(), updated_by = 'mcp_owner_guarded'
+        WHERE key = ${key} AND value = ${JSON.stringify(prior)}::jsonb RETURNING key`;
+      return rows.length===1;
     },
     async listSafeSettings() {
       return sql`SELECT key,value,updated_at FROM settings WHERE key IN

@@ -56,7 +56,7 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 | `neon_create_pass` | Make a short-lived pass for the HTTPS API and Robinson's Toolkit (shown once on the setup page; preview mode, read-only, 24 h by default; RTC §2) | C A S | Ow | F | R-1 |
 | `neon_where_is_setting` | Structured steps (link, numbered actions, expected result, read-back check) for any dashboard-only setting: plan, payment, SSO, integrations, two-step login | — | Ow Op | R | B-8 (built #34) |
 | `neon_get_settings` | This server's stored settings: protected resources, price table and its date, spend cap, dev-branch defaults, SQL limits, wait limits | — | Ow | R | B-8 (built #34) |
-| `neon_update_settings` | Change a stored setting (never the protected-resources list, which only the setup page edits) | C | Ow | F | B-8 |
+| `neon_update_settings` | Change a stored setting (never the protected-resources list, which only the setup page edits) | C | Ow | F | B-8 (built #37; tightening only) |
 
 ## Projects (`neon_project_*`) — 11
 
