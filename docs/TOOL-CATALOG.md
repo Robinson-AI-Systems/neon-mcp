@@ -1,3 +1,5 @@
+**C-2 listing modes (#44):** Connections default to compact except Claude-identified clients (catalog); authenticated `?listing=` override affects display only, never authorization. Compact includes guarded meta tools, identity and stored-result retrieval.
+
 # Tool catalog
 
 Every tool this server will have, by area — the product scope. The implementing model builds exactly these; anything
