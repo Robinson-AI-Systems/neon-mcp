@@ -29,6 +29,14 @@ describe('B-1 shared guarded write contract',()=>{
     expect(f.log[0].inverse).toEqual({tool:'neon_undo_sample',args:{branch_id:'br-fake'}});
     expect(JSON.stringify(f.log)).not.toContain('updated');
   });
+  it('refuses an idempotency key reused for a different target in the same organization',async()=>{
+    const f=makeContractFixture();
+    expect(f.parse(await f.handler({confirm:true},f.ctx)).done).toBe(true);
+    const prior=f.log[0];
+    prior.target='br-another';
+    expect(f.parse(await f.handler({confirm:true},f.ctx)).code).toBe('refused_by_guard');
+    expect(f.calls).toHaveLength(1);
+  });
   it('requires a valid tool contract before defining the handler',()=>{
     expect(()=>defineWrite({name:'no'})).toThrow();
   });

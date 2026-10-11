@@ -11,7 +11,8 @@ export function makeContractFixture({ production = false, spendCents = null,
     async reserveWrite(row) {
       const existing = log.find(x => x.kind==='reserved' && x.requestKey===row.requestKey);
       if (existing) return { created:false, existing:{neon_org:existing.orgId,
-        tool:existing.tool, confirmed:existing.confirmed} };
+        tool:existing.tool, project_id:existing.projectId,
+        branch_id:existing.branchId, target:existing.target, confirmed:existing.confirmed} };
       log.push({kind:'reserved',...row,confirmed:'pending'});
       return {created:true,id:log.length};
     },

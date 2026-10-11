@@ -233,7 +233,7 @@ export function createDb(sql = productionSql()) {
           ${target}, ${summary}, FALSE, ${production}, ${spendCents}, ${requestKey}, 'pending')
         ON CONFLICT DO NOTHING RETURNING id`;
       if (rows.length) return { created: true, id: rows[0].id };
-      const existing = await sql`SELECT id, neon_org, tool, confirmed FROM change_log
+      const existing = await sql`SELECT id, neon_org, tool, project_id, branch_id, target, confirmed FROM change_log
         WHERE request_key = ${requestKey} AND dry_run = FALSE LIMIT 1`;
       return { created: false, existing: existing[0] || null };
     },

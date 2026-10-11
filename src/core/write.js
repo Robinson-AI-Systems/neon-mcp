@@ -130,7 +130,10 @@ export function defineWrite({
         requestKey, spendCents: estimate?.increaseCents ?? null });
       if (!claim?.created) {
         if (!claim?.existing || claim.existing.neon_org !== orgId ||
-            claim.existing.tool !== name)
+            claim.existing.tool !== name ||
+            claim.existing.project_id !== (intended.projectId ?? null) ||
+            claim.existing.branch_id !== (intended.branchId ?? null) ||
+            claim.existing.target !== intended.target)
           return deny('This request key is already reserved.');
         const saved = claim.existing.confirmed;
         return respond({ done: saved === 'true', confirmed: saved === 'true' ? true :
@@ -154,7 +157,11 @@ export function defineWrite({
         // Transport errors may mean Neon accepted the write. Never replay.
         status = 'pending';
       }
-      const inverseOp = status === 'true' ? safeInverse(await inverse(args, intended.before, ctx)) : null;
+      let inverseOp = null;
+      if (status === 'true') {
+        try { inverseOp = safeInverse(await inverse(args, intended.before, ctx)); }
+        catch { inverseOp = null; } // An optional inverse must not prevent audit finalization.
+      }
       await ctx.db.completeWrite({ id: claim.id, orgId, confirmed: status,
         operationIds: ops, inverse: inverseOp });
       return respond({ done: status === 'true', confirmed: status === 'true' ? true :
