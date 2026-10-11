@@ -122,3 +122,10 @@ failures, fix them together, push once; run checks locally first; "re-run failed
 CI cancels an obsolete PR run when a newer push arrives.
 
 **2026-10-11 — Owner-approved policy defaults, no activation.** Chris replied "I approve your defaults" to IN-09 (read-only production SQL, at most 200 result rows) and IN-10 (spending cap $25/change and $50/day). These are implementation policy decisions only. They do not enable production write mode, procure paid resources, or authorize a real-account operation. Defaults become *applied* only after durable runtime settings and guards are tested and verified.
+
+**2026-10-11 — GitHub REST fallback for environments without local testing (owner instruction).** When an agent's
+workspace lacks a functioning checkout, terminal or local PostgreSQL, it must use GitHub REST via a connected GitHub
+plugin (or `gh api`) to inspect and change repository branches and PRs, then obtain real unit, database and repository
+checks from GitHub Actions. REST does not itself run local tests; never claim local validation, bypass CI, commit to
+`main`, skip self-review or weaken production/spending/approval restrictions. Current procedure lives in
+`AGENTS.md`, `docs/SESSION-START.md` §6 and `docs/PLAYBOOK.md` Step 4.
