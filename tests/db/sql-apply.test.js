@@ -67,3 +67,13 @@ it('matching preview commits once and stores WAL before commit', async () => {
   expect(audit[0].restore_lsn).toMatch(/^[0-9a-f]+\/[0-9a-f]+$/i);
   expect((await db.recordSqlRestoreLsn({ orgId, id: 9999999, lsn: '0/1' }))).toBe(false);
 });
+
+it('seeds zero tolerance idempotently and preserves owner configuration', async () => {
+  expect(await db.getSqlAffectedRowsTolerance()).toBe(0);
+  const rows = await rawQuery("SELECT value, updated_by FROM settings WHERE key = 'sql.affected_rows_tolerance'");
+  expect(rows).toEqual([{ value: 0, updated_by: 'system_default_design_B-3' }]);
+  await rawQuery("UPDATE settings SET value = '1'::jsonb, updated_by = 'owner_setup' WHERE key = 'sql.affected_rows_tolerance'");
+  await db.initSchema();
+  expect(await db.getSqlAffectedRowsTolerance()).toBe(1);
+  await rawQuery("UPDATE settings SET value = '0'::jsonb WHERE key = 'sql.affected_rows_tolerance'");
+});
