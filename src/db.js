@@ -119,6 +119,28 @@ export function createDb(sql = productionSql()) {
       return await sql`SELECT id, label, production_enabled, is_default FROM neon_orgs
         ORDER BY is_default DESC, added_at ASC`;
     },
+    /** Atomic shared admission control; keyHash is a one-way hash of the Neon key. */
+    async consumeApiBudget({ keyHash, windowStart, limit = 500 }) {
+      if (typeof keyHash !== 'string' || !/^[a-f0-9]{64}$/.test(keyHash))
+        throw new TypeError('A hashed key identifier is required');
+      if (!(windowStart instanceof Date) || !Number.isFinite(windowStart.getTime()) ||
+        windowStart.getTime() % 60000 !== 0) throw new TypeError('Window must start on a UTC minute');
+      if (!Number.isInteger(limit) || limit < 1 || limit > 699)
+        throw new TypeError('API budget must be between 1 and 699 requests per minute');
+      const rows = await sql`INSERT INTO rate_limits (key, window_start, count)
+        VALUES (${keyHash}, ${windowStart}, 1)
+        ON CONFLICT (key, window_start) DO UPDATE
+        SET count = rate_limits.count + 1 WHERE rate_limits.count < ${limit}
+        RETURNING count`;
+      return { allowed: rows.length === 1, count: rows[0]?.count ?? limit };
+    },
+    /** Opt-in cleanup never deletes the active minute's counter. */
+    async pruneApiBudget({ before }) {
+      if (!(before instanceof Date) || !Number.isFinite(before.getTime()))
+        throw new TypeError('A valid cutoff is required');
+      const rows = await sql`DELETE FROM rate_limits WHERE window_start < ${before} RETURNING key`;
+      return rows.length;
+    },
     async initSchema() {
       // Additive foundation migration; intentionally never alters or deletes existing data.
       await sql`CREATE TABLE IF NOT EXISTS neon_orgs (

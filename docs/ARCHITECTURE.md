@@ -66,7 +66,11 @@ Requires `ADMIN_PASSPHRASE`, `PUBLIC_BASE_URL`, and a database before login; `VE
 - Vendored description: `vendor/neon-openapi/v2.yaml` — fallback source `@neondatabase/api-client@2.7.3`
   (`public-v2-for-users.gen.yaml`, published 2026-07-01; the live URL was unreachable from the build workspace), 163
   operations, SHA-256 `dacf72ea…059c44`; details in `vendor/neon-openapi/SOURCE.md`. Used today only by tests.
-- `@neon/sdk` pinned at **7.0.1** and imported only by `src/neon/client.js` (A-4a). Raw calls have SDK retries disabled, an injected mandatory API budget, 423/429 bounded retries, and unknown-outcome handling on uncertain writes. `src/neon/operations.js` polls by bounded budget (max 45 seconds) and returns resumable pending states. No live Neon account is used in tests; a durable shared budget comes in A-4b.
+- `@neon/sdk` pinned at **7.0.1** and imported only by `src/neon/client.js` (A-4a). Raw calls have SDK retries disabled, an injected mandatory API budget, 423/429 bounded retries, and unknown-outcome handling on uncertain writes. `src/neon/operations.js` polls by bounded budget (max 45 seconds) and returns resumable pending states. A-4b adds `src/neon/budget.js` (default 500 requests per key per minute across instances) and atomic
+`src/db.js` `rate_limits` counter with optional expiration cleanup. Plain keys are never passed to the DB counter.
+The operations index is pure code; `scripts/openapi-find.mjs` queries the pinned YAML offline and
+`scripts/neon-api-drift.mjs` optionally compares against Neon's unauthenticated public description.
+Neither script changes the vendored file. No live Neon account is used in tests.
 
 ## Test harness (A-1)
 
