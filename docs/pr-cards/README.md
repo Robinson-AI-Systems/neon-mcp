@@ -21,6 +21,15 @@ reason to stop. Designs govern behavior; cards cannot silently override them.
 
 Validate coverage with `python3 docs/pr-cards/validate-index.py`.
 
+## Concrete implementation packet
+
+Use [Implementation recipes](../implementation-contracts/IMPLEMENTATION-RECIPES.md#card-packet) for verified seams,
+API mappings and fixture setup, and the relevant row in [Remaining work routes](../implementation-contracts/REMAINING-WORK-ROUTES.md).
+Include those bounded links in “Read only these”. Add input mappings, ordered slices, expected before/after effects,
+refusal/cleanup fixtures and successor exports; label existing versus proposed paths. For the next unit see the
+[B-3 worked example](../implementation-contracts/B-3-WORKED-EXAMPLE.md), then write the actual JIT card against current main.
+The example is preparation, not approval or completed scope. Keep distant cards JIT; owner-input merge gates still apply.
+
 ## Effort guide for Sol 5.6
 
 Light: read tools in an area whose pattern already exists; docs cards. Medium: safety layer, production guard, SQL guard,
