@@ -1,13 +1,15 @@
 # STATUS — current work, blockers and next action
 
-Updated 2026-10-11. **A-3a OAuth primitives merged (#8):** OAuth client registration, hashed grants, one-use codes,
+Updated 2026-10-11. **A-3b OAuth endpoints merged (#9):** secure OAuth authorization, registration, token exchange and refresh
+routes, metadata, and a default-deny MCP endpoint exist in code. **A-3a OAuth primitives merged (#8):** OAuth client registration, hashed grants, one-use codes,
 atomic refresh and database-backed login attempts now exist. **A-2 database schema merged (#7):** the 11 additive foundation tables, partial key uniqueness and
 expiry indexes exist in code and are verified by isolated-Postgres tests. No live database is provisioned, no endpoints
 or Neon tools exist, and no real Neon account was accessed.
 
 ## Next
 
-- **Next card: A-3b — connector login endpoints** ([card](pr-cards/A-3.md), READY). Then A-4 … A-7 (write each card just in time from `designs/BATCH-A.md` §4).
+- **Next card: A-4 — Neon client, API budget and operations waiter** (JIT card from `designs/BATCH-A.md` §4).
+  Then A-5 → A-6 → A-7.
 - **Answered 2026-10-10 (Chris):** IN-00 — plan approved ("I approve the plans"); IN-01 — **no automated review** ("I don't want the automated review at this time"); the repository stays public as Chris created it; the implementer self-reviews every diff.
 - **Queue:** A → B → C → D → V → O → P → W → U → R → E → X (`MASTER-ROADMAP.md`).
 
@@ -21,6 +23,10 @@ or Neon tools exist, and no real Neon account was accessed.
 - Runtime: Node 24.x (Vercel stopped deploying Node 20 on 2026-10-01; see DECISIONS).
 
 ## Recent work (newest first)
+
+**2026-10-11 — A-3b endpoints (#9):** OAuth authorization, registration, token rotation, metadata and
+MCP bearer boundary (zero tools); production gate and project scope fail closed; unit and disposable-Postgres tests.
+
 
 **2026-10-11 — A-3a primitives (#8):** OAuth PKCE, hash/redirect helpers, connector-client and code tables,
 atomic refresh with connection settings, login attempt persistence and unit/isolated-Postgres tests.

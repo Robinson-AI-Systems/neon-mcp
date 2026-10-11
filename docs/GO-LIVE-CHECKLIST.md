@@ -15,6 +15,7 @@ Legend: **Owner** = only Chris · **Agent** = Claude can do it once you say go.
 | [ ] | `ADMIN_PASSPHRASE` and `TOKEN_ENCRYPTION_KEY` set (IN-03) | Vercel → Environment Variables (Owner) | Not set | The setup page asks for the passphrase and accepts a key |
 | [ ] | Project-scoped key(s) added (IN-04, IN-05) | Neon console → Organization → API keys, then the server's setup page (Owner) | None | `neon_whoami` shows the organization, the key kind and its last 4 |
 | [ ] | Protected resources confirmed (IN-07) | Server setup page (Owner) | Only this server's own database (automatic) | `neon_get_settings` lists them; a test change to one is refused |
+| [ ] | `PUBLIC_BASE_URL` is set to the server's HTTPS origin (Owner, before OAuth login) | Vercel → Environment Variables | Not set | OAuth discovery advertises exactly that origin |
 | [ ] | Connector added in Claude, preview mode (Owner) | claude.ai → Settings → Connectors | Not added | Claude answers "who am I connected as in Neon?" correctly |
 | [ ] | Spend caps and production-read choice confirmed (IN-09, IN-10) | Ask Claude: "show my Neon MCP settings" | $25 per change, $50 per day; production reads on | `neon_get_settings` shows them |
 

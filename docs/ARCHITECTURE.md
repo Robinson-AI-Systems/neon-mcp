@@ -4,7 +4,7 @@ This file describes what **exists**, and is updated in the same PR that ships it
 system is designed to become is in `docs/designs/`; do not copy design text here before it is built.
 
 As of 2026-10-11 (A-2, #7): the foundation includes additive internal schema initialization, OAuth primitives and 11 tables
-(defined, not provisioned). No OAuth HTTP endpoints, tools, Neon API calls, real keys or live database yet.
+(defined, not provisioned). OAuth and MCP endpoints exist in code but are not deployed. No tools, Neon API calls, real keys or live database yet.
 
 ## Infrastructure
 
@@ -48,11 +48,18 @@ The A-2 real-Postgres tests use an isolated disposable local schema; the fake DB
 normalized client IPs and DB-backed 5-attempt / 15-minute login lockout.
 `src/db.js` provides OAuth client/code/token methods and atomic refresh rotation, preserving
 `CONNECTION_FIELDS` across the grant. `src/core/http.js` supplies safe HTTP response helpers.
-No routes are exposed until A-3b.
+A-3b adds authorization and token endpoints, OAuth discovery, and a default-deny MCP bearer boundary.
 
-## Endpoints
+## Endpoints (A-3b, not deployed)
 
-None yet.
+- `/api/oauth/register`: client registration with hashed client credentials in storage
+- `/api/oauth/authorize`: owner passphrase, organization, mode, profile, listing and currently unscoped projects; forged project scopes rejected until A-5 can list them
+- `/api/oauth/token`: S256 PKCE authorization-code exchange and atomic refresh
+- `/.well-known/oauth-authorization-server`, `/.well-known/oauth-protected-resource`: OAuth discovery
+- `/api/mcp`: bearer-only stateless MCP; zero tools until Batch B
+- `/api`: service home and tool count
+
+Requires `ADMIN_PASSPHRASE`, `PUBLIC_BASE_URL`, and a database before login; `VERCEL_ENV` non-production forces preview. No variable values are committed.
 
 ## Neon API description and client
 
