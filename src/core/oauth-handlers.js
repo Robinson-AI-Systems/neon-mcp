@@ -40,7 +40,7 @@ export function createOAuthHandlers({ db, env = process.env }) {
       redirect_uris: p.redirect_uris, token_endpoint_auth_method: 'client_secret_post',
       grant_types: ['authorization_code','refresh_token'], response_types: ['code'] });
   }
-  function authorizePage(p, orgs, error = '') {
+  function authorizePage(p, orgs, error = '', scopes = []) {
     const fields = ['client_id','redirect_uri','response_type','code_challenge','code_challenge_method','state','resource'];
     const hidden = fields.map(name => '<input type="hidden" name="' + name + '" value="' + escapeHtml(p[name]) + '">').join('');
     const orgList = orgs.map(org => '<option value="' + escapeHtml(org.id) + '"' +
@@ -61,7 +61,10 @@ export function createOAuthHandlers({ db, env = process.env }) {
       (!env.ADMIN_PASSPHRASE ? '<p>Administrator passphrase has not been configured.</p>' : '') +
       '<form method="post">' + hidden +
       '<label>Neon organization<select name="neon_org" required>' + orgList + '</select></label>' +
-      '<label>Project scope<select name="project_scope"><option value="">All projects (within the key’s access)</option></select></label>' +
+      '<label>Project scope<select name="project_scope"><option value="">All projects (within the key’s access)</option>' +
+      scopes.map(id => '<option value="' + escapeHtml(id) + '"' +
+        (p.project_scope === id ? ' selected' : '') + '>' + escapeHtml(id) + '</option>').join('') +
+      '</select></label>' +
       '<label>Mode<select name="mode">' + modeList + '</select></label>' +
       '<label>Profile<select name="profile">' + profileList + '</select></label>' +
       '<label>Tool listing<select name="listing">' + listingList + '</select></label>' +
@@ -81,7 +84,11 @@ export function createOAuthHandlers({ db, env = process.env }) {
       return bad(res, 400, 'invalid_request', 'Authorization code, S256 PKCE, and exact MCP resource are required');
     }
     const orgs = await db.listNeonOrgs();
-    if (req.method === 'GET') return send(res, 200, authorizePage(p, orgs), 'text/html; charset=utf-8');
+    const selectedOrgId = p.neon_org || orgs[0]?.id || '';
+    const summaries = await db.listNeonKeySummaries(selectedOrgId);
+    const scopes = summaries.filter(item => item.kind === 'project' &&
+      !item.revoked_at && item.reach?.verified === true).map(item => item.project_id);
+    if (req.method === 'GET') return send(res, 200, authorizePage(p, orgs, '', scopes), 'text/html; charset=utf-8');
     if (!env.ADMIN_PASSPHRASE) return bad(res, 503, 'server_not_configured', 'Admin passphrase is not configured');
     const verdict = await evaluateLogin({ ip: clientIp(req), supplied: p.passphrase,
       expected: env.ADMIN_PASSPHRASE, store: db });
@@ -95,13 +102,14 @@ export function createOAuthHandlers({ db, env = process.env }) {
     if (!selected || !MODES.includes(chosenMode) ||
       (chosenMode === 'production' && (env.VERCEL_ENV !== 'production' || !selected.production_enabled)) ||
       !PROFILES.includes(p.profile || 'everyday') || !LISTINGS.includes(p.listing || 'catalog') ||
-      (p.project_scope !== undefined && p.project_scope !== '')) {
+      (p.project_scope && !scopes.includes(p.project_scope))) {
       return send(res, 400, authorizePage(p, orgs, 'Invalid org, mode, or connection settings'), 'text/html; charset=utf-8');
     }
     const code = randomToken(32);
     await db.createAuthCode({ code, clientId: p.client_id, redirectUri: p.redirect_uri,
       codeChallenge: p.code_challenge, codeChallengeMethod: 'S256', neonOrg: p.neon_org,
-      projectScope: null, mode: chosenMode, profile: p.profile || 'everyday', listing: p.listing || 'catalog' });
+      projectScope: p.project_scope || null, mode: chosenMode,
+      profile: p.profile || 'everyday', listing: p.listing || 'catalog' });
     const destination = new URL(p.redirect_uri);
     destination.searchParams.set('code', code);
     if (typeof p.state === 'string') destination.searchParams.set('state', p.state);

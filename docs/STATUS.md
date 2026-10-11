@@ -1,6 +1,8 @@
 # STATUS — current work, blockers and next action
 
-Updated 2026-10-11. **A-5b one-time secret exchange merged (#13):** inbound and outbound ciphertext, expiry, org-bound
+Updated 2026-10-11. **A-5c owner setup and first read tools merged (#14):** passphrase/Origin-guarded
+key setup, revocation, one-time secret viewing/submission and exactly two scoped read-only MCP tools.
+**A-5b one-time secret exchange merged (#13):** inbound and outbound ciphertext, expiry, org-bound
 single-use consumption through guarded backend functions, disposable database and fake-unit tests.
 **A-5a encrypted key storage merged (#12):** authenticated ciphertext, scoped organization and
 project key persistence, verified Neon identity/reach, fail-closed missing credentials, and fake/isolated-Postgres tests.
@@ -12,11 +14,12 @@ resent, request keys, bounded waits and budget enforcement by injected fail-clos
 **A-3b OAuth endpoints merged (#9):** secure OAuth authorization, registration, token exchange and refresh
 routes, metadata, and a default-deny MCP endpoint exist in code. **A-3a OAuth primitives merged (#8):** OAuth client registration, hashed grants, one-use codes,
 atomic refresh and database-backed login attempts now exist. **A-2 database schema merged (#7):** the 11 additive foundation tables, partial key uniqueness and
-expiry indexes exist in code and are verified by isolated-Postgres tests. No live database is provisioned; OAuth endpoints exist in code but no Neon tools are registered, and no real Neon account was accessed.
+expiry indexes exist in code and are verified by isolated-Postgres tests. No live database is provisioned; OAuth and setup endpoints exist in code and two safe owner read tools are registered, and no real Neon account was accessed.
 
 ## Next
 
-- **Next: A-5c — authenticated secure setup page and read-only account tools** (`pr-cards/A-5.md`). Then A-6 SQL connection and A-7 deployment guide.
+- **Next: A-6 — in-memory SQL connection layer and self-database protection** (`pr-cards/A-6.md`).
+  Then A-7 deployment guide; live infrastructure still requires owner IN-02, IN-03 and IN-04.
 - **Answered 2026-10-10 (Chris):** IN-00 — plan approved ("I approve the plans"); IN-01 — **no automated review** ("I don't want the automated review at this time"); the repository stays public as Chris created it; the implementer self-reviews every diff.
 - **Queue:** A → B → C → D → V → O → P → W → U → R → E → X (`MASTER-ROADMAP.md`).
 
@@ -30,6 +33,10 @@ expiry indexes exist in code and are verified by isolated-Postgres tests. No liv
 - Runtime: Node 24.x (Vercel stopped deploying Node 20 on 2026-10-01; see DECISIONS).
 
 ## Recent work (newest first)
+
+**2026-10-11 — A-5c setup and read-only tools (#14):** owner page for key addition/revocation and one-time
+secrets, passphrase lockout, strict same-origin POST, scoped organization and project selection, first two MCP tools.
+
 
 **2026-10-11 — A-5b one-time secrets (#13):** an outbound encrypted view-once link, inbound secret
 request submission and consume-once retrieval, scoped by organization and 10-minute expiry. No secret in any URL.

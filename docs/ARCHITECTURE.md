@@ -58,7 +58,9 @@ verifies incoming project/organization keys through the guarded Neon client and 
 `neon_keys` only after confirming identity and project reach. The narrowest key is selected for
 back-end calls. Organization-key operations are refused from preview deployments. A-5b adds `src/core/one-time.js` and DB methods for ciphertext-only ten-minute outbound and
 inbound secrets. Outbound secrets are deleted atomically when viewed; incoming requests are filled and
-consumed once, with organization scope. The setup page will be added by A-5c.
+consumed once, with organization scope. A-5c adds `/api/neon/setup`: owner-only POST operations, strict configured-origin checks,
+passphrase and DB lockout, no-store/CSP/anti-framing headers. It never enables production or accepts org-wide
+keys on preview. Its one-time view is explicitly visible only to the passphrase-authenticated owner.
 
 ## Endpoints (A-3b, not deployed)
 
@@ -67,8 +69,11 @@ consumed once, with organization scope. The setup page will be added by A-5c.
 - `/api/oauth/token`: S256 PKCE authorization-code exchange and atomic refresh
 - `/.well-known/oauth-authorization-server`, `/.well-known/oauth-protected-resource`: OAuth discovery
 - `/api/mcp`: bearer-only stateless MCP; zero tools until Batch B
+- `/api/neon/setup`: owner-only key and secret setup page (A-5c)
 - `/api`: service home and tool count
 
+Two scoped read-only MCP tools exist: `neon_whoami` and `neon_list_accounts`.
+They report only metadata for the token's organization, never ciphertext or raw keys.
 Requires `ADMIN_PASSPHRASE`, `PUBLIC_BASE_URL`, and a database before login; `VERCEL_ENV` non-production forces preview. No variable values are committed.
 
 ## Neon API description and client

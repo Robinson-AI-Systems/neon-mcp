@@ -4,7 +4,14 @@ import { registry } from '../../src/tools/index.js';
 
 const make = (name) => ({ tools: [{ name }], handlers: { [name]: async () => null } });
 describe('tool registry', () => {
-  it('starts empty in A-1', () => expect(registry.tools).toEqual([]));
+  it('registers the first two safe read tools in A-5', () => {
+    expect(registry.tools.map(t=>t.name)).toEqual(['neon_whoami','neon_list_accounts']);
+    for(const tool of registry.tools) {
+      expect(tool.writes).toBe(false);
+      expect(tool.profiles).toContain('read_only');
+      expect(typeof registry.handlers[tool.name]).toBe('function');
+    }
+  });
   it('refuses duplicate tool names across namespaces', () => {
     expect(() => mergeNamespaces([make('neon_example'), make('neon_example')])).toThrow(/Duplicate/);
   });

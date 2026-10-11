@@ -114,7 +114,7 @@
         "A-4"
       ],
       "card": "docs/pr-cards/A-5.md",
-      "status": "IN_PROGRESS",
+      "status": "MERGED",
       "migration": "none",
       "budget": 450,
       "units": [
@@ -122,10 +122,11 @@
       ],
       "readiness": "READY",
       "ownerInputs": [],
-      "note": "A-5a key vault #12; A-5b one-time secrets #13; A-5c setup + read-only tools next",
+      "note": "Encrypted vault #12, one-time secrets #13, owner setup + safe tools #14",
       "pr": [
         12,
-        13
+        13,
+        14
       ]
     },
     {
@@ -137,13 +138,13 @@
         "A-5"
       ],
       "card": "docs/pr-cards/A-6.md",
-      "status": "PLANNED",
+      "status": "READY",
       "migration": "none",
       "budget": 300,
       "units": [
         "A-6"
       ],
-      "readiness": "WRITE_CARD_AT_START",
+      "readiness": "READY",
       "ownerInputs": []
     },
     {
