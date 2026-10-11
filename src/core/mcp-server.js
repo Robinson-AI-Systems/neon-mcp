@@ -5,7 +5,7 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { requireMcpToken } from './mcp-auth.js';
 import { isToolAllowed } from './profiles.js';
-import { scrubNeonResult, redactNeonText } from '../neon/scrub.js';
+import { scrubNeonResult, redactNeonText } from './scrub.js';
 import { shapeResult } from './result-rules.js';
 
 const allowedTool=(item,connection,env)=>isToolAllowed(item,connection,
