@@ -93,9 +93,9 @@ describe('owner-only setup route',()=>{
   });
 });
 describe('protected resource owner setup',()=>{
-  const envSelf={...env,DATABASE_URL:'postgresql://user:FAKE@self.example.test/database',
+  const envSelf={...env,DATABASE_URL:'postgresql://user:FAKE@localhost/database',
     NEON_MCP_SELF_ORG_ID:'org-fake-one',NEON_MCP_SELF_PROJECT_ID:'prj-self',
-    NEON_MCP_SELF_ENDPOINT_HOST:'self.example.test'};
+    NEON_MCP_SELF_ENDPOINT_HOST:'localhost'};
   function guarded() {
     const db=createFakeDb({orgs:[{id:'org-fake-one',label:'Fake Org',production_enabled:false}]});
     const store=[];
@@ -126,7 +126,7 @@ describe('protected resource owner setup',()=>{
       orgId:'org-fake-one',passphrase:envSelf.ADMIN_PASSPHRASE},headers));
     expect(result.body).toContain('Neon MCP own database');
     expect(result.body).toContain('prj-self');
-    expect((await invoke(handler,req('POST',{...body,orgId:'org-other'},headers)).statusCode).toBe(403);
+    expect((await invoke(handler,req('POST',{...body,orgId:'org-other'},headers))).statusCode).toBe(403);
   });
   it('refuses invalid JSON, duplicates, missing owner passphrase and injection',async()=>{
     const {handler,store}=guarded(),headers={origin:envSelf.PUBLIC_BASE_URL};
@@ -135,7 +135,7 @@ describe('protected resource owner setup',()=>{
     expect((await invoke(handler,req('POST',body,headers))).statusCode).toBe(400);
     const duplicate=[{kind:'other',org:'org-fake-one',project_id:'prj-one',label:'A'}];
     expect((await invoke(handler,req('POST',{...body,
-      resourcesJson:JSON.stringify([...duplicate,...duplicate])},headers)).statusCode).toBe(400);
+      resourcesJson:JSON.stringify([...duplicate,...duplicate])},headers))).statusCode).toBe(400);
     const denied=await invoke(handler,req('POST',{...body,passphrase:'incorrect'},headers));
     expect(denied.statusCode).toBe(401);
     expect(store).toHaveLength(0);
