@@ -35,7 +35,7 @@ export function shapeResult(value,{production=false}={}){
 }
 
 // C-1: projection is always downstream of the secret scrub; never resolve inherited keys.
-import {summarizeResources} from '../tools/summaries.js';
+import {summarizeResources} from './resource-summaries.js';
 const forbidden=new Set(['__proto__','prototype','constructor']);
 export function projectFields(source,fields){
  if(typeof fields!=='string'||fields.length>512)throw new TypeError('Invalid field list');
