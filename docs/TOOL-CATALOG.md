@@ -42,11 +42,11 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 | `neon_whoami` | Organization, key kinds held (last 4 only), connection mode (preview/production), profile, listing, API description date, price-table date, today's Neon API budget | — | B Ow Op | R | A-5 (built #14) |
 | `neon_list_accounts` | Organizations this server holds keys for, key kinds and projects covered, whether production access is enabled | — | Ow Op | R | A-5 |
 | `neon_check_key_access` | Re-probe every stored key: what each can reach (projects, org actions), which tools are blocked and which key kind would fix it | — | Ow | R | B-8 |
-| `neon_list_connections` | Claude connections and passes: organization, mode, profile, listing, rate limit, last used | — | Ow | R | B-8 |
+| `neon_list_connections` | Claude connections and passes: organization, mode, profile, listing, rate limit, last used | — | Ow | R | B-8 (built #34) |
 | `neon_revoke_connection` | Switch a connection or pass off at once | C | Ow | F | B-8 |
 | `neon_enable_production` | Request production access for one organization (NOT activation; needs owner passphrase and typed approval within ten minutes, plus release gates after X-2/X-3) | C | Ow | F | B-2 (built #20) |
 | `neon_disable_production` | Stop production permission immediately and invalidate pending owner approval | C | Ow | F | B-2 (built #20) |
-| `neon_recent_changes` | What changed through this server (filter by tool, project, branch, date; previews hidden unless asked) | — | Ow Op | R | B-8 |
+| `neon_recent_changes` | What changed through this server (filter by tool, project, branch, date; previews hidden unless asked) | — | Ow Op | R | B-8 (built #34) |
 | `neon_undo_change` | Undo one change-log entry with a clean opposite (recover a deleted branch, restore a setting, roll a branch back to the recorded point before a SQL change); says plainly when there is none | C | Op | E | X-1 |
 | `neon_search_tools` | Find tools by plain words; one line each with flags (compact mode's front door) | — | B Ow Op | R | C-2 |
 | `neon_describe_tool` | Full instructions and arguments for one tool | — | B Ow Op | R | C-2 |
@@ -54,8 +54,8 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 | `neon_batch` | Up to 10 read calls in one round trip | — | B Op | R | C-2 |
 | `neon_get_result` | Page through a big result kept behind a handle (24 hours, same connection only) | — | B Op | R | C-1 |
 | `neon_create_pass` | Make a short-lived pass for the HTTPS API and Robinson's Toolkit (shown once on the setup page; preview mode, read-only, 24 h by default; RTC §2) | C A S | Ow | F | R-1 |
-| `neon_where_is_setting` | Structured steps (link, numbered actions, expected result, read-back check) for any dashboard-only setting: plan, payment, SSO, integrations, two-step login | — | Ow Op | R | B-8 |
-| `neon_get_settings` | This server's stored settings: protected resources, price table and its date, spend cap, dev-branch defaults, SQL limits, wait limits | — | Ow | R | B-8 |
+| `neon_where_is_setting` | Structured steps (link, numbered actions, expected result, read-back check) for any dashboard-only setting: plan, payment, SSO, integrations, two-step login | — | Ow Op | R | B-8 (built #34) |
+| `neon_get_settings` | This server's stored settings: protected resources, price table and its date, spend cap, dev-branch defaults, SQL limits, wait limits | — | Ow | R | B-8 (built #34) |
 | `neon_update_settings` | Change a stored setting (never the protected-resources list, which only the setup page edits) | C | Ow | F | B-8 |
 
 ## Projects (`neon_project_*`) — 11

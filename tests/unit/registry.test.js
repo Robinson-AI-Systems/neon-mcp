@@ -4,9 +4,10 @@ import { registry } from '../../src/tools/index.js';
 
 const make = (name) => ({ tools: [{ name }], handlers: { [name]: async () => null } });
 describe('tool registry', () => {
-  it('keeps two A-5 reads plus only the two guarded B-2 owner controls', () => {
+  it('keeps original reads and guarded owner controls plus B-8a scoped reads', () => {
     expect(registry.tools.map(t=>t.name)).toEqual(['neon_whoami','neon_list_accounts',
-      'neon_enable_production','neon_disable_production']);
+      'neon_enable_production','neon_disable_production',
+      'neon_list_connections','neon_recent_changes','neon_get_settings','neon_where_is_setting']);
     for(const tool of registry.tools) {
       if (tool.writes) {
         expect(tool.profiles).toEqual(['full']);
