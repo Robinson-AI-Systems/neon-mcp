@@ -59,7 +59,7 @@ it('does not store a key that fails Neon identity or project checks',async()=>{
 it('rechecks an encrypted stored project key without revealing bytes or using a wider key',async()=>{
  const fake=makeFakeNeon();
  fake.when('getAuthDetails').resolves({account_id:'fake-owner',auth_method:'api_key_user'});
- fake.when('listProjects').resolves({projects:[fx.project()],pagination:{}});
+ fake.when('listProjects').resolves({projects:[{...fx.project(),active_time:0}],pagination:{cursor:'fake-cursor'},applications:{},integrations:{}});
  const db=createFakeDb();
  const vault=createKeyVault({db,env:{...env,VERCEL_ENV:'production'},fetch:fake.fetch});
  await vault.storeKey({orgId:fx.IDS.org,projectId:fx.IDS.project,kind:'project',key});
