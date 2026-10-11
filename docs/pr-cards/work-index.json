@@ -122,9 +122,10 @@
       ],
       "readiness": "READY",
       "ownerInputs": [],
-      "note": "A-5a encrypted key vault #12; A-5b one-time secret exchange and A-5c setup page remain",
+      "note": "A-5a key vault #12; A-5b one-time secrets #13; A-5c setup + read-only tools next",
       "pr": [
-        12
+        12,
+        13
       ]
     },
     {

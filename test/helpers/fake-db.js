@@ -6,7 +6,7 @@ import { hashToken } from '../../src/core/oauth.js';
 export function createFakeDb({ clock = () => Date.now(), orgs = [] } = {}) {
   const rows = new Map(), tables = new Set(), clients = new Map(), codes = new Map(), tokens = new Map();
   const attempts = [], orgRows = new Map(orgs.map((org) => [org.id, structuredClone(org)]));
-  const keys = [], limits = new Map();
+  const keys = [], limits = new Map(), outbound = new Map(), inbound = new Map();
   return {
     async initSchema() { SCHEMA_TABLES.forEach((name) => tables.add(name)); },
     async listTables() { return [...tables]; },
@@ -129,6 +129,41 @@ export function createFakeDb({ clock = () => Date.now(), orgs = [] } = {}) {
         limits.delete(key);removed++;
       }
       return removed;
+    },
+    async saveOneTimeSecret({id,orgId,kind,label,ciphertext,expiresAt}) {
+      if(outbound.has(id))throw new Error('duplicate outbound id');
+      outbound.set(id,{id,neon_org:orgId,kind,label,ciphertext,expires_at:expiresAt.getTime()});
+    },
+    async getOneTimeSecretInfo(id) {
+      const row=outbound.get(id);
+      return row&&row.expires_at>clock()?structuredClone({id,neon_org:row.neon_org,
+        kind:row.kind,label:row.label,expires_at:new Date(row.expires_at)}):null;
+    },
+    async consumeOneTimeSecret({id,orgId}) {
+      const row=outbound.get(id);
+      if(!row||row.neon_org!==orgId)return null;
+      outbound.delete(id);
+      return row.expires_at>clock()?{kind:row.kind,ciphertext:row.ciphertext}:null;
+    },
+    async createSecretRequest({id,orgId,tool,purpose,expiresAt}) {
+      if(inbound.has(id))throw new Error('duplicate incoming id');
+      inbound.set(id,{id,neon_org:orgId,tool,purpose,expires_at:expiresAt.getTime(),ciphertext:null});
+    },
+    async getSecretRequestInfo(id) {
+      const row=inbound.get(id);
+      return row&&row.expires_at>clock()?structuredClone({id,neon_org:row.neon_org,
+        tool:row.tool,purpose:row.purpose,ready:!!row.ciphertext}):null;
+    },
+    async fulfillSecretRequest({id,orgId,ciphertext}) {
+      const row=inbound.get(id);
+      if(!row||row.neon_org!==orgId||row.expires_at<=clock()||row.ciphertext)return false;
+      row.ciphertext=ciphertext;return true;
+    },
+    async consumeSecretRequest({id,orgId}) {
+      const row=inbound.get(id);
+      if(!row||row.neon_org!==orgId||!row.ciphertext)return null;
+      inbound.delete(id);
+      return row.expires_at>clock()?{ciphertext:row.ciphertext}:null;
     },
     async tokenRowsForTest() { return structuredClone([...tokens.values()]); }
   };

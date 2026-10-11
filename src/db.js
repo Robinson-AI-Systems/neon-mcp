@@ -179,6 +179,48 @@ export function createDb(sql = productionSql()) {
         WHERE id = ${id} AND org_id = ${orgId} AND revoked_at IS NULL RETURNING id`;
       return rows.length > 0;
     },
+    async saveOneTimeSecret({ id, orgId, kind, label, ciphertext, expiresAt }) {
+      if (!id || !orgId || !kind || !label || !ciphertext || !(expiresAt instanceof Date))
+        throw new TypeError('Missing outbound secret metadata');
+      await sql`INSERT INTO one_time_secrets (id, neon_org, kind, label, ciphertext, expires_at)
+        VALUES (${id}, ${orgId}, ${kind}, ${label}, ${ciphertext}, ${expiresAt})`;
+    },
+    async getOneTimeSecretInfo(id) {
+      const rows = await sql`SELECT id, neon_org, kind, label, expires_at
+        FROM one_time_secrets WHERE id = ${id} AND expires_at > now()
+        AND viewed_at IS NULL`;
+      return rows[0] || null;
+    },
+    async consumeOneTimeSecret({ id, orgId }) {
+      const rows = await sql`DELETE FROM one_time_secrets
+        WHERE id = ${id} AND neon_org = ${orgId} AND expires_at > now()
+        AND viewed_at IS NULL RETURNING kind, ciphertext`;
+      return rows[0] || null;
+    },
+    async createSecretRequest({ id, orgId, tool, purpose, expiresAt }) {
+      if (!id || !orgId || !tool || !purpose || !(expiresAt instanceof Date))
+        throw new TypeError('Missing inbound secret request metadata');
+      await sql`INSERT INTO secret_requests (id, neon_org, tool, purpose, expires_at)
+        VALUES (${id}, ${orgId}, ${tool}, ${purpose}, ${expiresAt})`;
+    },
+    async getSecretRequestInfo(id) {
+      const rows = await sql`SELECT id, neon_org, tool, purpose, expires_at,
+        ciphertext IS NOT NULL AS ready FROM secret_requests
+        WHERE id = ${id} AND expires_at > now() AND consumed_at IS NULL`;
+      return rows[0] || null;
+    },
+    async fulfillSecretRequest({ id, orgId, ciphertext }) {
+      const rows = await sql`UPDATE secret_requests SET ciphertext = ${ciphertext}
+        WHERE id = ${id} AND neon_org = ${orgId} AND expires_at > now()
+        AND ciphertext IS NULL AND consumed_at IS NULL RETURNING id`;
+      return rows.length === 1;
+    },
+    async consumeSecretRequest({ id, orgId }) {
+      const rows = await sql`DELETE FROM secret_requests
+        WHERE id = ${id} AND neon_org = ${orgId} AND expires_at > now()
+        AND ciphertext IS NOT NULL AND consumed_at IS NULL RETURNING ciphertext`;
+      return rows[0] || null;
+    },
     async initSchema() {
       // Additive foundation migration; intentionally never alters or deletes existing data.
       await sql`CREATE TABLE IF NOT EXISTS neon_orgs (
