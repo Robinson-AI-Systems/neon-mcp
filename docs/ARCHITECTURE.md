@@ -3,8 +3,8 @@
 This file describes what **exists**, and is updated in the same PR that ships it (DRIFT-PROTOCOL checklist B). What the
 system is designed to become is in `docs/designs/`; do not copy design text here before it is built.
 
-As of 2026-10-11 (A-2, #7): the foundation includes additive internal schema initialization and 11 tables
-(defined, not provisioned). No endpoints, tools, Neon API calls, real keys or live database yet.
+As of 2026-10-11 (A-2, #7): the foundation includes additive internal schema initialization, OAuth primitives and 11 tables
+(defined, not provisioned). No OAuth HTTP endpoints, tools, Neon API calls, real keys or live database yet.
 
 ## Infrastructure
 
@@ -41,6 +41,14 @@ Defined by `src/db.js` using only additive `CREATE ... IF NOT EXISTS`; not provi
 | `settings` | Persisted user-editable configuration |
 
 The A-2 real-Postgres tests use an isolated disposable local schema; the fake DB only mirrors table names.
+
+## OAuth primitives (A-3a)
+
+`src/core/oauth.js` supplies SHA-256 credential hashing, S256 PKCE, strict callback URI checks,
+normalized client IPs and DB-backed 5-attempt / 15-minute login lockout.
+`src/db.js` provides OAuth client/code/token methods and atomic refresh rotation, preserving
+`CONNECTION_FIELDS` across the grant. `src/core/http.js` supplies safe HTTP response helpers.
+No routes are exposed until A-3b.
 
 ## Endpoints
 
