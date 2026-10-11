@@ -104,7 +104,7 @@ export function createOAuthHandlers({ db, env = process.env }) {
     const chosenMode = p.mode || 'preview';
     if (!selected || !MODES.includes(chosenMode) ||
       (chosenMode === 'production' && (env.VERCEL_ENV !== 'production' || !selected.production_enabled)) ||
-      !PROFILES.includes(p.profile || 'everyday') || !LISTINGS.includes(p.listing || defaultListing) ||
+      !PROFILES.includes(p.profile || 'everyday') || !LISTINGS.includes(p.listing || default_listing) ||
       (p.project_scope && !scopes.includes(p.project_scope))) {
       return send(res, 400, authorizePage(p, orgs, 'Invalid org, mode, or connection settings'), 'text/html; charset=utf-8');
     }
