@@ -99,6 +99,17 @@ Neither script changes the vendored file. No live Neon account is used in tests.
 | `scripts/check-*.mjs` | `npm run check`; each exports its rule and has tests (`tests/unit/check-*.test.js`) |
 | `src/core/registry.js`, `src/tools/index.js` | `mergeNamespaces` (duplicate names and missing handlers throw); the registry is empty |
 
+## Target SQL connection layer (A-6)
+
+`src/neon/sql.js` provides `createSqlLayer` and `withSqlClient`. A budgeted pinned-SDK
+`getConnectionURI` read supplies a URI inside one request. Host comparison refuses this server's
+own `DATABASE_URL` host, including its pooled alias, before any pool is opened. A short-lived
+`@neondatabase/serverless` Pool applies 15-second statement and 5-second lock timeouts,
+passes only a reduced query interface to the callback and always releases/ends the pool.
+Callback results scrub the exact fetched URI and errors are rebuilt without connection details.
+`test/helpers/sql-client.js` restricts real PostgreSQL tests to localhost. SQL queries are NOT
+exposed as MCP tools until the Batch B SQL/production guards are implemented.
+
 ## Runtime
 
 Node **24.x** (`package.json` `engines`; Vercel stopped deploying Node 20 on 2026-10-01). Plain ES modules, no build
