@@ -1,6 +1,8 @@
 # STATUS — current work, blockers and next action
 
-Updated 2026-10-11. **A-4b shared budget and API description tooling merged (#11):** database-atomic 500/minute API admission
+Updated 2026-10-11. **A-5a encrypted key storage merged (#12):** authenticated ciphertext, scoped organization and
+project key persistence, verified Neon identity/reach, fail-closed missing credentials, and fake/isolated-Postgres tests.
+**A-4b shared budget and API description tooling merged (#11):** database-atomic 500/minute API admission
 across serverless instances, secret-safe key hashing, pinned OpenAPI lookup/diff tools, isolated-Postgres coverage.
 **A-4a official Neon client and operation waiter merged (#10):**
 SDK raw calls only through one entrypoint; retries only for 423/429, ambiguous writes never automatically
@@ -12,8 +14,7 @@ expiry indexes exist in code and are verified by isolated-Postgres tests. No liv
 
 ## Next
 
-- **Next: A-5a — encrypted key persistence and reach verification** (`pr-cards/A-5.md`). Then A-5b one-time
-  secrets, A-5c secure setup and owner read-only tools; then A-6 → A-7.
+- **Next: A-5b — one-time inbound and outbound secret exchange** (`pr-cards/A-5.md`). Then A-5c secure setup and read tools; then A-6 → A-7.
 - **Answered 2026-10-10 (Chris):** IN-00 — plan approved ("I approve the plans"); IN-01 — **no automated review** ("I don't want the automated review at this time"); the repository stays public as Chris created it; the implementer self-reviews every diff.
 - **Queue:** A → B → C → D → V → O → P → W → U → R → E → X (`MASTER-ROADMAP.md`).
 
@@ -27,6 +28,10 @@ expiry indexes exist in code and are verified by isolated-Postgres tests. No liv
 - Runtime: Node 24.x (Vercel stopped deploying Node 20 on 2026-10-01; see DECISIONS).
 
 ## Recent work (newest first)
+
+**2026-10-11 — A-5a encrypted key vault (#12):** AES-256-GCM AAD scope binding; stored key ciphertext only; API
+identity and project visibility verified via fake/real-capable Neon client with database-backed budget; key reach tests.
+
 
 **2026-10-11 — A-4b budget and OpenAPI tools (#11):** rate_limits-backed atomic per-key admission, 501st call
 refused, SHA-256 key identifier, prune of expired windows, offline method lookup and bounded public-spec drift compare.

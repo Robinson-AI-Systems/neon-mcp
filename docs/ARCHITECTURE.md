@@ -50,6 +50,14 @@ normalized client IPs and DB-backed 5-attempt / 15-minute login lockout.
 `CONNECTION_FIELDS` across the grant. `src/core/http.js` supplies safe HTTP response helpers.
 A-3b adds authorization and token endpoints, OAuth discovery, and a default-deny MCP bearer boundary.
 
+## Encrypted key storage (A-5a)
+
+`src/core/crypto.js` uses AES-256-GCM with scope-bound associated data; `TOKEN_ENCRYPTION_KEY` must be a
+random 32-byte base64url environment variable and is never read during module import. `src/neon/keys.js`
+verifies incoming project/organization keys through the guarded Neon client and persists ciphertext in
+`neon_keys` only after confirming identity and project reach. The narrowest key is selected for
+back-end calls. Organization-key operations are refused from preview deployments. No setup page exists yet.
+
 ## Endpoints (A-3b, not deployed)
 
 - `/api/oauth/register`: client registration with hashed client credentials in storage
