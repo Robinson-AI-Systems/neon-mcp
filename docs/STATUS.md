@@ -1,5 +1,7 @@
 # STATUS — current work, blockers and next action
 
+**B-3d SQL estimate fallback (#28):** on an independently verified branch-limit or budget-capacity problem, private read-only EXPLAIN produces estimated DML counts and a clearly inexact, 30-minute, one-use token. Production apply requires `acceptEstimate:true`; exact previews retain zero-tolerance row-count rollback. No SQL tool published and no real Neon account used. Remaining B-3: owner-configurable SQL affected-row tolerance (default zero), complete successor interface checks; later D-5 owns public registration and trusted admission wiring.
+
 **B-3d spending admission adapter (#27):** private `createSqlAdmissions` wires SQL preview cost reservation to B-4's atomic per-org/day cap and explicit owner confirmation, and SQL apply approval to B-4 persisted policy. No tool exposed or production turned on. Next B-3d work: branch-limit/budget estimate fallback and concrete D-5 guards/read-back wiring.
 
 **B-3d guarded apply foundation merged (#26):** private SQL apply now checks protected/production/app/spend admission, atomically claims one-use bound exact token, persists restore WAL LSN before running SQL, compares exact row counts in one transaction and rolls back mismatch; ambiguous commits remain pending. Unit/real-Postgres tests added. No public SQL tools or production activation. Remaining B-3d: documented branch-limit/price estimate fallback and D-5 provider-backed admission/read-back integration; do not claim full B-3 finished until all gates pass.
