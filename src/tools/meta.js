@@ -17,11 +17,33 @@ export const tools=[
   writes:false,profiles,audience:['builder','owner','operator'],area:'discovery',
   inputSchema:schema({name:{type:'string',pattern:'^neon_[a-z0-9_]+$',maxLength:90},
    args:{type:'object'}})},
+ {name:'neon_batch',description:'Run at most ten authorized read-only tools in order; reject the entire batch if any write appears.',
+  writes:false,profiles,audience:['builder','operator'],area:'discovery',
+  inputSchema:schema({calls:{type:'array',minItems:1,maxItems:10,items:{type:'object',
+   properties:{name:{type:'string',pattern:'^neon_[a-z0-9_]+$'},args:{type:'object'}},
+   required:['name'],additionalProperties:false}}})},
  {name:'neon_describe_tool',description:'Describe a tool available to this connection, including its input schema and safety hints.',
   writes:false,profiles,audience:['builder','owner','operator'],area:'discovery',
   inputSchema:schema({name:{type:'string',pattern:'^neon_[a-z0-9_]+$',maxLength:90}})}
 ];
 export const handlers={
+ async neon_batch(args,ctx){
+  if(!Array.isArray(args.calls)||args.calls.length<1||args.calls.length>10)return unavailable();
+  const calls=args.calls;
+  // Refuse the complete batch before running any call if one call could be a write.
+  if(calls.some(c=>!c||typeof c.name!=='string'||!c.name.startsWith('neon_')||
+    ['neon_call','neon_batch'].includes(c.name)||
+    (c.args!==undefined&&(!c.args||typeof c.args!=='object'||Array.isArray(c.args)))||
+    !ctx.registry.tools.some(t=>t.name===c.name&&t.writes===false&&authorized(t,ctx))))
+   return unavailable();
+  const results=[];
+  for(const c of calls){
+   const response=await dispatchReadOnlyTool({registry:ctx.registry,name:c.name,args:c.args||{},
+    connection:ctx.connection,db:ctx.db,env:ctx.env});
+   results.push({name:c.name,response});
+  }
+  return text({count:results.length,results});
+ },
  async neon_call(args,ctx){
   if(typeof args.name!=='string'||!args.name.startsWith('neon_')||
     ['neon_call','neon_batch'].includes(args.name)||
