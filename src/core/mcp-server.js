@@ -7,6 +7,7 @@ import { requireMcpToken } from './mcp-auth.js';
 import { isToolAllowed } from './profiles.js';
 import { scrubNeonResult, redactNeonText } from './scrub.js';
 import { shapeResult, selectResult } from './result-rules.js';
+import {bufferOversizeResult} from './result-store.js';
 
 const displayTool=item=>{
   const {writes:_writes,profiles:_profiles,...publicTool}=item;
@@ -18,15 +19,25 @@ const displayTool=item=>{
 };
 const allowedTool=(item,connection,env)=>isToolAllowed(item,connection,
   {productionDeployment:env?.VERCEL_ENV==='production'});
-function safeMcpResult(result,{args={},tool}={}){
-  if(!result || !Array.isArray(result.content))return {isError:true,content:[{type:'text',text:'Invalid tool response'}]};
-  return {isError:result.isError===true,content:result.content.map(item=>{
-    if(item?.type!=='text')return {type:'text',text:'Non-text output unavailable'};
-    let value;
-    try { value=JSON.parse(item.text); } catch { return {type:'text',text:redactNeonText(item.text)}; }
-    return {type:'text',text:JSON.stringify(shapeResult(tool?.writes===false
-      ? selectResult(scrubNeonResult(value),args) : scrubNeonResult(value)))};
-  })};
+async function safeMcpResult(result,{args={},tool,db,connection}={}){
+ if(!result||!Array.isArray(result.content))return {isError:true,content:[{type:'text',text:'Invalid tool response'}]};
+ const content=[];
+ for(const item of result.content){
+  if(item?.type!=='text'){content.push({type:'text',text:'Non-text output unavailable'});continue;}
+  let value;
+  try{value=JSON.parse(item.text);}
+  catch{
+   const safeText=redactNeonText(item.text);
+   const buffered=await bufferOversizeResult({db,connection,toolName:tool?.name,value:{text:safeText}});
+   content.push({type:'text',text:JSON.stringify(buffered.value)});
+   continue;
+  }
+  const shaped=shapeResult(tool?.writes===false
+   ?selectResult(scrubNeonResult(value),args):scrubNeonResult(value));
+  const buffered=await bufferOversizeResult({db,connection,toolName:tool?.name,value:shaped});
+  content.push({type:'text',text:JSON.stringify(buffered.value)});
+ }
+ return {isError:result.isError===true,content};
 }
 export async function dispatchReadOnlyTool({ registry, name, args, connection, db, env=process.env }) {
   const item = registry.tools.find(t => t.name === name);
@@ -37,7 +48,7 @@ export async function dispatchReadOnlyTool({ registry, name, args, connection, d
   if (typeof handler !== 'function') {
     return {isError:true,content:[{type:'text',text:'Tool unavailable'}]};
   }
-  try { return safeMcpResult(await handler(args || {},{connection,db,env}),{args:args||{},tool:item}); }
+  try { return safeMcpResult(await handler(args || {},{connection,db,env}),{args:args||{},tool:item,db,connection}); }
   catch {
     return {isError:true,content:[{type:'text',text:'Could not read account details; check server setup'}]};
   }

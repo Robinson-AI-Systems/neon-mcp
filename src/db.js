@@ -1,3 +1,4 @@
+import {scrubNeonResult} from './core/scrub.js';
 import { validateSettingTightening } from './core/setting-constraints.js';
 // The Neon MCP service's own tables. No agent tool may run SQL against this database.
 import { neon } from '@neondatabase/serverless';
@@ -7,7 +8,7 @@ import { validatePricing } from './neon/pricing.js';
 export const SCHEMA_TABLES = Object.freeze([
   'neon_orgs', 'neon_keys', 'oauth_clients', 'oauth_codes', 'oauth_tokens',
   'login_attempts', 'rate_limits', 'change_log', 'one_time_secrets',
-  'secret_requests', 'settings'
+  'secret_requests', 'settings', 'result_store'
 ]);
 
 // Keep this list in step with the code and token tables: refresh must preserve all fields.
@@ -500,6 +501,31 @@ export function createDb(sql = productionSql()) {
           AND expires_at > now() RETURNING client_id`;
       return rows.length>0;
     },
+
+    /** Store already-scrubbed JSON for at most 24 hours, bound to one hashed connection scope. */
+    async saveResultHandle({handle,connection,summary,body,expiresAt}){
+      if(!/^res_[a-f0-9]{40}$/.test(handle)||!/^[a-f0-9]{64}$/.test(connection)||
+          typeof summary!=='string'||summary.length>160||!expiresAt||
+          !(expiresAt instanceof Date)||expiresAt.getTime()<=Date.now()||
+          expiresAt.getTime()>Date.now()+86401000)throw new TypeError('Invalid result scope or lifetime');
+      // This method is defensive even if the caller already scrubbed before invoking it.
+      const clean=scrubNeonResult(body);
+      const serialized=JSON.stringify(clean);
+      if(Buffer.byteLength(serialized)>2*1024*1024)throw new TypeError('Result too large to store');
+      await sql`DELETE FROM result_store WHERE handle IN
+        (SELECT handle FROM result_store WHERE expires_at <= now() LIMIT 100)`;
+      await sql`INSERT INTO result_store (handle,connection,expires_at,summary,body)
+        VALUES (${handle},${connection},${expiresAt},${summary},${serialized}::jsonb)`;
+      return {handle,expiresAt};
+    },
+    async readResultHandle({handle,connection}){
+      if(!/^res_[a-f0-9]{40}$/.test(handle)||!/^[a-f0-9]{64}$/.test(connection))
+        throw new TypeError('Invalid stored result selection');
+      const rows=await sql`SELECT summary,body,expires_at FROM result_store
+        WHERE handle = ${handle} AND connection = ${connection}
+          AND expires_at > now() LIMIT 1`;
+      return rows[0]||null;
+    },
     async initSchema() {
       // Additive foundation migration; intentionally never alters or deletes existing data.
       await sql`CREATE TABLE IF NOT EXISTS neon_orgs (
@@ -584,6 +610,13 @@ export function createDb(sql = productionSql()) {
         key TEXT PRIMARY KEY, value JSONB NOT NULL,
         updated_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_by TEXT
       )`;
+
+      await sql`CREATE TABLE IF NOT EXISTS result_store (
+        handle TEXT PRIMARY KEY, connection TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        expires_at TIMESTAMPTZ NOT NULL, summary TEXT, body JSONB NOT NULL
+      )`;
+      await sql`CREATE INDEX IF NOT EXISTS result_store_expires ON result_store (expires_at)`;
       await sql`INSERT INTO settings (key, value, updated_by)
         VALUES ('sql.read_policy', '{"productionReads":true,"maxRows":200}'::jsonb, 'system_default_IN-09')
         ON CONFLICT (key) DO NOTHING`;

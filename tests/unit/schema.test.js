@@ -8,7 +8,7 @@ it('fake schema initialization is idempotent and lists exactly the contract tabl
   await db.initSchema();
   await db.initSchema();
   expect(await db.listTables()).toEqual(SCHEMA_TABLES);
-  expect(new Set(SCHEMA_TABLES).size).toBe(11);
+  expect(new Set(SCHEMA_TABLES).size).toBe(12);
 });
 
 it('rejects an invalid SQL adapter and does not need DATABASE_URL at import time', () => {
@@ -50,7 +50,7 @@ it('executes the fixed DDL statement list twice, in order', async () => {
   const first = [...queries];
   await db.initSchema();
   expect(queries).toEqual([...first, ...first]);
-  expect(first.filter((q) => /CREATE TABLE IF NOT EXISTS/.test(q))).toHaveLength(11);
-  expect(first.filter((q) => /CREATE (?:UNIQUE )?INDEX IF NOT EXISTS/.test(q))).toHaveLength(10);
+  expect(first.filter((q) => /CREATE TABLE IF NOT EXISTS/.test(q))).toHaveLength(12);
+  expect(first.filter((q) => /CREATE (?:UNIQUE )?INDEX IF NOT EXISTS/.test(q))).toHaveLength(11);
   expect(first.some(q => /CREATE UNIQUE INDEX IF NOT EXISTS change_log_one_apply_key/.test(q))).toBe(true);
 });
