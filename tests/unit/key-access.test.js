@@ -11,3 +11,11 @@ it('owner key probe unavailable on preview and on read-only/everyday profiles',a
   expect(res.isError).toBe(true);
  }
 });
+
+it('refuses a full-profile project-restricted connection before reading organization keys',async()=>{
+ const db={getNeonOrg:async()=>{throw new Error('scope leaked');}};
+ const out=await dispatchReadOnlyTool({registry,name:'neon_check_key_access',
+  connection:{neonOrg:'org-fake',projectScope:'project-fake',profile:'full',mode:'preview'},
+  env:{VERCEL_ENV:'production'},db,args:{}});
+ expect(out.isError).toBe(true);
+});

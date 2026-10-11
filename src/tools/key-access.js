@@ -5,7 +5,8 @@ export const tools=[{name:'neon_check_key_access',
  inputSchema:{type:'object',properties:{},additionalProperties:false}}];
 export const handlers={
  async neon_check_key_access(_args,{connection,db,env}){
-  if(connection?.profile!=='full'||env?.VERCEL_ENV!=='production'||!connection?.neonOrg)
+  if(connection?.profile!=='full'||env?.VERCEL_ENV!=='production'||!connection?.neonOrg ||
+    connection?.projectScope || connection?.project_scope)
     throw new Error('Owner-only production deployment required');
   const org=await db.getNeonOrg(connection.neonOrg);
   if(!org)throw new Error('Organization not found');
