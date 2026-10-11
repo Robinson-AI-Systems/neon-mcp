@@ -377,6 +377,11 @@ export function createDb(sql = productionSql()) {
         RETURNING id`;
       return rows.length === 1;
     },
+    /** Persisted affected-row tolerance; absent/malformed values fail closed in SQL apply. */
+    async getSqlAffectedRowsTolerance() {
+      const rows = await sql`SELECT value FROM settings WHERE key = 'sql.affected_rows_tolerance'`;
+      return rows.length ? rows[0].value : null;
+    },
     /** Database-backed IN-09 defaults; never rely on an untrusted caller's SQL policy. */
     async getSqlReadPolicy() {
       const rows = await sql`SELECT value FROM settings WHERE key = 'sql.read_policy'`;
@@ -523,6 +528,9 @@ export function createDb(sql = productionSql()) {
       )`;
       await sql`INSERT INTO settings (key, value, updated_by)
         VALUES ('sql.read_policy', '{"productionReads":true,"maxRows":200}'::jsonb, 'system_default_IN-09')
+        ON CONFLICT (key) DO NOTHING`;
+      await sql`INSERT INTO settings (key, value, updated_by)
+        VALUES ('sql.affected_rows_tolerance', '0'::jsonb, 'system_default_design_B-3')
         ON CONFLICT (key) DO NOTHING`;
       await sql`INSERT INTO settings (key, value, updated_by) VALUES
         ('spend.cap_per_change_cents', '2500'::jsonb, 'system_default_IN-10'),
