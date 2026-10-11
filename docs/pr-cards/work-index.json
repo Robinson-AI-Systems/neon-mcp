@@ -159,7 +159,7 @@
         "A-6"
       ],
       "card": "docs/pr-cards/A-7.md",
-      "status": "READY",
+      "status": "MERGED",
       "migration": "none",
       "budget": 0,
       "units": [
@@ -170,6 +170,9 @@
         "IN-02",
         "IN-03",
         "IN-04"
+      ],
+      "pr": [
+        16
       ]
     },
     {
@@ -188,7 +191,8 @@
         "B-1"
       ],
       "readiness": "WRITE_CARD_AT_START",
-      "ownerInputs": []
+      "ownerInputs": [],
+      "note": "A-7 deployment instructions merged #16; write B-1 card from approved BATCH-B after inspecting latest main"
     },
     {
       "id": "B-2",

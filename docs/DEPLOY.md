@@ -1,0 +1,65 @@
+# Deploy Neon MCP — owner checklist
+
+This guide is for the owner. **Writing this guide does not authorize deployment.** The Vercel project, the server's own Neon database, and Neon credentials have **not** been provisioned. Stop until owner decisions **IN-02, IN-03 and IN-04** in [OWNER-INPUTS](OWNER-INPUTS.md) are resolved. Never paste a password, API key, database URL, or encryption key into AI chat, a GitHub issue, a pull request, CI output, or a repository file.
+
+## 1. Get permission and stay on free resources
+
+1. Review [the go-live checklist](GO-LIVE-CHECKLIST.md) and decide whether to authorize **IN-02**: create a separate Neon project/database **for this server only** and a Vercel project called `neon-mcp`. These must be distinct from your applications' databases. Do **not** repurpose Appliance Desk's database.
+2. Use only existing/free-tier allowances after verifying actual limits in the Neon and Vercel dashboards. If a paid plan, extra branch, compute, domain, or capacity is required, **stop and ask the owner**; never enable it automatically.
+3. Keep the deployed server inaccessible to agents until setup and the approved checks below are complete. A deployment is not permission to operate real Neon projects.
+
+## 2. Prepare the separate database and Vercel project (only after IN-02)
+
+1. In the Neon dashboard, create a **new, separate project** for Neon MCP, using an approved free allowance. Copy its connection string into your password manager. Treat it as a secret.
+2. In Vercel, import this GitHub repository into a new `neon-mcp` project. Set **Node.js 24.x** (matching `package.json`), and use the checked-in build configuration. Do not set a production domain or launch a production deployment without separate approval.
+3. Check that Vercel Preview and Production environments are **separately selected** for each variable. Preview runs are forced to **preview mode** by code. Previews may share this server's own storage database, so they are **not** a safe place for live-account experiments.
+4. Protect the Vercel project and its deployment access. Do not store variables in `.env` files committed to GitHub, deployment descriptions, or logs.
+
+## 3. Configure the four required Vercel environment variables (IN-03)
+
+Enter these **in Vercel → Project → Settings → Environment Variables**, not into this chat. Use the environment selectors deliberately; do not accidentally expose a secret with a `NEXT_PUBLIC_` prefix.
+
+| Variable | What to enter | Handling |
+|---|---|---|
+| `DATABASE_URL` | Connection URL for the new, separate Neon MCP database only | Secret; never use an application database |
+| `PUBLIC_BASE_URL` | Exact public HTTPS origin for the deployment being tested, for example `https://your-own-deployment.example` | No trailing slash or path; must match the URL used for OAuth and owner setup |
+| `ADMIN_PASSPHRASE` | Unique strong passphrase generated/stored in your password manager | Secret; used for setup and connection authorization |
+| `TOKEN_ENCRYPTION_KEY` | A freshly generated, random **32-byte base64url** string | Secret; losing or changing it makes existing encrypted keys unreadable |
+
+To generate the encryption key, **on your own computer in a private terminal**, with Node.js installed, run:
+
+```sh
+node -e "console.log(require('node:crypto').randomBytes(32).toString('base64url'))"
+```
+
+Copy the resulting value **directly into Vercel's secret variable field and your password manager**. Do not share the output, record it in shell history, screenshot it, or run the command in a CI runner. Generate a different passphrase, also stored privately, for `ADMIN_PASSPHRASE`.
+
+The HTTPS origin in `PUBLIC_BASE_URL` must be correct for **each** environment receiving OAuth connections. Do not point Preview's origin to Production or vice versa. After changing variables, use a fresh authorized deployment; previously built deployments may still use older values.
+
+## 4. Add only approved, narrowly scoped Neon API keys (IN-04, IN-05)
+
+1. Decide with the owner which Neon organization and **scratch or otherwise approved** project can be visible. Start with **project-scoped keys**, not a personal all-access key. Do not add a production project's key just to smoke-test the server.
+2. In Neon's dashboard, issue a key scoped only to the approved project. Give it a recognizable purpose-specific name such as `robinson-neon-mcp-scratch` and store it in a password manager.
+3. Open `https://<your-approved-deployment-origin>/api/neon/setup` yourself in your browser. The current page accepts project-scoped keys only; **organization-wide key administration is not yet implemented**, so do not try to force an organization key into the project-key form.
+4. Fill in the organization ID, organization label, scoped project ID, key, label and owner passphrase. Submit from the **same HTTPS origin** as `PUBLIC_BASE_URL`. The page verifies key reach before encrypted storage.
+5. Use **List keys** to confirm a safe label/last-four display, or **Revoke a key** to disable a stored key. Never copy the raw key into a conversation or tool argument. The **View secret once** and **Supply requested secret** forms also require the owner passphrase; treat their output as sensitive.
+
+A project key's reach depends on Neon's actual permissions. Until X-2/X-3 are approved and completed, use only mock tests and owner-authorized read-only checks. **Adding a key never grants permission to modify production.**
+
+## 5. Connector discovery and first checks (preview/read-only only)
+
+1. Check that `/api` responds and `/api/mcp` is the MCP resource. OAuth discovery and authorization are implemented, but a successful response alone does **not** prove the connection is ready for production.
+2. In Claude's connector settings, add the HTTPS connector address for the server (`/api/mcp`), using OAuth discovery and its browser authorization flow. Choose the approved organization, scoped project and **preview** mode. A live Neon key must be added through the secure setup page before authorizing a connector.
+3. Ask the connector only its currently implemented **read** questions: `neon_whoami` and `neon_list_accounts`. Verify the account and narrow scope. Do not treat planned tools or a documentation example as implemented functionality.
+4. Do not attempt SQL writes, project creation, branch changes, production operations or paid provisioning. The production-permission switch and safety layer are future Batch B work, not a feature of A-7. Follow [go-live gates](GO-LIVE-CHECKLIST.md) before considering any real-account write.
+
+## 6. If something goes wrong
+
+- **Setup says server not configured / temporarily unavailable:** check Vercel's environment selection and existence of the four variables without displaying their values; check that the dedicated Neon database is reachable.
+- **Invalid origin / OAuth login fails:** compare the browser origin, HTTPS address, and `PUBLIC_BASE_URL` character for character. Check browser authorization redirect and the selected deployment environment.
+- **Incorrect passphrase / lockout:** use the password manager, then follow the temporary lockout delay. Do not bypass or disable the lockout.
+- **Key rejected:** verify in the Neon dashboard that it is a valid **project-scoped** key for the specified organization/project. Never diagnose by printing the key.
+- **Encrypted keys inaccessible:** verify the original `TOKEN_ENCRYPTION_KEY` from your password manager. Do not rotate it casually; rotation requires an explicit re-key plan.
+- **Unwanted deployment / regression:** disable connector access, roll back Vercel to the last approved deployment, and revoke affected Neon API keys in Neon's dashboard if needed. **Do not drop, reset or restore any database as a rollback shortcut.** If an operation might have reached production, stop and ask the owner before doing anything further.
+
+Deployment and all production resources remain **not configured** until checked and approved by the owner. Completion of this guide closes **documentation card A-7**, not IN-02/IN-03/IN-04 or the go-live checklist.

@@ -1,5 +1,7 @@
 # STATUS — current work, blockers and next action
 
+**A-7 deployment instructions merged (#16):** owner-only, preview-first guidance in `docs/DEPLOY.md`; no infrastructure, keys, credentials, or live access created. Batch A documentation complete; Batch B safety layer next.
+
 Updated 2026-10-11. **A-6 SQL connection layer merged (#15):** guarded Neon URI lookup, self-database
 host exclusion, statement/lock timeouts, credential-safe error/result handling and connection cleanup,
 with fake-Neon and disposable PostgreSQL verification. No SQL MCP tool is exposed.
@@ -21,8 +23,7 @@ expiry indexes exist in code and are verified by isolated-Postgres tests. No liv
 
 ## Next
 
-- **Next: A-7 — documented owner-safe deployment guide** (`pr-cards/A-7.md`). No real provisioning
-  before separate approval for IN-02, IN-03 and IN-04; then Batch B safety layer.
+- **Next: B-1 — safety layer and durable change log** (JIT card from `docs/designs/BATCH-B.md`); no deployment or real Neon provisioning without IN-02/IN-03/IN-04.
 - **Answered 2026-10-10 (Chris):** IN-00 — plan approved ("I approve the plans"); IN-01 — **no automated review** ("I don't want the automated review at this time"); the repository stays public as Chris created it; the implementer self-reviews every diff.
 - **Queue:** A → B → C → D → V → O → P → W → U → R → E → X (`MASTER-ROADMAP.md`).
 
@@ -36,6 +37,8 @@ expiry indexes exist in code and are verified by isolated-Postgres tests. No liv
 - Runtime: Node 24.x (Vercel stopped deploying Node 20 on 2026-10-01; see DECISIONS).
 
 ## Recent work (newest first)
+
+**2026-10-11 — A-7 documentation (#16):** clear owner-only deployment and rollback instructions; README link, exact environment variables, approved preview checks and hard production/spend gates. No cloud resources created.
 
 **2026-10-11 — A-6 SQL connection layer (#15):** one guarded API URI lookup, host comparison protecting
 this server's own DB, 15-second statement/5-second lock limits and guaranteed cleanup; no SQL tools exposed.

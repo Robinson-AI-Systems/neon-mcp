@@ -263,6 +263,7 @@ Done when: a reviewer pretending to be Chris can follow it without a question.
 | Keys encrypted, never exposed, narrowest key per tool | `tests/unit/keys.test.js`, key-scan test |
 | Pinned description, safe retries, bounded waits, API budget | `tests/unit/client.test.js`, `tests/unit/operations.test.js`, `tests/db/api-budget.test.js` |
 | SQL layer never leaks the URI; never touches this server's own database | `tests/unit/sql-layer.test.js`, `tests/db/sql-layer.test.js` |
+| Documented owner-safe deployment with gated real access | `docs/DEPLOY.md`, A-7 PR #16 (instructions only; IN-02/IN-03/IN-04 still pending) |
 
 ## Amendments
 
