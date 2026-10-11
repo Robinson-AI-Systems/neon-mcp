@@ -81,6 +81,8 @@ function isAlwaysTrue(node) {
 }
 function statementClass(type, body) {
   if (refused.has(type)) return { kind: 'refused', reason: refused.get(type) };
+  if (type === 'DropStmt' && String(body.removeType || '').toUpperCase().includes('EXTENSION'))
+    return { kind: 'refused', reason: 'Use neon_schema_*_extension tools.' };
   if (destructive.has(type)) return { kind: 'destructive' };
   if (ddl.has(type)) return { kind: 'ddl' };
   if (type === 'SelectStmt')
@@ -97,7 +99,7 @@ function statementClass(type, body) {
     return body.concurrent ? { kind: 'refused', reason: 'Use neon_schema_create_index for CONCURRENTLY.' } :
       { kind: 'ddl' };
   if (type === 'GrantStmt')
-    return { kind: body.isGrant === false ? 'destructive' : 'ddl', access: true };
+    return { kind: body.isGrant === true || body.is_grant === true ? 'ddl' : 'destructive', access: true };
   if (type === 'VacuumStmt') {
     const isFull = body.options?.some(x => x.DefElem?.defname?.toLowerCase() === 'full');
     return isFull ? { kind: 'destructive' } :
@@ -121,7 +123,9 @@ function functionDecision(call) {
   const name = parts.at(-1)?.toLowerCase();
   if (!name) return null;
   if (forbiddenFunctions.has(name)) return { kind: 'refused', reason: forbiddenFunctions.get(name) };
-  if (name.startsWith('pg_advisory_lock') || name.startsWith('dblink'))
+  if (name.startsWith('pg_advisory_lock') || name.startsWith('pg_advisory_xact_lock') ||
+      name.startsWith('pg_try_advisory_lock') || name.startsWith('pg_try_advisory_xact_lock') ||
+      name.startsWith('dblink'))
     return { kind: 'refused', reason: 'Advisory locks and remote SQL are not supported.' };
   if (name === 'pg_sleep') {
     const seconds = call.args?.length === 1 ? constant(call.args[0]) : null;
