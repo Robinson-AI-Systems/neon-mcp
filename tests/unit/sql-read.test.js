@@ -91,3 +91,43 @@ describe('B-3b authorized read-only SQL', () => {
     expect(f.calls.at(-1).sql).toBe('ROLLBACK');
   });
 });
+
+describe('B-5 read-only reconnection safety', () => {
+  it('opens at most one fresh connection for the first reset and repeats read-only transaction', async () => {
+    const f = fixture();
+    let connections = 0, readQueries = 0;
+    f.sqlLayer = async (_scope,_target,fn) => {
+      connections++;
+      return fn({ query: async text => {
+        if (text.startsWith('SELECT')) {
+          readQueries++;
+          if (connections === 1) throw Object.assign(Error('reset'), { code: '08006' });
+          return { rows: [{ id: 1 }] };
+        }
+        return { rows: [] };
+      } });
+    };
+    const result = await runAuthorizedSqlRead({ ...f, target, text: 'SELECT 1' });
+    expect(result).toMatchObject({ done: true, rowCount: 1 });
+    expect(connections).toBe(2);
+    expect(readQueries).toBe(2);
+  });
+  it('does not reconnect repeatedly on persistent disconnects or non-retriable SQLSTATE', async () => {
+    for (const code of ['08006','42P01']) {
+      const f = fixture(); let connections = 0;
+      f.sqlLayer = async (_scope,_target,fn) => {
+        connections++;
+        return fn({ query: async sql => {
+          if (sql.startsWith('SELECT')) throw Object.assign(Error('driver raw secret'),
+            { code });
+          return { rows: [] };
+        } });
+      };
+      const result = await runAuthorizedSqlRead({ ...f, target, text: 'SELECT 1' });
+      expect(result.done).toBe(false);
+      expect(result.code).toBe(code === '08006' ? 'connection_reset' : 'missing_table');
+      expect(connections).toBe(code === '08006' ? 2 : 1);
+      expect(JSON.stringify(result)).not.toContain('driver raw secret');
+    }
+  });
+});
