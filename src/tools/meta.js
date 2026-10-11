@@ -18,6 +18,24 @@ export const tools=[
   inputSchema:schema({name:{type:'string',pattern:'^neon_[a-z0-9_]+$',maxLength:90}})}
 ];
 export const handlers={
+ async neon_batch(args,ctx){
+  if(!Array.isArray(args.calls)||args.calls.length<1||args.calls.length>10)return unavailable();
+  const calls=args.calls;
+  // Admission is all-or-nothing, before even the first read runs.
+  if(calls.some(c=>!c||typeof c.name!=='string'||!c.name.startsWith('neon_')||
+    ['neon_call','neon_batch'].includes(c.name)||
+    (c.args!==undefined&&(!c.args||typeof c.args!=='object'||Array.isArray(c.args)))||
+    !ctx.registry.tools.some(t=>t.name===c.name&&t.writes===false&&
+      isToolAllowed(t,ctx.connection,{productionDeployment:ctx.env?.VERCEL_ENV==='production'}))))
+   return unavailable();
+  const results=[];
+  for(const c of calls){
+   const response=await dispatchReadOnlyTool({registry:ctx.registry,name:c.name,args:c.args||{},
+    connection:ctx.connection,db:ctx.db,env:ctx.env});
+   results.push({name:c.name,response});
+  }
+  return text({count:results.length,results});
+ },
  async neon_call(args,ctx){
   if(typeof args.name!=='string'||!args.name.startsWith('neon_')||
     ['neon_call','neon_batch'].includes(args.name)||
@@ -51,6 +69,39 @@ export const handlers={
 };
 ,maxLength:90},
    args:{type:'object'}})},
+ {name:'neon_batch',description:'Run at most ten authorized read-only tools in order; reject the entire batch if any write appears.',
+  writes:false,profiles,audience:['builder','operator'],area:'discovery',
+  inputSchema:schema({calls:{type:'array',minItems:1,maxItems:10,items:{type:'object',
+   properties:{name:{type:'string',pattern:'^neon_[a-z0-9_]+,description:'Describe a tool available to this connection, including its input schema and safety hints.',
+  writes:false,profiles,audience:['builder','owner','operator'],area:'discovery',
+  inputSchema:schema({name:{type:'string',pattern:'^neon_[a-z0-9_]+$',maxLength:90}})}
+];
+export const handlers={
+ async neon_search_tools(args,{registry,connection,env}){
+  const query=String(args.query??'').trim().toLowerCase();
+  const audience=args.audience, area=args.area?.trim().toLowerCase();
+  const available=registry.tools.filter(t=>
+   isToolAllowed(t,connection,{productionDeployment:env?.VERCEL_ENV==='production'}) &&
+   (!area||t.area?.toLowerCase()===area) &&
+   (!audience||!t.audience||t.audience.includes(audience)) &&
+   (!query||`${t.name} ${t.description} ${t.area||''}`.toLowerCase().includes(query)));
+  const offset=args.offset??0,limit=args.limit??10;
+  return text({total:available.length,offset,limit,next:offset+limit<available.length?offset+limit:null,
+   tools:available.slice(offset,offset+limit).map(t=>({
+    name:t.name,description:t.description,area:t.area||'server',
+    readOnly:t.writes===false,destructive:t.destructive===true,
+    requiresConfirmation:t.writes===true
+   }))});
+ },
+ async neon_describe_tool(args,{registry,connection,env}){
+  const item=registry.tools.find(t=>t.name===args.name);
+  if(!isToolAllowed(item,connection,{productionDeployment:env?.VERCEL_ENV==='production'}))
+   return unavailable();
+  return text({tool:publicToolMetadata(item)});
+ }
+};
+},args:{type:'object'}},
+   required:['name'],additionalProperties:false}}})},
  {name:'neon_describe_tool',description:'Describe a tool available to this connection, including its input schema and safety hints.',
   writes:false,profiles,audience:['builder','owner','operator'],area:'discovery',
   inputSchema:schema({name:{type:'string',pattern:'^neon_[a-z0-9_]+$',maxLength:90}})}
