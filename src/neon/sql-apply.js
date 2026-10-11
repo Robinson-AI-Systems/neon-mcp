@@ -19,7 +19,8 @@ const lsnPattern = /^[0-9a-f]{1,8}\/[0-9a-f]{1,8}$/i;
 
 /** A successful COMMIT is never assumed if the driver throws: leave audit pending. */
 export async function applyGuardedSql({ ctx, target, statements, params, requestKey,
-  previewToken, confirm = false, allowFullTable = false, sqlLayer, verifyReadBack } = {}) {
+  previewToken, confirm = false, acceptEstimate = false,
+  allowFullTable = false, sqlLayer, verifyReadBack } = {}) {
   const orgId = ctx?.connection?.neonOrg ?? ctx?.connection?.neon_org;
   const scope = ctx?.connection?.projectScope ?? ctx?.connection?.project_scope;
   const db = ctx?.db;
@@ -79,15 +80,17 @@ export async function applyGuardedSql({ ctx, target, statements, params, request
     try { return await db.completeWrite({ id: claimId, orgId, confirmed }); }
     catch { return false; }
   }
-  let expected = null;
+  let expected = null, estimated = false;
   if (production) {
     let preview;
     try {
       const tokenHash = createHash('sha256').update(previewToken).digest('hex');
       preview = await db.consumeSqlPreview({ orgId, tokenHash,
-        identityHash: sqlScopeHash({ orgId, target, statements, params }), target });
+        identityHash: sqlScopeHash({ orgId, target, statements, params }),
+        target, acceptEstimate });
     } catch { /* fail closed */ }
     if (!preview || preview.production !== true ||
+        (!preview.sql_estimate || acceptEstimate === true) === false ||
         !Array.isArray(preview.sql_expected_rows) ||
         preview.sql_expected_rows.length !== statements.length ||
         preview.sql_expected_rows.some(n => !Number.isSafeInteger(n) || n < 0)) {
@@ -95,6 +98,7 @@ export async function applyGuardedSql({ ctx, target, statements, params, request
       return deny('preview_mismatch', 'The exact SQL preview has expired, was used, or does not match.');
     }
     expected = preview.sql_expected_rows;
+    estimated = preview.sql_estimate === true;
   }
   let outcome = 'pending', affectedRows = null, restoreLsnSaved = false;
   try {
@@ -122,7 +126,7 @@ export async function applyGuardedSql({ ctx, target, statements, params, request
             if (!Number.isSafeInteger(count) && classification[i].kind !== 'ddl')
               throw new Error('unverified_row_count');
             counts.push(Number.isSafeInteger(count) ? count : 0);
-            if (expected && counts[i] !== expected[i]) {
+            if (expected && !estimated && counts[i] !== expected[i]) {
               await client.query('ROLLBACK');
               begun = false;
               return { status: 'mismatch', counts };
@@ -160,5 +164,5 @@ export async function applyGuardedSql({ ctx, target, statements, params, request
     code: 'apply_uncertain', message: 'The SQL outcome is uncertain; inspect the audit before retrying.',
     restorePointRecorded: restoreLsnSaved };
   return { done: true, confirmed: true, production, affectedRows,
-    restorePointRecorded: restoreLsnSaved };
+    estimatedPreview: estimated, restorePointRecorded: restoreLsnSaved };
 }

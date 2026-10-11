@@ -39,3 +39,14 @@ it('rejects expired previews before an apply can begin', async () => {
   expect(await db.consumeSqlPreview({ orgId, target,
     tokenHash: 'd'.repeat(64), identityHash })).toBeNull();
 });
+
+it('estimated-preview token needs explicit consent, with no premature consumption', async () => {
+  const estimatedHash = 'e'.repeat(64);
+  await db.recordSqlEstimate({ orgId, target, tokenHash: estimatedHash, identityHash,
+    estimatedRows: [100] });
+  const request = { orgId, target, tokenHash: estimatedHash, identityHash };
+  expect(await db.consumeSqlPreview(request)).toBeNull();
+  expect(await db.consumeSqlPreview({ ...request, acceptEstimate: true }))
+    .toMatchObject({ sql_estimate: true, sql_expected_rows: [100], production: true });
+  expect(await db.consumeSqlPreview({ ...request, acceptEstimate: true })).toBeNull();
+});
