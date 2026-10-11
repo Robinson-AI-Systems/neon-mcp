@@ -4,12 +4,14 @@ import { makeFakeNeon } from '../../test/helpers/fake-neon.js';
 import * as fx from '../../test/helpers/neon-fixtures.js';
 import { createKeyVault } from '../../src/neon/keys.js';
 
-const env={TOKEN_ENCRYPTION_KEY:Buffer.alloc(32,23).toString('base64url'),VERCEL_ENV:'preview'};
+const fakeKey=(n)=>Buffer.alloc(32,n).toString('base64url');
+const env={TOKEN_ENCRYPTION_KEY:fakeKey(23),VERCEL_ENV:'preview'};
 const key='napi_FAKE_abcdefghijklmnopqrstuvw';
 function fixture(){
   const fake=makeFakeNeon();
   fake.when('getAuthDetails').resolves({account_id:'fake-owner',auth_method:'api_key_user'});
-  fake.when('listProjects').resolves({projects:[fx.project()],pagination:{}});
+  fake.when('listProjects').resolves({projects:[{...fx.project(),active_time:0}],
+    pagination:{cursor:'fake-cursor'},applications:{},integrations:{}});
   const db=createFakeDb();
   return {fake,db,vault:createKeyVault({db,env,fetch:fake.fetch})};
 }
@@ -36,7 +38,7 @@ it('refuses org keys on preview and cannot decrypt ciphertext with a rotated mas
   await expect(vault.storeKey({orgId:fx.IDS.org,kind:'org',key}))
     .rejects.toThrow(/preview/);
   expect((await vault.keyFor({orgId:fx.IDS.org,need:'org'})).missing).toMatch(/preview/);
-  const other=createKeyVault({db,env:{...env,TOKEN_ENCRYPTION_KEY:Buffer.alloc(32,24).toString('base64url')}});
+  const other=createKeyVault({db,env:{...env,TOKEN_ENCRYPTION_KEY:fakeKey(24)}});
   const token=(await vault.storeKey({orgId:fx.IDS.org,kind:'project',projectId:fx.IDS.project,key})).id;
   await expect(other.keyFor({orgId:fx.IDS.org,projectId:fx.IDS.project})).rejects.toThrow(/decrypt/);
   expect(await vault.revokeKey({orgId:fx.IDS.org,id:token})).toBe(true);
@@ -45,7 +47,8 @@ it('refuses org keys on preview and cannot decrypt ciphertext with a rotated mas
 it('does not store a key that fails Neon identity or project checks',async()=>{
   const fake=makeFakeNeon();
   fake.when('getAuthDetails').resolves({account_id:'fake-owner',auth_method:'api_key_user'});
-  fake.when('listProjects').resolves({projects:[],pagination:{}});
+  fake.when('listProjects').resolves({projects:[],pagination:{cursor:'fake-cursor'},
+    applications:{},integrations:{}});
   const db=createFakeDb();
   const vault=createKeyVault({db,env,fetch:fake.fetch});
   await expect(vault.storeKey({orgId:fx.IDS.org,kind:'project',projectId:fx.IDS.project,key}))
