@@ -35,7 +35,11 @@ it('copies every connection field, without conflating null scope with missing fi
 it('all DDL is additive and SQL statements are literal tagged templates', () => {
   const source = readFileSync(new URL('../../src/db.js', import.meta.url), 'utf8');
   expect(source).not.toMatch(/\b(?:DROP|TRUNCATE)\s+(?:SCHEMA|TABLE|INDEX|DATABASE)\b/i);
-  expect(source).not.toMatch(/\bALTER\s+TABLE\b/i);
+  // B-3c permits only six audited, additive, idempotent SQL preview columns.
+  const alters = source.split('\n').filter(line => /\bALTER TABLE change_log\b/.test(line));
+  expect(alters).toHaveLength(6);
+  expect(alters.every(line => line.trim().startsWith('await sql') &&
+    /ADD COLUMN IF NOT EXISTS sql_[a-z_]+ (?:TEXT|JSONB|TIMESTAMPTZ)/.test(line))).toBe(true);
   expect([...source.matchAll(/CREATE\s+(?:UNIQUE\s+)?(?:TABLE|INDEX)\s+(?!IF\s+NOT\s+EXISTS)/gi)]).toEqual([]);
 });
 it('executes the fixed DDL statement list twice, in order', async () => {
@@ -47,6 +51,6 @@ it('executes the fixed DDL statement list twice, in order', async () => {
   await db.initSchema();
   expect(queries).toEqual([...first, ...first]);
   expect(first.filter((q) => /CREATE TABLE IF NOT EXISTS/.test(q))).toHaveLength(11);
-  expect(first.filter((q) => /CREATE (?:UNIQUE )?INDEX IF NOT EXISTS/.test(q))).toHaveLength(9);
+  expect(first.filter((q) => /CREATE (?:UNIQUE )?INDEX IF NOT EXISTS/.test(q))).toHaveLength(10);
   expect(first.some(q => /CREATE UNIQUE INDEX IF NOT EXISTS change_log_one_apply_key/.test(q))).toBe(true);
 });

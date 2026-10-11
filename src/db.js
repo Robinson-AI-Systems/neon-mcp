@@ -261,6 +261,41 @@ export function createDb(sql = productionSql()) {
           AND confirmed = 'pending' RETURNING id`;
       return rows.length === 1;
     },
+    /** B-3c: record an exact SQL preview only after its child branch is verified deleted. */
+    async recordSqlPreview({ orgId, target, tokenHash, identityHash,
+      expectedRows, schemaHash = null, production = false }) {
+      if (!orgId || !target?.projectId || !target?.branchId ||
+          !/^[a-f0-9]{64}$/.test(tokenHash || '') ||
+          !/^[a-f0-9]{64}$/.test(identityHash || '') ||
+          !Array.isArray(expectedRows) || expectedRows.length > 20 ||
+          expectedRows.some(x => !Number.isSafeInteger(x) || x < 0) ||
+          schemaHash != null && !/^[a-f0-9]{64}$/.test(schemaHash))
+        throw new TypeError('Invalid exact SQL preview');
+      const rows = await sql`INSERT INTO change_log
+        (neon_org, project_id, branch_id, mode, tool, target,
+         summary, dry_run, production, confirmed, sql_preview_hash, sql_scope_hash,
+         sql_expected_rows, sql_schema_hash, sql_preview_expires_at)
+        VALUES (${orgId}, ${target.projectId}, ${target.branchId}, 'preview', 'neon_sql_execute',
+          ${target.projectId + '/' + target.branchId}, 'Exact child SQL preview',
+          TRUE, ${production}, 'preview', ${tokenHash}, ${identityHash},
+          ${JSON.stringify(expectedRows)}::jsonb, ${schemaHash},
+          now() + interval '30 minutes') RETURNING id`;
+      return rows[0]?.id;
+    },
+    /** Atomically consumes a bound preview; never accepts caller-supplied expected rows. */
+    async consumeSqlPreview({ orgId, tokenHash, identityHash, target }) {
+      if (!orgId || !target?.projectId || !target?.branchId ||
+          !/^[a-f0-9]{64}$/.test(tokenHash || '') ||
+          !/^[a-f0-9]{64}$/.test(identityHash || ''))
+        throw new TypeError('Invalid SQL preview claim');
+      const rows = await sql`UPDATE change_log SET sql_preview_used_at = now()
+        WHERE neon_org = ${orgId} AND project_id = ${target.projectId}
+          AND branch_id = ${target.branchId} AND sql_preview_hash = ${tokenHash}
+          AND sql_scope_hash = ${identityHash} AND dry_run = TRUE
+          AND sql_preview_used_at IS NULL AND sql_preview_expires_at > now()
+        RETURNING sql_expected_rows, sql_schema_hash, production`;
+      return rows[0] || null;
+    },
     /** Database-backed IN-09 defaults; never rely on an untrusted caller's SQL policy. */
     async getSqlReadPolicy() {
       const rows = await sql`SELECT value FROM settings WHERE key = 'sql.read_policy'`;
@@ -377,6 +412,14 @@ export function createDb(sql = productionSql()) {
         request_key TEXT, operation_ids TEXT[], confirmed TEXT,
         restore_lsn TEXT, inverse JSONB, undone_by BIGINT
       )`;
+      await sql`ALTER TABLE change_log ADD COLUMN IF NOT EXISTS sql_preview_hash TEXT`;
+      await sql`ALTER TABLE change_log ADD COLUMN IF NOT EXISTS sql_scope_hash TEXT`;
+      await sql`ALTER TABLE change_log ADD COLUMN IF NOT EXISTS sql_expected_rows JSONB`;
+      await sql`ALTER TABLE change_log ADD COLUMN IF NOT EXISTS sql_schema_hash TEXT`;
+      await sql`ALTER TABLE change_log ADD COLUMN IF NOT EXISTS sql_preview_expires_at TIMESTAMPTZ`;
+      await sql`ALTER TABLE change_log ADD COLUMN IF NOT EXISTS sql_preview_used_at TIMESTAMPTZ`;
+      await sql`CREATE UNIQUE INDEX IF NOT EXISTS change_log_sql_preview_hash
+        ON change_log (sql_preview_hash) WHERE sql_preview_hash IS NOT NULL`;
       await sql`CREATE INDEX IF NOT EXISTS change_log_request_key ON change_log (request_key, at)`;
       await sql`CREATE UNIQUE INDEX IF NOT EXISTS change_log_one_apply_key
         ON change_log (request_key) WHERE request_key IS NOT NULL AND dry_run = FALSE`;
