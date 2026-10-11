@@ -1,6 +1,7 @@
 // The Neon MCP service's own tables. No agent tool may run SQL against this database.
 import { neon } from '@neondatabase/serverless';
 import { hashToken } from './core/oauth.js';
+import { validatePricing } from './neon/pricing.js';
 
 export const SCHEMA_TABLES = Object.freeze([
   'neon_orgs', 'neon_keys', 'oauth_clients', 'oauth_codes', 'oauth_tokens',
@@ -261,6 +262,54 @@ export function createDb(sql = productionSql()) {
           AND confirmed = 'pending' RETURNING id`;
       return rows.length === 1;
     },
+    /** B-4 stored owner caps and dated rates; never supplied by a write tool. */
+    async getSpendPolicy() {
+      const rows = await sql`SELECT key, value FROM settings
+        WHERE key IN ('spend.cap_per_change_cents','spend.cap_per_day_cents')`;
+      const values = Object.fromEntries(rows.map(r => [r.key, r.value]));
+      return { perChangeCents: values['spend.cap_per_change_cents'],
+        perDayCents: values['spend.cap_per_day_cents'] };
+    },
+    async getPricing() {
+      const rows = await sql`SELECT value FROM settings WHERE key = 'pricing'`;
+      return rows[0]?.value || null;
+    },
+    /** Owner-only setup route must authenticate the caller BEFORE invoking this method. */
+    async savePricingFromOwnerSetup({ pricing, confirm = false }) {
+      if (confirm !== true || !pricing || pricing.source !== 'https://neon.com/pricing' ||
+          typeof pricing.checkedAt !== 'string' ||
+          !/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(pricing.checkedAt))
+        throw new TypeError('Pricing change requires owner confirmation and a dated source');
+      validatePricing(pricing);
+      await sql`INSERT INTO settings (key, value, updated_by)
+        VALUES ('pricing', ${JSON.stringify(pricing)}::jsonb, 'owner_setup')
+        ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value,
+          updated_by = 'owner_setup', updated_at = now()`;
+      await sql`INSERT INTO change_log (tool, summary, dry_run, confirmed)
+        VALUES ('neon_pricing_update', 'Owner updated source-dated pricing table', FALSE, 'true')`;
+    },
+    /** Atomic PostgreSQL daily counter, shared by all serverless instances. */
+    async reserveSpendCapacity({ orgId, increaseCents, dailyCapCents }) {
+      if (!orgId || !Number.isSafeInteger(increaseCents) || increaseCents < 0 ||
+          !Number.isSafeInteger(dailyCapCents) || dailyCapCents < 0 ||
+          dailyCapCents > 2000000000) throw new TypeError('Invalid spend reservation');
+      if (increaseCents > dailyCapCents) return false;
+      const key = 'spend_daily:' + orgId;
+      const rows = await sql`INSERT INTO rate_limits (key, window_start, count)
+        SELECT ${key}, date_trunc('day', now()), ${increaseCents}
+        ON CONFLICT (key,window_start) DO UPDATE
+          SET count = rate_limits.count + EXCLUDED.count
+        WHERE rate_limits.count + EXCLUDED.count <= ${dailyCapCents}
+        RETURNING count`;
+      return rows.length === 1;
+    },
+    /** Release only a proven duplicate; an ambiguous external write stays reserved. */
+    async releaseSpendCapacity({ orgId, increaseCents }) {
+      if (!orgId || !Number.isSafeInteger(increaseCents) || increaseCents < 0)
+        throw new TypeError('Invalid spend release');
+      await sql`UPDATE rate_limits SET count = GREATEST(0, count - ${increaseCents})
+        WHERE key = ${'spend_daily:' + orgId} AND window_start = date_trunc('day', now())`;
+    },
     /** B-3c: record an exact SQL preview only after its child branch is verified deleted. */
     async recordSqlPreview({ orgId, target, tokenHash, identityHash,
       expectedRows, schemaHash = null, production = false }) {
@@ -441,6 +490,11 @@ export function createDb(sql = productionSql()) {
       )`;
       await sql`INSERT INTO settings (key, value, updated_by)
         VALUES ('sql.read_policy', '{"productionReads":true,"maxRows":200}'::jsonb, 'system_default_IN-09')
+        ON CONFLICT (key) DO NOTHING`;
+      await sql`INSERT INTO settings (key, value, updated_by) VALUES
+        ('spend.cap_per_change_cents', '2500'::jsonb, 'system_default_IN-10'),
+        ('spend.cap_per_day_cents', '5000'::jsonb, 'system_default_IN-10'),
+        ('pricing', '{"source":"https://neon.com/pricing","checkedAt":"2026-10-10","ratesMicro":{"launchCuHour":106000,"scaleCuHour":222000,"storageGbMonth":350000,"instantRestoreGbMonth":200000,"scheduledSnapshotGbMonth":90000,"extraBranchMonth":1500000,"egressGb":100000},"included":{"launchBranches":10,"scaleBranches":25,"egressGb":500}}'::jsonb, 'system_default_design')
         ON CONFLICT (key) DO NOTHING`;
       // Indexes needed for expiring connector grants and temporary secrets.
       await sql`CREATE INDEX IF NOT EXISTS oauth_codes_expires_at ON oauth_codes (expires_at)`;
