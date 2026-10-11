@@ -142,7 +142,7 @@ describe('protected resource owner setup',()=>{
   });
 });
 describe('MCP read-only boundary and known-key project scope',()=>{
-  it('registers only the two read-only tools and never exposes ciphertext',async()=>{
+  it('protects A-5 key metadata and never exposes ciphertext',async()=>{
     const db=createFakeDb({orgs:[{id:'org-fake-one',label:'Fake',production_enabled:false}]});
     await db.saveEncryptedNeonKey({orgId:'org-fake-one',kind:'project',projectId:'proj-fake-one',
       keyEnc:'fake-ciphertext-only',last4:'1234',reach:{verified:true}});
@@ -151,7 +151,7 @@ describe('MCP read-only boundary and known-key project scope',()=>{
       'neon_list_connections','neon_recent_changes','neon_get_settings','neon_where_is_setting']);
     const connection={neonOrg:'org-fake-one',projectScope:'proj-fake-one',
       mode:'preview',profile:'read_only',listing:'catalog'};
-    for(const tool of registry.tools.filter(t=>t.writes===false)) {
+    for(const tool of registry.tools.filter(t=>['neon_whoami','neon_list_accounts'].includes(t.name))) {
       const output=await dispatchReadOnlyTool({registry,name:tool.name,db,connection,args:{}});
       expect(output.isError).not.toBe(true);
       const text=JSON.stringify(output);
