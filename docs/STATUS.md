@@ -1,3 +1,5 @@
+**C-2c read-only batch (PR #43):** `neon_batch` preflights every requested name, denies entire batches containing writes or nested gateways and dispatches at most ten reads through the ordinary scoped, scrubbed wrapper. Next: compact listing and exact token/schema budget verification. Production remains OFF.
+
 **C-2b guarded meta-call (PR #42):** `neon_call` delegates only to the same authenticated, profile-filtered MCP dispatch path; nested `neon_call`/`neon_batch` are denied, output scrub and scope are retained. Next: read-only batch, listing mode and enforced token budgets. No production activation.
 
 **C-2a discovery (PR #41):** Authenticated, profile/production-filtered `neon_search_tools` and `neon_describe_tool` provide bounded discovery and the public schema without exposing denied tools. C-2 remains IN_PROGRESS; next `neon_call`, guarded batch, listing modes and budgets. Production remains OFF.
