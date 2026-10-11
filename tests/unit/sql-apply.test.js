@@ -10,7 +10,8 @@ const statements = ['DELETE FROM invoices WHERE id > $1'], params = [[1]];
 const previewToken = 'a'.repeat(48), requestKey = 'rmcp_apply_verified_001';
 function make({ expectedRows = [2], protectedResource = false, mode = 'production',
   productionEnabled = true, branchProduction = true, spending = true,
-  duplicate = false, commitFails = false, readback = true, estimated = false } = {}) {
+  duplicate = false, commitFails = false, readback = true, estimated = false,
+  tolerance = 0, missingTolerance = false } = {}) {
   const events = [];
   const tokenHash = createHash('sha256').update(previewToken).digest('hex');
   const expectedHash = sqlScopeHash({ orgId, target, statements, params });
@@ -19,6 +20,7 @@ function make({ expectedRows = [2], protectedResource = false, mode = 'productio
       kind: 'other', org: orgId, project_id: target.projectId, label: 'Blocked'
     }] : [],
     getNeonOrg: async () => ({ production_enabled: productionEnabled }),
+    getSqlAffectedRowsTolerance: async () => missingTolerance ? null : tolerance,
     reserveWrite: async write => { events.push(['reserve', write]); return duplicate
       ? { created: false, existing: { id: 17 } } : { created: true, id: 19 }; },
     consumeSqlPreview: async input => {
@@ -138,5 +140,23 @@ describe('B-3d inexact production preview consent', () => {
     expect(await applyGuardedSql({ ...accepted.args, acceptEstimate: true }))
       .toMatchObject({ done: true, estimatedPreview: true, affectedRows: [2] });
     expect(sqlEvents(accepted)).toContain('COMMIT');
+  });
+});
+
+describe('B-3d durable row-count tolerance', () => {
+  it('honors the persisted zero default and configured one-row tolerance', async () => {
+    const strict = make({ expectedRows: [1], tolerance: 0 });
+    expect((await applyGuardedSql(strict.args)).code).toBe('row_count_mismatch');
+    const lenient = make({ expectedRows: [1], tolerance: 1 });
+    expect(await applyGuardedSql(lenient.args)).toMatchObject({
+      done: true, affectedRowsTolerance: 1, affectedRows: [2] });
+  });
+  it('rejects missing or invalid tolerance before audit reservation, token or URI', async () => {
+    for (const opts of [{ missingTolerance: true }, { tolerance: -1 },
+      { tolerance: 101 }, { tolerance: '0' }, { tolerance: 0.5 }]) {
+      const f = make(opts);
+      expect((await applyGuardedSql(f.args)).code).toBe('settings_unavailable');
+      expect(f.events).toEqual([]);
+    }
   });
 });
