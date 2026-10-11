@@ -248,9 +248,10 @@
         23,
         24,
         26,
-        27
+        27,
+        28
       ],
-      "note": "B-3 AST #22, reads #23, child preview #24, audited LSN/count apply #26, B-4 admission adapter #27; estimated preview fallback and D-5 registration still pending."
+      "note": "B-3a parser #22; reads #23; exact previews #24; guarded LSN/count apply #26; spend bridge #27; branch-limit/budget-only estimate fallback & explicit consent #28. Remaining: persisted affected-row tolerance and D-5 integration handoff."
     },
     {
       "id": "B-4",
