@@ -1,6 +1,5 @@
 // B-5: safe, actionable Neon/PostgreSQL errors. No raw driver objects or credentials escape.
 // Full nested result shaping and generic secret scrubber belong to B-6.
-const httpCodes = new Set([401,403,404,409,422,423,429]);
 const sqlStates = Object.freeze({
   '42P01': ['missing_table','The table does not exist.','Check the table name and selected database.'],
   '42703': ['missing_column','The column does not exist.','Check the column name and migration state.'],
