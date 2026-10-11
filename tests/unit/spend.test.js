@@ -71,6 +71,16 @@ describe('B-4 confirmation and provider-neutral spend guard', () => {
     expect((await f.guard.reserve(args)).code).toBe('duplicate_request');
     expect(f.state()).toEqual({ daily: 2000, released: 1 });
   });
+  it('counts repeated preview charges against the atomic daily cap', async () => {
+    const f = fixture();
+    expect(await f.guard.admitPreview({ orgId: 'org-fake', estimatedCostCents: 2000,
+      confirm: true })).toBe(true);
+    expect(await f.guard.admitPreview({ orgId: 'org-fake', estimatedCostCents: 2000,
+      confirm: true })).toBe(true);
+    expect(await f.guard.admitPreview({ orgId: 'org-fake', estimatedCostCents: 2000,
+      confirm: true })).toBe(false);
+    expect(f.state().daily).toBe(4000);
+  });
   it('returns a source-dated estimate from stored pricing', async () => {
     const f = fixture();
     expect(await f.guard.price({ kind: 'branch', plan: 'Launch',

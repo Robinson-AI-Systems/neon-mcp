@@ -72,7 +72,12 @@ export function createSpendGuard({ db } = {}) {
   async function admitPreview({ orgId, estimatedCostCents = 1, confirm = false } = {}) {
     const estimate = { increaseCents: estimatedCostCents, canApply: true };
     const decision = await check({ orgId, estimate, confirm });
-    return decision.allowed;
+    if (!decision.allowed || typeof db.reserveSpendCapacity !== 'function') return false;
+    try {
+      // Previews themselves may incur Neon charges. Count them atomically too.
+      return await db.reserveSpendCapacity({ orgId, increaseCents: decision.increaseCents,
+        dailyCapCents: decision.perDayCapCents }) === true;
+    } catch { return false; }
   }
   return Object.freeze({ price, check, reserve, admitPreview,
     defaultPricing: DEFAULT_PRICING });
