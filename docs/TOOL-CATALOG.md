@@ -4,7 +4,7 @@ Every tool this server will have, by area — the product scope. The implementin
 else goes in `docs/ROADMAP.md` and the PR report. One row per tool (so the totals can be counted by a script:
 `python3 -c` snippet at the end). When a tool merges, its Card cell gains `built #<PR>`.
 
-**Built so far:** none. A-1 (#1) created the empty registry (`src/tools/index.js`) and the starting
+**Built so far:** two A-5 read tools and two owner-only B-2 internal permission controls (#20). A-1 (#1) created the empty registry (`src/tools/index.js`) and the starting
 `scripts/check-writes.mjs` (every registered tool named `neon_*`, declares `writes`; write tools expose `dryRun`/`confirm`
 and a write contract) and `scripts/check-budgets.mjs` (descriptions ≤160 characters, catalog ≤20,000 tokens). The first
 tools are `neon_whoami` and `neon_list_accounts` (A-5).
@@ -40,8 +40,8 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 | `neon_check_key_access` | Re-probe every stored key: what each can reach (projects, org actions), which tools are blocked and which key kind would fix it | — | Ow | R | B-8 |
 | `neon_list_connections` | Claude connections and passes: organization, mode, profile, listing, rate limit, last used | — | Ow | R | B-8 |
 | `neon_revoke_connection` | Switch a connection or pass off at once | C | Ow | F | B-8 |
-| `neon_enable_production` | Allow production writes for one organization (also needs the passphrase on the setup page within 10 minutes) | C | Ow | F | B-2 |
-| `neon_disable_production` | Stop production writes for one organization immediately | C | Ow | F | B-2 |
+| `neon_enable_production` | Request production access for one organization (NOT activation; needs owner passphrase and typed approval within ten minutes, plus release gates after X-2/X-3) | C | Ow | F | B-2 (built #20) |
+| `neon_disable_production` | Stop production permission immediately and invalidate pending owner approval | C | Ow | F | B-2 (built #20) |
 | `neon_recent_changes` | What changed through this server (filter by tool, project, branch, date; previews hidden unless asked) | — | Ow Op | R | B-8 |
 | `neon_undo_change` | Undo one change-log entry with a clean opposite (recover a deleted branch, restore a setting, roll a branch back to the recorded point before a SQL change); says plainly when there is none | C | Op | E | X-1 |
 | `neon_search_tools` | Find tools by plain words; one line each with flags (compact mode's front door) | — | B Ow Op | R | C-2 |

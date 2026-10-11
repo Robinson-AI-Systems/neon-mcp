@@ -206,7 +206,7 @@
         "B-1"
       ],
       "card": "docs/pr-cards/B-2.md",
-      "status": "IN_PROGRESS",
+      "status": "MERGED",
       "migration": "none",
       "budget": 450,
       "units": [
@@ -219,9 +219,10 @@
       ],
       "pr": [
         18,
-        19
+        19,
+        20
       ],
-      "note": "B-2a classification #18; B-2b secure owner editor #19; B-2c production authorization still pending"
+      "note": "B-2 complete: Neon default/protected verification, owner resource editor, two-step production access (gated off until X-2/X-3 and owner IN-07/IN-08). B-3 next."
     },
     {
       "id": "B-3",

@@ -4,11 +4,14 @@ import { registry } from '../../src/tools/index.js';
 
 const make = (name) => ({ tools: [{ name }], handlers: { [name]: async () => null } });
 describe('tool registry', () => {
-  it('registers the first two safe read tools in A-5', () => {
-    expect(registry.tools.map(t=>t.name)).toEqual(['neon_whoami','neon_list_accounts']);
+  it('keeps two A-5 reads plus only the two guarded B-2 owner controls', () => {
+    expect(registry.tools.map(t=>t.name)).toEqual(['neon_whoami','neon_list_accounts',
+      'neon_enable_production','neon_disable_production']);
     for(const tool of registry.tools) {
-      expect(tool.writes).toBe(false);
-      expect(tool.profiles).toContain('read_only');
+      if (tool.writes) {
+        expect(tool.profiles).toEqual(['full']);
+        expect(tool.writeContract).toBe('defineWrite-v1');
+      } else expect(tool.profiles).toContain('read_only');
       expect(typeof registry.handlers[tool.name]).toBe('function');
     }
   });

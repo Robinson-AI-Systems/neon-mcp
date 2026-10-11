@@ -146,10 +146,11 @@ describe('MCP read-only boundary and known-key project scope',()=>{
     const db=createFakeDb({orgs:[{id:'org-fake-one',label:'Fake',production_enabled:false}]});
     await db.saveEncryptedNeonKey({orgId:'org-fake-one',kind:'project',projectId:'proj-fake-one',
       keyEnc:'fake-ciphertext-only',last4:'1234',reach:{verified:true}});
-    expect(registry.tools.map(t=>t.name)).toEqual(['neon_whoami','neon_list_accounts']);
+    expect(registry.tools.map(t=>t.name)).toEqual(['neon_whoami','neon_list_accounts',
+      'neon_enable_production','neon_disable_production']);
     const connection={neonOrg:'org-fake-one',projectScope:'proj-fake-one',
       mode:'preview',profile:'read_only',listing:'catalog'};
-    for(const tool of registry.tools) {
+    for(const tool of registry.tools.filter(t=>t.writes===false)) {
       const output=await dispatchReadOnlyTool({registry,name:tool.name,db,connection,args:{}});
       expect(output.isError).not.toBe(true);
       const text=JSON.stringify(output);
@@ -183,5 +184,56 @@ describe('MCP read-only boundary and known-key project scope',()=>{
     const code=new URL(yes.headers.Location).searchParams.get('code');
     const row=await db.consumeAuthCode(code);
     expect(row.project_scope).toBe('proj-fake-one');
+  });
+});
+
+describe('two-step owner production confirmation route',()=>{
+  const ownerEnv={...env,VERCEL_ENV:'production',
+    NEON_MCP_LIVE_GATES_APPROVED:'approved-after-X2-X3',
+    NEON_MCP_PROTECTED_LIST_CONFIRMED:'owner-confirmed',
+    NEON_MCP_SELF_ORG_ID:'org-fake-one',NEON_MCP_SELF_PROJECT_ID:'prj-self',
+    NEON_MCP_SELF_ENDPOINT_HOST:'localhost',
+    DATABASE_URL:'postgresql://user:FAKE@localhost/database'};
+  function productionFixture(overrides={}) {
+    const env2={...ownerEnv,...overrides};
+    const db=createFakeDb({orgs:[{id:'org-fake-one',label:'Fake Org',production_enabled:false}]});
+    let pending=true,enabled=false,disableCalls=0;
+    db.getProtectedResources=async()=>[{kind:'robinson',org:'org-fake-one',
+      project_id:'prj-other',label:'Other server'}];
+    db.completeProductionEnable=async()=>{
+      if(!pending)return false;
+      pending=false;enabled=true;return true;
+    };
+    db.disableProduction=async()=>{pending=false;enabled=false;disableCalls++;return true;};
+    const vault={listKeys:async()=>[],storeKey:async()=>({}),revokeKey:async()=>false};
+    const exchange=createOneTimeSecrets({db,env:env2});
+    return {env:env2,handler:createSetupHandler({db,vault,exchange,env:env2}),
+      state:()=>({pending,enabled,disableCalls})};
+  }
+  it('requires owner passphrase, same origin and exact typed phrase after agent request',async()=>{
+    const f=productionFixture(),headers={origin:ownerEnv.PUBLIC_BASE_URL};
+    const body={action:'approve_production',orgId:'org-fake-one',
+      approvalPhrase:'ENABLE_PRODUCTION',passphrase:ownerEnv.ADMIN_PASSPHRASE};
+    expect((await invoke(f.handler,req('POST',body))).statusCode).toBe(403);
+    expect((await invoke(f.handler,req('POST',{...body,passphrase:'wrong'},headers))).statusCode).toBe(401);
+    expect((await invoke(f.handler,req('POST',{...body,approvalPhrase:'yes'},headers))).statusCode).toBe(400);
+    expect(f.state().enabled).toBe(false);
+    expect((await invoke(f.handler,req('POST',body,headers))).statusCode).toBe(200);
+    expect(f.state().enabled).toBe(true);
+    expect((await invoke(f.handler,req('POST',body,headers))).statusCode).toBe(409);
+    expect((await invoke(f.handler,req('POST',{action:'disable_production',
+      orgId:'org-fake-one',passphrase:ownerEnv.ADMIN_PASSPHRASE},headers))).statusCode).toBe(200);
+    expect(f.state()).toEqual({pending:false,enabled:false,disableCalls:1});
+  });
+  it('never permits preview or missing X-2/X-3 owner release to complete approval',async()=>{
+    const headers={origin:ownerEnv.PUBLIC_BASE_URL};
+    const body={action:'approve_production',orgId:'org-fake-one',
+      approvalPhrase:'ENABLE_PRODUCTION',passphrase:ownerEnv.ADMIN_PASSPHRASE};
+    for(const config of [{VERCEL_ENV:'preview'}, {NEON_MCP_LIVE_GATES_APPROVED:''},
+      {NEON_MCP_PROTECTED_LIST_CONFIRMED:''}]) {
+      const f=productionFixture(config);
+      expect((await invoke(f.handler,req('POST',body,headers))).statusCode).toBe(403);
+      expect(f.state().enabled).toBe(false);
+    }
   });
 });

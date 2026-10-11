@@ -57,3 +57,12 @@ authority for the app.
 | [ ] | History (restore window) long enough for your comfort, on your current plan | Not checked by this server yet |
 | [ ] | Snapshot before risky migrations (the app's own runbook asks for one) | Available as `neon_snapshot_create` once D-7 is built |
 | [ ] | Optional: one fresh database branch per preview deployment (the app's ROADMAP; your call on timing) | Not turned on |
+
+## B-2 production permission release (still OFF)
+
+- [ ] X-2 owner-approved read-only smoke test and X-3 scratch project verification have passed and been documented.
+- [ ] Owner confirms all other Robinson servers to protect (IN-07); the secure setup page saves the list, including a `robinson` entry. This server's own project is automatically protected.
+- [ ] Only after those checks, owner sets `NEON_MCP_LIVE_GATES_APPROVED=approved-after-X2-X3` and `NEON_MCP_PROTECTED_LIST_CONFIRMED=owner-confirmed` in the Production Vercel environment.
+- [ ] On a full-profile connector in a production deployment, request with `neon_enable_production` and `confirm: true`. Request is NOT activation.
+- [ ] Within 10 minutes, owner visits `/api/neon/setup`, types `ENABLE_PRODUCTION` and the owner passphrase, and checks the result. Never do this as an agent. Disconnect/reconnect to production mode separately.
+- [ ] The owner can immediately disable access on the same setup page or with `neon_disable_production` and `confirm: true`. No changes to actual production projects are authorized in this session.

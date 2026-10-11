@@ -274,6 +274,48 @@ export function createDb(sql = productionSql()) {
         ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value,
           updated_by = 'owner_setup', updated_at = now()`;
     },
+    /** Requests only intent. This never enables production without the owner setup step. */
+    async requestProductionEnable({ orgId, requestedBy = 'connector' }) {
+      if (typeof orgId !== 'string' || !orgId ||
+          typeof requestedBy !== 'string' || requestedBy.length > 120)
+        throw new TypeError('Invalid organization intent');
+      const key = 'production_intent:' + orgId;
+      const rows = await sql`INSERT INTO settings (key, value, updated_by)
+        SELECT ${key},
+          jsonb_build_object('expiresAt', now() + interval '10 minutes'), 'mcp_request'
+        FROM neon_orgs WHERE id = ${orgId} AND production_enabled = FALSE
+        ON CONFLICT (key) DO UPDATE
+        SET value = EXCLUDED.value, updated_by = 'mcp_request', updated_at = now()
+        RETURNING key`;
+      return rows.length === 1;
+    },
+    async getPendingProductionEnable(orgId) {
+      if (typeof orgId !== 'string' || !orgId) return null;
+      const rows = await sql`SELECT value->>'expiresAt' AS expires_at FROM settings
+        WHERE key = ${'production_intent:' + orgId}
+          AND (value->>'expiresAt')::timestamptz > now()`;
+      return rows[0] || null;
+    },
+    /** Atomic consume-and-enable; only the passphrase-protected setup route calls it. */
+    async completeProductionEnable({ orgId }) {
+      if (typeof orgId !== 'string' || !orgId) return false;
+      const rows = await sql`WITH claimed AS (
+        DELETE FROM settings WHERE key = ${'production_intent:' + orgId}
+          AND (value->>'expiresAt')::timestamptz > now() RETURNING key
+      ) UPDATE neon_orgs SET production_enabled = TRUE,
+          production_enabled_at = now()
+        WHERE id = ${orgId} AND EXISTS(SELECT 1 FROM claimed) RETURNING id`;
+      return rows.length === 1;
+    },
+    /** Stop immediately and invalidate pending requests. No owner activation gate needed to disable. */
+    async disableProduction({ orgId }) {
+      if (typeof orgId !== 'string' || !orgId) return false;
+      const rows = await sql`WITH cleared AS (
+        DELETE FROM settings WHERE key = ${'production_intent:' + orgId} RETURNING key
+      ) UPDATE neon_orgs SET production_enabled = FALSE, production_enabled_at = NULL
+        WHERE id = ${orgId} RETURNING id`;
+      return rows.length === 1;
+    },
     async initSchema() {
       // Additive foundation migration; intentionally never alters or deletes existing data.
       await sql`CREATE TABLE IF NOT EXISTS neon_orgs (
