@@ -1,9 +1,13 @@
-// Copied from Robinson-AI-Systems/stripe-mcp test/helpers/fake-db.js @ f9a54f8 (A-1 version; no service tables).
-// A-1's service-independent fake database; A-2 extends it with this server's schema (BATCH-A §2).
+// Copied from Robinson-AI-Systems/stripe-mcp test/helpers/fake-db.js @ f9a54f8 (A-1 version).
+// In-memory service database; mirrors schema existence without pretending to enforce PostgreSQL constraints.
+import { SCHEMA_TABLES } from '../../src/db.js';
+
 export function createFakeDb() {
   const rows = new Map();
+  const tables = new Set();
   return {
-    async initSchema() {},
+    async initSchema() { SCHEMA_TABLES.forEach((name) => tables.add(name)); },
+    async listTables() { return [...tables]; },
     async put(key, value) { rows.set(key, structuredClone(value)); },
     async get(key) { return rows.has(key) ? structuredClone(rows.get(key)) : null; }
   };
