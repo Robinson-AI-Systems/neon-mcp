@@ -1,3 +1,5 @@
+**C-1b scoped result handles (PR #39):** read results above 8KB are scrubbed and stored for 24h in additive result_store keyed by a hashed authenticated connection scope; default MCP output is small and carries an opaque handle. Bounded SQL row and text shaping utility, expiry cleanup and Postgres isolation tests. C-1c retrieves handles and adds annotations next. No live Neon accounts.
+
 **C-1a result selection (PR #38):** typed provider summaries and safe `detail`/dotted `fields` are applied after secret scrubbing at MCP dispatch. Unknown paths are reported; protected prototype keys are rejected. C-1 remains IN_PROGRESS: result-store handles and annotations follow; production OFF.
 
 **B-8d guarded owner settings (PR #37):** full unscoped organization owner with a stored org key can preview/confirm reductions of spending caps or SQL read policy, with database compare-and-swap and audit. No limit increase, pricing, protected-list editing or production activation. B-8 complete; next C-1 context-efficient results, handles and annotations.

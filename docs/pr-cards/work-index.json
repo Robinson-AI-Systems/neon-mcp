@@ -389,9 +389,10 @@
       "readiness": "READY",
       "ownerInputs": [],
       "pr": [
-        38
+        38,
+        39
       ],
-      "note": "C-1a summaries/projection #38; secure 8KB persisted handles and annotations follow in #39/#40."
+      "note": "C-1a #38 summary/fields; C-1b #39 8KB scoped handles/24h result_store; C-1c retrieval/annotations #40 remains."
     },
     {
       "id": "C-2",

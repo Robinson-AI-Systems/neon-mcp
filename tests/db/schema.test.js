@@ -13,7 +13,7 @@ afterAll(async () => { await closeIsolatedSchema(); });
 async function indexes() {
   return (await rawQuery("SELECT tablename, indexname, indexdef FROM pg_indexes WHERE schemaname = current_schema() ORDER BY tablename, indexname"));
 }
-it('creates precisely the 11 planned tables and does not change them on a second call', async () => {
+it('creates precisely the 12 planned tables and does not change them on a second call', async () => {
   await db.initSchema();
   const before = await indexes();
   const tables = await rawQuery("SELECT tablename FROM pg_tables WHERE schemaname = current_schema() ORDER BY tablename");

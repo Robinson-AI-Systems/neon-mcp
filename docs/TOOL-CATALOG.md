@@ -375,3 +375,5 @@ EOF
 ```
 
 C-1a (#38): common read tools accept `detail: summary|full` and comma-separated dotted `fields` at MCP registration; selection occurs after secret removal. Large-result handles are C-1b.
+
+C-1b (#39): oversize read responses use 24-hour, same-connection, secret-scrubbed handles; retrieval is exposed only in C-1c (#40).

@@ -154,3 +154,7 @@ The `settings['sql.affected_rows_tolerance']` JSON integer is seeded idempotentl
 ## Plain-English provider errors (B-5, #30)
 
 `src/neon/errors.js` translates documented Neon HTTP codes (401/403/404/409/423/422/429), plan/branch limits and recognized PostgreSQL SQLSTATE families into `code/message/cause/action/technical` values. It emits only safe request IDs and SQLSTATE; raw driver errors and credentials are not returned. `src/neon/client.js` uses it for API failures; `src/neon/sql-read.js` uses SQLSTATE normalization and may reconnect **once only for parser-approved read-only SQL** when the driver reports a connection reset. Unknown write outcomes remain pending with no automatic replay. B-6 will provide comprehensive nested result scrubbing. No extra API operations or public tools were added.
+
+### C-1 stored result handles
+
+The additive `result_store` table persists already-scrubbed JSON behind random 160-bit `res_...` handles, with SHA-256 connection-scope bindings and 24-hour expiry; inserts purge at most 100 expired rows. Neither credentials nor result bodies are exposed through summaries. The public scoped retrieval MCP tool follows in C-1c.
