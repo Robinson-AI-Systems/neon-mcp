@@ -1,5 +1,6 @@
 // Provider-neutral guarded write lifecycle; no Neon client or SQL imports.
 // Not registered as a tool. Until B-2/B-3/B-4, callers MUST inject all four guards.
+import { redactNeonText } from './scrub.js';
 const validName = /^[a-z][a-z0-9_]{2,80}$/;
 const respond = (value, error = false) => ({
   ...(error ? { isError: true } : {}),
@@ -14,6 +15,7 @@ function required(fn, label) {
 }
 function isSafeSummary(s) {
   return typeof s === 'string' && s.length > 0 && s.length <= 1024 &&
+    redactNeonText(s) === s &&
     !/(?:postgres(?:ql)?:\/\/|napi_|npg_|authorization:|bearer\s)/i.test(s);
 }
 function safeInverse(value) {

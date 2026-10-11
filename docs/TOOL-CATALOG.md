@@ -4,6 +4,8 @@ Every tool this server will have, by area — the product scope. The implementin
 else goes in `docs/ROADMAP.md` and the PR report. One row per tool (so the totals can be counted by a script:
 `python3 -c` snippet at the end). When a tool merges, its Card cell gains `built #<PR>`.
 
+**B-6 shared result/profile policy (built #32):** Read-only never sees or invokes writes; org-key tools are full-only. Output scrub removes nested credentials; homepage reports counts by profile.
+
 **Built so far:** two A-5 read tools and two owner-only B-2 internal permission controls (#20). A-1 (#1) created the empty registry (`src/tools/index.js`) and the starting
 `scripts/check-writes.mjs` (every registered tool named `neon_*`, declares `writes`; write tools expose `dryRun`/`confirm`
 and a write contract) and `scripts/check-budgets.mjs` (descriptions ≤160 characters, catalog ≤20,000 tokens). The first

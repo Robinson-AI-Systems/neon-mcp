@@ -4,13 +4,20 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { requireMcpToken } from './mcp-auth.js';
+import { isToolAllowed } from './profiles.js';
+import { scrubNeonResult, redactNeonText } from './scrub.js';
+import { shapeResult } from './result-rules.js';
 
-const INTERNAL_CONTROLS=new Set(['neon_enable_production','neon_disable_production']);
-function allowedTool(item,connection,env){
-  if(!item?.profiles?.includes(connection?.profile))return false;
-  if(item.writes===false)return true;
-  return item.writes===true && INTERNAL_CONTROLS.has(item.name) &&
-    connection.profile==='full' && env?.VERCEL_ENV==='production';
+const allowedTool=(item,connection,env)=>isToolAllowed(item,connection,
+  {productionDeployment:env?.VERCEL_ENV==='production'});
+function safeMcpResult(result){
+  if(!result || !Array.isArray(result.content))return {isError:true,content:[{type:'text',text:'Invalid tool response'}]};
+  return {isError:result.isError===true,content:result.content.map(item=>{
+    if(item?.type!=='text')return {type:'text',text:'Non-text output unavailable'};
+    let value;
+    try { value=JSON.parse(item.text); } catch { return {type:'text',text:redactNeonText(item.text)}; }
+    return {type:'text',text:JSON.stringify(shapeResult(scrubNeonResult(value)))};
+  })};
 }
 export async function dispatchReadOnlyTool({ registry, name, args, connection, db, env=process.env }) {
   const item = registry.tools.find(t => t.name === name);
@@ -21,7 +28,7 @@ export async function dispatchReadOnlyTool({ registry, name, args, connection, d
   if (typeof handler !== 'function') {
     return {isError:true,content:[{type:'text',text:'Tool unavailable'}]};
   }
-  try { return await handler(args || {},{connection,db,env}); }
+  try { return safeMcpResult(await handler(args || {},{connection,db,env})); }
   catch {
     return {isError:true,content:[{type:'text',text:'Could not read account details; check server setup'}]};
   }
