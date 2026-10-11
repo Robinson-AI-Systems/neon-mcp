@@ -119,3 +119,7 @@ step. Dependencies (exact versions): `@modelcontextprotocol/sdk` 1.32.1, `@neon/
 ## B-1 audited write reservation
 
 The generic write lifecycle lives in `src/core/write.js`; Neon-specific API/wait calls live in `src/neon/write-neon.js`. The existing `change_log` table has an additive partial unique index on `request_key` for real (non-preview) writes. `reserveWrite` atomically records intent before any external mutation, and retries return the existing audit state without resending. `completeWrite` only transitions a pending row. Preview rows never reserve keys. Logs hold safe summaries and identifier-only inverse metadata, never raw before/after state. Until B-2/B-4, no write handlers are registered and every required policy guard must be explicitly injected; missing guards deny execution.
+
+## B-2a production and protected-resource classifiers
+
+`src/neon/production.js` decides from trusted Neon branch reads and server-side profile data, ignoring deprecated `primary`. Unreadable targets are denied. `src/core/protected-resources.js` refuses all protected projects/branches, including this server's own project; the self project must be independently verified before writes can be enabled. The owner-managed list lives in `settings.protected_resources`, but the owner's confirmation/editor and the durable two-step production enable remain B-2b. No generic write door is opened by B-2a.

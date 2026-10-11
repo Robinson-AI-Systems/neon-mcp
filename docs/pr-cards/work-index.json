@@ -206,17 +206,21 @@
         "B-1"
       ],
       "card": "docs/pr-cards/B-2.md",
-      "status": "PLANNED",
+      "status": "IN_PROGRESS",
       "migration": "none",
       "budget": 450,
       "units": [
         "B-2"
       ],
-      "readiness": "WRITE_CARD_AT_START",
+      "readiness": "READY",
       "ownerInputs": [
         "IN-07",
         "IN-08"
-      ]
+      ],
+      "pr": [
+        18
+      ],
+      "note": "B-2a classification and resource store #18; B-2b pending owner-only route and two-step enable (IN-07/08 not applied)"
     },
     {
       "id": "B-3",

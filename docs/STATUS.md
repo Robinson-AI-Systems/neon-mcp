@@ -1,5 +1,7 @@
 # STATUS — current work, blockers and next action
 
+**B-2a production classification and absolute self-protection merged (#18):** safe target verification uses only Neon-fetched default/protected flags plus trusted profiles; protected list and own-project identity fail closed. No write tools or production access enabled. B-2b owner authorization remains.
+
 **B-1 guarded write lifecycle merged (#17):** durable atomic change-log reservation, request-key deduplication, confirmation, fail-closed safety interfaces and operation-aware Neon adapter; test fixtures exercise all nine contract cases. No new write tool is exposed.
 
 **A-7 deployment instructions merged (#16):** owner-only, preview-first guidance in `docs/DEPLOY.md`; no infrastructure, keys, credentials, or live access created. Batch A documentation complete; Batch B safety layer next.
@@ -25,7 +27,7 @@ expiry indexes exist in code and are verified by isolated-Postgres tests. No liv
 
 ## Next
 
-- **Next: B-2 — production guard, protected resources and two-step owner enable** (JIT from `docs/designs/BATCH-B.md`). Owner inputs IN-07/08 remain gated; no live infrastructure.
+- **Next: B-2b — setup-page protected-resource editor and two-step owner production access**. IN-07 list and IN-08 activation remain owner-gated; no production access enabled.
 - **Answered 2026-10-10 (Chris):** IN-00 — plan approved ("I approve the plans"); IN-01 — **no automated review** ("I don't want the automated review at this time"); the repository stays public as Chris created it; the implementer self-reviews every diff.
 - **Queue:** A → B → C → D → V → O → P → W → U → R → E → X (`MASTER-ROADMAP.md`).
 

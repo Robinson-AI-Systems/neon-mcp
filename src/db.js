@@ -261,6 +261,19 @@ export function createDb(sql = productionSql()) {
           AND confirmed = 'pending' RETURNING id`;
       return rows.length === 1;
     },
+    /** Owner-managed list only; callers of a write guard must also supply verified self identity. */
+    async getProtectedResources() {
+      const rows = await sql`SELECT value FROM settings WHERE key = 'protected_resources'`;
+      return rows.length ? rows[0].value : [];
+    },
+    /** Only the passphrase-protected owner setup route may invoke this write. */
+    async saveProtectedResourcesFromSetup(resources) {
+      if (!Array.isArray(resources)) throw new TypeError('Expected protected resources');
+      await sql`INSERT INTO settings (key, value, updated_by)
+        VALUES ('protected_resources', ${JSON.stringify(resources)}::jsonb, 'owner_setup')
+        ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value,
+          updated_by = 'owner_setup', updated_at = now()`;
+    },
     async initSchema() {
       // Additive foundation migration; intentionally never alters or deletes existing data.
       await sql`CREATE TABLE IF NOT EXISTS neon_orgs (
