@@ -10,7 +10,7 @@ const statements = ['DELETE FROM invoices WHERE id > $1'], params = [[1]];
 const previewToken = 'a'.repeat(48), requestKey = 'rmcp_apply_verified_001';
 function make({ expectedRows = [2], protectedResource = false, mode = 'production',
   productionEnabled = true, branchProduction = true, spending = true,
-  duplicate = false, commitFails = false, readback = true } = {}) {
+  duplicate = false, commitFails = false, readback = true, estimated = false } = {}) {
   const events = [];
   const tokenHash = createHash('sha256').update(previewToken).digest('hex');
   const expectedHash = sqlScopeHash({ orgId, target, statements, params });
@@ -24,7 +24,7 @@ function make({ expectedRows = [2], protectedResource = false, mode = 'productio
     consumeSqlPreview: async input => {
       events.push(['consume', input]);
       return input.tokenHash === tokenHash && input.identityHash === expectedHash
-        ? { production: true, sql_expected_rows: expectedRows } : null;
+        ? { production: true, sql_expected_rows: expectedRows, sql_estimate: estimated } : null;
     },
     recordSqlRestoreLsn: async x => { events.push(['restore', x]); return true; },
     completeWrite: async x => { events.push(['complete', x]); return true; }
@@ -126,5 +126,17 @@ describe('B-3d private guarded production SQL apply', () => {
         statements: [sql], params: [[]] })).done).toBe(false);
       expect(f.events).toEqual([]);
     }
+  });
+});
+
+describe('B-3d inexact production preview consent', () => {
+  it('refuses without acceptEstimate and permits a verified but uncertain count when explicitly accepted', async () => {
+    const without = make({ estimated: true, expectedRows: [1] });
+    expect((await applyGuardedSql(without.args)).code).toBe('preview_mismatch');
+    expect(sqlEvents(without)).toEqual([]);
+    const accepted = make({ estimated: true, expectedRows: [1] });
+    expect(await applyGuardedSql({ ...accepted.args, acceptEstimate: true }))
+      .toMatchObject({ done: true, estimatedPreview: true, affectedRows: [2] });
+    expect(sqlEvents(accepted)).toContain('COMMIT');
   });
 });
