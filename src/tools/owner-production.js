@@ -47,6 +47,7 @@ export const tools=[
 ];
 const internalContext=({connection,db,env})=>({
   connection,db,env,deploymentEnv:env?.VERCEL_ENV,guards:ownerGuards,
+  connectionId:connection.clientId ?? null,
   writeKey:(tool,args)=>requestKey({neonOrg:connection.neonOrg},tool,args)
 });
 export const handlers={
