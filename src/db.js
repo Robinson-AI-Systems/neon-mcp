@@ -1,5 +1,6 @@
 // The Neon MCP service's own tables. No agent tool may run SQL against this database.
 import { neon } from '@neondatabase/serverless';
+import { hashToken } from './core/oauth.js';
 
 export const SCHEMA_TABLES = Object.freeze([
   'neon_orgs', 'neon_keys', 'oauth_clients', 'oauth_codes', 'oauth_tokens',
@@ -24,6 +25,100 @@ function productionSql() {
 export function createDb(sql = productionSql()) {
   if (typeof sql !== 'function') throw new TypeError('Database SQL must be a tagged-template function.');
   return {
+
+    // OAuth client registration and authentication (always persist token and client secret hashes).
+    async createOAuthClient({ clientId, clientSecret, redirectUris, clientName }) {
+      if (!clientId || !clientSecret || !Array.isArray(redirectUris) || !redirectUris.length)
+        throw new TypeError('Missing OAuth client registration fields');
+      const data = JSON.stringify({
+        client_secret_hash: hashToken(clientSecret), redirect_uris: redirectUris,
+        client_name: clientName || null
+      });
+      await sql`INSERT INTO oauth_clients (client_id, data) VALUES (${clientId}, ${data}::jsonb)`;
+    },
+    async getOAuthClient(clientId) {
+      const rows = await sql`SELECT client_id, data FROM oauth_clients WHERE client_id = ${clientId}`;
+      return rows[0] ? { client_id: rows[0].client_id, ...rows[0].data } : null;
+    },
+    async createAuthCode({ code, clientId, redirectUri, codeChallenge, codeChallengeMethod = 'S256',
+      neonOrg = null, projectScope = null, mode = 'preview', profile = 'everyday',
+      listing = 'catalog', ttlSeconds = 600 }) {
+      const data = JSON.stringify({
+        redirect_uri: redirectUri, code_challenge: codeChallenge, code_challenge_method: codeChallengeMethod
+      });
+      const expiresAt = new Date(Date.now() + ttlSeconds * 1000);
+      await sql`INSERT INTO oauth_codes
+        (code, client_id, data, neon_org, project_scope, mode, profile, listing, expires_at)
+        VALUES (${hashToken(code)}, ${clientId}, ${data}::jsonb, ${neonOrg}, ${projectScope},
+          ${mode}, ${profile}, ${listing}, ${expiresAt})`;
+    },
+    async consumeAuthCode(code) {
+      if (typeof code !== 'string' || !code) return null;
+      const rows = await sql`DELETE FROM oauth_codes WHERE code = ${hashToken(code)}
+        AND expires_at > now() RETURNING client_id, data, neon_org, project_scope, mode, profile, listing`;
+      const row = rows[0];
+      return row ? { client_id: row.client_id, ...row.data, ...connectionSettings(row) } : null;
+    },
+    async createAccessToken({ accessToken, refreshToken, clientId, neonOrg = null,
+      projectScope = null, mode = 'preview', profile = 'everyday', listing = 'catalog', ttlSeconds = 3600 }) {
+      const expiresAt = new Date(Date.now() + ttlSeconds * 1000);
+      await sql`INSERT INTO oauth_tokens
+        (token_hash, refresh_hash, client_id, neon_org, project_scope, mode, profile, listing, expires_at)
+        VALUES (${hashToken(accessToken)}, ${refreshToken ? hashToken(refreshToken) : null},
+          ${clientId}, ${neonOrg}, ${projectScope}, ${mode}, ${profile}, ${listing}, ${expiresAt})`;
+    },
+    async getAccessToken(accessToken) {
+      if (typeof accessToken !== 'string' || !accessToken) return null;
+      const rows = await sql`SELECT client_id, neon_org, project_scope, mode, profile, listing, kind,
+        expires_at, revoked_at FROM oauth_tokens WHERE token_hash = ${hashToken(accessToken)}
+        AND expires_at > now() AND revoked_at IS NULL AND kind = 'connector'`;
+      return rows[0] || null;
+    },
+    async getTokenByRefreshToken(refreshToken) {
+      if (typeof refreshToken !== 'string' || !refreshToken) return null;
+      const rows = await sql`SELECT client_id, neon_org, project_scope, mode, profile, listing
+        FROM oauth_tokens WHERE refresh_hash = ${hashToken(refreshToken)}
+        AND revoked_at IS NULL AND kind = 'connector'`;
+      return rows[0] || null;
+    },
+    async rotateRefreshToken({ refreshToken, clientId, accessToken, newRefreshToken,
+      ttlSeconds = 3600 }) {
+      // The conditional UPDATE atomically consumes the prior refresh hash once.
+      // All connection settings remain on this row, even after access-token expiry.
+      const expiresAt = new Date(Date.now() + ttlSeconds * 1000);
+      const rows = await sql`UPDATE oauth_tokens SET
+        token_hash = ${hashToken(accessToken)}, refresh_hash = ${hashToken(newRefreshToken)},
+        expires_at = ${expiresAt}, last_used_at = NULL
+        WHERE refresh_hash = ${hashToken(refreshToken)} AND client_id = ${clientId}
+          AND revoked_at IS NULL AND kind = 'connector'
+        RETURNING client_id, neon_org, project_scope, mode, profile, listing`;
+      const row = rows[0];
+      return row ? { client_id: row.client_id, ...connectionSettings(row) } : null;
+    },
+    async revokeAccessToken(accessToken) {
+      if (typeof accessToken !== 'string' || !accessToken) return false;
+      const rows = await sql`UPDATE oauth_tokens SET revoked_at = now()
+        WHERE token_hash = ${hashToken(accessToken)} AND revoked_at IS NULL
+        RETURNING token_hash`;
+      return rows.length > 0;
+    },
+    async recordLoginAttempt(ip) {
+      const rows = await sql`INSERT INTO login_attempts (ip, success) VALUES (${ip}, FALSE) RETURNING id`;
+      return rows[0].id;
+    },
+    async markLoginAttemptSucceeded(id) {
+      await sql`UPDATE login_attempts SET success = TRUE WHERE id = ${id}`;
+    },
+    async countRecentFailedLogins(ip, minutes = 15) {
+      const rows = await sql`SELECT count(*)::integer AS count FROM login_attempts
+        WHERE ip = ${ip} AND success = FALSE
+          AND attempted_at > now() - ${minutes} * interval '1 minute'`;
+      return rows[0].count;
+    },
+    async listNeonOrgs() {
+      return await sql`SELECT id, label, production_enabled, is_default FROM neon_orgs
+        ORDER BY is_default DESC, added_at ASC`;
+    },
     async initSchema() {
       // Additive foundation migration; intentionally never alters or deletes existing data.
       await sql`CREATE TABLE IF NOT EXISTS neon_orgs (
