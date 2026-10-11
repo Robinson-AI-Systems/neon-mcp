@@ -2,6 +2,7 @@
 import { createNeonClient } from '@neon/sdk';
 import * as raw from '@neon/sdk/raw';
 import { createHash } from 'node:crypto';
+import { formatNeonError } from './errors.js';
 
 export const NEON_SDK_VERSION = '7.0.1';
 const RETRY_STATUSES = new Set([423, 429]);
@@ -48,9 +49,13 @@ export function makeNeonClient({ key, orgId, budget, fetch, baseUrl, sleep = DEF
 }
 
 function safeError(error, fallbackStatus) {
-  const status = Number(error?.status ?? error?.response?.status ?? fallbackStatus) || null;
-  return { code: status === 429 ? 'rate_limited' : status === 423 ? 'temporarily_locked' :
-    status === 401 || status === 403 ? 'not_authorized' : 'neon_api_error', status };
+  // Omit raw driver objects, response bodies, connection strings and request parameters.
+  return formatNeonError({
+    status: error?.status ?? error?.response?.status ?? fallbackStatus,
+    message: error?.message,
+    requestId: error?.requestId ?? error?.request_id,
+    field: error?.field
+  });
 }
 async function takeBudget(client) {
   const result = await client.budget.consume({ orgId: client.orgId, calls: 1 });
