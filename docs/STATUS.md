@@ -1,14 +1,13 @@
 # STATUS — current work, blockers and next action
 
-Updated 2026-10-10. **A-1 merged (#1): the repository is ready for implementation.** Package (Node 24), committed
-lockfile, fake Neon API that checks every request against Neon's own API description, throwaway-Postgres database tests,
-secret/docs/index/lint/write-safety/core-import/budget checks, and CI with one merge gate (`ci`). No tools, endpoints or
-database tables yet. No Neon key has been added anywhere; nothing touches a real database or Neon account.
+Updated 2026-10-11. **A-2 database schema merged (#7):** the 11 additive foundation tables, partial key uniqueness and
+expiry indexes exist in code and are verified by isolated-Postgres tests. No live database is provisioned, no endpoints
+or Neon tools exist, and no real Neon account was accessed.
 
 ## Next
 
-- **Next card: A-2 — database schema** ([card](pr-cards/A-2.md), READY). Then **A-3** — connector login, two PRs
-  ([card](pr-cards/A-3.md), READY). Then A-4 … A-7 (write each card just in time from `designs/BATCH-A.md` §4).
+- **Next card: A-3a — connector login primitives and database methods** ([card](pr-cards/A-3.md), READY), then
+  **A-3b** endpoints. Then A-4 … A-7 (write each card just in time from `designs/BATCH-A.md` §4).
 - **Answered 2026-10-10 (Chris):** IN-00 — plan approved ("I approve the plans"); IN-01 — **no automated review** ("I don't want the automated review at this time"); the repository stays public as Chris created it; the implementer self-reviews every diff.
 - **Queue:** A → B → C → D → V → O → P → W → U → R → E → X (`MASTER-ROADMAP.md`).
 
@@ -22,6 +21,10 @@ database tables yet. No Neon key has been added anywhere; nothing touches a real
 - Runtime: Node 24.x (Vercel stopped deploying Node 20 on 2026-10-01; see DECISIONS).
 
 ## Recent work (newest first)
+
+**2026-10-11 — A-2 schema (#7):** additive, idempotent internal tables and indexes, no key material or real Neon
+calls; test coverage includes Postgres uniqueness/revocation, connector defaults, protected mode and ciphertext columns.
+
 
 **2026-10-10 — CI cadence (docs + CI config PR):** never push while a PR's CI run is in progress (SESSION-START §6,
 PLAYBOOK Step 5); obsolete PR runs are cancelled, runs on `main` never are. Next action unchanged.

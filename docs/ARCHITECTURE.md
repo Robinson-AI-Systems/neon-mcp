@@ -3,8 +3,8 @@
 This file describes what **exists**, and is updated in the same PR that ships it (DRIFT-PROTOCOL checklist B). What the
 system is designed to become is in `docs/designs/`; do not copy design text here before it is built.
 
-As of 2026-10-10 (A-1, #1): **the foundation for building is in place; no server code yet** — no tools, no endpoints, no
-database tables, no Neon calls. What exists: the package, test harness, fake Neon API, check scripts and CI below.
+As of 2026-10-11 (A-2, #7): the foundation includes additive internal schema initialization and 11 tables
+(defined, not provisioned). No endpoints, tools, Neon API calls, real keys or live database yet.
 
 ## Infrastructure
 
@@ -18,12 +18,29 @@ database tables, no Neon calls. What exists: the package, test harness, fake Neo
 
 ## Environment variables
 
-None yet. Batch A defines `DATABASE_URL`, `ADMIN_PASSPHRASE`, `PUBLIC_BASE_URL`, `TOKEN_ENCRYPTION_KEY`; record each
-here with its environments when A-5 ships. Never record values.
+`DATABASE_URL` is read lazily by `src/db.js` on `createDb()`/startup initialization, never at import time.
+No live database or environment values have been configured. Batch A also defines `ADMIN_PASSPHRASE`, `PUBLIC_BASE_URL`
+and `TOKEN_ENCRYPTION_KEY` for later cards. Never record values.
 
 ## Database tables
 
-None yet. Each batch's design lists its tables; record them here as they ship.
+Defined by `src/db.js` using only additive `CREATE ... IF NOT EXISTS`; not provisioned until deployment.
+
+| Table | Purpose |
+|---|---|
+| `neon_orgs` | Organization labels, default status and production-disabled gate |
+| `neon_keys` | Encrypted key ciphertext, scope and revocation; at most one active key per scope |
+| `oauth_clients` | Registered connector clients |
+| `oauth_codes` | One-use authorization code data and connection settings |
+| `oauth_tokens` | Hashed token/refresh identifiers and connection settings |
+| `login_attempts` | Login lockout audit |
+| `rate_limits` | Request counters per time window |
+| `change_log` | Change intent, previews, confirmations and future undo references |
+| `one_time_secrets` | Outbound ciphertext with expiry and one-time viewing |
+| `secret_requests` | Inbound ciphertext with expiry and one-time consumption |
+| `settings` | Persisted user-editable configuration |
+
+The A-2 real-Postgres tests use an isolated disposable local schema; the fake DB only mirrors table names.
 
 ## Endpoints
 
