@@ -352,6 +352,8 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
+**Implemented registry at #45 (production-deployment capability listing):** `read_only` 11; `everyday` 11; `full` 16. These are implemented tools, not the 177-tool planned catalog; verified in CI using exact tool metadata.
+
 ## Totals
 
 **173 hand-built tools plus 4 universal `neon_api_*` tools = 177**, plus guided settings for every dashboard-only setting.
