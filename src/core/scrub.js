@@ -3,7 +3,7 @@ const secretKeys = new Set(['password','password_hash','passphrase','connection_
   'connection_string','connection_strings','api_token','api_key','api_secret','secret',
   'secret_key','private_key','client_secret','access_token','refresh_token','authorization',
   's3_secret_access_key','secret_server_key','auth_data','credentials','credential','key_enc',
-  'secret_access_key','signed_url','presigned_url','dsn']);
+  'secret_access_key','signed_url','presigned_url','dsn','key']);
 const auditPersonal = new Set(['email','emails','email_address','phone','phone_number','name',
   'first_name','last_name','full_name','address','ip_address']);
 const secretValue = /\b(?:napi|npg|gh[pousr])_[A-Za-z0-9_-]{5,}\b/g;
@@ -33,7 +33,6 @@ export function scrubNeonResult(value,{audit=false}={}) {
       const key=normalize(k);
       if(secretKeys.has(key) || key.endsWith('_password') ||
         key.endsWith('_secret') || key.endsWith('_token') ||
-        (key==='key' && (typeof item!=='string' || /^(napi_|npg_|sk_|pk_)/.test(item))) ||
         (key==='uri' && typeof item==='string' && /(?:postgres|password=)/i.test(item)) ||
         (key==='url' && typeof item==='string' &&
           /[?&](?:X-Amz-|X-Goog-|sig=|signature=|token=)/i.test(item)))continue;

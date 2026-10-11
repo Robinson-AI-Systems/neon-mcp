@@ -12,6 +12,7 @@ describe('B-6 deep secret removal',()=>{
         message:'postgresql://user:FAKE_PASS@localhost/db napi_FAKE_TESTKEY',
         url:'https://localhost/x?X-Amz-Signature=fake'}]};
     const text=JSON.stringify(scrubNeonResult(v));
+    expect(scrubNeonResult({key:'raw-opaque-key',label:'safe'})).toEqual({label:'safe'});
     for(const s of ['FAKE_TESTPASS','FAKE_TESTKEY','FAKE_PASS','X-Amz','s3_secret','api_token'])expect(text).not.toContain(s);
     expect(text).toContain('owner@example.test');
     expect(redactNeonText('bearer fake-access')).not.toContain('fake-access');
@@ -52,5 +53,6 @@ describe('B-6 display and connection profiles',()=>{
       db:{},env:{VERCEL_ENV:'preview'}});
     expect(out.content[0].text).toContain('"id":"safe"');
     expect(out.content[0].text).not.toContain('fake-pass');
+    expect(out.structuredContent).toBeUndefined();
   });
 });

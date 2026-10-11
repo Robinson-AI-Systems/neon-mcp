@@ -12,7 +12,7 @@ const allowedTool=(item,connection,env)=>isToolAllowed(item,connection,
   {productionDeployment:env?.VERCEL_ENV==='production'});
 function safeMcpResult(result){
   if(!result || !Array.isArray(result.content))return {isError:true,content:[{type:'text',text:'Invalid tool response'}]};
-  return {...result,content:result.content.map(item=>{
+  return {isError:result.isError===true,content:result.content.map(item=>{
     if(item?.type!=='text')return {type:'text',text:'Non-text output unavailable'};
     let value;
     try { value=JSON.parse(item.text); } catch { return {type:'text',text:redactNeonText(item.text)}; }
