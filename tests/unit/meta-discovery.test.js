@@ -23,7 +23,7 @@ describe('C-2 discovery via authenticated registry',()=>{
   const a=value(await run('neon_search_tools',{query:'result'}));
   expect(a.tools.some(t=>t.name==='neon_get_result')).toBe(true);
   const b=value(await run('neon_search_tools',{area:'discovery',audience:'builder'}));
-  expect(b.tools.map(t=>t.name)).toEqual(['neon_search_tools','neon_describe_tool']);
+  expect(b.tools.map(t=>t.name)).toEqual(['neon_search_tools','neon_call','neon_batch','neon_describe_tool']);
   const c=value(await run('neon_search_tools',{area:'missing'}));
   expect(c.total).toBe(0);
  });
