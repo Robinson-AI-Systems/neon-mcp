@@ -4,7 +4,7 @@ import { createFakeDb } from '../../test/helpers/fake-db.js';
 import { createOAuthHandlers } from '../../src/core/oauth-handlers.js';
 import { requireMcpToken } from '../../src/core/mcp-auth.js';
 
-const env = { PUBLIC_BASE_URL: 'https://neon-mcp.example.test', ADMIN_PASSPHRASE: 'only-the-owner-knows' };
+const env = { PUBLIC_BASE_URL: 'https://neon-mcp.example.test', ADMIN_PASSPHRASE: 'FAKE_only-the-owner-knows' };
 const resource = env.PUBLIC_BASE_URL + '/api/mcp';
 const callback = 'https://client.example.test/cb';
 const verifier = 'a'.repeat(43);
