@@ -35,7 +35,11 @@ it('copies every connection field, without conflating null scope with missing fi
 it('all DDL is additive and SQL statements are literal tagged templates', () => {
   const source = readFileSync(new URL('../../src/db.js', import.meta.url), 'utf8');
   expect(source).not.toMatch(/\b(?:DROP|TRUNCATE)\s+(?:SCHEMA|TABLE|INDEX|DATABASE)\b/i);
-  // B-3c permits only six audited, additive, idempotent SQL preview columns.\n  const alters = source.split('\\n').filter(line => /\\bALTER TABLE change_log\\b/.test(line));\n  expect(alters).toHaveLength(6);\n  expect(alters.every(line => /^\\s*await sql`ALTER TABLE change_log ADD COLUMN IF NOT EXISTS sql_[a-z_]+ (?:TEXT|JSONB|TIMESTAMPTZ)`;$/.test(line.trim()))).toBe(true);
+  // B-3c permits only six audited, additive, idempotent SQL preview columns.
+  const alters = source.split('\n').filter(line => /\bALTER TABLE change_log\b/.test(line));
+  expect(alters).toHaveLength(6);
+  expect(alters.every(line => line.trim().startsWith('await sql') &&
+    /ADD COLUMN IF NOT EXISTS sql_[a-z_]+ (?:TEXT|JSONB|TIMESTAMPTZ)/.test(line))).toBe(true);
   expect([...source.matchAll(/CREATE\s+(?:UNIQUE\s+)?(?:TABLE|INDEX)\s+(?!IF\s+NOT\s+EXISTS)/gi)]).toEqual([]);
 });
 it('executes the fixed DDL statement list twice, in order', async () => {
