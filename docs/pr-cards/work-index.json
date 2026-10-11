@@ -233,16 +233,20 @@
         "B-2"
       ],
       "card": "docs/pr-cards/B-3.md",
-      "status": "PLANNED",
+      "status": "IN_PROGRESS",
       "migration": "none",
       "budget": 550,
       "units": [
         "B-3"
       ],
-      "readiness": "WRITE_CARD_AT_START",
+      "readiness": "READY",
       "ownerInputs": [
         "IN-09"
-      ]
+      ],
+      "pr": [
+        22
+      ],
+      "note": "B-3a isolated AST classifier (#22) merged when exact-head CI green; B-3b bounded reads, B-3c previews/tokens/apply pending. Owner IN-09 approved 2026-10-11 but config must be implemented."
     },
     {
       "id": "B-4",
