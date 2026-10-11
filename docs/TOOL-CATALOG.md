@@ -373,3 +373,5 @@ for k,v in counts.items(): print(v, k)
 print(sum(counts.values()), 'total')
 EOF
 ```
+
+C-1a (#38): common read tools accept `detail: summary|full` and comma-separated dotted `fields` at MCP registration; selection occurs after secret removal. Large-result handles are C-1b.
