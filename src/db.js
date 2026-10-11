@@ -261,6 +261,11 @@ export function createDb(sql = productionSql()) {
           AND confirmed = 'pending' RETURNING id`;
       return rows.length === 1;
     },
+    /** Database-backed IN-09 defaults; never rely on an untrusted caller's SQL policy. */
+    async getSqlReadPolicy() {
+      const rows = await sql`SELECT value FROM settings WHERE key = 'sql.read_policy'`;
+      return rows.length ? rows[0].value : null;
+    },
     /** Owner-managed list only; callers of a write guard must also supply verified self identity. */
     async getProtectedResources() {
       const rows = await sql`SELECT value FROM settings WHERE key = 'protected_resources'`;
@@ -391,6 +396,9 @@ export function createDb(sql = productionSql()) {
         key TEXT PRIMARY KEY, value JSONB NOT NULL,
         updated_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_by TEXT
       )`;
+      await sql`INSERT INTO settings (key, value, updated_by)
+        VALUES ('sql.read_policy', '{"productionReads":true,"maxRows":200}'::jsonb, 'system_default_IN-09')
+        ON CONFLICT (key) DO NOTHING`;
       // Indexes needed for expiring connector grants and temporary secrets.
       await sql`CREATE INDEX IF NOT EXISTS oauth_codes_expires_at ON oauth_codes (expires_at)`;
       await sql`CREATE INDEX IF NOT EXISTS oauth_tokens_refresh_hash ON oauth_tokens (refresh_hash)`;
