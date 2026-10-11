@@ -123,3 +123,7 @@ The generic write lifecycle lives in `src/core/write.js`; Neon-specific API/wait
 ## B-2a production and protected-resource classifiers
 
 `src/neon/production.js` decides from trusted Neon branch reads and server-side profile data, ignoring deprecated `primary`. Unreadable targets are denied. `src/core/protected-resources.js` refuses all protected projects/branches, including this server's own project; the self project must be independently verified before writes can be enabled. The owner-managed list lives in `settings.protected_resources`, but the owner's confirmation/editor and the durable two-step production enable remain B-2b. No generic write door is opened by B-2a.
+
+## B-2b owner protection editor
+
+`src/core/self-resource.js` derives the server's own organization/project from owner-controlled Vercel settings only after confirming `DATABASE_URL` uses the owner-declared endpoint hostname; no secrets are echoed. The passphrase- and Origin-guarded `/api/neon/setup` protects edits to `settings.protected_resources` and always reconstructs its own `self` entry on reads. Missing or mismatched config fails closed. This step does not activate or expose production writes; the remaining two-step owner flow is B-2c.

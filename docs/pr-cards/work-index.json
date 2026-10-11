@@ -218,9 +218,10 @@
         "IN-08"
       ],
       "pr": [
-        18
+        18,
+        19
       ],
-      "note": "B-2a classification and resource store #18; B-2b pending owner-only route and two-step enable (IN-07/08 not applied)"
+      "note": "B-2a classification #18; B-2b secure owner editor #19; B-2c production authorization still pending"
     },
     {
       "id": "B-3",
