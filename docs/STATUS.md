@@ -1,6 +1,9 @@
 # STATUS — current work, blockers and next action
 
-Updated 2026-10-11. **A-5c owner setup and first read tools merged (#14):** passphrase/Origin-guarded
+Updated 2026-10-11. **A-6 SQL connection layer merged (#15):** guarded Neon URI lookup, self-database
+host exclusion, statement/lock timeouts, credential-safe error/result handling and connection cleanup,
+with fake-Neon and disposable PostgreSQL verification. No SQL MCP tool is exposed.
+**A-5c owner setup and first read tools merged (#14):** passphrase/Origin-guarded
 key setup, revocation, one-time secret viewing/submission and exactly two scoped read-only MCP tools.
 **A-5b one-time secret exchange merged (#13):** inbound and outbound ciphertext, expiry, org-bound
 single-use consumption through guarded backend functions, disposable database and fake-unit tests.
@@ -18,8 +21,8 @@ expiry indexes exist in code and are verified by isolated-Postgres tests. No liv
 
 ## Next
 
-- **Next: A-6 — in-memory SQL connection layer and self-database protection** (`pr-cards/A-6.md`).
-  Then A-7 deployment guide; live infrastructure still requires owner IN-02, IN-03 and IN-04.
+- **Next: A-7 — documented owner-safe deployment guide** (`pr-cards/A-7.md`). No real provisioning
+  before separate approval for IN-02, IN-03 and IN-04; then Batch B safety layer.
 - **Answered 2026-10-10 (Chris):** IN-00 — plan approved ("I approve the plans"); IN-01 — **no automated review** ("I don't want the automated review at this time"); the repository stays public as Chris created it; the implementer self-reviews every diff.
 - **Queue:** A → B → C → D → V → O → P → W → U → R → E → X (`MASTER-ROADMAP.md`).
 
@@ -33,6 +36,10 @@ expiry indexes exist in code and are verified by isolated-Postgres tests. No liv
 - Runtime: Node 24.x (Vercel stopped deploying Node 20 on 2026-10-01; see DECISIONS).
 
 ## Recent work (newest first)
+
+**2026-10-11 — A-6 SQL connection layer (#15):** one guarded API URI lookup, host comparison protecting
+this server's own DB, 15-second statement/5-second lock limits and guaranteed cleanup; no SQL tools exposed.
+
 
 **2026-10-11 — A-5c setup and read-only tools (#14):** owner page for key addition/revocation and one-time
 secrets, passphrase lockout, strict same-origin POST, scoped organization and project selection, first two MCP tools.

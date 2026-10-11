@@ -5,7 +5,7 @@ Written 2026-10-10 for an empty repository. [STATUS](STATUS.md) holds current st
 ## What is next
 
 **Done:** A-1 (#1), A-2 (#7), A-3 (#8/#9), A-4 (#10/#11), A-5 (#12/#13/#14).
-**Next:** A-6 SQL connection layer, then A-7 deployment guide.
+**Next:** A-7 documented deployment guide (owner infrastructure gates still open), then B-1.
 
 ## Order and why
 
