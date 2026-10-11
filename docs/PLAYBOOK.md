@@ -30,6 +30,9 @@ At most two unmerged implementation PRs in one chain.
 Neon call, look the operation up in the vendored description first: `node scripts/openapi-find.mjs "create branch"`
 (built in A-4) and the official reference page; cite the operationId and the reference URL in the PR.
 
+Before writing code, use the relevant [implementation recipe](implementation-contracts/IMPLEMENTATION-RECIPES.md)
+to pin actual signatures and input mappings. Proposed paths in the route guide are not existing helpers.
+
 ## Step 3 — Implement in ordered commits
 
 One work unit = one local commit. Inside it: (1) additive SQL for this server's tables + `docs/ARCHITECTURE.md` table

@@ -11,6 +11,9 @@ sections below when a step names them.
 **Other sessions** (design, planning, review): this file → `docs/START-HERE.md` → `docs/STATUS.md` →
 `docs/MASTER-ROADMAP.md` → the relevant `docs/PLAN.md` section and design headings.
 
+Implementation pointers: `docs/implementation-contracts/IMPLEMENTATION-RECIPES.md` routes each card to verified code seams,
+test recipes and remaining-work guidance. Open only the relevant section; this is supporting guidance, not new scope.
+
 ## Working without stalling (mandatory; written with Sol 5.6 at medium effort in mind)
 
 1. **Read by section.** Files over ~300 lines (`docs/TOOL-CATALOG.md`, `docs/audits/*.md`, Neon's vendored API

@@ -31,7 +31,7 @@ expiry indexes exist in code and are verified by isolated-Postgres tests. No liv
 
 ## Next
 
-- **Next: B-3 — SQL guard and preview/apply safety.** IN-09 (production reads) needs an owner decision before real use. B-4 spending rules need IN-10. No real-account activation.
+- **Next: B-3 — SQL guard and preview/apply safety.** IN-09 (production reads) needs an owner decision before B-3 merges. B-4 spending rules need IN-10. No real-account activation.
 - **Answered 2026-10-10 (Chris):** IN-00 — plan approved ("I approve the plans"); IN-01 — **no automated review** ("I don't want the automated review at this time"); the repository stays public as Chris created it; the implementer self-reviews every diff.
 - **Queue:** A → B → C → D → V → O → P → W → U → R → E → X (`MASTER-ROADMAP.md`).
 
@@ -43,6 +43,13 @@ expiry indexes exist in code and are verified by isolated-Postgres tests. No liv
 - Commands: `npm ci`, `npm run check`, `npm test`, `npm run test:db` (`docs/ARCHITECTURE.md` "Test harness").
 - Vercel project, this server's own Neon database and Neon API keys: not created yet (IN-02, IN-03, IN-04).
 - Runtime: Node 24.x (Vercel stopped deploying Node 20 on 2026-10-01; see DECISIONS).
+
+## Implementation guidance
+
+Concrete recipes, remaining-unit routes and a B-3 worked example live in
+`implementation-contracts/IMPLEMENTATION-RECIPES.md`; startup and card-writing instructions link them.
+Documentation only; no product card is completed by this guidance. Baseline inspected: PR #20 main.
+IN-09 remains an owner decision **before B-3 merges** (OWNER-INPUTS), not merely before real use.
 
 ## Recent work (newest first)
 
