@@ -23,6 +23,9 @@ database tables yet. No Neon key has been added anywhere; nothing touches a real
 
 ## Recent work (newest first)
 
+**2026-10-10 — CI cadence (docs + CI config PR):** never push while a PR's CI run is in progress (SESSION-START §6,
+PLAYBOOK Step 5); obsolete PR runs are cancelled, runs on `main` never are. Next action unchanged.
+
 **2026-10-10 — A-1 foundation merged (#1), by Claude (Opus 5.5):** `package.json` (Node 24.x, ES modules, exact
 versions) and `package-lock.json`; Neon's API description vendored (fallback source; the live URL was unreachable — BATCH-A
 amendment); `test/helpers/fake-neon.js` (validates requests, operations, 423/429), schema-valid fixtures, proof that the
