@@ -4,6 +4,8 @@
 
 # STATUS — current work, blockers and next action
 
+**B-8a server reads (PR #34):** Four safe read tools: scoped connection summaries, audit changes, allowlisted stored settings, and structured dashboard guidance. Database queries enforce organization isolation and exclude token hashes. No live Neon use or new writes. Next B-8b guarded administration.
+
 **Workflow guidance (#31, docs only):** AGENTS, SESSION-START §6 and PLAYBOOK Step 4 now direct agents without a local checkout, terminal or PostgreSQL to use authenticated GitHub REST for branch/PR/file operations and GitHub Actions check/unit/disposable-db logs as remote test evidence. They must state local tests were unavailable, fix CI failures, self-review and merge only on green exact-head `ci`. This adds no product capability and does not change B-6 as the next approved unit.
 
 

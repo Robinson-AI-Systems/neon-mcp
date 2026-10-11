@@ -442,6 +442,34 @@ export function createDb(sql = productionSql()) {
         WHERE id = ${orgId} RETURNING id`;
       return rows.length === 1;
     },
+    /** Return only nonsecret active connection metadata scoped to a trusted organization. */
+    async listConnectionSummaries(orgId, limit = 30) {
+      if(typeof orgId!=='string' || !orgId || !Number.isInteger(limit) || limit<1 || limit>50)
+        throw new TypeError('Invalid organization or page size');
+      return sql`SELECT client_id,kind,profile,mode,listing,project_scope,last_used_at,expires_at
+        FROM oauth_tokens WHERE neon_org = ${orgId} AND revoked_at IS NULL
+          AND expires_at > now() ORDER BY expires_at DESC LIMIT ${limit}`;
+    },
+    async listRecentChanges({orgId,tool=null,projectId=null,includePreviews=false,limit=20}) {
+      if(typeof orgId!=='string' || !orgId || !Number.isInteger(limit) || limit<1 || limit>50 ||
+        (tool!==null && (typeof tool!=='string' || tool.length>100)) ||
+        (projectId!==null && (typeof projectId!=='string' || projectId.length>120)))
+        throw new TypeError('Invalid change-log filter');
+      return sql`SELECT id,project_id,branch_id,tool,target,summary,mode,production,dry_run,
+          confirmed,at AS created_at,spend_month_cents
+        FROM change_log WHERE neon_org = ${orgId}
+          AND (${tool}::text IS NULL OR tool = ${tool})
+          AND (${projectId}::text IS NULL OR project_id = ${projectId})
+          AND (${includePreviews}::boolean = true OR dry_run = false)
+        ORDER BY id DESC LIMIT ${limit}`;
+    },
+    async listSafeSettings() {
+      return sql`SELECT key,value,updated_at FROM settings WHERE key IN
+        ('protected_resources','pricing','spend.cap_per_change_cents',
+        'spend.cap_per_day_cents','sql.read_policy','sql.affected_rows_tolerance',
+        'operation_wait_seconds','neon_api_budget_per_minute','default_region')
+        ORDER BY key`;
+    },
     async initSchema() {
       // Additive foundation migration; intentionally never alters or deletes existing data.
       await sql`CREATE TABLE IF NOT EXISTS neon_orgs (
