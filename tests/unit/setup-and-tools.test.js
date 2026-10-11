@@ -148,7 +148,7 @@ describe('MCP read-only boundary and known-key project scope',()=>{
       keyEnc:'fake-ciphertext-only',last4:'1234',reach:{verified:true}});
     expect(registry.tools.map(t=>t.name)).toEqual(['neon_whoami','neon_list_accounts',
       'neon_enable_production','neon_disable_production',
-      'neon_list_connections','neon_recent_changes','neon_get_settings','neon_where_is_setting']);
+      'neon_list_connections','neon_recent_changes','neon_get_settings','neon_where_is_setting','neon_revoke_connection']);
     const connection={neonOrg:'org-fake-one',projectScope:'proj-fake-one',
       mode:'preview',profile:'read_only',listing:'catalog'};
     for(const tool of registry.tools.filter(t=>['neon_whoami','neon_list_accounts'].includes(t.name))) {

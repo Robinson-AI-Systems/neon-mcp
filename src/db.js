@@ -470,6 +470,26 @@ export function createDb(sql = productionSql()) {
         'operation_wait_seconds','neon_api_budget_per_minute','default_region')
         ORDER BY key`;
     },
+    /** B-8b: locate one live connection in the authenticated organization only. */
+    async getActiveScopedConnection({ orgId, clientId }) {
+      if(typeof orgId!=='string' || !orgId || typeof clientId!=='string' ||
+        !/^[A-Za-z0-9_-]{1,120}$/.test(clientId))throw new TypeError('Invalid scoped connection');
+      const rows=await sql`SELECT client_id,kind,profile,mode,project_scope
+        FROM oauth_tokens WHERE neon_org = ${orgId} AND client_id = ${clientId}
+          AND kind IN ('connector','pass') AND revoked_at IS NULL
+          AND expires_at > now() ORDER BY expires_at DESC LIMIT 1`;
+      return rows[0]||null;
+    },
+    /** One authorized revoke atomically invalidates all live grants for this client in this org. */
+    async revokeScopedConnection({ orgId, clientId }) {
+      if(typeof orgId!=='string' || !orgId || typeof clientId!=='string' ||
+        !/^[A-Za-z0-9_-]{1,120}$/.test(clientId))throw new TypeError('Invalid scoped connection');
+      const rows=await sql`UPDATE oauth_tokens SET revoked_at = now()
+        WHERE neon_org = ${orgId} AND client_id = ${clientId}
+          AND kind IN ('connector','pass') AND revoked_at IS NULL
+          AND expires_at > now() RETURNING client_id`;
+      return rows.length>0;
+    },
     async initSchema() {
       // Additive foundation migration; intentionally never alters or deletes existing data.
       await sql`CREATE TABLE IF NOT EXISTS neon_orgs (

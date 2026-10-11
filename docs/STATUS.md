@@ -4,6 +4,8 @@
 
 # STATUS — current work, blockers and next action
 
+**B-8b guarded connection revocation (PR #35):** `neon_revoke_connection` uses trusted organization scoping, durable B-1 preview/confirm/reservation/verify, and immediately revokes live connector/pass grants for one selected client; no token material in results or audits. Limited to full on a production deployment. Settings writes and live-key access re-probe remain B-8 work; no Neon resources touched.
+
 **B-8a server reads (PR #34):** Four safe read tools: scoped connection summaries, audit changes, allowlisted stored settings, and structured dashboard guidance. Database queries enforce organization isolation and exclude token hashes. No live Neon use or new writes. Next B-8b guarded administration.
 
 **Workflow guidance (#31, docs only):** AGENTS, SESSION-START §6 and PLAYBOOK Step 4 now direct agents without a local checkout, terminal or PostgreSQL to use authenticated GitHub REST for branch/PR/file operations and GitHub Actions check/unit/disposable-db logs as remote test evidence. They must state local tests were unavailable, fix CI failures, self-review and merge only on green exact-head `ci`. This adds no product capability and does not change B-6 as the next approved unit.

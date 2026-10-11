@@ -364,9 +364,10 @@
       "readiness": "READY",
       "ownerInputs": [],
       "pr": [
-        34
+        34,
+        35
       ],
-      "note": "B-8a four safe reads; guarded account writes and real key reach probe remain. Production inactive."
+      "note": "B-8a read tools #34 and B-8b independently guarded, org-scoped connector/pass revocation #35. Stored settings writes and actual key access re-probe remain."
     },
     {
       "id": "C-1",

@@ -7,7 +7,7 @@ describe('tool registry', () => {
   it('keeps original reads and guarded owner controls plus B-8a scoped reads', () => {
     expect(registry.tools.map(t=>t.name)).toEqual(['neon_whoami','neon_list_accounts',
       'neon_enable_production','neon_disable_production',
-      'neon_list_connections','neon_recent_changes','neon_get_settings','neon_where_is_setting']);
+      'neon_list_connections','neon_recent_changes','neon_get_settings','neon_where_is_setting','neon_revoke_connection']);
     for(const tool of registry.tools) {
       if (tool.writes) {
         expect(tool.profiles).toEqual(['full']);
