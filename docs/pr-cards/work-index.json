@@ -380,7 +380,7 @@
         "B-8"
       ],
       "card": "docs/pr-cards/C-1.md",
-      "status": "IN_PROGRESS",
+      "status": "MERGED",
       "migration": "result_store",
       "budget": 400,
       "units": [
@@ -390,9 +390,10 @@
       "ownerInputs": [],
       "pr": [
         38,
-        39
+        39,
+        40
       ],
-      "note": "C-1a #38 summary/fields; C-1b #39 8KB scoped handles/24h result_store; C-1c retrieval/annotations #40 remains."
+      "note": "C-1 complete: #38 summary projection, #39 scoped storage, #40 bounded retrieval and MCP metadata; C-2 inherits shared output boundary."
     },
     {
       "id": "C-2",
@@ -409,7 +410,7 @@
       "units": [
         "C-2"
       ],
-      "readiness": "WRITE_CARD_AT_START",
+      "readiness": "READY",
       "ownerInputs": []
     },
     {

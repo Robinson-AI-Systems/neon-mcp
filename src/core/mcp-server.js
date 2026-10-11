@@ -9,13 +9,20 @@ import { scrubNeonResult, redactNeonText } from './scrub.js';
 import { shapeResult, selectResult } from './result-rules.js';
 import {bufferOversizeResult} from './result-store.js';
 
-const displayTool=item=>{
-  const {writes:_writes,profiles:_profiles,...publicTool}=item;
-  if(item.writes!==false)return publicTool;
-  return {...publicTool,inputSchema:{...item.inputSchema,
-   properties:{...item.inputSchema?.properties,
-    detail:{type:'string',enum:['summary','full'],description:'Choose brief (default) or full details.'},
-    fields:{type:'string',maxLength:512,description:'Comma-separated dotted fields to select.'}}}};
+// C-1 annotations are derived from trusted tool metadata, not tool-supplied arguments.
+export const publicToolMetadata=item=>{
+ const {writes:_writes,profiles:_profiles,...publicTool}=item;
+ const inputSchema=item.writes===false?{...item.inputSchema,
+  properties:{...item.inputSchema?.properties,
+   detail:{type:'string',enum:['summary','full'],description:'Choose brief (default) or full details.'},
+   fields:{type:'string',maxLength:512,description:'Comma-separated dotted fields to select.'}}}
+  :item.inputSchema;
+ return {...publicTool,inputSchema,annotations:{
+   readOnlyHint:item.writes===false,
+   destructiveHint:item.destructive===true,
+   idempotentHint:item.writes===false || item.writeContract==='defineWrite-v1',
+   openWorldHint:item.productionEffect==='write'
+ }};
 };
 const allowedTool=(item,connection,env)=>isToolAllowed(item,connection,
   {productionDeployment:env?.VERCEL_ENV==='production'});
@@ -37,7 +44,15 @@ async function safeMcpResult(result,{args={},tool,db,connection}={}){
   const buffered=await bufferOversizeResult({db,connection,toolName:tool?.name,value:shaped});
   content.push({type:'text',text:JSON.stringify(buffered.value)});
  }
- return {isError:result.isError===true,content};
+ const isError=result.isError===true;
+ if(!isError&&tool?.outputSchema&&content.length===1){
+  try{
+   const parsed=JSON.parse(content[0].text);
+   if(parsed&&typeof parsed==='object'&&!Array.isArray(parsed))
+     return {isError:false,content,structuredContent:parsed};
+  }catch{/* Never emit malformed structured content. */}
+ }
+ return {isError,content};
 }
 export async function dispatchReadOnlyTool({ registry, name, args, connection, db, env=process.env }) {
   const item = registry.tools.find(t => t.name === name);
@@ -61,7 +76,7 @@ export function createMcpHandler({ db, registry, env = process.env }) {
       {capabilities:{tools:{}}});
     server.setRequestHandler(ListToolsRequestSchema,async()=>({tools:registry.tools
       .filter(t=>allowedTool(t,connection,env))
-      .map(displayTool)}));
+      .map(publicToolMetadata)}));
     server.setRequestHandler(CallToolRequestSchema,async request=>
       dispatchReadOnlyTool({registry,name:request.params?.name,args:request.params?.arguments,connection,db,env}));
     const transport = new StreamableHTTPServerTransport({sessionIdGenerator:undefined});

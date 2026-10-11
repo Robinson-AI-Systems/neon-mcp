@@ -29,3 +29,7 @@ it does not work yet. This file is updated as features ship.
 | "Undo that." | Reverses the last change when it has a clean opposite (including a SQL change, by rolling the branch back to just before it while keeping today's state on the side); says plainly when it can't | X |
 | "Make a 24-hour read-only pass for Codex." | A pass shown once on your setup page; the agent uses it through Robinson's Toolkit (`rtool`) or the HTTPS API | R |
 | Anything else in Neon | The universal tools find the right Neon operation and run it with the same safety | U |
+
+## Reading large results
+
+When a read result is too large for the default 8KB response, retain the returned `res_...` handle. Call `neon_get_result` with that handle and `page: 0`, following `nextPage`. Each handle expires after 24 hours and only the same scoped connection can read it. Oversized items may use base64 JSON fragments: decode and concatenate fragments in page order, then parse the JSON. No Neon production access is enabled by this feature.

@@ -158,3 +158,5 @@ The `settings['sql.affected_rows_tolerance']` JSON integer is seeded idempotentl
 ### C-1 stored result handles
 
 The additive `result_store` table persists already-scrubbed JSON behind random 160-bit `res_...` handles, with SHA-256 connection-scope bindings and 24-hour expiry; inserts purge at most 100 expired rows. Neither credentials nor result bodies are exposed through summaries. The public scoped retrieval MCP tool follows in C-1c.
+
+C-1c (#40): MCP read `neon_get_result` verifies the hashed trusted connection scope and returns item pages or lossless base64 JSON fragments capped below the 8KB output boundary. Registry-derived annotations apply across MCP tool listings, and output-schema responses gain safe structured content.
