@@ -1,5 +1,7 @@
 # STATUS — current work, blockers and next action
 
+**B-3 in progress (draft PR #22, not merged):** a pure PostgreSQL AST classification slice and parser-only regression tests are under CI review. B-3 read runner, exact preview, durable token, LSN and guarded apply remain. No SQL tool exposed or production access enabled. **IN-09 still needs owner approval before any B-3 merge.** This draft does not count as completed roadmap work.
+
 **B-2 completed (#18/#19/#20):** trusted production classifier, absolute protection, secure owner resource editor and owner-production access two-step request/passphrase mechanism. All production flags remain OFF; X-2/X-3 and IN-07/08 approval gates are enforced by default. Only two internal control tools are newly visible to full-profile connectors on an approved production deployment; no Neon project write tools yet.
 
 **B-2b protected-resources owner editor merged (#19):** owner-only form secured by same-origin POST and passphrase, own-project environment/host verification, immutable automatic self protection, safe list editing and tests. Production access still disabled; B-2c is next.
