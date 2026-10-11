@@ -64,6 +64,7 @@ it('guard requires confirmation, records a single claim, no second provider writ
 it('changing rates requires confirmation and leaves a safe audit row', async () => {
   const prices = await db.getPricing();
   await expect(db.savePricingFromOwnerSetup({ pricing: prices })).rejects.toThrow(/confirmation/);
+  await expect(db.savePricingFromOwnerSetup({ pricing: { ...prices, ratesMicro: { ...prices.ratesMicro, launchCuHour: -1 } }, confirm: true })).rejects.toThrow(/Pricing table/);
   await db.savePricingFromOwnerSetup({ pricing: prices, confirm: true });
   const rows = await rawQuery("SELECT tool, summary FROM change_log WHERE tool = 'neon_pricing_update'");
   expect(rows).toHaveLength(1);
