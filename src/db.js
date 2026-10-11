@@ -345,6 +345,17 @@ export function createDb(sql = productionSql()) {
         RETURNING sql_expected_rows, sql_schema_hash, production`;
       return rows[0] || null;
     },
+    /** Persist a validated pre-write WAL restore point on the exact pending SQL audit. */
+    async recordSqlRestoreLsn({ orgId, id, lsn }) {
+      if (!orgId || !id || typeof lsn !== 'string' ||
+          !/^[0-9a-f]{1,8}\/[0-9a-f]{1,8}$/i.test(lsn))
+        throw new TypeError('Invalid SQL restore checkpoint');
+      const rows = await sql`UPDATE change_log SET restore_lsn = ${lsn}
+        WHERE id = ${id} AND neon_org = ${orgId} AND tool = 'neon_sql_execute'
+          AND dry_run = FALSE AND confirmed = 'pending' AND restore_lsn IS NULL
+        RETURNING id`;
+      return rows.length === 1;
+    },
     /** Database-backed IN-09 defaults; never rely on an untrusted caller's SQL policy. */
     async getSqlReadPolicy() {
       const rows = await sql`SELECT value FROM settings WHERE key = 'sql.read_policy'`;
