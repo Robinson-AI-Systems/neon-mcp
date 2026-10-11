@@ -1,3 +1,5 @@
+**C-2 complete (PR #45, batch #41–#45):** Compact and catalog connection listings; scoped search/describe/call/read batch; pinned `gpt-tokenizer@3.4.0` o200k BPE enforces description, schema, <5,000 compact, <20,000 everyday listing and 100-item ≤8KB/secret-free stored handle checks. Implemented profile counts match TOOL-CATALOG. Next: D-1 projects, operations and regions. No production activation, paid resources or live Neon changes.
+
 **C-2d listing modes (PR #44):** `catalog` lists all authorized tools and `compact` exposes only guarded meta, whoami, result retrieval and future read-only workflows; `?listing=` override changes display only. OAuth defaults catalog for Claude-identified clients, compact for other clients, with user selection preserved. Token/schema budgets follow. Production stays OFF.
 
 **C-2c read-only batch (PR #43):** `neon_batch` preflights every requested name, denies entire batches containing writes or nested gateways and dispatches at most ten reads through the ordinary scoped, scrubbed wrapper. Next: compact listing and exact token/schema budget verification. Production remains OFF.

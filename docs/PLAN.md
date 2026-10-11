@@ -36,9 +36,9 @@ next bounded implementation.
 - [ ] `check-writes` fails on every undeclared or incomplete write declaration; server tools (settings, connections, production enable/disable, where-is-setting).
 
 ## Batch C — Cheap on context (`designs/BATCH-C.md`)
-- [ ] Summaries, `fields`, `detail`, handles (secret-free), annotations, structured output; SQL row caps.
-- [ ] Catalog and compact listing; meta-tools route through the wrapped handlers.
-- [ ] Budgets enforced in CI: compact <5,000 tokens, everyday catalog <20,000, descriptions ≤160 characters, results ≤8 KB or a handle, registry counts match TOOL-CATALOG.
+- [x] Summaries, `fields`, `detail`, handles (secret-free), annotations, structured output; SQL row caps (#38–#40).
+- [x] Catalog and compact listing; meta-tools route through the wrapped handlers (#41–#44).
+- [x] Budgets enforced in CI: compact <5,000 tokens, everyday catalog <20,000, descriptions ≤160 characters, results ≤8 KB or a handle, registry counts match TOOL-CATALOG (#45).
 
 ## Batch D — Neon core (`designs/BATCH-D.md`)
 - [ ] Every Projects, Operations, Branches, Computes, Databases/roles, Connections, SQL, Schema, Health, Snapshots and Project security tool in TOOL-CATALOG built and marked, including the D-9 data checks and index maintenance added by the gap check (2026-10-10).

@@ -404,14 +404,22 @@
         "C-1"
       ],
       "card": "docs/pr-cards/C-2.md",
-      "status": "PLANNED",
+      "status": "MERGED",
       "migration": "none",
       "budget": 400,
       "units": [
         "C-2"
       ],
       "readiness": "READY",
-      "ownerInputs": []
+      "ownerInputs": [],
+      "pr": [
+        41,
+        42,
+        43,
+        44,
+        45
+      ],
+      "note": "C-2 completed: #41 search/describe, #42 wrapped call, #43 read batch, #44 listing modes, #45 pinned BPE budgets and secret-free fixture. D-1 next."
     },
     {
       "id": "D-1",
@@ -428,7 +436,7 @@
       "units": [
         "D-1"
       ],
-      "readiness": "WRITE_CARD_AT_START",
+      "readiness": "READY",
       "ownerInputs": []
     },
     {
