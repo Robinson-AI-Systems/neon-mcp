@@ -10,7 +10,7 @@ export function pageStoredResult(body,{page=0,pageSize=10,fields}={}){
    ?Object.entries(selected):[];
  const arr=Array.isArray(selected)?selected:entries.find(([name,val])=>
    Array.isArray(val) && !['unknownFields'].includes(name))?.[1];
- const source=Array.isArray(selected)?'root':entries.find(([name,val])=>val===arr)?.[0]??null;
+ const source=Array.isArray(selected)?'root':entries.find(([_name,val])=>val===arr)?.[0]??null;
  if(arr){
    const offset=page*pageSize;
    const result={format:'items',source,page,pageSize,total:arr.length,
