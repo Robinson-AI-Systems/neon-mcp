@@ -18,7 +18,7 @@ function fixture({size=20000000,profile='full',protectedBranch=false,afterPresen
  const changed=devBranch({logical_size:size+100,protected:protectedBranch});
  const newSnap={id:'snap-fake-000002',name:'new-backup',
   created_at:'2026-10-10T12:00:00Z',source_branch_id:IDS.dev,
-  expires_at:expiresAt,manual:true,full_size:size};
+  expires_at:expiresAt,manual:true,...(size===null?{}:{full_size:size})};
  for(let i=0;i<3;i++){
   fake.when('getProject').resolves({project:project()});
   fake.when('listProjectBranches').resolves({branches:[mainBranch(),branch],annotations:{}});
