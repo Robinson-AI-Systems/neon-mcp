@@ -523,9 +523,10 @@
         65,
         67,
         68,
-        69
+        69,
+        70
       ],
-      "note": "D-4 reads #65, guarded database writes #67, encrypted role create #68, verified secret-safe role reset #69. Read-only role privileges, deletion and connections still in progress; live provider/scratch acceptance separately owner gated."
+      "note": "D-4 verified reads #65, database writes #67, role create #68, password reset #69, connection information + owner secret handoff #70. Read-only role grants, role deletion and live acceptance remain pending; production OFF."
     },
     {
       "id": "D-5",

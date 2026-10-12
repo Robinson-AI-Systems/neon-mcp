@@ -12,7 +12,7 @@ const externalProjectWrites=new Set(['neon_project_create','neon_project_rename'
  'neon_compute_start','neon_compute_suspend','neon_compute_restart',
  'neon_compute_delete','neon_compute_update_settings',
  'neon_database_create','neon_database_update','neon_database_delete',
- 'neon_role_create','neon_role_reset_password']);
+ 'neon_role_create','neon_role_reset_password','neon_connection_show_once']);
 export function isToolAllowed(tool, connection, {productionDeployment=false}={}) {
   if(!tool || !profiles.has(connection?.profile) ||
       !Array.isArray(tool.profiles) || !tool.profiles.includes(connection.profile))return false;

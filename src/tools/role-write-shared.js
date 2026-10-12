@@ -14,6 +14,9 @@ export const common={projectId:idSchema,branchId:idSchema,confirm:{type:'boolean
 export const schema=(more,required)=>({type:'object',properties:{...common,...more},
  required,additionalProperties:false});
 export function checkSecretStorage(c){
+ // A second owner-profile gate protects direct handler calls, even if discovery or
+ // dispatch metadata is accidentally bypassed.
+ if(c?.connection?.profile!=='full')throw Error('Owner profile required for secret delivery');
  // Fail before any mutation: public URL, durable encrypted exchange and a usable key.
  if(typeof c?.db?.saveOneTimeSecret!=='function'||
     typeof c?.db?.consumeSecretRequest!=='function')
