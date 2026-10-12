@@ -595,9 +595,10 @@
         87,
         97,
         98,
-        99
+        99,
+        100
       ],
-      "note": "D-7 #87 reads, #97 deletion, #98 rename, #99 guarded manual dev snapshot creation with source-dated $0.09/GB-month conservative B-4 estimate, verified branch size and short expiry; live/owner acceptance remains closed. Provider public expires_at updates conflict with pinned name-only SnapshotUpdateRequest; keep unregistered until legitimate repin. Restore/finalize/schedules still missing."
+      "note": "D-7 #87 bounded reads; #97 manual development deletion; #98 rename; #99 B-4 priced creation; #100 B-4 staged (nonfinalized) restore with exact compute placement proof. Live acceptance, finalize/schedule, billed audit/replication remain gated."
     },
     {
       "id": "D-8",

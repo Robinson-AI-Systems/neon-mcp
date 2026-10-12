@@ -195,7 +195,7 @@ The SQL guard (`docs/designs/BATCH-B.md` B-3) classifies every statement with th
 | `neon_snapshot_create` | Full-owner time-limited manual snapshot of verified unprotected dev branch, requires observed logical size, dated $0.09/GB-month conservative B-4 spend approval and exact readback; historical/LSN variants still gated | C $ | Ow | F | D-7 (built #99; offline) |
 | `neon_snapshot_update` | Owner-guarded name-only rename of a verified manual development snapshot, preserves expiration and billing; exact readback | P | Op | F | D-7 (built #98; expiry changes still gated) |
 | `neon_snapshot_delete` | Owner-guarded, independently verified deletion of a manual development snapshot; protected/default/scheduled/source-vanished snapshots refuse, exact readback and no automatic retry | C D | Op | F | D-7 (built #97) |
-| `neon_snapshot_restore` | Restore a snapshot to a **new** branch to look at; never replaces anything | P $ | Op | E | D-7 |
+| `neon_snapshot_restore` | Full-owner B-4 priced staging to a separate non-finalized development review branch, no compute reassignment or original replacement, exact readback | C $ | Ow | F | D-7 (built #100, offline) |
 | `neon_snapshot_finalize_restore` | Swap a restored branch in for the original: production computes move to it (restart). The 2026-09-28 Appliance Desk incident action — always asks | C D Pr | Ow | F | D-7 |
 | `neon_snapshot_set_schedule` | Automatic snapshots (hourly/daily/…) for a branch; scheduled snapshot storage is billed | C $ | Ow | F | D-7 |
 
