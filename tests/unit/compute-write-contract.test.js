@@ -93,6 +93,7 @@ function realFixture(name,{production=false,blocked=false,appOwned=false,
     params:{name,arguments:args}})});
   const payload=await response.text();
   const line=payload.split('\n').find(x=>x.startsWith('data: '));
+  if(!payload.trim())throw Error('Empty MCP HTTP response: status '+response.status+', type '+response.headers.get('content-type'));
   const decoded=JSON.parse(line?line.slice(6):payload);
   return decoded.result??decoded;
  };
