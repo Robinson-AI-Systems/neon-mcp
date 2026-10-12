@@ -30,10 +30,14 @@ function configuration(p){
    autoscalingLimitMinCu:p.default_endpoint_settings?.autoscaling_limit_min_cu??null,
    autoscalingLimitMaxCu:p.default_endpoint_settings?.autoscaling_limit_max_cu??null,
    suspendTimeoutSeconds:p.default_endpoint_settings?.suspend_timeout_seconds??null
-  },maintenanceWindow:p.maintenance_window?.start_time||null,
-  quotas:p.quotas?{computeTimeSeconds:p.quotas.compute_time_seconds??null,
-   dataTransferBytes:p.quotas.data_transfer_bytes??null,
-   writtenDataBytes:p.quotas.written_data_bytes??null}:null};
+  },maintenanceWindow:p.settings?.maintenance_window||null,
+  preloadLibraries:p.settings?.preload_libraries||null,
+  quotas:p.settings?.quota?{
+   activeTimeSeconds:p.settings.quota.active_time_seconds??null,
+   computeTimeSeconds:p.settings.quota.compute_time_seconds??null,
+   dataTransferBytes:p.settings.quota.data_transfer_bytes??null,
+   writtenDataBytes:p.settings.quota.written_data_bytes??null,
+   logicalSizeBytes:p.settings.quota.logical_size_bytes??null}:null};
 }
 export function createOperationHandlers({getClient=projectClient,wait=waitForOperations}={}){
  return {
