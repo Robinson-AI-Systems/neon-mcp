@@ -36,7 +36,7 @@ async function state(a,c,kind){
  const result=await projectRead(client,'listProjectBranches',{
   path:{project_id:pid},query:{limit:100}});
  const list=result.branches;
- if(!Array.isArray(list)||result.pagination?.cursor||
+ if(!Array.isArray(list)||(result.pagination?.cursor||result.pagination?.next||result.pagination?.next_cursor)||
     list.some(b=>b.project_id!==pid)||
     new Set(list.map(b=>b.id)).size!==list.length||
     list.some(b=>b.name===a.preserveUnderName))
@@ -98,7 +98,7 @@ function define(kind){
     projectRead(client,'listProjectBranches',{
      path:{project_id:before.pid},query:{limit:100}})
    ]);
-   if(!Array.isArray(listing.branches)||listing.pagination?.cursor||
+   if(!Array.isArray(listing.branches)||(listing.pagination?.cursor||listing.pagination?.next||listing.pagination?.next_cursor)||
       listing.branches.some(b=>b.project_id!==before.pid))return null;
    return {current:current.branch,saved:listing.branches.filter(b=>
     b.name===before.preserve)};
