@@ -1015,7 +1015,8 @@
       "readiness": "WRITE_CARD_AT_START",
       "ownerInputs": [
         "IN-11"
-      ]
+      ],
+      "note": "Owner requested an early, strictly read-only non-production Hub RTC integration track beginning #77. This does not mark R-1/R-2/R-3 ready or waive IN-11; full pass/write/production and independent authorization remain under existing dependencies. See docs/runbooks/RTC1-HUB-ADOPTION.md."
     },
     {
       "id": "R-3",
