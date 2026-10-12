@@ -107,14 +107,16 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 | --- | --- | --- | --- | --- | --- |
 | `neon_compute_list` | Computes in a project or on a branch: type, size range, state, scale-to-zero time, last active | — | Op | R | D-3 (built #59) |
 | `neon_compute_get` | One compute with its settings and recent operations | — | Op | R | D-3 (built #59) |
-| `neon_compute_create` | New read-write or read-replica compute on a branch; dollar preview for its size range | C $ | B Ow | F | D-3 (built #60) |
+| `neon_compute_create` | Create a compute; dollar preview and exact new endpoint ID/project read-back (review hardened #62) | C $ | B Ow | F | D-3 (built #60) |
 | `neon_compute_resize` | Change autoscaling minimum/maximum (raising: dollar preview; production: confirm) | C* $ Pr | Ow Op | F | D-3 (built #60) |
-| `neon_compute_update_settings` | Scale-to-zero delay (turning it off is a spend change), Postgres settings, pooler mode | C* $ Pr | Op | E | D-3 (built #61) |
-| `neon_compute_start` | Wake a suspended compute | P | Op | E | D-3 (built #61) |
-| `neon_compute_suspend` | Suspend a compute now (production: confirm — open connections drop) | C* Pr | Op | E | D-3 (built #61) |
-| `neon_compute_restart` | Restart a compute (production: confirm) | C* Pr | Op | E | D-3 (built #61) |
+| `neon_compute_update_settings` | Scale-to-zero delay (never-suspend requires verified spending), bounded PostgreSQL timeouts (including Free/no overrides); deprecated pooler mode not written | C* $ Pr | Op | E | D-3 (built #61) |
+| `neon_compute_start` | Wake a suspended compute (no extra confirmation for development branches) | P | Op | E | D-3 (built #61) |
+| `neon_compute_suspend` | Suspend compute; protected/default interruption denied until connections independently verified (production: confirm) | C* Pr | Op | E | D-3 (built #61) |
+| `neon_compute_restart` | Restart compute; protected/default interruption denied until connections independently verified (production: confirm) | C* Pr | Op | E | D-3 (built #61) |
 | `neon_compute_delete` | Delete a compute (connection strings using its host stop working) | C D Pr | Op | F | D-3 (built #61) |
 | `neon_compute_estimate_cost` | Dollar estimate for a size range and hours per day from the stored price table | — | B Ow | R | D-3 (built #59) |
+
+D-2/D-3 post-merge security review #62: expiring protected branches are refused pre-write; historical branch creation cannot be confirmed without exact source evidence. Compute creation rejects wrong endpoint/project read-back. All production gates remain disabled by default.
 
 ## Databases and Postgres roles (`neon_database_*`, `neon_role_*`) — 11
 
