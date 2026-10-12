@@ -138,6 +138,29 @@ describe('RTC 1 read-only HTTPS route interop against hub contract',()=>{
     expect(oversized.statusCode).toBe(400);
     expect(oversized.body.error.code).toBe('invalid_args');
   });
+  it('preflights every nested batch fields/detail value before executing any read',async()=>{
+    let executed=0;
+    const f=fixture({async listSafeSettings(){executed++;return [];}});
+    for(const invalidArgs of [
+      {detail:['full']},{detail:'raw'},
+      {fields:['profile',42]},{fields:[]},{fields:{profile:true}},
+      {fields:'x'.repeat(513)}
+    ]){
+      const denied=await run(f,req('POST','tools',{name:'_batch'},{calls:[
+        {name:'neon_get_settings',args:{}},
+        {name:'neon_whoami',args:invalidArgs}
+      ]}));
+      expect(denied.statusCode).toBe(400);
+      expect(denied.body.error.code).toBe('invalid_args');
+    }
+    expect(executed).toBe(0);
+    const allowed=await run(f,req('POST','tools',{name:'_batch'},{calls:[
+      {name:'neon_whoami',args:{fields:['profile'],detail:'summary'}}
+    ]}));
+    expect(allowed.statusCode).toBe(200);
+    expect(allowed.body.result.results).toHaveLength(1);
+    expect(executed).toBe(0);
+  });
   it('only reads a result handle scoped to this pass; refuses invalid/foreign and expired records',async()=>{
     const f=fixture();
     const handle='res_'+ 'a'.repeat(40);
