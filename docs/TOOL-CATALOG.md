@@ -107,8 +107,8 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 | --- | --- | --- | --- | --- | --- |
 | `neon_compute_list` | Computes in a project or on a branch: type, size range, state, scale-to-zero time, last active | — | Op | R | D-3 (built #59) |
 | `neon_compute_get` | One compute with its settings and recent operations | — | Op | R | D-3 (built #59) |
-| `neon_compute_create` | New read-write or read-replica compute on a branch; dollar preview for its size range | C $ | B Ow | F | D-3 |
-| `neon_compute_resize` | Change autoscaling minimum/maximum (raising: dollar preview; production: confirm) | C* $ Pr | Ow Op | F | D-3 |
+| `neon_compute_create` | New read-write or read-replica compute on a branch; dollar preview for its size range | C $ | B Ow | F | D-3 (built #60) |
+| `neon_compute_resize` | Change autoscaling minimum/maximum (raising: dollar preview; production: confirm) | C* $ Pr | Ow Op | F | D-3 (built #60) |
 | `neon_compute_update_settings` | Scale-to-zero delay (turning it off is a spend change), Postgres settings, pooler mode | C* $ Pr | Op | E | D-3 |
 | `neon_compute_start` | Wake a suspended compute | P | Op | E | D-3 |
 | `neon_compute_suspend` | Suspend a compute now (production: confirm — open connections drop) | C* Pr | Op | E | D-3 |
@@ -352,7 +352,7 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #59 (production-deployment capability listing):** `read_only` 23; `everyday` 27; `full` 44. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
+**Implemented registry at #60 (production-deployment capability listing):** `read_only` 23; `everyday` 27; `full` 46. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
 
 ## Totals
 

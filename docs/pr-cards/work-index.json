@@ -493,9 +493,10 @@
       "readiness": "READY",
       "ownerInputs": [],
       "pr": [
-        59
+        59,
+        60
       ],
-      "note": "Scoped list/get and hypothetical price estimate in #59; audited lifecycle, resize and settings follow."
+      "note": "Scoped reads/estimate #59; provider-verified audited create/resize #60; lifecycle and settings remain."
     },
     {
       "id": "D-4",
