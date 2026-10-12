@@ -5,7 +5,7 @@ export const DEFAULT_PRICING = Object.freeze({
   checkedAt: '2026-10-10',
   ratesMicro: Object.freeze({
     launchCuHour: 106000, scaleCuHour: 222000, storageGbMonth: 350000,
-    instantRestoreGbMonth: 200000, scheduledSnapshotGbMonth: 90000,
+    instantRestoreGbMonth: 200000, scheduledSnapshotGbMonth: 90000, // $0.09/GB-month for both manual full and scheduled incremental snapshot storage
     extraBranchMonth: 1500000, egressGb: 100000
   }),
   included: Object.freeze({ launchBranches: 10, scaleBranches: 25, egressGb: 500 })

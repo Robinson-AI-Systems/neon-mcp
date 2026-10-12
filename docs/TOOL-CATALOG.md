@@ -192,7 +192,7 @@ The SQL guard (`docs/designs/BATCH-B.md` B-3) classifies every statement with th
 | Tool | What it does | Flags | Aud | Profile | Card |
 | --- | --- | --- | --- | --- | --- |
 | `neon_snapshot_list` | Scoped bounded project snapshots and independently read backup schedules for every verified branch; no compute wake-up | — | Op | R | D-7 (built #87) |
-| `neon_snapshot_create` | Snapshot a branch now (or at a point in time), with a name and optional expiry | P | Op | E | D-7 |
+| `neon_snapshot_create` | Full-owner time-limited manual snapshot of verified unprotected dev branch, requires observed logical size, dated $0.09/GB-month conservative B-4 spend approval and exact readback; historical/LSN variants still gated | C $ | Ow | F | D-7 (built #99; offline) |
 | `neon_snapshot_update` | Owner-guarded name-only rename of a verified manual development snapshot, preserves expiration and billing; exact readback | P | Op | F | D-7 (built #98; expiry changes still gated) |
 | `neon_snapshot_delete` | Owner-guarded, independently verified deletion of a manual development snapshot; protected/default/scheduled/source-vanished snapshots refuse, exact readback and no automatic retry | C D | Op | F | D-7 (built #97) |
 | `neon_snapshot_restore` | Restore a snapshot to a **new** branch to look at; never replaces anything | P $ | Op | E | D-7 |

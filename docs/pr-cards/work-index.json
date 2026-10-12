@@ -594,9 +594,10 @@
       "pr": [
         87,
         97,
-        98
+        98,
+        99
       ],
-      "note": "D-7 #87 metadata, #97 safeguarded manual development snapshot deletion, #98 name-only snapshot update with strict protection, drift and readback (no billing-changing expiry). Four other snapshot mutations and priced retention extension unimplemented; real hosted/scratch acceptance gated."
+      "note": "D-7 #87 reads, #97 deletion, #98 rename, #99 guarded manual dev snapshot creation with source-dated $0.09/GB-month conservative B-4 estimate, verified branch size and short expiry; live/owner acceptance remains closed. Provider public expires_at updates conflict with pinned name-only SnapshotUpdateRequest; keep unregistered until legitimate repin. Restore/finalize/schedules still missing."
     },
     {
       "id": "D-8",
