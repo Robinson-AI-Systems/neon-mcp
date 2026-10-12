@@ -5,7 +5,7 @@ Written 2026-10-10 for an empty repository. [STATUS](STATUS.md) holds current st
 ## What is next
 
 **Done:** A-1 (#1), A-2 (#7), A-3 (#8/#9), A-4 (#10/#11), A-5 (#12/#13/#14), A-6 (#15), A-7 (#16).
-**Current:** D-4 is IN_PROGRESS and public role deletion remains blocked by independently unobservable idle pooled clients. D-5 cannot start because its dependency is incomplete. Independently approved D-7 snapshot work depends on already merged D-2 (not D-4): JIT D-7 #87 implements only scoped metadata reads, not restore/spend. D-3 offline tooling is complete; connected owner/scratch acceptance remains gated (X-3). Production stays disabled, RTC live activation remains OFF, and only scheduled checked main-to-live updates production.
+**Current milestone:** independently eligible D-8 security reads: #89 scoped JWKS trust metadata and #90 observed-vs-unknown project security posture; protected branch/network/JWKS summaries are implemented offline, while five guarded security mutations and full live acceptance remain. D-7 #87 supports read-only snapshot metadata, not paid restore/schedule mutations. D-4 role deletion stays unregistered because independently reliable pooled-client evidence is absent; D-5 remains blocked by index dependency and requires a narrowly approved amendment to proceed separately. D-3 offline tooling is complete, but connected scratch acceptance remains gated (X-3). Production and RTC live activation stay OFF; only scheduled checked main-to-live promotion is permitted. See STATUS actionable blocker ledger for re-eligibility triggers.
 
 ## Order and why
 
@@ -29,8 +29,11 @@ Written 2026-10-10 for an empty repository. [STATUS](STATUS.md) holds current st
 > details are yours to implement; a missing production, security, spend or schema decision needs a reviewed amendment,
 > not a guess. Implement a coherent unit, run the targeted checks, push once. While checks run, implement only the
 > eligible immediate successor. Fix blocking findings in one patch, refresh exact-head gates, merge when authorized and
-> green. Update the card, STATUS and `work-index.json` as if merged. Continue while eligible work exists; stop only for a
-> real gate, with committed work and the exact next action.
+> green. Update the card, STATUS and `work-index.json` as if merged. Plan around the accepted capability,
+> not the number of PRs; finish the normal five-substantive-merge session at its boundary,
+> or earlier for a true safety/dependency gate or project completion. Leave a permanent
+> PR handoff and a concise continuation prompt using SESSION-START §1a; never claim
+> deployed or live acceptance based on mocks or CI.
 
 ## Work coverage
 
