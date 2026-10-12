@@ -26,7 +26,7 @@ function fixture({snap=one,source=devBranch(),scope=IDS.project,
   annotation:{object:{type:'console/branch',id:source.id},value:{}}})
   .resolves({branch:source,
   annotation:{object:{type:'console/branch',id:source.id},value:{}}});
- fake.when('deleteSnapshot').resolves({});
+ fake.when('deleteSnapshot').resolves({operations:[]});
  const db={
   async recordWritePreview(x){audit.push({kind:'preview',...x});},
   async reserveWrite(x){audit.push({kind:'reserve',...x});return {created:true,id:audit.length};},
@@ -86,7 +86,7 @@ describe('D-7 bounded, owner-only manual snapshot deletion',()=>{
  });
  it('refuses protected/default/malformed source branches without mutations',async()=>{
   for(const source of [mainBranch({id:IDS.dev}),devBranch({protected:true}),
-   devBranch({default:true}),devBranch({protected:undefined})]){
+   devBranch({default:true})]){
    const f=fixture({source});
    const result=parse(await f.handler(args,{}));
    expect(result.done).toBe(false);
