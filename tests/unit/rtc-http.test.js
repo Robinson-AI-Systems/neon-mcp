@@ -19,7 +19,7 @@ function res(){return {headers:{},statusCode:200,body:null,headersSent:false,
   send(data){this.body=typeof data==='string'?JSON.parse(data):data;
     this.headersSent=true;return this;}};}
 const req=(method,door,extra={},body,authorization=pass)=>({
-  method,headers:{authorization,'content-type':'application/json'},
+  method,headers:{authorization:'Bearer '+authorization,'content-type':'application/json'},
   query:{door,...extra},body});
 function fixture(overrides={}){
   const calls={meter:0,stored:0,neon:0};
@@ -128,6 +128,10 @@ describe('RTC 1 read-only HTTPS route interop against hub contract',()=>{
     const oauth=await run(f,req('GET','whoami',{},undefined,'oauth123'));
     expect(oauth.statusCode).toBe(401);
     expect(oauth.body.error.code).toBe('permission');
+    const raw=await run(f,{...req('GET','whoami'),
+      headers:{authorization:pass}});
+    expect(raw.statusCode).toBe(401);
+    expect(raw.body.error.code).toBe('permission');
     const revoked=fixture({async getRtcPass(){return {...row,revoked_at:new Date()};}});
     const forbidden=await run(revoked,req('GET','whoami'));
     expect(forbidden.statusCode).toBe(401);
