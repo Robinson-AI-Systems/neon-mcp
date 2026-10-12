@@ -84,6 +84,12 @@ describe('RTC 1 read-only HTTPS route interop against hub contract',()=>{
     expect(searched.body.result.tools.map(x=>x.name)).toEqual(['neon_whoami']);
     const detail=await run(f,req('GET','tools',{name:'neon_whoami'}));
     expect(detail.body.result.name).toBe('neon_whoami');
+    expect(detail.body.result.inputSchema.properties.fields).toMatchObject({
+      type:'string',maxLength:512});
+    expect(detail.body.result.inputSchema.properties.detail.enum).toEqual([
+      'summary','full']);
+    expect(list.body.result.tools.find(t=>t.name==='neon_whoami')
+      .inputSchema.properties.detail.enum).toEqual(['summary','full']);
     const who=await run(f,req('GET','whoami'));
     expect(who.body.result).toMatchObject({profile:'read_only',
       mode:'preview',projectScope:'proj-fake-one',allowWrites:false});

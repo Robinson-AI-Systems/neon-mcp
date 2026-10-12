@@ -19,8 +19,17 @@ export function rtcToolMetadata(tool){
   const area=typeof tool.area==='string'&&tool.area?tool.area:'server';
   const audience=Array.isArray(tool.audience)&&tool.audience.length?
     tool.audience:['builder','owner','operator'];
+  // Describe the same read selector arguments honored by the shared MCP
+  // result-shaping boundary. Do not advertise them as write arguments.
+  const baseSchema=tool.inputSchema||{type:'object',properties:{}};
+  const inputSchema=writes?baseSchema:{...baseSchema,
+    properties:{...baseSchema.properties,
+      detail:{type:'string',enum:['summary','full'],
+        description:'Choose brief (default) or full details.'},
+      fields:{type:'string',maxLength:512,
+        description:'Comma-separated dotted fields to select.'}}};
   return {name:tool.name,description:tool.description,
-    inputSchema:tool.inputSchema||{type:'object',properties:{}},
+    inputSchema,
     area,profiles:[...tool.profiles],writes,
     money:tool.money===true,destructive,audience:[...audience],
     annotations:{readOnlyHint:!writes,destructiveHint:destructive,
