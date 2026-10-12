@@ -43,6 +43,17 @@ describe('D-3 scoped compute discovery',()=>{
   expect(JSON.stringify(out)).not.toMatch(/host|password|proxy_host|connection_uri/);
   fake.assertClean();
  });
+ it('labels locally clipped endpoint operation history as incomplete',async()=>{
+  const {fake,handlers}=setup();
+  fake.when('getProject').resolves({project:project()});
+  fake.when('getProjectEndpoint').resolves({endpoint:devEndpoint()});
+  fake.when('listProjectOperations').resolves({operations:Array.from({length:21},()=>
+   operation({branchId:IDS.dev,endpointId:IDS.devEndpoint}))});
+  const out=decode(await handlers.neon_compute_get({endpointId:IDS.devEndpoint},ctx));
+  expect(out.operations).toHaveLength(20);
+  expect(out.operationsCapped).toBe(true);
+  fake.assertClean();
+ });
  it('refuses foreign endpoint or connection project without a write',async()=>{
   const {fake,handlers}=setup();
   await expect(handlers.neon_compute_list({projectId:'proj-fake-other'},ctx))
@@ -61,6 +72,8 @@ describe('D-3 scoped compute discovery',()=>{
    plan:'Launch',minCu:0.25,maxCu:1,hoursPerDay:24},ctx));
   expect(out.minMonthlyCents).toBe(1935);
   expect(out.maxMonthlyCents).toBe(7738);
+  expect(out.minMonthlyDisplay).toBe('$19.35');
+  expect(out.maxMonthlyDisplay).toBe('$77.38');
   expect(out.authorizesSpending).toBe(false);
   expect(out.priceCheckedAt).toBe(DEFAULT_PRICING.checkedAt);
  });

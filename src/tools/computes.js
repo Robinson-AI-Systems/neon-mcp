@@ -71,9 +71,10 @@ export function createComputeReadHandlers({getClient=projectClient}={}){
    if(!Array.isArray(operations?.operations)||
       operations.operations.some(op=>op.project_id!==projectId))
     throw Error('Compute operations cannot be verified');
+   const matching=operations.operations.filter(op=>op.endpoint_id===e.id);
    return readText({compute:safeCompute(e),
-    operations:operations.operations.filter(op=>op.endpoint_id===e.id)
-     .slice(0,20).map(operationSummary),operationsCapped:Boolean(operations.pagination?.cursor)});
+    operations:matching.slice(0,20).map(operationSummary),
+    operationsCapped:matching.length>20||Boolean(operations.pagination?.cursor)});
   },
   async neon_compute_estimate_cost(args,ctx){
    projectScope(ctx,null); // no organization crossover, even for hypothetical estimates
@@ -87,9 +88,12 @@ export function createComputeReadHandlers({getClient=projectClient}={}){
     pricing.ratesMicro.scaleCuHour;
    const hours=args.hoursPerDay*365/12;
    const monthlyCents=cuSize=>Math.ceil(cuSize*hours*rate/10000);
+   const min=monthlyCents(args.minCu),max=monthlyCents(args.maxCu);
    return readText({assumedPlan:args.plan,source:pricing.source,
     priceCheckedAt:pricing.checkedAt,activeHoursMonthly:hours,
-    minMonthlyCents:monthlyCents(args.minCu),maxMonthlyCents:monthlyCents(args.maxCu),
+    minMonthlyCents:min,maxMonthlyCents:max,
+    minMonthlyDisplay:'$'+(min/100).toFixed(2),
+    maxMonthlyDisplay:'$'+(max/100).toFixed(2),
     hypothetical:true,authorizesSpending:false});
   }
  };
