@@ -58,8 +58,8 @@ describe('D-1 scoped, summarized discovery',()=>{
  });
  it('follows real pagination.cursor and fails closed on repeated cursors',async()=>{
   const {fake}=setup();
-  fake.when('listProjects').resolves({projects:[project()],pagination:{cursor:'next-page'}});
-  fake.when('listProjects').resolves({projects:[project({id:'proj-fake-000002'})]});
+  fake.when('listProjects').resolves({projects:[project({active_time:0})],applications:{},integrations:{},pagination:{cursor:'next-page'}});
+  fake.when('listProjects').resolves({projects:[project({id:'proj-fake-000002',active_time:0})],applications:{},integrations:{}});
   const client=makeNeonClient({key:'napi_FAKE_D1_pages_fixture',orgId:IDS.org,fetch:fake.fetch,
    budget:{async consume(){return {allowed:true}}}});
   const res=await projectPages(client,'listProjects',{query:{org_id:IDS.org}},'projects');
