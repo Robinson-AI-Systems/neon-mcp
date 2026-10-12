@@ -42,9 +42,12 @@ export async function createProjectWriteContext({connection,db,env=process.env}=
      orgId:c.connection.neonOrg,projectId:target.projectId});
    else {
     // Neon's application/integration maps are provider evidence, not caller-supplied flags.
-    const client=await c.clientFor(target.projectId);
-    const data=(await call(client,'listProjects',{
+    let data;
+    try{
+     const client=await c.clientFor(target.projectId);
+     data=(await call(client,'listProjects',{
      query:{org_id:c.connection.neonOrg,search:target.projectId,limit:100}}));
+    }catch{return false;}
     if(data.error||!data.data?.applications||!data.data?.integrations)return false;
     const matches=data.data.projects?.filter(p=>p.id===target.projectId&&
      p.org_id===c.connection.neonOrg)||[];
