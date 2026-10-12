@@ -19,6 +19,13 @@ describe('RTC 1 contract foundation (before pass-bearing HTTPS activation)',()=>
     expect(data.annotations.readOnlyHint).toBe(!t.writes);
     expect(data.annotations.destructiveHint).toBe(t.destructive===true);
     expect(data.description.length).toBeLessThanOrEqual(160);
+    if(t.writes===false){
+      expect(data.inputSchema.properties.fields).toMatchObject({
+        type:'string',maxLength:512});
+      expect(data.inputSchema.properties.detail).toMatchObject({
+        type:'string',enum:['summary','full']});
+    }else expect(data.inputSchema).toEqual(t.inputSchema||{
+      type:'object',properties:{}});
   }
  });
  it('never discloses a full-profile-only operation through a read_only pass listing',()=>{
