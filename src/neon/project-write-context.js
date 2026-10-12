@@ -19,7 +19,19 @@ export async function createProjectWriteContext({connection,db,env=process.env}=
     orgId,estimate,confirm:true,write,requestKey:key});
    return decision.allowed===true?{created:true,id:decision.claimId}:null;
   },
-  clientFor:async projectId=>(await projectClient({connection,db,env},projectId)).client
+  clientFor:async projectId=>(await projectClient({connection,db,env},projectId)).client,
+  // Verified on-demand from Neon's org endpoint, not from caller-declared plan names.
+  planFor:async()=>{
+   if(connection.projectScope)throw new Error('Organization key needed to verify plan');
+   const client=(await projectClient({connection,db,env},null)).client;
+   const response=await call(client,'getOrganization',{path:{org_id:connection.neonOrg}});
+   if(response.error||response.data?.id!==connection.neonOrg)
+    throw new Error('Organization plan could not be independently verified');
+   const value={launch:'Launch',scale:'Scale',free:'Free'}[
+    String(response.data.plan||'').toLowerCase()];
+   if(!value)throw new Error('Unrecognized organization plan');
+   return {verified:true,name:value};
+  }
  };
  ctx.guards={
   checkProtected:(target,c)=>target.target?.startsWith('project:create:')
