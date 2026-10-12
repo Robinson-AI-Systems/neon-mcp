@@ -1,6 +1,6 @@
 import {describe,it,expect} from 'vitest';
 import {makeBranchLifecycleFixture,json} from '../../test/helpers/branch-lifecycle-fixture.js';
-import {IDS,project,mainBranch,devBranch} from '../../test/helpers/neon-fixtures.js';
+import {IDS,project,mainBranch,devBranch,responses} from '../../test/helpers/neon-fixtures.js';
 import {tools,createBranchRestoreHandlers} from '../../src/tools/branch-restores.js';
 
 const preserved='dev_before_history_20261011';
@@ -8,7 +8,7 @@ const saved=()=>devBranch({id:'br-fake-preserved-0002',name:preserved});
 const before=()=>devBranch({name:'dev',updated_at:'2026-10-11T00:00:00Z'});
 const after=()=>devBranch({name:'dev',updated_at:'2026-10-11T01:00:00Z',
  last_reset_at:'2026-10-11T01:00:00Z'});
-const response=branch=>({branch,annotation:{object:{type:'console/branch',id:branch.id},value:{}}});
+const response=branch=>({...responses.getProjectBranch('dev'),branch});
 const page=branches=>({branches,annotations:{}});
 function setup({allowed=true,plan='Launch'}={}){
  const fx=makeBranchLifecycleFixture({allowed,plan,production:false});
