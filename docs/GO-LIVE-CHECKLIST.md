@@ -66,3 +66,10 @@ authority for the app.
 - [ ] On a full-profile connector in a production deployment, request with `neon_enable_production` and `confirm: true`. Request is NOT activation.
 - [ ] Within 10 minutes, owner visits `/api/neon/setup`, types `ENABLE_PRODUCTION` and the owner passphrase, and checks the result. Never do this as an agent. Disconnect/reconnect to production mode separately.
 - [ ] The owner can immediately disable access on the same setup page or with `neon_disable_production` and `confirm: true`. No changes to actual production projects are authorized in this session.
+
+## Daily deployment cost controls (2026-10-12)
+
+- [ ] Before linking or activating this server, verify that GitHub has both main and live; initialize live from main only if absent and verify both SHA references.
+- [ ] In each linked Vercel project's Production environment, set Branch Tracking to live and read it back. Disable automatic Preview deployments and verify that setting. No Vercel project setting is implied by vercel.json.
+- [ ] Confirm exact-head existing application CI and release-policy pass; development PRs never require a paid Vercel preview. Apply live-only Git rules to any nested Vercel root configuration.
+- [ ] Verify the first scheduled daily promotion and its live-promotion date tag; validate the resulting production deployment from live. Keep all existing access, spending and activation gates.
