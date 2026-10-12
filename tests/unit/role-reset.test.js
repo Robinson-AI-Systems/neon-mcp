@@ -51,7 +51,7 @@ describe('D-4 guarded role password rotation',()=>{
    role:{...after(),password:'npg_FAKE_rotated_secret'},operations:[]});
   // GET before POST and read-after need different provider revisions.
   f.fake.when('getProjectBranchRole').resolves({role:before()})
-   .resolves({role:after()});
+   .resolves({role:after()}).resolves({role:after()});
   const done=json(await f.handlers.neon_role_reset_password({...args,confirm:true},{}));
   expect(done.confirmed).toBe(true);
   expect(done.oneTimeSecretLink).toMatch(/^https:\/\/fake-owner.invalid\/api\/neon\/setup\?once=/);
@@ -60,6 +60,22 @@ describe('D-4 guarded role password rotation',()=>{
   expect(f.stored[0].ciphertext).not.toContain('npg_FAKE');
   expect(JSON.stringify({done,changes:f.changes})).not.toMatch(/npg_FAKE_rotated_secret|connection_uri/);
   expect(f.fake.calls.filter(c=>c.method==='POST')).toHaveLength(1);
+  f.fake.assertClean();
+ });
+ it('refuses secret delivery when reset revision does not independently advance',async()=>{
+  const f=setup();scope(f);
+  f.fake.when('resetProjectBranchRolePassword').resolves({
+   role:{...after(),password:'npg_FAKE_unverified_rotation'},operations:[]});
+  // Actual readback remains stale despite the POST response.
+  f.fake.when('getProjectBranchRole').resolves({role:before()})
+   .resolves({role:before()});
+  const result=json(await f.handlers.neon_role_reset_password({
+   branchId:IDS.dev,roleName:name,confirm:true},{}));
+  expect(result.confirmed).toBe('pending');
+  expect(result.oneTimeSecretLink).toBeUndefined();
+  expect(f.stored).toHaveLength(0);
+  expect(f.fake.calls.filter(x=>x.method==='POST')).toHaveLength(1);
+  expect(JSON.stringify({result,changes:f.changes})).not.toContain('npg_FAKE_unverified_rotation');
   f.fake.assertClean();
  });
  it('does not contact Neon without secure secret handoff storage',async()=>{
