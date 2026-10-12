@@ -72,7 +72,7 @@ const create=defineWrite({name:'neon_compute_create',spend:estimate,
   if(a.type==='read_write'&&data.endpoints.some(e=>e.type==='read_write'))
    throw Error('A read-write compute already belongs to this branch');
   return {projectId:pid,branchId:b.id,target:'branch:'+b.id,
-   before:{maxCu:0,targetMaxCu:a.maxCu,branchId:b.id,type:a.type,
+   before:{projectId:pid,maxCu:0,targetMaxCu:a.maxCu,branchId:b.id,type:a.type,
     minCu:a.minCu},
    summary:'Create '+a.type+' compute on verified '+b.id+', range '+
     a.minCu+'–'+a.maxCu+' CU; maximum monthly billable cost is previewed'};
@@ -94,7 +94,8 @@ const create=defineWrite({name:'neon_compute_create',spend:estimate,
   return (await projectRead(client,'getProjectEndpoint',{
    path:{project_id:pid,endpoint_id:c.createdComputeId}})).endpoint;
  },
- verify:(before,after)=>after?.project_id!==undefined&&
+ verify:(before,after,_args,c)=>after?.project_id===before.projectId&&
+  ID.test(c.createdComputeId||'')&&after.id===c.createdComputeId&&
   after.branch_id===before.branchId&&after.type===before.type&&
   after.autoscaling_limit_min_cu===before.minCu&&
   after.autoscaling_limit_max_cu===before.targetMaxCu&&ID.test(after.id||'')
