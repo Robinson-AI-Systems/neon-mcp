@@ -43,6 +43,10 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm test
+      # These are the real Neon HTTP handler wires tested against the Hub's
+      # RTC 1 read-only subset. NOT full Hub conformance or live acceptance.
+      - name: RTC read-only HTTP interop subset (offline)
+        run: npx vitest run tests/unit/rtc-http.test.js tests/unit/rtc-contract.test.js tests/unit/rtc-passes.test.js
 
   db:
     name: db (throwaway Postgres 17)

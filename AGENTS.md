@@ -145,7 +145,7 @@ and cents; stored in integer cents (unit rates in integer micro-dollars).
   check, token budgets) and the card's targeted tests. Never `--no-verify`.
 - **One push per CI cycle.** After a red run, read all failures, reproduce locally, fix them all, push once. "Flake" is
   not a cause; never skip, weaken or quarantine a test.
-- **The `ci` check is the single merge gate**, green at the exact head.
+- **Both GitHub Actions `ci` and `release-policy` are required merge gates**, green on the exact PR head targeting `main`. The application CI's check/unit/db jobs remain mandatory. Never bypass protection.
 - **Review:** read `docs/AI-PR-READ-FIRST.md` for anything touching production, SQL, secrets, keys, guards, spend, auth or
   passes, and record how each applicable constraint is honored. **This repo has no automated review** (IN-01, Chris, 2026-10-10): never wait for or request one. Before merging,
   inspect the whole diff yourself against AI-PR-READ-FIRST and write "Self-review: <findings and dispositions>" in the PR;
@@ -153,7 +153,7 @@ and cents; stored in integer cents (unit rates in integer micro-dollars).
   organization-wide automated reviewer posts anyway, fix or answer each of its threads and resolve them; never wait for
   one. Never claim a review that didn't run. Phase-gate reviews (end of a batch, DRIFT-PROTOCOL C) may use a second
   model on request.
-- **Merging (authorized by Chris):** `ci` green at the exact head, acceptance met with evidence, reviews handled → merge
+- **Merging (authorized by Chris):** `ci` and `release-policy` green at the exact head, acceptance met with evidence, reviews handled → merge
   with the expected-head SHA. Stacks merge bottom-up, retargeting each PR to `main` first. Merging never covers a hard
   limit.
 - **Security or data-safety hole already on `main`:** fix it immediately in its own PR.
@@ -227,3 +227,7 @@ python3 docs/pr-cards/validate-index.py
 ## Daily release and build-cost policy (owner, 2026-10-12)
 
 PRs target `main`. Follow [the daily release policy](.github/RELEASE-POLICY.md): only the daily scheduled job updates `live`; Vercel builds only `live`. Do not request or wait for a Vercel preview deployment, manually deploy production, or promote at a development batch boundary. Keep all existing local/Actions tests mandatory; this policy introduces no new application build/browser requirement where none existed. This newer owner instruction supersedes older batch/weekly release guidance.
+
+## Verified hosting and main protections — October 12, 2026
+
+Follow [the verified hosting-cost operating policy](docs/HOSTING-COST-POLICY.md). Saved exact-main protection requires GitHub Actions `ci` **and** `release-policy`; preserve existing self-review, daily checked `main` → `live`, disabled automatic previews, low compute caps and all owner approval gates. Do not wait for Vercel preview checks or manually deploy at a PR-batch boundary. Verify latest `main` before using prepared branches. Keep Cortiware deferred and production access disabled.

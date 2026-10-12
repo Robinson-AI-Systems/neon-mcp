@@ -7,6 +7,22 @@
     {
       "source": "/.well-known/oauth-protected-resource",
       "destination": "/api/well-known/oauth-protected-resource"
+    },
+    {
+      "source": "/api/tools",
+      "destination": "/api/rtc?door=tools"
+    },
+    {
+      "source": "/api/tools/:name",
+      "destination": "/api/rtc?door=tools&name=:name"
+    },
+    {
+      "source": "/api/whoami",
+      "destination": "/api/rtc?door=whoami"
+    },
+    {
+      "source": "/api/results/:handle",
+      "destination": "/api/rtc?door=results&handle=:handle"
     }
   ],
   "git": {

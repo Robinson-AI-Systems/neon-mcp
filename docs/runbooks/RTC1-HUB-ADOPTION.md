@@ -65,3 +65,46 @@ make the HTTPS tool routes or live Hub acceptance available. RTC remains off
 by default until the next route/conformance gate.
 
 #78 initial CI review correction: a refused bearer must return a null authorization result after sending a generic RTC error response; never return the HTTP response object as an identity. Red-check regression tests exercise actual null refusal, expired/revoked status, and default-deny. Fixture-only encryption keys must not weaken the repository scanner. CI and review must pass at the corrected head before merging.
+
+## #80 — bounded HTTPS read-only interoperability and remaining Hub D-4 acceptance
+
+The server has a new fixed Vercel rewrite door for `GET /api/tools`,
+`GET/POST /api/tools/{name}`, `POST /api/tools/_batch`,
+`GET /api/whoami` and `GET /api/results/{handle}`. All route through
+`api/rtc.js` and the existing registry/guarded read handlers, with a
+*distinct* hashed RTC pass—not MCP OAuth—and a 60/min atomic database limit.
+The hard allowlist includes only `neon_whoami`, `neon_get_settings` and
+`neon_where_is_setting`; no Neon provider, role, database, compute, project,
+generic MCP meta-dispatch or writable operation is available through RTC.
+Batches validate every item before any call; handles are bound to the exact
+connection/pass scope. Scope admission now also requires an unrevoked verified
+project key on each request, not just at issuance. Ordinary /api/mcp OAuth
+authorization and all production restrictions remain separate.
+
+New unit HTTP-contract tests exercise missing/forged/revoked passes, restricted
+catalog, whoami, direct reads, all-door write refusal, invalid/oversized batch,
+rate denial, handle ownership and error envelope. Disposable Postgres proves
+Neon project-key revocation invalidates an issued pass. These are **our offline
+RTC read-only subset**, NOT complete official Hub `packages/conformance`
+acceptance: the frozen Hub runner deliberately requires full/guarded write
+fixtures and two-process shared DB and OAuth refresh evidence. Expanding
+permission-widening/full passes is still blocked by R-1/IN-11 and D-4/D-5
+sequencing, so do not fake its green completion.
+
+The owner-authorized real three-route acceptance remains:
+1. verified service deployment at reviewed source SHA (only scheduled checked
+   `main → live` may deploy, not an agent/manual preview or release);
+2. owner-created short-lived scoped project pass from secure setup and protected
+   variables for `rtool agent-check` with harmless no-provider metadata read;
+3. real local direct, GitHub-only encrypted relay and Vercel Sandbox direct
+   paths (relay host, webhook and issue binding must be configured by hub agent);
+4. server-side revoke + failed reuse, UTC/reviewed SHA/actual route/exit
+   evidence. Do not insert bearer values in argv or repository/logs.
+Until these are observed and full RTC conformance is addressed, keep
+`RTC1_ENABLED` unset. `GET /api/contract` deliberately returns 503 by default,
+so no hub certification is claimed.
+
+The verified infrastructure cost/protection checkpoint is in
+`docs/HOSTING-COST-POLICY.md`, incorporated in #80's substantive implementation
+PR. No new Neon/Vercel project, paid build, keepalive, owner production approval
+or live service was created as part of this change.

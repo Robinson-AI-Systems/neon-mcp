@@ -48,6 +48,17 @@ it('refuses passes for unknown or unverified project keys and >24h expiry',async
   await expect(db.createRtcReadOnlyPass({...base,projectScope:'proj-fake-no-reach'}))
     .rejects.toThrow(/Verified project/);
 });
+it('invalidates all scoped RTC access immediately if the owning project key is revoked',async()=>{
+  const projectId='proj-fake-revokable';
+  const key=await db.saveEncryptedNeonKey({orgId:name,kind:'project',
+    projectId,keyEnc:'fake-encrypted-value',last4:'FAKE',reach:{verified:true}});
+  const token=pass(),passId=id();
+  await db.createRtcReadOnlyPass({token,passId,orgId:name,projectScope:projectId,
+    expiresAt:new Date(Date.now()+3600000)});
+  expect(await db.getRtcPass(token)).toMatchObject({client_id:passId});
+  expect(await db.revokeNeonKey({orgId:name,id:key.id})).toBe(true);
+  expect(await db.getRtcPass(token)).toBeNull();
+});
 it('rate limits 61 parallel calls to exactly 60 across simulated independent instances',async()=>{
   const key='ab'.repeat(32),now=new Date(360000);
   const [a,b]=[createDb(neonShapedQuery()),createDb(neonShapedQuery())];
