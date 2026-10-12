@@ -29,7 +29,7 @@ describe('C-2 exact BPE budgets and catalog parity',()=>{
   expect(report.compact).toBeLessThan(5000);
   expect(report.everyday).toBeLessThan(20000);
   const mismatched=catalog.replace(/(`read_only` )(\d+)/,(_m,prefix,count)=>prefix+(Number(count)+1));
-  expect(evaluateRegistryBudgets(registry,mismatched).failures.join(' ')).toMatch(/count 20 != 19/);
+  expect(evaluateRegistryBudgets(registry,mismatched).failures.join(' ')).toMatch(/count 21 != 20/);
   expect(evaluateRegistryBudgets(registry,'outdated catalog').failures.join(' ')).toMatch(/missing implemented profile totals/);
  });
  it('routes 100 realistic records into same-connection secret-free handle within 8 KB',async()=>{
