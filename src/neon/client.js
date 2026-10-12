@@ -45,7 +45,15 @@ export function makeNeonClient({ key, orgId, budget, fetch, baseUrl, sleep = DEF
   const config = { apiKey: key, retries: 0, waitForReadiness: false,
     requestTimeoutMs: 8000, ...(orgId ? { orgId } : {}),
     ...(fetch ? { fetch } : {}), ...(baseUrl ? { baseUrl } : {}) };
-  return Object.freeze({ sdk: createNeonClient(config).client, orgId, budget, sleep });
+  const sdk = createNeonClient(config).client;
+  // Generated raw operation wrappers attach auth; an omitted beta endpoint uses
+  // the lower-level client directly and must explicitly reuse this same key.
+  // Keep the key closed over here, not on the returned client or in a tool.
+  const recoverBranch = path => sdk.post({
+    url: '/projects/{project_id}/branches/{branch_id}/recover',
+    path, headers: { Authorization: 'Bearer ' + key }
+  });
+  return Object.freeze({ sdk, orgId, budget, sleep, recoverBranch });
 }
 
 function safeError(error, fallbackStatus) {
@@ -81,7 +89,9 @@ export async function call(client, operationId, params = {}, {
     typeof raw.recoverProjectBranch !== 'function';
   if (!recoverBranch && typeof raw[operationId] !== 'function')
     throw new Error('Neon operation is not supported by the pinned SDK.');
-  if (!client?.sdk || typeof client?.budget?.consume !== 'function') throw new TypeError('Invalid Neon client');
+  if (!client?.sdk || typeof client?.budget?.consume !== 'function' ||
+      (recoverBranch && typeof client.recoverBranch !== 'function'))
+    throw new TypeError('Invalid Neon client');
   if (write && (typeof key !== 'string' || !key)) throw new TypeError('Writes require a request key');
   const deadline = Date.now() + Math.max(0, Math.min(45000, budgetMs));
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -90,10 +100,7 @@ export async function call(client, operationId, params = {}, {
     let result;
     try {
       result = recoverBranch
-        ? await client.sdk.post({
-          url: '/projects/{project_id}/branches/{branch_id}/recover',
-          path: params.path
-        })
+        ? await client.recoverBranch(params.path)
         : await raw[operationId]({ client: client.sdk, ...params });
     } catch (error) {
       result = { error };
