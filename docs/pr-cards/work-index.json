@@ -494,9 +494,10 @@
       "ownerInputs": [],
       "pr": [
         59,
-        60
+        60,
+        61
       ],
-      "note": "Scoped reads/estimate #59; provider-verified audited create/resize #60; lifecycle and settings remain."
+      "note": "Ten tool names: reads+estimate #59, billable create/resize #60, lifecycle/settings #61. Formal acceptance pending protected production connection visibility, deprecated pooler decision and exact final CI."
     },
     {
       "id": "D-4",

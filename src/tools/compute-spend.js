@@ -32,7 +32,7 @@ async function branch(client,pid,bid){
   throw Error('Branch identity cannot be verified');
  return data.branch;
 }
-async function endpoint(a,c){
+export async function verifiedComputeTarget(a,c){
  if(!ID.test(a.endpointId||''))throw Error('Choose an endpoint');
  const {pid,client}=await project(a,c);
  const data=await projectRead(client,'getProjectEndpoint',{
