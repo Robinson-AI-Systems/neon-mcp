@@ -96,6 +96,8 @@ Do not merge without an exact-head successful aggregate `ci`, self-review and th
 `src/tools/index.js` module list · TOOL-CATALOG row · `profiles` metadata · `src/neon/operation-marks.js` (U-1 onward) ·
 `known_apps` seed (P-1) · `work-index.json`.
 
+**Connector REST anti-stall rule (2026-10-12):** Before an additional CI poll or retry of a large multi-file operation, see [runbooks/REST-RECOVERY.md](runbooks/REST-RECOVERY.md). Use small GitHub blob batches, exact-head lease updates, and a bounded pending/failed/green decision; never count an open PR or a check from an old SHA. For terminal-assisted verification use scripts/ci-head-gate.mjs to parse one check-run response without a polling loop.
+
 ## Step 5 — Pushing and CI
 
 1. **Push once per CI cycle, and never while your PR's CI run is still in progress** (SESSION-START §6 "CI cadence"):

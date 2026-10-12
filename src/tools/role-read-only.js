@@ -4,9 +4,7 @@ import {defineWrite} from '../core/write.js';
 import {createProjectWriteContext} from '../neon/project-write-context.js';
 import {call} from '../neon/client.js';
 import {waitForOperations} from '../neon/operations.js';
-import {createSqlLayer} from '../neon/sql.js';
-import {createKeyVault} from '../neon/keys.js';
-import {grantReadOnlyPrivileges} from '../neon/role-privileges.js';
+import {runGuardedRoleGrants,assertRoleSqlAdmission} from '../neon/sql-run.js';
 import {projectRead} from './project-context.js';
 import {roleName,roleBranch,rolesOnBranch,checkSecretStorage,
  writeTarget,roleSchema,idSchema,schema} from './role-write-shared.js';
@@ -42,20 +40,14 @@ async function verifiedTarget(a,c) {
       endpoint.endpoint.project_id !== t.pid ||
       endpoint.endpoint.branch_id !== t.bid ||
       !host(endpoint.endpoint.host) || endpoint.endpoint.disabled === true ||
+      endpoint.endpoint.type !== 'read_write' ||
+      endpoint.endpoint.current_state !== 'active' ||
       owner?.role?.name !== a.ownerName || owner.role.branch_id !== t.bid)
     throw Error('Read-only grant database, owner or direct endpoint unverified');
   return {...t,endpointHost:endpoint.endpoint.host};
 }
 async function grantThroughScopedSql(a,c,t) {
-  const layer = createSqlLayer({db:c.db,
-    vault:createKeyVault({db:c.db,env:c.env}),env:c.env});
-  return layer({neonOrg:c.connection.neonOrg,
-    projectScope:c.connection.projectScope || null},{
-    projectId:t.pid,branchId:t.bid,endpointId:a.endpointId,
-    expectedEndpointHost:t.endpointHost,database:a.databaseName,
-    role:a.ownerName,pooled:false
-  },sql => grantReadOnlyPrivileges(sql.query,{
-    reader:a.name,owner:a.ownerName,schemas:a.schemas}));
+  return runGuardedRoleGrants(a,c,t);
 }
 const define = defineWrite({name:'neon_role_create_read_only',secret:true,access:true,
  plan:async(a,c)=>{
@@ -71,6 +63,7 @@ const define = defineWrite({name:'neon_role_create_read_only',secret:true,access
  },
  apply:async(a,c,{requestKey:key})=>{
   const t=await verifiedTarget(a,c);
+  await c.assertRoleGrantAdmission({ctx:c,target:t,args:a});
   if ((await rolesOnBranch(t)).some(r=>r.name===a.name))
     return {confirmed:false};
   const reply=await call(t.client,'createProjectBranchRole',{
@@ -121,11 +114,13 @@ export const tools=[{...define.tool,profiles:['full'],area:'roles',
   },['branchId','name','ownerName','databaseName','endpointId','schemas'])
 }];
 export function createReadOnlyRoleHandlers({
-  contextFor=createProjectWriteContext,grant=grantThroughScopedSql
+  contextFor=createProjectWriteContext,grant=grantThroughScopedSql,
+  admission=assertRoleSqlAdmission
 }={}){
   return {neon_role_create_read_only:async(a,ctx)=>{
     const trusted=await contextFor(ctx);
     trusted.applyReadOnlyGrants=grant;
+    trusted.assertRoleGrantAdmission=admission;
     const result=await define.handler(a,trusted);
     const parsed=JSON.parse(result.content[0].text);
     if(parsed.confirmed===true&&trusted.roleSecretLink)

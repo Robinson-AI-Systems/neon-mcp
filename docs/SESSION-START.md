@@ -93,6 +93,12 @@ If a PR remains red after two corrections to the same test, **stop guessing and 
 
 Correct the real cause, add the smallest regression test at that boundary, update the JIT card with the finding, then push **one coherent correction batch**. Do not spin up new branches, fabricate endpoints, weaken assertions, or start another major roadmap unit while the current PR's exact-head CI remains red. If the same case fails again, change the investigation method: compare the runtime client object and official pinned SDK contract; validate routing against `test/helpers/fake-neon.js`, and record the exact blocker. Keep the existing owner/production gates.
 
+### GitHub connector interruption recovery (2026-10-12)
+
+Follow [runbooks/REST-RECOVERY.md](runbooks/REST-RECOVERY.md) before resuming an interrupted GitHub-only PR. If a large connector script reports a tool-call limit, reread branch and PR head before any retry; split file blobs into 2–4-call batches, then make a single exact-parent tree/commit/ref update. Never assume the failed script did nothing or completed. CI queued/pending: one query, perform an independent useful task, then recheck; no identical rapid polling loop. A verified exact-head green ci plus a new late review finding means fix the review in the same PR before merging.
+
+Use the optional one-shot scripts/ci-head-gate.mjs with a GitHub check-runs JSON response to reject absent, stale, pending or failed check/unit/db/ci; this script never polls. The remote verified SHA, not the chat's last plan, is the resume point.
+
 ## 6. Keep moving: problems are not blockers
 
 | Engineering problem — **fix it yourself, never stop** | Real blocker — stop and ask Chris |

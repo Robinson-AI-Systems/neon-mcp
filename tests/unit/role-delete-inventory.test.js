@@ -43,7 +43,8 @@ describe('D-4 complete scoped role-deletion compute inventory',()=>{
   it('verifies each compute and returns exact zero dependency counts',async()=>{
     const f=setup();
     const data=await inspectRoleDeleteReadiness(choice,f.ctx,{inspectEndpoint:f.inspectEndpoint});
-    expect(data).toMatchObject({verified:true,clear:true,
+    expect(data).toMatchObject({verified:true,clear:false,
+      postgresDependenciesClear:true,poolerClientsVerified:false,
       computeIds:[IDS.devEndpoint],roleName:'unused_reader'});
     expect(f.inspected).toEqual([IDS.devEndpoint]);
     expect(f.fake.calls.every(c=>c.method==='GET')).toBe(true);
@@ -54,6 +55,7 @@ describe('D-4 complete scoped role-deletion compute inventory',()=>{
     const data=await inspectRoleDeleteReadiness(choice,f.ctx,{inspectEndpoint:f.inspectEndpoint});
     expect(data.clear).toBe(false);
     expect(data.totals.activeSessions).toBe(4);
+    expect(data.postgresDependenciesClear).toBe(false);
     f.fake.assertClean();
   });
   it('refuses pooler aliases, unknown session inventory and owner/app denial before SQL',async()=>{

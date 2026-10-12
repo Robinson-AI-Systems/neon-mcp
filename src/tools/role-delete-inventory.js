@@ -4,9 +4,7 @@ import {projectScope,projectRead} from './project-context.js';
 import {roleName,existingRole,rolesOnBranch} from './role-write-shared.js';
 import {classifyTarget} from '../neon/production.js';
 import {checkProtectedTarget} from '../core/protected-resources.js';
-import {createSqlLayer} from '../neon/sql.js';
-import {createKeyVault} from '../neon/keys.js';
-import {inspectRoleDeletionDependencies} from '../neon/role-dependencies.js';
+import {runGuardedRoleDependencyProbe} from '../neon/sql-run.js';
 
 const id = x => typeof x==='string' && /^[a-z0-9-]{1,60}$/.test(x);
 const name = x => typeof x==='string' && /^[A-Za-z_][A-Za-z0-9_-]{0,62}$/.test(x);
@@ -44,13 +42,7 @@ async function authorize(a,c){
   return p;
 }
 async function defaultSqlInspect(a,c,t,ep,db,monitor){
-  const layer=createSqlLayer({db:c.db,
-    vault:createKeyVault({db:c.db,env:c.env}),env:c.env});
-  return layer({neonOrg:c.connection.neonOrg,
-    projectScope:c.connection.projectScope??null},{
-    projectId:t.pid,branchId:t.bid,endpointId:ep.id,expectedEndpointHost:ep.host,
-    database:db.name,role:monitor,pooled:false
-  },sql=>inspectRoleDeletionDependencies(sql.query,a.roleName));
+  return runGuardedRoleDependencyProbe(a,c,t,ep,db,monitor);
 }
 export async function inspectRoleDeleteReadiness(a,c,{
   inspectEndpoint=defaultSqlInspect
@@ -118,9 +110,14 @@ export async function inspectRoleDeleteReadiness(a,c,{
       total[k]+=finding.totals[k];
       if(!Number.isSafeInteger(total[k]))throw Error('Role dependency counters overflowed');
     }
+  // The deprecated pooler_enabled flag does not prove absence of idle
+  // PgBouncer clients; PostgreSQL pg_stat_activity cannot see them all.
+  // Do not claim deletion safe before independent pooled-client evidence.
   return {verified:true,projectId:t.pid,branchId:t.bid,roleName:a.roleName,
     monitorDatabase:a.monitorDatabase,monitorRole:a.monitorRole,
     computeIds:findings.map(f=>f.endpointId),computes:findings,
-    totals:total,clear:findings.length===active.length &&
-      findings.every(f=>f.clear===true)&&Object.values(total).every(x=>x===0)};
+    totals:total,postgresDependenciesClear:findings.length===active.length &&
+      findings.every(f=>f.clear===true)&&Object.values(total).every(x=>x===0),
+    poolerClientsVerified:false,clear:false,
+    blocker:'Pooled-client absence cannot be independently verified'};
 }
