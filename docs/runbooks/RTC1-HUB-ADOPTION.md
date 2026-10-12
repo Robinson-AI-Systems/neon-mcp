@@ -131,3 +131,7 @@ metadata schema is unchanged; the HTTPS allowlist remains restricted to three
 non-provider metadata reads. Registry and real-handler tests confirm listing
 and describe metadata. This is offline subset correctness, not full RTC
 conformance or real Hub direct/relay/Sandbox acceptance.
+
+## 2026-10-12 — actual Hub agent-check mode blocker (not conformance)
+
+Read-only RTC passes are stored with `mode='preview'` and `GET /api/whoami` reports `preview`. The Hub's reviewed `packages/cli/src/agent-check.js` explicitly requires `whoami.result.mode === 'test'` before tool description or invocation. Thus even an authorized, reachable Neon RTC HTTPS deployment would currently fail the genuine Hub agent check with `test_mode_required`. This is **contract mismatch evidence**, not a green routed test. Do NOT alias preview to test, edit Hub authorization, enable RTC1_ENABLED, or assert that project-scoping alone proves isolation. A substantive, independently approved TEST resource-isolation and pass-binding contract is required before exposing `test`, and the Hub verifier must be tested unmodified against both allowed and denied accounts. Until then direct/relay/Sandbox and full conformance remain unverified.
