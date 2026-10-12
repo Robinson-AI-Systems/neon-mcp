@@ -3,6 +3,8 @@ import {makeFakeNeon} from '../../test/helpers/fake-neon.js';
 import {makeNeonClient} from '../../src/neon/client.js';
 import {IDS,project,database,role,devEndpoint,responses} from '../../test/helpers/neon-fixtures.js';
 import {tools,createConnectionHandlers} from '../../src/tools/connections.js';
+import {createRoleCreateHandlers} from '../../src/tools/role-create.js';
+import {createRoleResetHandlers} from '../../src/tools/role-reset.js';
 const json=x=>JSON.parse(x.content[0].text);
 const chosen={branchId:IDS.dev,endpointId:IDS.devEndpoint,
  databaseName:'neondb',roleName:'neondb_owner'};
@@ -80,7 +82,7 @@ describe('D-4 independently scoped connection secret boundary',()=>{
   wrong.fake.assertClean();
   const cross=fakeSetup({hostAlias:true});cross.reads();
   await expect(cross.handlers.neon_connection_get_info(chosen,cross.context))
-   .rejects.toThrow(/identity/);
+   .rejects.toThrow(/identit/);
   expect(cross.fake.calls.some(c=>c.operationId==='getConnectionURI')).toBe(false);
   cross.fake.assertClean();
  });
@@ -102,6 +104,23 @@ describe('D-4 independently scoped connection secret boundary',()=>{
   expect(JSON.stringify({done,audit:f.audit})).not.toMatch(/npg_FAKE|postgresql:\/\/|private_connection/);
   expect(f.fake.calls.every(c=>c.method==='GET')).toBe(true);
   f.fake.assertClean();
+ });
+ it('also denies direct secret-producing handlers outside the full owner profile',async()=>{
+  const f=fakeSetup();
+  f.context.connection.profile='everyday';
+  const handlers=[
+   [f.handlers.neon_connection_show_once,{...chosen,confirm:true}],
+   [createRoleCreateHandlers({contextFor:async()=>f.context}).neon_role_create,
+    {branchId:IDS.dev,name:'service_role',confirm:true}],
+   [createRoleResetHandlers({contextFor:async()=>f.context}).neon_role_reset_password,
+    {branchId:IDS.dev,roleName:'neondb_owner',confirm:true}]
+  ];
+  for(const [fn,args] of handlers){
+   const out=json(await fn(args,f.context));
+   expect(out.done).toBe(false);
+   expect(out.code).toBe('refused_by_guard');
+  }
+  expect(f.fake.calls).toHaveLength(0);
  });
  it('denies absent encrypted storage and guarded sensitive connections before URI request',async()=>{
   const absent=fakeSetup({exchange:false});
