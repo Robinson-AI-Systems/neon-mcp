@@ -27,7 +27,7 @@ const response=branch=>({...responses.getProjectBranch('dev'),branch});
 const before=()=>response(devBranch());
 describe('D-2 branch name and protection write contracts',()=>{
  it('registers B-1 audited and closed-schema writes',()=>{
-  expect(tools.map(t=>t.name)).toEqual(['neon_branch_rename','neon_branch_set_protected']);
+  expect(tools.map(t=>t.name)).toEqual(['neon_branch_rename','neon_branch_set_protected','neon_branch_set_expiration','neon_branch_set_default']);
   for(const t of tools){
    expect(t.writes).toBe(true);expect(t.writeContract).toBe('defineWrite-v1');
    expect(t.inputSchema.additionalProperties).toBe(false);
