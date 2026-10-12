@@ -1,6 +1,8 @@
 // Every real D-3 billable compute write runs the B-1 nine-case helper,
 // backed by vendored-OpenAPI-validated fake Neon requests, not a stub handler.
 import {describe,it,expect} from 'vitest';
+import {createServer} from 'node:http';
+import {createMcpHandler} from '../../src/core/mcp-server.js';
 import {makeFakeNeon} from '../../test/helpers/fake-neon.js';
 import {makeNeonClient} from '../../src/neon/client.js';
 import {DEFAULT_PRICING,estimateMonthlyIncrease} from '../../src/neon/pricing.js';
@@ -69,17 +71,43 @@ function realFixture(name,{production=false,blocked=false,appOwned=false,
   }};
  const handlers=createComputeSpendHandlers({contextFor:async()=>ctx});
  const registry={tools:[...tools,...metaTools],handlers:{...handlers,...metaHandlers}};
- const through=async(args)=>dispatchReadOnlyTool({
+ let httpServer=null;
+ const invokeHttp=async args=>{
+  if(!httpServer){
+   const transport=createMcpHandler({registry,db:{...db,
+    async getAccessToken(){return {profile:'full',listing:'catalog',mode:'preview',
+     neon_org:IDS.org,project_scope:IDS.project,client_id:'client-fake-001'}}},
+    env:{VERCEL_ENV:'production',PUBLIC_ORIGIN:'http://localhost'}});
+   httpServer=createServer(async(req,res)=>{
+    const chunks=[];
+    for await(const chunk of req)chunks.push(chunk);
+    try{req.body=JSON.parse(Buffer.concat(chunks).toString('utf8'));
+     await transport(req,res);}catch{if(!res.headersSent){res.statusCode=500;res.end();}}
+   });
+   await new Promise(resolve=>httpServer.listen(0,'127.0.0.1',resolve));
+  }
+  const response=await fetch('http://127.0.0.1:'+httpServer.address().port+'/api/mcp',{
+   method:'POST',headers:{authorization:'Bearer '+'f'.repeat(40),
+    'content-type':'application/json',accept:'application/json, text/event-stream'},
+   body:JSON.stringify({jsonrpc:'2.0',id:1,method:'tools/call',
+    params:{name,arguments:args}})});
+  const payload=await response.text();
+  const line=payload.split('\n').find(x=>x.startsWith('data: '));
+  const decoded=JSON.parse(line?line.slice(6):payload);
+  return decoded.result??decoded;
+ };
+ const through=async(args)=>door==='https'?invokeHttp(args):dispatchReadOnlyTool({
   registry,name:door==='delegated'?'neon_call':name,
   args:door==='delegated'?{name,args}:args,
   connection:ctx.connection,db:ctx.db,env:{VERCEL_ENV:'production'}});
  return {fake,ctx,log,tool:tools.find(t=>t.name===name),
   handler:through,parse:json,
+  async close(){if(httpServer)await new Promise(resolve=>httpServer.close(resolve));},
   get calls(){return fake.calls.filter(c=>['POST','PATCH','DELETE'].includes(c.method))}};
 }
 describe('D-3 compute write-contract acceptance through real provider handlers',()=>{
  for(const name of ['neon_compute_create','neon_compute_resize']){
-  for(const door of ['direct','delegated']){
+  for(const door of ['direct','delegated','https']){
    it(name+' passes nine-case real-write contract through '+door+' MCP dispatch',async()=>{
     const fixtures=[];
     const make=opts=>{const f=realFixture(name,opts,door);fixtures.push(f);return f};
@@ -89,7 +117,7 @@ describe('D-3 compute write-contract acceptance through real provider handlers',
      pricing:DEFAULT_PRICING}).increaseCents;
     expect(expected).toBe(3869);
     await runWriteContract(make,{input:inputFor(name),expectedSpendCents:expected});
-    for(const f of fixtures)f.fake.assertClean();
+    for(const f of fixtures){f.fake.assertClean();await f.close();}
    });
   }
   it(name+' is excluded from unsafe profiles and preview deployments on every dispatch',async()=>{
