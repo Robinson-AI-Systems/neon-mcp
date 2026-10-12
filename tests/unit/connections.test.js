@@ -55,7 +55,7 @@ describe('D-4 independently scoped connection secret boundary',()=>{
  });
  it('returns safe direct host, snippets and optional authorized test but never provider URI',async()=>{
   const f=fakeSetup();f.reads();
-  f.fake.when('getConnectionUri').resolves({uri:direct});
+  f.fake.when('getConnectionURI').resolves({uri:direct});
   const first=json(await f.handlers.neon_connection_get_info(chosen,f.context));
   expect(first).toMatchObject({host:directHost,pooledHost:null,
    sslMode:'require',database:'neondb',role:'neondb_owner',
@@ -69,12 +69,12 @@ describe('D-4 independently scoped connection secret boundary',()=>{
  });
  it('requires exact direct/pooler host identities and verified branch before output',async()=>{
   const f=fakeSetup({pooledEnabled:true});f.reads();
-  f.fake.when('getConnectionUri').resolves({uri:direct}).resolves({uri:pooled});
+  f.fake.when('getConnectionURI').resolves({uri:direct}).resolves({uri:pooled});
   const value=json(await f.handlers.neon_connection_get_info(chosen,f.context));
   expect(value.pooledHost).toContain('-pooler.');
   f.fake.assertClean();
   const wrong=fakeSetup();wrong.reads();
-  wrong.fake.when('getConnectionUri').resolves({uri:pooled});
+  wrong.fake.when('getConnectionURI').resolves({uri:pooled});
   await expect(wrong.handlers.neon_connection_get_info(chosen,wrong.context))
    .rejects.toThrow(/URI/);
   wrong.fake.assertClean();
@@ -86,7 +86,7 @@ describe('D-4 independently scoped connection secret boundary',()=>{
  });
  it('owner confirms once, stores only ciphertext and receives a one-time link',async()=>{
   const f=fakeSetup();f.reads();
-  f.fake.when('getConnectionUri').resolves({uri:direct});
+  f.fake.when('getConnectionURI').resolves({uri:direct});
   const preview=json(await f.handlers.neon_connection_show_once({
    ...chosen,dryRun:true},f.context));
   expect(preview.done).toBe(false);
