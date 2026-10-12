@@ -1,17 +1,16 @@
-# Current outcome and acceptance ledger (2026-10-12; session #86–#90)
+# Current outcome and acceptance ledger (2026-10-12; session #91–#95 in progress)
 
-**Active capability:** safe Neon account/project discovery and project security review without
-touching sleeping databases. #86 and #88 improve D-4 credential integrity; #87 implements
-bounded snapshot/schedule metadata; #89 implements verified JWKS metadata, and #90
-adds evidence-labelled branch, network, allowlist and replication posture. These are
-**substantive offline capabilities**, not proof of owner live-account availability.
-The five-PR batch closes after exact-head checks, review and merge—not by PR count alone.
+**Active capability:** owner-guarded project security. #91 implements public/VPC restriction,
+#92 implements Scale-plan IP allowance and #93 implements scoped JWKS trust/revocation.
+#94 closes a JWKS trust authorization race by independently rechecking branch protection
+immediately before an add request. These are offline capabilities, not deployed/real Neon
+acceptance. D-8 audit-log cost and irreversible logical-replication gates still require evidence.
 
 | Area | Code | Automated verification | Deployed behavior | Real acceptance |
 | --- | --- | --- | --- | --- |
 | D-4 role create/read-only/reset | Built, safer handoffs #86/#88; delete intentionally UNREGISTERED | Fake Neon plus existing disposable-Postgres SQL grants/guards | NOT VERIFIED | OPEN: pooled clients and scratch/owner gates |
 | D-7 snapshot metadata | `neon_snapshot_list` #87 built; six mutations missing | Fake Neon GET-only + repository CI | NOT VERIFIED | OPEN: owner-authorized live read and mutation acceptance |
-| D-8 project security metadata | JWKS #89 and evidence-labelled review #90 built; two writes missing; guarded public/VPC #91, IP allowlist #92 and JWKS trust #93 | Fake provider, code+CI for #89; #90 exact-head CI required | NOT VERIFIED | OPEN: RLS/roles/advisor, trusted real project reads |
+| D-8 project security metadata | JWKS #89/review #90; network #91, IP #92, JWKS #93; #94 fixes stale branch protection before issuer trust; audit level and irreversible replication remain | Fake provider, code+CI for #89; #90 exact-head CI required | NOT VERIFIED | OPEN: RLS/roles/advisor, trusted real project reads |
 | RTC/Hub | Narrow read-only HTTPS subset built offline; runtime flag OFF | HTTP, fake and disposable DB tests | NOT VERIFIED | OPEN: contract mode mismatch, complete conformance, direct/relay/Sandbox and revocation |
 
 ## Actionable deferred work — recheck at every session and evidence change
@@ -290,3 +289,11 @@ owner inputs, go-live checklist, decisions, roadmap, owner guide, work index wit
 
 Nothing in engineering. Owner inputs open: IN-02 … IN-13 (IN-14 answered: not needed)
 (`OWNER-INPUTS.md`); none blocks A-2 … A-4.
+
+**D-8 trust authorization regression — PR #94 (2026-10-12):** A nondefault/unprotected
+branch verified during JWKS preview could become protected/default or move out of project
+scope before apply. Re-read the exact branch after the independently verified issuer
+inventory and before any add request, refusing changes as PENDING with no provider write.
+Adversarial fake-provider tests assert both branch reads, no POST and no automatic retry.
+This does not claim atomic isolation against changes after the last provider GET or real
+provider JWT authentication verification.

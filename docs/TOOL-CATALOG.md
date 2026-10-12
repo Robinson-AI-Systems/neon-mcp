@@ -208,7 +208,7 @@ The SQL guard (`docs/designs/BATCH-B.md` B-3) classifies every statement with th
 | `neon_security_set_logical_replication` | Turn on logical replication (cannot be turned off; restarts computes) | C D Pr | Ow | F | D-8 |
 | `neon_security_set_public_access` | Guarded preview/confirm of public internet/VPC access with verified current flags and exact readback; refuses both-path lockout | C Pr | Ow | F | D-8 (built offline #91) |
 | `neon_security_list_jwks` | Project-verified trusted JWKS issuers, refusing foreign/duplicate entries and redacting credential-bearing URLs | — | B Ow | R | D-8 (built #89) |
-| `neon_security_set_jwks` | Guarded branch-scoped issuer add (explicit JWT audience/no auto roles) or exact trust revocation, independent scoped readback | C Pr A | B Ow | F | D-8 (built offline #93) |
+| `neon_security_set_jwks` | Guarded branch-scoped issuer add (explicit JWT audience/no auto roles) or exact trust revocation, independently rechecks issuer branch protection immediately before POST | C Pr A | B Ow | F | D-8 (built offline #93; race fix #94) |
 | `neon_security_set_audit_log_level` | Postgres audit logging level for the project | C Pr | Ow | F | D-8 |
 
 ## Owner and administration (Batch O) — 23

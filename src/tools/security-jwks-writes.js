@@ -66,17 +66,21 @@ function check(a,state){
   throw Error('That URL is already trusted on this branch');
  return chosen;
 }
+// Branch classification can change between preview and apply. A project-wide
+// production guard does not prove that an issuer's branch is still unprotected.
+async function verifyWritableBranch(client,projectId,branchId){
+ const b=(await projectRead(client,'getProjectBranch',{
+  path:{project_id:projectId,branch_id:branchId}}))?.branch;
+ if(b?.id!==branchId||b.project_id!==projectId||
+    b.default!==false||b.protected!==false)
+  throw Error('JWKS trust creation requires a currently verified unprotected child branch');
+}
 const def=defineWrite({name:'neon_security_set_jwks',
  access:true,projectWide:true,
  plan:async(a,c)=>{
   const state=await load(a,c),t=check(a,state);
   if(t.action==='add'){
-   const b=(await projectRead(state.client,'getProjectBranch',{
-    path:{project_id:state.project.id,branch_id:t.branchId}}))?.branch;
-   // Creation on default/protected branches requires a distinct approved workflow.
-   if(b?.id!==t.branchId||b.project_id!==state.project.id||
-      b.default!==false||b.protected!==false)
-    throw Error('JWKS trust creation requires a verified unprotected child branch');
+   await verifyWritableBranch(state.client,state.project.id,t.branchId);
   }
   return {target:'project:'+state.project.id,projectId:state.project.id,
    before:{project:state.project,entries:state.entries},
@@ -91,6 +95,8 @@ const def=defineWrite({name:'neon_security_set_jwks',
   const state=await load(a,c),t=check(a,state);
   if(JSON.stringify(state.entries)!==JSON.stringify(before.entries))
    throw Error('JWKS trust registry changed since the preview');
+  // Recheck authorization at the last safe point, not just during plan.
+  if(t.action==='add')await verifyWritableBranch(state.client,state.project.id,t.branchId);
   const pid=before.project.id;
   const params=t.action==='remove'
    ?{path:{project_id:pid,jwks_id:t.jwksId}}
