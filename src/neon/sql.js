@@ -25,7 +25,7 @@ function scrub(result,uri) {
 export function createSqlLayer({db,vault,env=process.env,fetch,poolFactory=defaultPoolFactory}={}) {
   if(!db?.consumeApiBudget||typeof vault?.keyFor!=='function'||
     typeof poolFactory!=='function')throw new TypeError('SQL layer requires scoped vault, budget and pool');
-  return async function withScopedSql(ctx,{projectId,branchId,database,role,pooled=false,endpointId}={},fn) {
+  return async function withScopedSql(ctx,{projectId,branchId,database,role,pooled=false,endpointId,expectedEndpointHost}={},fn) {
     if(!ctx?.neonOrg||!projectId||!branchId||!database||!role||typeof fn!=='function')
       throw new TypeError('SQL needs organization, project, branch, database, role and callback');
     if(ctx.projectScope && ctx.projectScope!==projectId)
@@ -50,6 +50,14 @@ export function createSqlLayer({db,vault,env=process.env,fetch,poolFactory=defau
       uri=response.data.uri;
       const targetHost=hostOf(uri);
       if(targetHost===selfHost)throw new Error('Refusing this server’s own database');
+      if(expectedEndpointHost!==undefined){
+        const selected=new URL(uri);
+        if(typeof expectedEndpointHost!=='string'||
+           targetHost!==normalizeHost(expectedEndpointHost)||
+           decodeURIComponent(selected.pathname.slice(1))!==database||
+           decodeURIComponent(selected.username)!==role)
+          throw Error('Connection URI does not match the verified endpoint, database and role');
+      }
       pool=await poolFactory({connectionString:uri,max:1,connectionTimeoutMillis:5000});
       connection=await pool.connect();
       // Bound all queries even before the dedicated SQL guard exists.

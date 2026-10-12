@@ -29,6 +29,16 @@ async function planAction(a,c,action){
  let connectionCount=null;
  if(['suspend','restart'].includes(action)&&
     (b.default===true||b.protected===true)){
+  // Never open a privileged SQL statistics connection as part of a preview
+  // that cannot pass owner-controlled production admission.
+  if(c.connection?.mode!=='production'||c.connection?.profile!=='full'||
+     c.deploymentEnv!=='production')
+   throw Error('Protected compute interruption requires owner-enabled production mode');
+  const admit=await c.guards?.checkProduction?.({
+   target:'branch:'+b.id,projectId:pid,branchId:b.id},c,{
+   name:'neon_compute_'+action,productionEffect:'write'});
+  if(admit?.allowed!==true||admit.production!==true)
+   throw Error('Production permission is not independently approved');
   if(typeof c.readComputeConnectionCount!=='function')
    throw Error('Protected compute interruption requires independently verified open connections');
   const count=await c.readComputeConnectionCount({projectId:pid,branchId:b.id,endpointId:e.id});

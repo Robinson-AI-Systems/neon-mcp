@@ -4,6 +4,7 @@ import {checkProtectedTarget} from '../core/protected-resources.js';
 import {checkProductionAccess} from './production.js';
 import {createSpendGuard} from './spend.js';
 import {requestKey,call} from './client.js';
+import {createVerifiedComputeConnectionCount} from './compute-connections.js';
 import {projectClient,projectRead} from '../tools/project-context.js';
 
 export async function createProjectWriteContext({connection,db,env=process.env}={}){
@@ -47,6 +48,8 @@ export async function createProjectWriteContext({connection,db,env=process.env}=
    return {verified:true,name:value};
   }
  };
+ ctx.readComputeConnectionCount=createVerifiedComputeConnectionCount({
+  connection,db,env,clientFor:ctx.clientFor});
  ctx.guards={
   checkProtected:(target,c)=>target.target?.startsWith('project:create:')
    ? target.projectId===null : checkProtectedTarget(target,c),
