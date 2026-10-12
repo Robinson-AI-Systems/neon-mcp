@@ -10,7 +10,7 @@ export const tools=[
   'List scoped trusted JWKS issuers without revealing embedded URL credentials.',{
    projectId:readId},{area:'security',audience:['owner','operator']}),
  defineReadTool('neon_security_review',
-  'Review verified project network, replication, branch and JWKS security posture.',{
+  'Review project network, audit level, JWKS and verified replication compute exposure.',{
    projectId:readId},{area:'security',audience:['owner','operator']})
 ];
 function safeJwksUrl(raw){

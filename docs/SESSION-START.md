@@ -49,6 +49,19 @@ List what acceptance still requires: code, meaningful CI/throwaway tests, deploy
 service behavior, and real owner-authorized provider/RTC acceptance are **separate**.
 Do not count documentation or mocks as deployed proof.
 
+Before recording a new blocker, reproduce and attempt its remedy. Check implementation,
+configuration, actual provider contract/dependencies, stale docs, tests and owner decisions
+already supplied; implement everything independently safe and verify it. Identify the
+*smallest* genuinely external missing permission, credential, decision or evidence
+only after these efforts. A gate for one operation does not halt another approved
+independent milestone. Sweep **all** indexed cards and dependencies before declaring
+that nothing can advance; re-queue newly unblocked cards immediately. Never weaken
+protections, claim unverified acceptance, invent test success or request an approval
+already given. Record attempted fixes and exact re-entry evidence in the existing ledger.
+The normal five-merge session count includes PRs already merged; no restart, filler PR,
+repeated continuation prompt or premature stop because the preferred item is blocked.
+If stopping early, identify the verified lack of eligible work or concrete execution limit.
+
 For every OPEN/DEFERRED ledger row check (a) exact blocker, (b) evidence or decision
 needed, (c) dependency, (d) precise unblock condition and (e) next action. Inspect
 new owner answers and merge/contract/environment evidence before reasking anything.
