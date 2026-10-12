@@ -5,7 +5,7 @@ Written 2026-10-10 for an empty repository. [STATUS](STATUS.md) holds current st
 ## What is next
 
 **Done:** A-1 (#1), A-2 (#7), A-3 (#8/#9), A-4 (#10/#11), A-5 (#12/#13/#14), A-6 (#15), A-7 (#16).
-**Next:** Complete D-3 session-count verification and formal acceptance (including remaining #61 review thread), then prepare D-4 just-in-time card. D-2 review corrections merged #62; D-3 shared write-contract acceptance merged #63. Production stays disabled; D-5 owns public SQL, X-3 owns live scratch restore verification.
+**Next:** D-4 scoped databases/roles/connections, with its JIT card written for #65. D-3 offline ten-tool implementation and late review corrections completed through #64; independent live owner/scratch acceptance remains gated (X-3). Production stays disabled; D-5 owns public SQL and X-3 owns live scratch restore verification.
 
 ## Order and why
 
