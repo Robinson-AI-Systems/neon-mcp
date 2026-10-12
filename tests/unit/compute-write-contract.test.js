@@ -77,7 +77,7 @@ function realFixture(name,{production=false,blocked=false,appOwned=false,
    const transport=createMcpHandler({registry,db:{...db,
     async getAccessToken(){return {profile:'full',listing:'catalog',mode:'preview',
      neon_org:IDS.org,project_scope:IDS.project,client_id:'client-fake-001'}}},
-    env:{VERCEL_ENV:'production',PUBLIC_ORIGIN:'http://localhost'}});
+    env:{VERCEL_ENV:'production',PUBLIC_BASE_URL:'https://mcp.example.test'}});
    httpServer=createServer(async(req,res)=>{
     const chunks=[];
     for await(const chunk of req)chunks.push(chunk);
