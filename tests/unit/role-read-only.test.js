@@ -6,7 +6,7 @@ import {tools,createReadOnlyRoleHandlers} from '../../src/tools/role-read-only.j
 const json=r=>JSON.parse(r.content[0].text);
 const args={branchId:IDS.dev,name:'scoped_reader',ownerName:'neondb_owner',
   databaseName:'neondb',endpointId:IDS.devEndpoint,schemas:['public']};
-function setup({allowed=true,grantFails=false,profile='full',wrongOwner=false,readOnlyEndpoint=false}={}){
+function setup({allowed=true,grantFails=false,deliveryFails=false,profile='full',wrongOwner=false,readOnlyEndpoint=false}={}){
   const fake=makeFakeNeon(),audit=[],saved=[],granted=[];
   const client=makeNeonClient({key:'napi_FAKE_role_read_only',orgId:IDS.org,
     fetch:fake.fetch,budget:{async consume(){return {allowed:true}}}});
@@ -15,7 +15,10 @@ function setup({allowed=true,grantFails=false,profile='full',wrongOwner=false,re
       recordWritePreview:async x=>audit.push(x),
       reserveWrite:async x=>{audit.push(x);return {created:true,id:audit.length}},
       completeWrite:async x=>audit.push(x),
-      saveOneTimeSecret:async x=>saved.push(x),
+      saveOneTimeSecret:async x=>{
+        if(deliveryFails)throw Error('Encrypted owner handoff unavailable');
+        saved.push(x);
+      },
       consumeSecretRequest:async()=>null
     },env:{PUBLIC_BASE_URL:'https://fake-owner.invalid',
       TOKEN_ENCRYPTION_KEY:'A'.repeat(43)},
@@ -87,8 +90,21 @@ describe('D-4 verified read-only role and owner-secret handoff',()=>{
     expect(result.confirmed).toBe('pending');
     expect(result.oneTimeSecretLink).toBeUndefined();
     expect(f.granted).toHaveLength(1);
+    expect(f.saved).toHaveLength(0);
     expect(f.fake.calls.filter(c=>c.method==='POST')).toHaveLength(1);
     expect(JSON.stringify(result)).not.toContain('npg_FAKE');
+    f.fake.assertClean();
+  });
+  it('keeps verified SQL grants pending when the encrypted owner handoff fails',async()=>{
+    const f=setup({deliveryFails:true});
+    const result=json(await f.handler({...args,confirm:true},{}));
+    expect(result.done).toBe(false);
+    expect(result.confirmed).toBe('pending');
+    expect(result.oneTimeSecretLink).toBeUndefined();
+    expect(f.granted).toHaveLength(1);
+    expect(f.saved).toHaveLength(0);
+    expect(f.fake.calls.filter(c=>c.method==='POST')).toHaveLength(1);
+    expect(JSON.stringify({result,audit:f.audit})).not.toContain('npg_FAKE');
     f.fake.assertClean();
   });
 });

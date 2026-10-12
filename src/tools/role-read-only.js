@@ -78,9 +78,6 @@ const define = defineWrite({name:'neon_role_create_read_only',secret:true,access
     const done=await waitForOperations(t.client,t.pid,reply.operations,{budgetMs:15000});
     if(done.confirmed!==true)return {confirmed:'pending',operations:done.operations};
   }
-  const secret=await checkSecretStorage(c).putOneTimeSecret({
-    org:c.connection.neonOrg,kind:'role_password',
-    label:'Scoped read-only role '+a.name,secret:created.password});
   // A role that was created but could not be granted MUST NOT be reported as
   // read-only; the B-1 claim remains pending and cannot blindly replay.
   const evidence=await c.applyReadOnlyGrants(a,c,t);
@@ -89,6 +86,12 @@ const define = defineWrite({name:'neon_role_create_read_only',secret:true,access
       JSON.stringify(evidence.schemas)!==JSON.stringify(a.schemas) ||
       evidence.futureTablesForOwnerVerified!==true)
     return {confirmed:'pending'};
+  // Password delivery is conditional on independently verified SQL grants.
+  // A partially provisioned role stays pending without an orphaned
+  // owner-visible credential or an unusable one-time handoff.
+  const secret=await checkSecretStorage(c).putOneTimeSecret({
+    org:c.connection.neonOrg,kind:'role_password',
+    label:'Scoped read-only role '+a.name,secret:created.password});
   c.roleReadOnlyEvidence=evidence;
   c.roleSecretLink=secret.link;
   return {confirmed:true,operations:reply.operations||[]};
