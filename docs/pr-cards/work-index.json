@@ -592,9 +592,10 @@
       "readiness": "READY",
       "ownerInputs": [],
       "pr": [
-        87
+        87,
+        97
       ],
-      "note": "Independently eligible: D-2 merged, D-4 remains blocked and D-5 stays forbidden. #87 scoped snapshot list plus all independently verified branch backup schedules, metadata only. Six guarded snapshot mutations remain unimplemented; no live/provider or production acceptance."
+      "note": "D-7 #87 bounded GET-only snapshots and branch schedules, #97 full-owner B-1 protected/manual-development-only snapshot delete with independent inventory drift and readback. Five additional snapshot mutations remain; live/scratch/owner acceptance and billed creation/retention estimates still blocked."
     },
     {
       "id": "D-8",
