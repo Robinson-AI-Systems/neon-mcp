@@ -605,14 +605,18 @@
         "D-1"
       ],
       "card": "docs/pr-cards/D-8.md",
-      "status": "PLANNED",
+      "status": "IN_PROGRESS",
       "migration": "none",
       "budget": 300,
       "units": [
         "D-8"
       ],
-      "readiness": "WRITE_CARD_AT_START",
-      "ownerInputs": []
+      "readiness": "READY",
+      "ownerInputs": [],
+      "pr": [
+        89
+      ],
+      "note": "Independent D-1 dependency satisfied. #89 read-only, project/org-verified JWKS inventory with duplicate/foreign denial and URL-query credential redaction; no mutations, no external acceptance; six more security tools remain."
     },
     {
       "id": "D-9",
