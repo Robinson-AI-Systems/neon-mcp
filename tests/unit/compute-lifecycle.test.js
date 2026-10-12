@@ -2,7 +2,7 @@ import {describe,it,expect} from 'vitest';
 import {makeFakeNeon} from '../../test/helpers/fake-neon.js';
 import {makeNeonClient} from '../../src/neon/client.js';
 import {DEFAULT_PRICING} from '../../src/neon/pricing.js';
-import {IDS,project,devEndpoint,responses} from '../../test/helpers/neon-fixtures.js';
+import {IDS,project,devEndpoint,mainEndpoint,responses} from '../../test/helpers/neon-fixtures.js';
 import {createComputeLifecycleHandlers,tools} from '../../src/tools/compute-lifecycle.js';
 const decode=r=>JSON.parse(r.content[0].text);
 function fixture({allowed=true,plan='Launch',connCount=null}={}){
@@ -74,7 +74,7 @@ describe('D-3 guarded compute lifecycle',()=>{
   fake.when('getProject').resolves({project:project()});
   fake.when('getProjectEndpoint').resolves({endpoint:devEndpoint({current_state:'active',updated_at:'2026-10-11T10:01:00Z'})});
   fake.when('getProjectBranch').resolves(responses.getProjectBranch('dev'));
-  const out=decode(await handlers.neon_compute_start({endpointId:IDS.devEndpoint,confirm:true},{}));
+  const out=decode(await handlers.neon_compute_start({endpointId:IDS.devEndpoint},{}));
   expect(out.confirmed).toBe(true);
   fake.assertClean();
  });
@@ -108,6 +108,52 @@ describe('D-3 guarded compute lifecycle',()=>{
   expect(out.confirmed).toBe(true);
   expect(fake.calls.filter(x=>x.method==='DELETE')).toHaveLength(1);
   fake.assertClean();
+ });
+ it('fails closed on protected interruption without an independently verified live connection count',async()=>{
+  const {fake,handlers}=fixture();
+  fake.when('getProject').resolves({project:project()});
+  fake.when('getProjectEndpoint').resolves({endpoint:mainEndpoint({current_state:'active'})});
+  fake.when('getProjectBranch').resolves(responses.getProjectBranch('main'));
+  const out=decode(await handlers.neon_compute_restart({
+   endpointId:IDS.mainEndpoint,confirm:true},{}));
+  expect(out.done).toBe(false);
+  expect(fake.calls.every(c=>c.method==='GET')).toBe(true);
+  fake.assertClean();
+ });
+ it('accepts valid default Postgres settings map and preserves requested timeout',async()=>{
+  const {fake,handlers}=fixture({plan:'Free'});
+  identity(fake,devEndpoint({settings:{}}));
+  fake.when('updateProjectEndpoint').resolves({endpoint:devEndpoint({
+   settings:{pg_settings:{statement_timeout:'5000'}}}),operations:[]});
+  fake.when('getProject').resolves({project:project()});
+  fake.when('getProjectEndpoint').resolves({endpoint:devEndpoint({
+   settings:{pg_settings:{statement_timeout:'5000'}}})});
+  fake.when('getProjectBranch').resolves(responses.getProjectBranch('dev'));
+  const out=decode(await handlers.neon_compute_update_settings({
+   endpointId:IDS.devEndpoint,pgSettings:{statement_timeout:'5000'},confirm:true},{}));
+  expect(out.confirmed).toBe(true);
+  expect(fake.calls.find(c=>c.method==='PATCH')?.body.endpoint.settings.pg_settings)
+   .toEqual({statement_timeout:'5000'});
+  fake.assertClean();
+ });
+ it('allows Free-plan no-cost scale-to-zero change while denying never-suspend',async()=>{
+  const {fake,handlers}=fixture({plan:'Free'});
+  identity(fake);
+  fake.when('updateProjectEndpoint').resolves({endpoint:devEndpoint({suspend_timeout_seconds:900}),operations:[]});
+  fake.when('getProject').resolves({project:project()});
+  fake.when('getProjectEndpoint').resolves({endpoint:devEndpoint({suspend_timeout_seconds:900})});
+  fake.when('getProjectBranch').resolves(responses.getProjectBranch('dev'));
+  const out=decode(await handlers.neon_compute_update_settings({
+   endpointId:IDS.devEndpoint,suspendSeconds:900,confirm:true},{}));
+  expect(out.confirmed).toBe(true);
+  fake.assertClean();
+  const denied=fixture({plan:'Free'});
+  identity(denied.fake);
+  const blocked=decode(await denied.handlers.neon_compute_update_settings({
+   endpointId:IDS.devEndpoint,suspendSeconds:-1,confirm:true},{}));
+  expect(blocked.done).toBe(false);
+  expect(denied.fake.calls.every(x=>x.method==='GET')).toBe(true);
+  denied.fake.assertClean();
  });
  it('rejects disabling scale-to-zero if independent plan is unknown',async()=>{
   const {fake,handlers}=fixture({plan:null});
