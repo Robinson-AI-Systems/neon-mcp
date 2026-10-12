@@ -1,3 +1,5 @@
+**D-1b operation history and project settings (PR #47):** Two scoped operation tools with bounded/filtered history and at-most-45-second wait, plus a project settings read with strict allowlist. All paths use trusted project keys, budgeted SDK and scrubbed dispatch. D-1 remains IN_PROGRESS: guarded project changes next. Production OFF.
+
 **D-1a project discovery (PR #46):** Scoped project list, region discovery and summary overview read from the pinned API through encrypted stored keys and durable API budgets. Project and organization boundaries fail closed; responses are allowlisted and paginated safely. D-1 remains IN_PROGRESS: operation reads and guarded mutations follow. Production stays OFF.
 
 **C-2 complete (PR #45, batch #41–#45):** Compact and catalog connection listings; scoped search/describe/call/read batch; pinned `gpt-tokenizer@3.4.0` o200k BPE enforces description, schema, <5,000 compact, <20,000 everyday listing and 100-item ≤8KB/secret-free stored handle checks. Implemented profile counts match TOOL-CATALOG. Next: D-1 projects, operations and regions. No production activation, paid resources or live Neon changes.
