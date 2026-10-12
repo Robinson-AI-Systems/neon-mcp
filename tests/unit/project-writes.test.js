@@ -45,7 +45,7 @@ describe('D-1 project lifecycle write gates',()=>{
  });
  it('rename previews without writing, confirms once and reads back provider change',async()=>{
   const {fake,handlers,changes}=setup();
-  fake.when('getProject').resolves(get()).resolves({project:project({name:'renamed'})});
+  fake.when('getProject').resolves(get()).resolves(get()).resolves({project:project({name:'renamed'})});
   fake.when('updateProject').resolves({project:project({name:'renamed'}),operations:[]});
   const dry=json(await handlers.neon_project_rename({projectId:IDS.project,name:'renamed',dryRun:true},{}));
   expect(dry.done).toBe(false);
