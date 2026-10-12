@@ -484,7 +484,7 @@
         "D-2"
       ],
       "card": "docs/pr-cards/D-3.md",
-      "status": "IN_PROGRESS",
+      "status": "MERGED",
       "migration": "none",
       "budget": 400,
       "units": [
@@ -495,9 +495,12 @@
       "pr": [
         59,
         60,
-        61
+        61,
+        62,
+        63,
+        64
       ],
-      "note": "Ten tool names: reads+estimate #59, billable create/resize #60, lifecycle/settings #61. Formal acceptance pending protected production connection visibility, deprecated pooler decision and exact final CI."
+      "note": "All 10 compute tool names, late review fixes #62, direct/delegated/HTTPS full write-contract acceptance #63, trusted protected-session visibility #64. Exact-head and postmerge checks required. Live connected/owner production/scratch and unsupported legacy pooler setting remain separately gated; no production activation."
     },
     {
       "id": "D-4",
@@ -508,14 +511,18 @@
         "D-3"
       ],
       "card": "docs/pr-cards/D-4.md",
-      "status": "PLANNED",
+      "status": "IN_PROGRESS",
       "migration": "none",
       "budget": 450,
       "units": [
         "D-4"
       ],
-      "readiness": "WRITE_CARD_AT_START",
-      "ownerInputs": []
+      "readiness": "READY",
+      "ownerInputs": [],
+      "pr": [
+        65
+      ],
+      "note": "JIT card written against #64 main; #65 adds four bounded safe database/role read tools. Guarded database writes, role passwords/privileges and connections remain."
     },
     {
       "id": "D-5",

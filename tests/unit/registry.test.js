@@ -11,7 +11,9 @@ describe('tool registry', () => {
       'neon_compute_list','neon_compute_get','neon_compute_estimate_cost',
       'neon_compute_create','neon_compute_resize',
       'neon_compute_start','neon_compute_suspend','neon_compute_restart',
-      'neon_compute_delete','neon_compute_update_settings','neon_search_tools','neon_call','neon_batch','neon_describe_tool']);
+      'neon_compute_delete','neon_compute_update_settings',
+      'neon_database_list','neon_database_get','neon_role_list','neon_role_get',
+      'neon_search_tools','neon_call','neon_batch','neon_describe_tool']);
     for(const tool of registry.tools) {
       if (tool.writes) {
         expect(tool.profiles).toEqual(['neon_project_rename','neon_branch_rename','neon_branch_set_expiration','neon_branch_create',
