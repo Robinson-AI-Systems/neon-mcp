@@ -27,16 +27,24 @@ const create=defineWrite({name:'neon_role_create',secret:true,access:true,
   if(created?.name!==a.name||created.branch_id!==t.bid||
      typeof created.password!=='string'||!created.password)
    return {confirmed:'pending'};
-  // Store only encrypted password; never put provider response in B-1 audit.
+  // Do not mint a password handoff for an incomplete provider operation.
+  if(reply.operations?.length){
+   const waited=await waitForOperations(t.client,t.pid,reply.operations,{budgetMs:15000});
+   if(waited.confirmed!==true)
+    return {confirmed:'pending',operations:waited.operations};
+  }
+  // Independently verify the just-created role before credential delivery.
+  // An uncertain read never becomes a usable owner secret or a replay.
+  const checked=(await projectRead(t.client,'getProjectBranchRole',{
+   path:{...t.path,role_name:a.name}}))?.role;
+  if(checked?.name!==a.name||checked.branch_id!==t.bid||
+      checked.protected===true)
+   return {confirmed:'pending',operations:reply.operations||[]};
   const secret=await checkSecretStorage(c).putOneTimeSecret({
    org:c.connection.neonOrg,kind:'role_password',label:'Role '+a.name,
    secret:created.password});
   c.roleSecretLink=secret.link;
-  if(reply.operations?.length){
-   const waited=await waitForOperations(t.client,t.pid,reply.operations,{budgetMs:15000});
-   return {confirmed:waited.confirmed===true?true:'pending',operations:waited.operations};
-  }
-  return {confirmed:true,operations:[]};
+  return {confirmed:true,operations:reply.operations||[]};
  },
  readAfter:async(a,c)=>{
   const t=await roleBranch(a,c);
