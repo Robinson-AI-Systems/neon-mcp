@@ -21,7 +21,7 @@ function setup({profile='full',allowed=true,production=true}={}){
   clientFor:async()=>client,writeKey:()=> 'rmcp_security_network_fixture_12345',
   guards:{checkProtected:async()=>allowed,
    checkApp:async()=>allowed,
-   checkProduction:async()=>({allowed,production}),
+   checkProduction:async()=>({allowed:allowed&&production,production}),
    checkSpend:async()=>allowed}};
  const handler=createSecurityWriteHandlers({contextFor:async()=>ctx})
   .neon_security_set_public_access;
@@ -58,7 +58,7 @@ describe('D-8 guarded project network access',()=>{
   expect(f.writes.some(x=>x.kind==='complete'&&x.confirmed==='true')).toBe(true);
   f.fake.assertClean();
  });
- it('can change VPC without dropping an existing public restriction',async()=>{
+ it('denies a VPC-only change that would leave both network paths blocked',async()=>{
   const f=setup();f.fake.when('getProject')
    .resolves({project:value(true,false)})
    .resolves({project:value(true,false)})
@@ -69,7 +69,7 @@ describe('D-8 guarded project network access',()=>{
   f.fake.assertClean();
  });
  it('rejects missing, malformed, or unverified provider access state',async()=>{
-  for(const p of [project(),value('yes'),project({org_id:'org-fake-other',
+  for(const p of [project(),project({settings:{block_public_connections:true}}),project({org_id:'org-fake-other',
    settings:value().settings})]){
    const f=setup();f.fake.when('getProject').resolves({project:p});
    const result=parse(await f.handler({blockPublic:true,confirm:true},{}));
