@@ -1,9 +1,9 @@
 import {describe,it,expect} from 'vitest';
 import {makeFakeNeon} from '../../test/helpers/fake-neon.js';
 import {makeNeonClient} from '../../src/neon/client.js';
-import {IDS,AT,project,mainBranch,devBranch} from '../../test/helpers/neon-fixtures.js';
+import {IDS,AT,project,mainBranch,devBranch,mainEndpoint,devEndpoint} from '../../test/helpers/neon-fixtures.js';
 import {projectScope} from '../../src/tools/project-context.js';
-import {createSecurityReadHandlers,tools} from '../../src/tools/security.js';
+import {createSecurityReadHandlers,tools,observedAuditLevel,verifiedReplicationExposure} from '../../src/tools/security.js';
 
 const ctx={connection:{neonOrg:IDS.org,projectScope:IDS.project,profile:'read_only'}};
 const row={id:'jwks-fake-000001',project_id:IDS.project,
@@ -79,12 +79,14 @@ describe('D-8 scoped, secret-safe JWKS trust reads',()=>{
  });
 });
 
-function review({projectRow=project(),branches=[mainBranch(),devBranch()],jwks=[row]}={}){
+function review({projectRow=project(),branches=[mainBranch(),devBranch()],
+ endpoints=[mainEndpoint(),devEndpoint()],jwks=[row]}={}){
  const fake=makeFakeNeon();
  const client=makeNeonClient({key:'napi_FAKE_security_review',orgId:IDS.org,
   fetch:fake.fetch,budget:{async consume(){return {allowed:true}}}});
  fake.when('getProject').resolves({project:projectRow});
  fake.when('listProjectBranches').resolves({branches,annotations:{}});
+ fake.when('listProjectEndpoints').resolves({endpoints});
  fake.when('getProjectJWKS').resolves({jwks});
  const handler=createSecurityReadHandlers({getClient:async(c,p)=>({
   client,scope:projectScope(c,p)})}).neon_security_review;
@@ -94,7 +96,7 @@ describe('D-8 independently verified project-security overview',()=>{
  it('uses bounded GET-only evidence without reading database connections',async()=>{
   const f=review({projectRow:project({settings:{
    block_public_connections:true,block_vpc_connections:false,
-   enable_logical_replication:false,
+   enable_logical_replication:false,audit_log_level:'extended',
    allowed_ips:{ips:['192.0.2.0/24'],protected_branches_only:true}}})});
   const result=json(await f.handler({},ctx));
   expect(result.metadataComplete).toBe(true);
@@ -105,13 +107,18 @@ describe('D-8 independently verified project-security overview',()=>{
    publicConnectionsBlocked:{state:'observed',value:true},
    vpcConnectionsBlocked:{state:'observed',value:false},
    logicalReplicationEnabled:{state:'observed',value:false},
+   logicalReplicationImpact:{state:'observed',total:2,readWrite:2,
+    readOnly:0,providerReportedActive:0,existingComputeContinuousMaxCuHours:1460,
+    reversible:false,activeClientSessions:'notEvaluated',incrementalCharges:'notEvaluated'},
+   auditLoggingLevel:{state:'observed',level:'extended',delivery:'notEvaluated',
+    retention:'notEvaluated',billingImpact:'notEvaluated'},
    ipAllowlist:{state:'observed',addressCount:1,protectedBranchesOnly:true},
    trustedJwks:{state:'observed',issuerCount:1}
   });
   expect(result.notEvaluated).toContain('RLS policy coverage');
   expect(f.fake.calls.every(x=>x.method==='GET')).toBe(true);
   expect(f.fake.calls.map(x=>x.operationId).sort()).toEqual(
-   ['getProject','getProjectJWKS','listProjectBranches'].sort());
+   ['getProject','getProjectJWKS','listProjectBranches','listProjectEndpoints'].sort());
   expect(JSON.stringify(result)).not.toMatch(/napi_FAKE|FAKE_SENSITIVE|postgresql:\/\//);
   f.fake.assertClean();
  });
@@ -119,10 +126,63 @@ describe('D-8 independently verified project-security overview',()=>{
   const f=review();
   const result=json(await f.handler({},ctx));
   for(const k of ['publicConnectionsBlocked','vpcConnectionsBlocked',
-   'logicalReplicationEnabled','ipAllowlist'])
+   'logicalReplicationEnabled','auditLoggingLevel','ipAllowlist'])
    expect(result.checks[k]).toEqual({state:'unknown'});
   expect(result.checks.trustedJwks).toEqual({state:'observed',issuerCount:1});
   f.fake.assertClean();
+ });
+ it('reports current audit level without claiming actual log delivery or pricing',async()=>{
+  for(const level of ['base','extended','full']){
+   const f=review({projectRow:project({settings:{audit_log_level:level}})});
+   const result=json(await f.handler({},ctx));
+   expect(result.checks.auditLoggingLevel).toEqual({state:'observed',level,
+    delivery:'notEvaluated',retention:'notEvaluated',billingImpact:'notEvaluated'});
+   expect(result.notEvaluated).toContain('Real replication subscribers, audit delivery and incremental billing');
+   expect(f.fake.calls.every(x=>x.method==='GET')).toBe(true);
+   f.fake.assertClean();
+  }
+ });
+ it('rejects any unsupported or malformed audit level without a default',()=>{
+  for(const level of ['off','HIPAA',true,7,'EXTENDED',''])
+   expect(()=>observedAuditLevel(level)).toThrow(/audit logging level/);
+  expect(observedAuditLevel(undefined)).toEqual({state:'unknown'});
+  expect(observedAuditLevel(null)).toEqual({state:'unknown'});
+ });
+ it('validates every compute and prices no extra replication charges',async()=>{
+  const f=review({endpoints:[mainEndpoint({current_state:'active'}),
+   devEndpoint({type:'read_only',autoscaling_limit_max_cu:0.5})]});
+  const result=json(await f.handler({},ctx));
+  expect(result.checks.logicalReplicationImpact).toMatchObject({
+   total:2,readWrite:1,readOnly:1,providerReportedActive:1,
+   existingComputeContinuousMaxCuHours:1095,incrementalCharges:'notEvaluated',
+   activeClientSessions:'notEvaluated',reversible:false});
+  expect(JSON.stringify(result)).not.toContain('ep-fake-endpoint');
+  f.fake.assertClean();
+ });
+ it('refuses duplicate, wrong-project and foreign-branch provider endpoints',async()=>{
+  for(const endpoints of [
+   [mainEndpoint(),mainEndpoint()],
+   [mainEndpoint({project_id:'proj-fake-other'})],
+   [mainEndpoint({branch_id:'br-fake-foreign'})]
+  ]){
+   const f=review({endpoints});
+   await expect(f.handler({},ctx)).rejects.toThrow(/Compute identity/);
+   expect(f.fake.calls.every(x=>x.method==='GET')).toBe(true);
+   f.fake.assertClean();
+  }
+ });
+ it('rejects invalid endpoint capacity and metadata independent of API fixture schema',()=>{
+  const branches=[mainBranch(),devBranch()];
+  for(const endpoints of [
+   [mainEndpoint({autoscaling_limit_max_cu:NaN})],
+   [mainEndpoint({autoscaling_limit_max_cu:0})],
+   [mainEndpoint({type:'unknown'})],
+   [mainEndpoint({disabled:'false'})],
+   [mainEndpoint({current_state:null})]
+  ])expect(()=>verifiedReplicationExposure({endpoints},IDS.project,branches))
+   .toThrow(/Compute identity|capacity/);
+  expect(()=>verifiedReplicationExposure({endpoints:[mainEndpoint(),mainEndpoint()]},
+   IDS.project,branches)).toThrow(/Compute identity/);
  });
  it('refuses foreign scope without provider access',async()=>{
   const f=review();

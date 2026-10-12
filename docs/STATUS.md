@@ -1,10 +1,13 @@
-# Current outcome and acceptance ledger (2026-10-12; session #91–#95 in progress)
+# Current outcome and acceptance ledger (2026-10-12; #91–#95 merged, #96 review)
 
 **Active capability:** owner-guarded project security. #91 implements public/VPC restriction,
 #92 implements Scale-plan IP allowance and #93 implements scoped JWKS trust/revocation.
-#94 closes a JWKS trust authorization race by independently rechecking branch protection
-immediately before an add request. These are offline capabilities, not deployed/real Neon
-acceptance. D-8 audit-log cost and irreversible logical-replication gates still require evidence.
+#94 fixes the JWKS protection race; #95 verifies current Scale entitlement via Neon's
+organization endpoint. All five #91–#95 PRs are merged with final-main CI green.
+#96 adds GET-only verified audit level and compute disruption exposure to D-8 review,
+plus a permanent root-cause-first blocker-resolution rule. These are offline capabilities,
+not deployed/real Neon acceptance. Audit-log billing and irreversible replication
+remain gated; no release, provider trial or owner live mutation is implied.
 
 | Area | Code | Automated verification | Deployed behavior | Real acceptance |
 | --- | --- | --- | --- | --- |
@@ -306,3 +309,23 @@ never used to override a failed or downgraded live provider plan. Every preview,
 pre-apply and postwrite readback rechecks entitlement. Tests prove successful
 verified Scale operations and refusal of absent/downgraded/provider-error plans.
 No plan change, real network write or live application access proof.
+
+**D-8 read-only audit/replication preflight — PR #96 (2026-10-12):**
+`neon_security_review` now reports exactly observed provider `base|extended|full`
+audit-log configuration (or unknown) without misrepresenting log delivery, retention
+or billing. Separately inventories complete bounded project compute metadata and
+associated verified branches; calculates a 730-hour continuous maximum CU-hour
+**scenario for existing enabled computes only** and states that irreversible
+replication would suspend active endpoints. Fails on duplicate/foreign/malformed
+compute metadata, no SQL or compute wake. Neither current connections nor extra
+WAL/egress/logging cost can be deduced from this inventory. D-8's two mutations
+and real acceptance remain OPEN until independent provider evidence, actual
+B-4 cost model and owner irreversible/spending approval are present.
+
+**Owner-required root-cause-first workflow correction (#96):** A blocked operation
+is not a blocked project. Reproduce defects and repair implementation/config/API
+contract/test gaps first, then inspect the approved dependency index for the
+highest-priority eligible independent work. Recheck inputs and promote cleared
+items automatically; prove remaining external gates before an early stop. Five
+already-merged PRs (#91–#95) remain counted; #96 is additional substantive work,
+not a replacement or documentation-only PR.

@@ -133,6 +133,26 @@ implementation around that outcome; do not manufacture hardening tasks or broade
 permission to achieve an arbitrary PR count. Stop with fewer if required gates prevent
 another substantive merge. Existing PR-size, owner and deployment rules still govern.
 
+**A blocker for one capability is not a project-wide blocker (owner correction, 2026-10-12).**
+Before calling any operation or acceptance blocked, reproduce/investigate its root cause,
+check current code, configuration, provider/API contract, pinned dependencies,
+stale docs, CI/reviews and *already-answered* owner inputs, then implement the authorized
+fix with real tests. Missing evidence means a concrete evidence-acquisition task,
+not permission to speculate or stop. Distinguish fixable defects from genuinely
+unavailable third-party permissions, credentials, owner decisions or independent
+safety evidence. Keep every unsafe operation fail-closed and its acceptance OPEN,
+without weakening protection to manufacture success. A blocker must specify the
+attempted remedy, precise missing evidence, owner action if genuinely required,
+and a testable re-entry trigger. Review the entire approved work index and
+dependency graph for independent eligible implementation immediately; continue the
+highest-priority capability rather than ending a session or dumping a continuation
+prompt. Reopen deferred work automatically as soon as its condition is met.
+An early stop requires documented evidence that all approved alternatives are
+ineligible or a concrete execution limit. Five substantial merges are a normal
+boundary; count already-merged work in the active session, never redo it or pad
+another PR to hit a number. Preserve code, automation, CI, reviews, owner gates,
+hosting/spending and scheduled release boundaries throughout.
+
 **Blockers are tracked, never silently skipped.** Record each deferred capability in
 `docs/STATUS.md`, reflect status/dependencies in `docs/pr-cards/work-index.json` and
 the active card, and include: the *specific blocker*, required external evidence/owner

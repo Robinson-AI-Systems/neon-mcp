@@ -10,7 +10,7 @@ export const tools=[
   'List scoped trusted JWKS issuers without revealing embedded URL credentials.',{
    projectId:readId},{area:'security',audience:['owner','operator']}),
  defineReadTool('neon_security_review',
-  'Review verified project network, replication, branch and JWKS security posture.',{
+  'Review project network, audit level, JWKS and verified replication compute exposure.',{
    projectId:readId},{area:'security',audience:['owner','operator']})
 ];
 function safeJwksUrl(raw){
@@ -45,6 +45,48 @@ export function verifiedEntries(data,projectId){
    jwtAudienceConfigured:typeof j.jwt_audience==='string'&&j.jwt_audience.length>0,
    roles:j.role_names??[],createdAt:j.created_at,updatedAt:j.updated_at};
  });
+}
+// Audit configuration is directly observable, but log delivery/retention, usage
+// and billable impact are NOT established by reading a project's settings.
+export function observedAuditLevel(value){
+ if(value===undefined||value===null)return {state:'unknown'};
+ if(!['base','extended','full'].includes(value))
+  throw Error('Unrecognized project audit logging level');
+ return {state:'observed',level:value,delivery:'notEvaluated',
+  retention:'notEvaluated',billingImpact:'notEvaluated'};
+}
+// Replication can suspend all active endpoints and may prevent scale-to-zero.
+// Inventory compute metadata without waking databases or assuming live clients.
+export function verifiedReplicationExposure(data,projectId,branches){
+ if(!Array.isArray(data?.endpoints)||data.endpoints.length>100||
+    data.pagination?.cursor)
+  throw Error('Complete bounded compute impact inventory unavailable');
+ const known=new Set(branches.map(x=>x.id));
+ const seen=new Set();let readWrite=0,readOnly=0,reportedActive=0,maxCu=0;
+ for(const e of data.endpoints){
+  if(!id(e?.id)||seen.has(e.id)||e.project_id!==projectId||
+     !known.has(e.branch_id)||!['read_write','read_only'].includes(e.type)||
+     typeof e.disabled!=='boolean'||
+     typeof e.current_state!=='string'||!e.current_state||
+     typeof e.autoscaling_limit_max_cu!=='number'||
+     !Number.isFinite(e.autoscaling_limit_max_cu)||
+     e.autoscaling_limit_max_cu<=0||e.autoscaling_limit_max_cu>10000)
+   throw Error('Compute identity, branch or worst-case capacity unverified');
+  seen.add(e.id);
+  if(e.type==='read_write')readWrite++;else readOnly++;
+  if(e.current_state==='active'&&!e.disabled)reportedActive++;
+  if(!e.disabled)maxCu+=e.autoscaling_limit_max_cu;
+ }
+ if(!Number.isFinite(maxCu)||maxCu>100000)
+  throw Error('Complete compute capacity cannot be bounded');
+ return {state:'observed',total:data.endpoints.length,readWrite,readOnly,
+  providerReportedActive:reportedActive,
+  // Upper-bound scenario for current enabled compute maximums, not an
+  // incremental bill or evidence of actual subscriber connections.
+  existingComputeContinuousMaxCuHours:Math.ceil(maxCu*730),
+  interruption:'Neon suspends all active endpoints when logical replication is enabled',
+  reversible:false,activeClientSessions:'notEvaluated',
+  incrementalCharges:'notEvaluated'};
 }
 // Unknown fields are not safe defaults. Observed fields are facts, not approvals.
 function observedBoolean(value){
@@ -106,12 +148,14 @@ export function createSecurityReadHandlers({getClient=projectClient}={}){
   if(settings!==undefined&&settings!==null&&
       (typeof settings!=='object'||Array.isArray(settings)))
    throw Error('Project security settings invalid');
-  const [branches,jwks]=await Promise.all([
+  const [branches,jwks,endpoints]=await Promise.all([
    projectRead(client,'listProjectBranches',{path,query:{limit:100}}),
-   projectRead(client,'getProjectJWKS',{path})
+   projectRead(client,'getProjectJWKS',{path}),
+   projectRead(client,'listProjectEndpoints',{path})
   ]);
   const posture=verifiedBranchPosture(branches,scope.projectId);
   const issuerCount=verifiedEntries(jwks,scope.projectId).length;
+  const exposure=verifiedReplicationExposure(endpoints,scope.projectId,branches.branches);
   const security=settings??{};
   return readText({projectId:scope.projectId,metadataComplete:true,
    checks:{
@@ -119,12 +163,15 @@ export function createSecurityReadHandlers({getClient=projectClient}={}){
     publicConnectionsBlocked:observedBoolean(security.block_public_connections),
     vpcConnectionsBlocked:observedBoolean(security.block_vpc_connections),
     logicalReplicationEnabled:observedBoolean(security.enable_logical_replication),
+    logicalReplicationImpact:exposure,
+    auditLoggingLevel:observedAuditLevel(security.audit_log_level),
     ipAllowlist:observedIps(security.allowed_ips),
     trustedJwks:{state:'observed',issuerCount}
    },
    notEvaluated:['RLS policy coverage','Login role access',
-    'Advisor findings and live network reachability'],
-   note:'Observed metadata is not proof of effective network isolation or RLS. Unknown settings are not assessed. No database or external JWKS endpoint was contacted.'});
+    'Advisor findings and live network reachability',
+    'Real replication subscribers, audit delivery and incremental billing'],
+   note:'Compute impact is a point-in-time metadata inventory, not an active-client probe or billable increment. Enabling replication is irreversible and suspends active endpoints. Audit level is configured state only, not proof of delivered logs. No database or external JWKS endpoint was contacted.'});
  }};
 }
 export const handlers=createSecurityReadHandlers();
