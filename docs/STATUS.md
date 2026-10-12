@@ -1,18 +1,18 @@
-# Current outcome and acceptance ledger (2026-10-12; #91–#96 merged, #97 implementation)
+# Current outcome and acceptance ledger (2026-10-12; #97 merged, #98 implementation)
 
 **Active capability:** owner-guarded project security and independent D-7 snapshot safeguards. #91 implements public/VPC restriction,
 #92 implements Scale-plan IP allowance and #93 implements scoped JWKS trust/revocation.
 #94 fixes the JWKS protection race; #95 verifies current Scale entitlement via Neon's
 organization endpoint. All five #91–#95 PRs are merged with final-main CI green.
 #96 adds GET-only verified audit level and compute disruption exposure to D-8 review,
-plus a permanent root-cause-first blocker-resolution rule. #97 provides scoped owner-only permanent manual snapshot deletion for unprotected development sources, with stale-state recheck and exact readback. This is offline-only; no actual Neon deletion. These are offline capabilities,
+plus a permanent root-cause-first blocker-resolution rule. #97 provides scoped owner-only permanent manual snapshot deletion for unprotected development sources, with stale-state recheck and exact readback. #98 adds safe name-only updates without extending expiry, guarded and read back. This is offline-only; no actual Neon deletion. These are offline capabilities,
 not deployed/real Neon acceptance. Audit-log billing and irreversible replication
 remain gated; no release, provider trial or owner live mutation is implied.
 
 | Area | Code | Automated verification | Deployed behavior | Real acceptance |
 | --- | --- | --- | --- | --- |
 | D-4 role create/read-only/reset | Built, safer handoffs #86/#88; delete intentionally UNREGISTERED | Fake Neon plus existing disposable-Postgres SQL grants/guards | NOT VERIFIED | OPEN: pooled clients and scratch/owner gates |
-| D-7 snapshots | `neon_snapshot_list` #87 and guarded manual development snapshot `neon_snapshot_delete` #97; five mutations remain | Fake Neon GET-only + repository CI | NOT VERIFIED | OPEN: owner-authorized live read and mutation acceptance |
+| D-7 snapshots | `neon_snapshot_list` #87 and guarded manual development `neon_snapshot_delete` #97 and name-only `neon_snapshot_update` #98; four mutations remain | Fake Neon GET-only + repository CI | NOT VERIFIED | OPEN: owner-authorized live read and mutation acceptance |
 | D-8 project security metadata | JWKS #89/review #90; network #91, IP #92, JWKS #93; #94 fixes stale branch protection before issuer trust; audit level and irreversible replication remain | Fake provider, code+CI for #89; #90 exact-head CI required | NOT VERIFIED | OPEN: RLS/roles/advisor, trusted real project reads |
 | RTC/Hub | Narrow read-only HTTPS subset built offline; runtime flag OFF | HTTP, fake and disposable DB tests | NOT VERIFIED | OPEN: contract mode mismatch, complete conformance, direct/relay/Sandbox and revocation |
 
