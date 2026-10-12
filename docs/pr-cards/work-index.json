@@ -439,9 +439,10 @@
       "readiness": "READY",
       "ownerInputs": [],
       "pr": [
-        46
+        46,
+        47
       ],
-      "note": "Three project discovery reads shipped in #46; operation reads and guarded writes remain."
+      "note": "Six D-1 reads complete (#46, #47); seven guarded project mutations remain."
     },
     {
       "id": "D-2",
