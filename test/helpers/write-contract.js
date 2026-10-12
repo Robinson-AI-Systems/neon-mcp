@@ -75,7 +75,9 @@ export async function runWriteContract(make = makeContractFixture, {input = {}, 
   const high=make({spendCents:2600});
   expect(high.parse(await high.handler({...input,confirm:true},high.ctx)).code).toBe('refused_by_guard'); // 7
   const price=make({spendCents:100});
-  expect(price.parse(await price.handler({...input,dryRun:true},price.ctx)).spendMonthCents).toBe(expectedSpendCents);
+  const quoted=price.parse(await price.handler({...input,dryRun:true},price.ctx)).spendMonthCents;
+  if(expectedSpendCents===null)expect(quoted).toBeGreaterThanOrEqual(0);
+  else expect(quoted).toBe(expectedSpendCents);
   const app=make({appOwned:true});
   expect(app.parse(await app.handler({...input,confirm:true},app.ctx)).code).toBe('refused_by_guard'); // 8
   const secret=make();
