@@ -24,12 +24,7 @@ const methods=(req,res,allowed)=>{
 };
 const plain=x=>x!==null&&typeof x==='object'&&!Array.isArray(x)&&
   (Object.getPrototypeOf(x)===Object.prototype||Object.getPrototypeOf(x)===null);
-function argsFrom(req){
-  let input=req.body;
-  if(typeof input==='string'){
-    if(Buffer.byteLength(input)>16384)throw Error('Oversize JSON body');
-    input=JSON.parse(input);
-  }
+function normalizeArgs(input){
   if(!plain(input)||Buffer.byteLength(JSON.stringify(input))>16384)
     throw Error('Invalid RTC argument envelope');
   const fields=input.fields;
@@ -45,6 +40,14 @@ function argsFrom(req){
   if(input.detail!==undefined&&!['summary','full'].includes(input.detail))
     throw Error('Invalid detail selection');
   return input;
+}
+function argsFrom(req){
+  let input=req.body;
+  if(typeof input==='string'){
+    if(Buffer.byteLength(input)>16384)throw Error('Oversize JSON body');
+    input=JSON.parse(input);
+  }
+  return normalizeArgs(input);
 }
 function safeInvocation(name,args){
   if(!namePattern.test(name||'')||!rtcNonproductionTool(name)||!plain(args))
@@ -111,9 +114,17 @@ export function createRtcHttpHandlers({db,registry,env=process.env}={}){
     if(name==='_batch'){
       if(req.method!=='POST')return error(res,'invalid_args',405);
       let calls;
-      try {calls=argsFrom(req).calls;}catch{return error(res,'invalid_args',400);}
-      if(!Array.isArray(calls)||calls.length<1||calls.length>10)
-        return error(res,'invalid_args',400);
+      try {
+        calls=argsFrom(req).calls;
+        if(!Array.isArray(calls)||calls.length<1||calls.length>10)
+          throw new TypeError('Invalid RTC batch size');
+        // Preflight and normalize EVERY nested argument before any handler runs.
+        // A batch cannot bypass the direct-call fields/detail schema.
+        calls=calls.map(c=>{
+          if(!plain(c))throw new TypeError('Invalid RTC batch item');
+          return {...c,args:normalizeArgs(c.args??{})};
+        });
+      }catch{return error(res,'invalid_args',400);}
       if(calls.some(c=>!plain(c)||!namePattern.test(c.name||'')||
            !rtcNonproductionTool(c.name)||!safeInvocation(c.name,c.args??{}) ||
            !registry.tools.some(t=>t.name===c.name && t.writes===false &&

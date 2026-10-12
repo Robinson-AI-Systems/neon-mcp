@@ -54,8 +54,9 @@ jobs:
     timeout-minutes: 10
     services:
       postgres:
-        # ECR mirror of the official image: Docker Hub's anonymous pull limit broke Appliance Desk CI.
-        image: public.ecr.aws/docker/library/postgres:17
+        # GitHub-hosted runners are exempt from public Docker Hub pull rate limits.
+        # ECR Public hit "toomanyrequests: Data limit exceeded" on main #81.
+        image: postgres:17
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: ci-only-not-a-secret
