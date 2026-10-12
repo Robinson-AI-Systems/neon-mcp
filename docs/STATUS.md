@@ -11,7 +11,7 @@ The five-PR batch closes after exact-head checks, review and merge—not by PR c
 | --- | --- | --- | --- | --- |
 | D-4 role create/read-only/reset | Built, safer handoffs #86/#88; delete intentionally UNREGISTERED | Fake Neon plus existing disposable-Postgres SQL grants/guards | NOT VERIFIED | OPEN: pooled clients and scratch/owner gates |
 | D-7 snapshot metadata | `neon_snapshot_list` #87 built; six mutations missing | Fake Neon GET-only + repository CI | NOT VERIFIED | OPEN: owner-authorized live read and mutation acceptance |
-| D-8 project security metadata | JWKS #89 and evidence-labelled review #90 built; four writes missing; guarded public/VPC restriction #91 | Fake provider, code+CI for #89; #90 exact-head CI required | NOT VERIFIED | OPEN: RLS/roles/advisor, trusted real project reads |
+| D-8 project security metadata | JWKS #89 and evidence-labelled review #90 built; three writes missing; guarded public/VPC restriction #91 and IP allowlist #92 | Fake provider, code+CI for #89; #90 exact-head CI required | NOT VERIFIED | OPEN: RLS/roles/advisor, trusted real project reads |
 | RTC/Hub | Narrow read-only HTTPS subset built offline; runtime flag OFF | HTTP, fake and disposable DB tests | NOT VERIFIED | OPEN: contract mode mismatch, complete conformance, direct/relay/Sandbox and revocation |
 
 ## Actionable deferred work — recheck at every session and evidence change
@@ -26,6 +26,8 @@ The five-PR batch closes after exact-head checks, review and merge—not by PR c
 | Deployment and owner setup | Owner inputs IN-02/03/04/05/06 pending for real credentials and scratch acceptance | Owner-created/authorized service and key configuration, secure variables and scope | Recheck `docs/OWNER-INPUTS.md` after owner action; IN-09/10/14 already answered and must NOT be requested again | Continue offline approved work; guide secure setup rather than requesting secrets in chat |
 
 **D-8 guarded public/VPC restriction — PR #91 (2026-10-12):** Added owner-only `neon_security_set_public_access` through B-1 verified preview/confirm, protected/app/production access checks, durable audit, explicit public/VPC boolean before-state, complete-lockout denial, exact PATCH and independently verified readback; stale changes remain PENDING without replay. Fake-provider adversarial tests cover idempotence gates, missing metadata, scope, no-op, stale read and false readback. This is offline code and CI evidence only; no deployed or owner-authorized live network change. D-8 still IN_PROGRESS (four mutations and RLS/advisor/network effectiveness acceptance remain). D-4/D-5 and RTC blockers unchanged.
+
+**D-8 verified Scale-plan IP allowance — PR #92 (2026-10-12):** Added owner-only `neon_security_set_ip_allow` with exact add/remove/replace list preview (bounded to 12 literal IPv4/IPv6/CIDRs), verified existing Scale entitlement, public Vercel dynamic-egress lockout warning, B-1 protected/app/production audit and independent prewrite/readback checks. No plan upgrade or real network write; unknown allowance or plan fails closed. Fake-provider tests cover no-op, input denials, stale state and provider false readback. D-8 remains IN_PROGRESS with three guarded writes and owner-authorized live access tests open.
 
 **Priority on next eligible session:** resolve any new exact-head CI/review defect; then
 materially advance approved D-8 project-security correctness and remaining guarded
