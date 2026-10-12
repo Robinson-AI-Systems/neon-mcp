@@ -127,7 +127,11 @@ export function createDb(sql = productionSql()) {
       if(!/^rtc_pass_[A-Za-z0-9_-]{43}$/.test(token||''))return null;
       const rows=await sql`SELECT client_id,neon_org,project_scope,mode,profile,
         listing,kind,rtc_areas,allow_writes,expires_at,revoked_at
-        FROM oauth_tokens WHERE token_hash=${hashToken(token)} AND kind='pass'`;
+        FROM oauth_tokens p WHERE p.token_hash=${hashToken(token)} AND p.kind='pass'
+        AND EXISTS(SELECT 1 FROM neon_keys k
+          WHERE k.org_id=p.neon_org AND k.project_id=p.project_scope
+            AND k.kind='project' AND k.revoked_at IS NULL
+            AND k.reach->>'verified'='true')`;
       return rows[0]||null;
     },
     async revokeRtcPass({orgId,passId}){
