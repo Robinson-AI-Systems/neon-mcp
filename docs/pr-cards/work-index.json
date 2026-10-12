@@ -441,9 +441,10 @@
       "pr": [
         46,
         47,
-        48
+        48,
+        49
       ],
-      "note": "Six D-1 reads and guarded spend/production admission foundations complete; seven project mutations remain."
+      "note": "Six reads, four guarded lifecycle writes and atomic spend admission complete; three settings/retention/quotas writes remain."
     },
     {
       "id": "D-2",
