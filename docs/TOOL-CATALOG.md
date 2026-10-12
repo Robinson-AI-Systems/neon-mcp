@@ -207,7 +207,7 @@ The SQL guard (`docs/designs/BATCH-B.md` B-3) classifies every statement with th
 | `neon_security_set_ip_allow` | Replace, add to or remove from the IP allow list (Scale plan); preview warns when the app's own addresses would be blocked | C Pr A | Ow | F | D-8 |
 | `neon_security_set_logical_replication` | Turn on logical replication (cannot be turned off; restarts computes) | C D Pr | Ow | F | D-8 |
 | `neon_security_set_public_access` | Block or allow connections over the public internet or VPC | C Pr | Ow | F | D-8 |
-| `neon_security_list_jwks` | JWKS URLs trusted for RLS authorization | — | B Ow | R | D-8 |
+| `neon_security_list_jwks` | Project-verified trusted JWKS issuers, refusing foreign/duplicate entries and redacting credential-bearing URLs | — | B Ow | R | D-8 (built #89) |
 | `neon_security_set_jwks` | Add or remove a JWKS URL (adding widens who can authenticate) | C Pr A | B Ow | F | D-8 |
 | `neon_security_set_audit_log_level` | Postgres audit logging level for the project | C Pr | Ow | F | D-8 |
 
@@ -358,7 +358,7 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #87 (production-deployment capability listing):** `read_only` 29; `everyday` 37; `full` 64. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
+**Implemented registry at #89 (production-deployment capability listing):** `read_only` 30; `everyday` 38; `full` 65. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
 
 ## Totals
 
