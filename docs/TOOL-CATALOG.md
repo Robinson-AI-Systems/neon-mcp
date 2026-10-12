@@ -111,8 +111,8 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 | `neon_compute_resize` | Change autoscaling minimum/maximum (raising: dollar preview; production: confirm) | C* $ Pr | Ow Op | F | D-3 (built #60) |
 | `neon_compute_update_settings` | Scale-to-zero delay (never-suspend requires verified spending), bounded PostgreSQL timeouts (including Free/no overrides); deprecated pooler mode not written | C* $ Pr | Op | E | D-3 (built #61) |
 | `neon_compute_start` | Wake a suspended compute (no extra confirmation for development branches) | P | Op | E | D-3 (built #61) |
-| `neon_compute_suspend` | Suspend compute; protected/default interruption denied until connections independently verified (production: confirm) | C* Pr | Op | E | D-3 (built #61) |
-| `neon_compute_restart` | Restart compute; protected/default interruption denied until connections independently verified (production: confirm) | C* Pr | Op | E | D-3 (built #61) |
+| `neon_compute_suspend` | Suspend compute; on owner-authorized unpooled protected/default branches require independently verified full-statistics session count (otherwise deny) | C* Pr | Op | E | D-3 (built #61) |
+| `neon_compute_restart` | Restart compute; independently count unpooled production sessions with full statistics privilege, or deny safely | C* Pr | Op | E | D-3 (built #61) |
 | `neon_compute_delete` | Delete a compute (connection strings using its host stop working) | C D Pr | Op | F | D-3 (built #61) |
 | `neon_compute_estimate_cost` | Dollar estimate for a size range and hours per day from the stored price table | — | B Ow | R | D-3 (built #59) |
 
