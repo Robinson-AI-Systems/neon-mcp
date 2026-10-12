@@ -89,13 +89,13 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 | --- | --- | --- | --- | --- | --- |
 | `neon_branch_list` | Branches with default/protected/expiring marks, parent, size, compute state, last reset, annotations; count vs the plan's included branches | — | B Op | R | D-2 (built #51, plan/count refinements pending) |
 | `neon_branch_get` | One branch with its computes, databases, roles, storage and restore status | — | B Op | R | D-2 (built #51, status refinements pending) |
-| `neon_branch_create` | New branch from a parent (point in time, schema-only option, optional compute, optional expiry); confirm only when it raises spend (extra branch past the plan's allowance, compute above the setting) | C* $ | B Op | E | D-2 |
+| `neon_branch_create` | Create from verified parent, with schema-only option and B-4 branch-cost approval; compute/expiry variants remain pending | C* $ | B Op | E | D-2 (built #54, variants pending) |
 | `neon_branch_rename` | Rename a branch (confirm on production: integrations and apps may look it up by name) | C* Pr | Op | E | D-2 (built #52) |
 | `neon_branch_set_protected` | Protect or unprotect with audited confirmation and production guard | C* Pr | Ow | F | D-2 (built #52) |
 | `neon_branch_set_expiration` | Set, change or remove expiry (max 30 days; refuses default, protected or parent) | P | B Op | E | D-2 (built #53) |
 | `neon_branch_set_default` | Make a branch the project's default after owner production approval | C Pr | Ow | F | D-2 (built #53) |
-| `neon_branch_delete` | Delete a branch (recoverable for 7 days; refused when it has children; preview lists computes and databases) | C D Pr | Op | F | D-2 |
-| `neon_branch_recover` | Bring back a branch deleted in the last 7 days | C | Op | E | D-2 |
+| `neon_branch_delete` | Soft-delete only; refuses default/protected/parent; previews computes and databases | C D Pr | Op | F | D-2 (built #54) |
+| `neon_branch_recover` | Owner-approved recover of independently verified soft-deleted branch within grace period | C | Op | F | D-2 (built #54) |
 | `neon_branch_reset_from_parent` | Replace a branch's data with its parent's latest state (production: keeps the old state under a new name) | C D Pr | B Op | F | D-2 |
 | `neon_branch_restore` | Restore a branch to a point in time or LSN from its own or another branch's history (production: always keeps the old state under a new name) | C D Pr | Op | F | D-2 |
 | `neon_branch_compare_schema` | Compare verified branches for one database; point-in-time support remains pending | — | B Op | R | D-2 (built #52, time variants pending) |
@@ -352,7 +352,7 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #53 (production-deployment capability listing):** `read_only` 20; `everyday` 23; `full` 36. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
+**Implemented registry at #54 (production-deployment capability listing):** `read_only` 20; `everyday` 24; `full` 39. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
 
 ## Totals
 
