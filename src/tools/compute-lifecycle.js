@@ -1,6 +1,6 @@
 // D-3: compute lifecycle and settings remain behind audited, deny-by-default writes.
 import {defineWrite} from '../core/write.js';
-import {projectRead} from './project-context.js';
+import {projectRead,projectScope} from './project-context.js';
 import {createProjectWriteContext} from '../neon/project-write-context.js';
 import {applyNeonWrite} from '../neon/write-neon.js';
 import {createSpendGuard} from '../neon/spend.js';
@@ -21,7 +21,7 @@ async function scope(a,c){
  return {pid,client,e,b:info.branch};
 }
 async function planAction(a,c,action){
- const {pid,client,e,b}=await scope(a,c);
+ const {pid,e,b}=await scope(a,c);
  if(e.pending_state)throw Error('Compute operation already in progress');
  if(action==='start'&&e.current_state==='active')throw Error('Compute already active');
  if(action==='suspend'&&['idle','suspended'].includes(e.current_state))
@@ -55,23 +55,20 @@ async function applyAction(a,c,{requestKey:key},action){
   params:{path:{project_id:pid,endpoint_id:e.id}}});
 }
 async function afterDelete(a,c){
- const {pid,client}=await scope(a,c).catch(async()=>{
-  // After deletion the endpoint GET is expected to be 404: verify project and
-  // full endpoint inventory independently instead of treating 404 as success.
-  const {projectScope,projectRead}=await import('./project-context.js');
-  const projectId=projectScope(c,a.projectId??null).projectId;
-  if(!projectId)throw Error('Scoped project required');
-  const nc=await c.clientFor(projectId);
-  const p=await projectRead(nc,'getProject',{path:{project_id:projectId}});
-  if(p?.project?.id!==projectId||p.project.org_id!==c.connection.neonOrg)
-   throw Error('Project identity cannot be verified');
-  return {pid:projectId,client:nc};
- });
+ // A deleted endpoint cannot be inspected by GET. Verify organization and a
+ // complete independent project endpoint inventory instead of accepting 404.
+ const pid=projectScope(c,a.projectId??null).projectId;
+ if(!pid)throw Error('Scoped project required');
+ const client=await c.clientFor(pid);
+ const project=await projectRead(client,'getProject',{path:{project_id:pid}});
+ if(project?.project?.id!==pid||project.project.org_id!==c.connection.neonOrg)
+  throw Error('Project identity cannot be verified');
  const data=await projectRead(client,'listProjectEndpoints',{path:{project_id:pid}});
- if(!Array.isArray(data?.endpoints)||data.endpoints.some(e=>
-    e.project_id!==pid))return null;
+ if(!Array.isArray(data?.endpoints)||data.pagination?.cursor||
+    data.endpoints.some(e=>e.project_id!==pid))return null;
  return {projectId:pid,missing:!data.endpoints.some(e=>e.id===a.endpointId)};
 }
+
 function definition(action){
  const def=defineWrite({name:'neon_compute_'+action,destructive:action==='delete',
   plan:(a,c)=>planAction(a,c,action),

@@ -98,6 +98,17 @@ describe('D-3 guarded compute lifecycle',()=>{
   expect(fake.calls.every(x=>x.method==='GET')).toBe(true);
   fake.assertClean();
  });
+ it('verifies permanent deletion from complete independent provider inventory',async()=>{
+  const {fake,handlers}=fixture();
+  identity(fake);
+  fake.when('deleteProjectEndpoint').resolves({endpoint:devEndpoint(),operations:[]});
+  fake.when('getProject').resolves({project:project()});
+  fake.when('listProjectEndpoints').resolves({endpoints:[]});
+  const out=decode(await handlers.neon_compute_delete({endpointId:IDS.devEndpoint,confirm:true},{}));
+  expect(out.confirmed).toBe(true);
+  expect(fake.calls.filter(x=>x.method==='DELETE')).toHaveLength(1);
+  fake.assertClean();
+ });
  it('rejects disabling scale-to-zero if independent plan is unknown',async()=>{
   const {fake,handlers}=fixture({plan:null});
   identity(fake);

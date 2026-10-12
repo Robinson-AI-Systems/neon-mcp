@@ -102,7 +102,7 @@ const create=defineWrite({name:'neon_compute_create',spend:estimate,
 const resize=defineWrite({name:'neon_compute_resize',spend:estimate,
  plan:async(a,c)=>{
   size(a);
-  const {pid,e}=await endpoint(a,c);
+  const {pid,e}=await verifiedComputeTarget(a,c);
   if(!Number.isFinite(e.autoscaling_limit_max_cu)||
      !Number.isFinite(e.autoscaling_limit_min_cu)||e.pending_state)
    throw Error('Current compute range or pending state cannot be verified');
@@ -120,7 +120,7 @@ const resize=defineWrite({name:'neon_compute_resize',spend:estimate,
    path:{project_id:targetId(a,c),endpoint_id:a.endpointId},
    body:{endpoint:{autoscaling_limit_min_cu:a.minCu,
     autoscaling_limit_max_cu:a.maxCu}}}}),
- readAfter:async(a,c)=>(await endpoint(a,c)).e,
+ readAfter:async(a,c)=>(await verifiedComputeTarget(a,c)).e,
  verify:(before,after)=>after?.id===before.id&&
   after.project_id===before.projectId&&after.branch_id===before.branchId&&
   after.autoscaling_limit_min_cu===before.minCu&&
