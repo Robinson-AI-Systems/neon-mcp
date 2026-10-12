@@ -1016,7 +1016,7 @@
       "ownerInputs": [
         "IN-11"
       ],
-      "note": "Owner-requested early, strictly read_only non-production Hub RTC track: #77 gated manifest/OpenAPI/metadata; #78 owner pass issuance, revocation and atomic limit; #80 bounded guarded HTTPS routes, subset wire tests, host-cost handoff. This does NOT mark R-1/R-2/R-3 complete or waive IN-11: full pass/write tools, upstream full conformance, two-instance harness, production activation and real three-route Hub acceptance remain gated. See docs/runbooks/RTC1-HUB-ADOPTION.md."
+      "note": "Owner-requested early, strictly read_only non-production Hub RTC track: #77 gated manifest/OpenAPI/metadata; #78 owner pass issuance, revocation and atomic limit; #80 bounded guarded HTTPS routes, subset wire tests, host-cost handoff. This does NOT mark R-1/R-2/R-3 complete or waive IN-11: full pass/write tools, upstream full conformance, two-instance harness, production activation and real three-route Hub acceptance remain gated. See docs/runbooks/RTC1-HUB-ADOPTION.md. #81 fixes partial RTC scoped tool-discovery pagination by applying the three-tool allowlist before search/limit, with real HTTP wire regression; no full conformance or actual route acceptance claim."
     },
     {
       "id": "R-3",
