@@ -72,9 +72,9 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 | `neon_project_recover` | Bring back a project deleted in the last 7 days | C | Ow | F | D-1 (built #49) |
 | `neon_project_list_regions` | Regions Neon offers now, with which backend services each supports | — | B | R | D-1 (built #46) |
 | `neon_project_get_settings` | Project-wide settings: IP allow, public/VPC blocking, logical replication, maintenance window, preload libraries (and available ones), quotas, history retention, default compute settings, audit level, HIPAA | — | Ow Op | R | D-1 (built #47) |
-| `neon_project_update_settings` | Maintenance window, preload libraries, default compute settings for new computes (spend increases go through the spend guard) | C Pr $ | Ow | F | D-1 |
-| `neon_project_set_history_retention` | How far back restores can reach (Neon bills instant-restore storage; preview shows the price) | C Pr $ | Ow | F | D-1 |
-| `neon_project_set_quotas` | Per-project consumption quotas; reaching one suspends computes (preview says what would stop today) | C Pr | Ow | F | D-1 |
+| `neon_project_update_settings` | Maintenance window, preload libraries, default compute settings for new computes (spend increases go through the spend guard) | C Pr $ | Ow | F | D-1 (built #50) |
+| `neon_project_set_history_retention` | How far back restores can reach (Neon bills instant-restore storage; preview shows the price) | C Pr $ | Ow | F | D-1 (built #50) |
+| `neon_project_set_quotas` | Per-project consumption quotas; reaching one suspends computes (preview says what would stop today) | C Pr | Ow | F | D-1 (built #50) |
 
 ## Operations (`neon_operation_*`) — 2
 
@@ -352,7 +352,7 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #49 (production-deployment capability listing):** `read_only` 17; `everyday` 18; `full` 26. Verified in CI; planned catalog contains more tools.
+**Implemented registry at #50 (production-deployment capability listing):** `read_only` 17; `everyday` 18; `full` 29. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
 
 ## Totals
 
