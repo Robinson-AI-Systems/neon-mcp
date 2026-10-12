@@ -30,7 +30,7 @@ const fields=['active_time_seconds','compute_time_seconds','written_data_bytes',
 const validQuota=q=>!!q&&typeof q==='object'&&!Array.isArray(q)&&
  Object.keys(q).length>0&&Object.keys(q).every(k=>fields.includes(k)&&validLimit(q[k]));
 const zero={increaseCents:0,estimate:false,canApply:true};
-const quote=async(c,kind,plan,before,after)=>{
+const quote=async(c,kind,before,after)=>{
  if(typeof c.db.getVerifiedNeonPlan!=='function')return null;
  const current=await c.db.getVerifiedNeonPlan(c.connection.neonOrg);
  if(current?.verified!==true||!['Launch','Scale'].includes(current.name))
@@ -45,7 +45,7 @@ const settings=defineWrite({name:'neon_project_update_settings',projectWide:true
   if(!known||!validCu(known.autoscaling_limit_max_cu))
    return null;
   // Conservative maximum extra monthly charge: price the whole new maximum for 730h.
-  return quote(c,'compute',null,{maxCu:0},{maxCu:a.maxCu??known.autoscaling_limit_max_cu});
+  return quote(c,'compute',{maxCu:0},{maxCu:a.maxCu??known.autoscaling_limit_max_cu});
  },
  plan:async(a,c)=>{
   const before=await load(a,c);
@@ -77,7 +77,7 @@ const settings=defineWrite({name:'neon_project_update_settings',projectWide:true
    summary:'Modify default project compute/maintenance/preload settings on '+before.id+
     '; maintenance or preload changes can interrupt active connections'};
  },
- apply:async(a,c,{before,requestKey:key})=>{
+ apply:async(a,c,{requestKey:key})=>{
   const project={};
   const settingsData={};
   if(a.maintenanceWindow)settingsData.maintenance_window={
@@ -120,7 +120,7 @@ const retention=defineWrite({name:'neon_project_set_history_retention',projectWi
    beforeSeconds:before.history_retention_seconds,afterSeconds:a.seconds});
   if(f?.verified!==true||![f.beforeGb,f.afterGb].every(
    n=>typeof n==='number'&&Number.isFinite(n)&&n>=0))return null;
-  return quote(c,'restore',null,{gb:f.beforeGb},{gb:f.afterGb});
+  return quote(c,'restore',{gb:f.beforeGb},{gb:f.afterGb});
  },
  plan:async(a,c)=>{
   const before=await load(a,c);
