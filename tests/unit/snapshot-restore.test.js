@@ -18,7 +18,8 @@ function fixture({after:trueAfter=true,changed=false,missingSize=false,
  const fake=makeFakeNeon(),audit=[];
  const client=makeNeonClient({key:'napi_FAKE_snapshot_restore',orgId:IDS.org,
   fetch:fake.fetch,budget:{async consume(){return {allowed:true}}}});
- const item=missingSize?{...original,full_size:undefined}:original;
+ const {full_size,...withoutSize}=original;
+ const item=missingSize?withoutSize:original;
  for(let i=0;i<3;i++){
   fake.when('getProject').resolves({project:project()});
   const src=(changed&&i===1)?{...source,name:'changed-dev'}:source;
