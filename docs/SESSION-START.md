@@ -39,6 +39,33 @@ GitHub only as git commits pushed to an `ai/*` branch. Never copy source files t
    Start with a cohesive same-area PR and reuse `src/tools/read-descriptors.js` for new scoped reads. Run impacted tests before the complete suite and consolidate known CI failures into one correction. Card missing concrete seams/mappings? Use `implementation-contracts/IMPLEMENTATION-RECIPES.md` routing table;
    B-3 has a worked example. Read only your unit's recipe/route and reconcile its baseline before copying.
 
+## 1a. Choose a concrete batch outcome and re-open resolved blockers
+
+After §0, use the current `docs/STATUS.md` ledger, `docs/pr-cards/work-index.json`,
+`docs/MASTER-ROADMAP.md`, active card and `docs/OWNER-INPUTS.md` to select the
+highest-priority **approved, dependency-eligible capability**. Identify the user-visible
+or developer-visible milestone the next coherent PRs will actually advance.
+List what acceptance still requires: code, meaningful CI/throwaway tests, deployed
+service behavior, and real owner-authorized provider/RTC acceptance are **separate**.
+Do not count documentation or mocks as deployed proof.
+
+For every OPEN/DEFERRED ledger row check (a) exact blocker, (b) evidence or decision
+needed, (c) dependency, (d) precise unblock condition and (e) next action. Inspect
+new owner answers and merge/contract/environment evidence before reasking anything.
+Move cleared items back to the work queue; keep unresolved acceptance marked
+blocked. No dependency bypass: a prospective independent slice must already be
+approved by the index, or receive an explicit owner-approved narrow plan amendment.
+Fix new security/review/CI regressions before taking the next slice.
+
+The normal batch is **five substantive merges**, not five arbitrary PRs. Use
+coherent, suitably sized increments under all existing checks and gates; if fewer
+can be safely merged, stop truthfully at the real blocker. A completed session
+updates the existing status/index/card (not a duplicate workflow file), saves
+a permanent handoff comment on the last merged PR, and produces a short continuation
+prompt containing the checkpoint, current milestone, remaining acceptance, blocked
+items to recheck, next eligible action, and instructions to reuse this same procedure.
+The repository owns the detail; the pasted prompt is an index, not a copy of rules.
+
 ## 2. Never do these without Chris (AGENTS "Hard limits")
 
 A real Neon key or account from tests or scripts (except X-2/X-3 once Chris set them up); any write to a production
@@ -145,10 +172,26 @@ remains. End every turn right after a push whose resume note's "Next step" is th
 file and function, e.g. "CI red at 8adb4bf: `tests/unit/billing.test.js` expects old message; update it, then lint
 `src/tools/billing.js`".
 
-**Stopping** happens only for a real blocker. Before stopping: update the resume note and `docs/STATUS.md`, then
-commit and push them with the work, and say in one plain-English paragraph what is done and exactly what Chris needs to decide.
+**Stopping:** normally at five qualifying substantive merges or actual project completion, and earlier
+when an owner/safety/dependency gate prevents another valuable PR. Before stopping, record the exact
+verified checkpoint, real capability/evidence, pending acceptance and actionable blockers in
+`docs/STATUS.md` and the permanent handoff on the last merged PR. Explain what Chris must decide
+only when a real owner decision is needed. Never pad a batch, violate gates, or call green CI live acceptance.
 
-## Restart message for Chris to paste when a session stops
+## Restart message for Chris to paste at a batch boundary
 
-> Continue the Neon MCP work. Read `docs/SESSION-START.md` and do §0 first: finish any open PR of yours (fix red
-> CI, then merge) before starting the next card. Then keep going card after card; stop only for a real blocker (§6).
+Build a **short, checkpoint-specific** message at the end of every session, never a copy
+of all rules. Example structure (replace with verified facts):
+
+> Neon MCP — resume from actual current `main`. Last merged PR #N and verified SHA
+> `<SHA>`; see its permanent handoff. Read `AGENTS.md`,
+> `docs/SESSION-START.md`, `docs/STATUS.md`, the work index, current approved card,
+> hosting policy and active reviews. Verify exact-head and post-merge CI, concurrent PRs,
+> owner answers, blockers and evidence. The current useful milestone is <outcome>;
+> remaining code/automated/deployed/real acceptance is <short specifics>. Prioritize
+> <next eligible action>; re-open blocked work only on its recorded evidence trigger.
+> Complete the next coherent normal five-substantive-PR session, stopping earlier for
+> completion or a genuine gate; preserve every owner/safety/cost/release requirement.
+> Update the authoritative ledger, place permanent handoff on final merged PR,
+> and generate the next compact continuation prompt in this exact style.
+

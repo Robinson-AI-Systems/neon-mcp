@@ -40,7 +40,7 @@ describe('B-6 display and connection profiles',()=>{
     expect(isToolAllowed({name:'neon_org_read',writes:false,key:'org',profiles:['read_only','full']},
       {profile:'read_only'})).toBe(false);
     const counts=profileToolCounts(registry.tools,{productionDeployment:true});
-    expect(counts).toEqual({read_only:30,everyday:38,full:65});
+    expect(counts).toEqual({read_only:31,everyday:39,full:66});
     const denied=await dispatchReadOnlyTool({registry,name:'neon_disable_production',args:{},
       connection:{profile:'read_only',mode:'preview',neonOrg:'org-fake'},db:{},env:{VERCEL_ENV:'production'}});
     expect(denied.isError).toBe(true);

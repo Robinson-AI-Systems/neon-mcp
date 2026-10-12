@@ -121,6 +121,44 @@ and timeouts, dev-branch expiry and size, wait limits, pass lifetime, rate limit
 with a sensible starting value, explained in plain words in the tool description or setup page. Money is shown in dollars
 and cents; stored in integer cents (unit rates in integer micro-dollars).
 
+## Outcome-first development and continuation (owner directive, 2026-10-12)
+
+**Five substantial PRs is a normal session boundary, never a target that excuses incomplete work.**
+At the start of every session, verify current `main`, owned/concurrent PRs, exact-head checks,
+unresolved reviews and the latest permanent PR handoff. Follow `docs/SESSION-START.md`
+§1a to choose the **highest-priority approved eligible capability**, state the real user/
+developer outcome, and list its unmet acceptance conditions. Repair demonstrated CI,
+security, correctness or review failures before opening unrelated work. Group coherent
+implementation around that outcome; do not manufacture hardening tasks or broaden
+permission to achieve an arbitrary PR count. Stop with fewer if required gates prevent
+another substantive merge. Existing PR-size, owner and deployment rules still govern.
+
+**Blockers are tracked, never silently skipped.** Record each deferred capability in
+`docs/STATUS.md`, reflect status/dependencies in `docs/pr-cards/work-index.json` and
+the active card, and include: the *specific blocker*, required external evidence/owner
+decision, dependencies, exact re-eligibility trigger and next safe action. Re-check at
+session start and immediately after relevant owner input, merge, environment/contract
+change or acceptance evidence. Promote resolved items back into the eligible queue,
+reconciling answers already recorded in `docs/OWNER-INPUTS.md`; do not re-request them.
+If an approved dependency prevents useful independent work, propose the narrowest
+dated plan amendment for owner review, **do not treat a proposal as approval**.
+
+**Four distinct evidence levels:** (1) code implemented, (2) meaningful automated
+unit/fake-provider/disposable-Postgres tests, (3) deployed behavior on a reviewed exact
+commit and environment, (4) required real owner-authorized integration/negative tests.
+Track them independently. Green CI, a reference runner, an environment configuration
+or a fake provider never proves level (3) or (4). Mark a milestone complete only when
+its actual card/design acceptance is satisfied, and leave externally blocked evidence
+clearly OPEN while advancing separately approved dependencies.
+
+At batch close, update the existing status/index/cards and leave a permanent handoff
+on the last merged PR: verified `main` SHA and checks, achieved capability, four-level
+acceptance, actionable blockers, next eligible action and a **compact paste-ready
+continuation prompt**. That prompt tells the next agent to verify actual current state,
+read these authoritative instructions/hand-off rather than copying every rule,
+re-check blockers, implement the next coherent ~five-PR batch under unchanged gates,
+and regenerate the same handoff/prompt format. PR count is secondary to real progress.
+
 ## How work is organized
 
 - **Approved designs, just-in-time cards.** Implement only approved scope (`docs/designs/BATCH-*.md`, `docs/PLAN.md`).
