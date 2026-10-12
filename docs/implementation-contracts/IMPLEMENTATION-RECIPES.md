@@ -1,7 +1,7 @@
 # Implementation recipes — open only the section your card needs
 
 Supporting guidance, not new scope or authorization. AGENTS, PLAN, approved designs and the drift protocol govern.
-Baseline inspected: `2c14d3f` (main, 2026-10-11, PR #20 merged). GitHub had no open PRs/issues; the checkout was clean.
+B-3 historical baseline: `2c14d3f` (PR #20). D-2 current code reconciled at `b42da7c` (PR #50 merged). GitHub had no open PRs/issues; the checkout was clean.
 A-1–A-7, B-1 and B-2 are delivered; B-3 is next. Reconcile this snapshot at each card boundary.
 
 ## Routing and repeated discovery
@@ -95,3 +95,11 @@ Keep the normal 40–100 line card; link a bounded appendix when the mapping/tes
 
 Do not mark an indexed product card delivered for this guidance alone. Update recipe baselines and changed seams when
 implementations land; write successor facts in CHANGES-SINCE-DESIGN when its card remains JIT.
+
+## D-2 current read seams (verified PR #51)
+
+Existing: `src/tools/read-descriptors.js` provides `defineReadTool`, `readId`, `readText` and `readSchema` for project, operation and branch reads. It supplies descriptors, never authorization. `src/tools/project-context.js` owns trusted `projectScope`, `projectClient`, `projectRead`, `projectPages` and summaries. `src/tools/branches.js` exports `createBranchReadHandlers({getClient})`, independently checks the project org and branch IDs before revealing results.
+
+Input mapping: projectId → provider `getProject` and `listProjectBranches` (path.project_id, query.limit/cursor); projectId + branchId → `getProjectBranch`, `listProjectBranchEndpoints`, `listProjectBranchDatabases`, `listProjectBranchRoles` (both path IDs). Test setup: `makeFakeNeon`, `makeNeonClient({fetch:fake.fetch,budget})`, `IDS`, `devBranch`, `devEndpoint`, `database(IDS.dev)`, `role(IDS.dev)`, `responses.getProjectBranch('dev')`. Examples in `tests/unit/branches.test.js` verify GET-only, foreign resource denial, allowlisted outputs and no credentials. Targeted `npx vitest run tests/unit/read-descriptors.test.js tests/unit/branches.test.js tests/unit/projects.test.js tests/unit/project-operations.test.js tests/unit/registry.test.js tests/unit/context-budgets.test.js`, then `npm run check`, then required exact-head CI. Local execution may be unavailable; report that fact and rely on GitHub Actions without claiming local validation.
+
+Next: D-2 writes in cohesive risk groups, retaining B-1 `defineWrite`, `createProjectWriteContext`, `applyNeonWrite`, B-4 spending admission, verified provider read-back and all independent approvals. Expiry forbidden for default/protected/parent; never hard-delete; production restore always preserves prior state. D-3 inherits scoped branch fixtures. Read only the D-2 card and this section; do not treat the old B-3 seam inventory as current code.
