@@ -64,13 +64,13 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 
 | Tool | What it does | Flags | Aud | Profile | Card |
 | --- | --- | --- | --- | --- | --- |
-| `neon_project_list` | Projects (organization, region, Postgres version, size, last active); recoverable deleted projects and projects shared with you on request | — | Ow Op | R | D-1 |
-| `neon_project_overview` | One project in one call: branches with production marks, computes and sizes, databases, roles, key settings, storage, plan limits that matter, recent operations | — | B Ow Op | R | D-1 |
+| `neon_project_list` | Projects (organization, region, Postgres version, size, last active); recoverable deleted projects and projects shared with you on request | — | Ow Op | R | D-1 (built #46) |
+| `neon_project_overview` | One project in one call: branches with production marks, computes and sizes, databases, roles, key settings, storage, plan limits that matter, recent operations | — | B Ow Op | R | D-1 (built #46) |
 | `neon_project_create` | New project (region default from settings, Neon's default Postgres version); compute size previewed in dollars; connection string only via the one-time page | C $ S | B Ow | F | D-1 |
 | `neon_project_rename` | Rename a project | P | Ow Op | E | D-1 |
 | `neon_project_delete` | Delete a project (recoverable for 7 days; preview lists every branch and database lost) | C D Pr | Ow | F | D-1 |
 | `neon_project_recover` | Bring back a project deleted in the last 7 days | C | Ow | F | D-1 |
-| `neon_project_list_regions` | Regions Neon offers now, with which backend services each supports | — | B | R | D-1 |
+| `neon_project_list_regions` | Regions Neon offers now, with which backend services each supports | — | B | R | D-1 (built #46) |
 | `neon_project_get_settings` | Project-wide settings: IP allow, public/VPC blocking, logical replication, maintenance window, preload libraries (and available ones), quotas, history retention, default compute settings, audit level, HIPAA | — | Ow Op | R | D-1 |
 | `neon_project_update_settings` | Maintenance window, preload libraries, default compute settings for new computes (spend increases go through the spend guard) | C Pr $ | Ow | F | D-1 |
 | `neon_project_set_history_retention` | How far back restores can reach (Neon bills instant-restore storage; preview shows the price) | C Pr $ | Ow | F | D-1 |
@@ -352,7 +352,7 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #45 (production-deployment capability listing):** `read_only` 11; `everyday` 11; `full` 16. These are implemented tools, not the 177-tool planned catalog; verified in CI using exact tool metadata.
+**Implemented registry at #46 (production-deployment capability listing):** `read_only` 14; `everyday` 14; `full` 19. These are implemented tools, not the planned catalog; verified in CI using exact tool metadata.
 
 ## Totals
 
