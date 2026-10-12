@@ -91,7 +91,7 @@ function definition(action){
    action==='restart'?'Restart compute after assessing active connection disruption.':
    'Start an inactive compute with verified post-state.',schema()];
 }
-function validateSettings(a,e){
+export function validateSettings(a,e){
  const hasTimeout=a.suspendSeconds!==undefined;
  const hasPg=a.pgSettings!==undefined;
  if(!hasTimeout&&!hasPg)throw Error('Choose suspendSeconds or approved pgSettings');
