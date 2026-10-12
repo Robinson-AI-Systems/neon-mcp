@@ -440,9 +440,10 @@
       "ownerInputs": [],
       "pr": [
         46,
-        47
+        47,
+        48
       ],
-      "note": "Six D-1 reads complete (#46, #47); seven guarded project mutations remain."
+      "note": "Six D-1 reads and guarded spend/production admission foundations complete; seven project mutations remain."
     },
     {
       "id": "D-2",

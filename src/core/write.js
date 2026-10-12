@@ -73,7 +73,8 @@ export function defineWrite({
     if (typeof ctx?.db?.recordWritePreview !== 'function' ||
         typeof ctx?.db?.reserveWrite !== 'function' ||
         typeof ctx?.db?.completeWrite !== 'function' ||
-        typeof ctx?.writeKey !== 'function')
+        typeof ctx?.writeKey !== 'function' ||
+        (spend && typeof ctx?.reserveSpendWrite !== 'function'))
       return deny('The durable audit database is unavailable.');
     const guards = ctx?.guards;
     if (['checkProtected','checkProduction','checkApp','checkSpend'].some(k =>
@@ -104,7 +105,7 @@ export function defineWrite({
             estimate.increaseCents < 0)
           return deny('A reliable spending preview is unavailable.');
       }
-      const money = await guards.checkSpend(estimate, intended, ctx);
+      const money = await guards.checkSpend(estimate, intended, ctx, args);
       if (money !== true) return deny('Spending limit or approval not available.');
       const summary = (affectsProduction ? 'PRODUCTION: ' : '') + intended.summary;
       const mustConfirm = needsConfirm || destructive || access || secret ||
@@ -125,11 +126,14 @@ export function defineWrite({
       const requestKey = ctx.writeKey(name, args);
       if (typeof requestKey !== 'string' || !/^rmcp_[a-z0-9_]{5,128}$/.test(requestKey))
         return deny('A stable request key is required.');
-      const claim = await ctx.db.reserveWrite({ orgId,
+      const writeRecord = { orgId,
         projectId: intended.projectId ?? null, branchId: intended.branchId ?? null,
         mode: connection.mode, connectionId: ctx.connectionId ?? null,
         tool: name, target: intended.target, summary, production: affectsProduction,
-        requestKey, spendCents: estimate?.increaseCents ?? null });
+        requestKey, spendCents: estimate?.increaseCents ?? null };
+      // Atomically reserve daily spend and the audit attempt before any billable mutation.
+      const claim = spend ? await ctx.reserveSpendWrite({orgId,estimate,write:writeRecord,
+        requestKey}) : await ctx.db.reserveWrite(writeRecord);
       if (!claim?.created) {
         if (!claim?.existing || claim.existing.neon_org !== orgId ||
             claim.existing.tool !== name ||

@@ -1,3 +1,5 @@
+**D-1c guarded project mutation admission (PR #48):** B-1 now requires atomic B-4 spending and audit reservation before any billable write. Trusted project mutation context enforces self-project, protected-resource and production checks, durable caps, and fail-closed app ownership. No public project writes yet; production OFF. Next: guarded project mutations.
+
 **D-1b operation history and project settings (PR #47):** Two scoped operation tools with bounded/filtered history and at-most-45-second wait, plus a project settings read with strict allowlist. All paths use trusted project keys, budgeted SDK and scrubbed dispatch. D-1 remains IN_PROGRESS: guarded project changes next. Production OFF.
 
 **D-1a project discovery (PR #46):** Scoped project list, region discovery and summary overview read from the pinned API through encrypted stored keys and durable API budgets. Project and organization boundaries fail closed; responses are allowlisted and paginated safely. D-1 remains IN_PROGRESS: operation reads and guarded mutations follow. Production stays OFF.
