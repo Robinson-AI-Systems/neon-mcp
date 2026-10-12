@@ -64,20 +64,40 @@ describe('D-2 verified branch create, delete, recover',()=>{
   expect(events.some(e=>e.kind==='complete'&&e.confirmed==='true')).toBe(true);
   fake.assertClean();
  });
- it('creates a historical branch with explicit expiry/protection, without a compute',async()=>{
+ it('creates an expiring unprotected branch without a compute',async()=>{
   const {fake,handlers}=makeBranchLifecycleFixture();
   const expiresAt=new Date(Date.now()+86400000).toISOString().slice(0,19)+'Z';
   fake.when('getProject').resolves(projectResponse());
   fake.when('listProjectBranches').resolves(list([mainBranch()]));
   fake.when('createProjectBranch').resolves(responses.createProjectBranch());
   fake.when('getProjectBranch').resolves({...responses.getProjectBranch('dev'),
-   branch:devBranch({expires_at:expiresAt,protected:true})});
+   branch:devBranch({expires_at:expiresAt,protected:false})});
   const out=json(await handlers.neon_branch_create({
-   name:'dev',parentBranchId:IDS.main,parentLsn:'0/16B6A60',expiresAt,
-   protected:true,confirm:true},{}));
+   name:'dev',parentBranchId:IDS.main,expiresAt,
+   protected:false,confirm:true},{}));
   expect(out.confirmed).toBe(true);
   expect(fake.calls.find(c=>c.method==='POST').body.branch).toMatchObject({
-   parent_lsn:'0/16B6A60',expires_at:expiresAt,protected:true});
+   expires_at:expiresAt,protected:false});
+  fake.assertClean();
+ });
+ it('refuses protection with expiration before any provider request',async()=>{
+  const {fake,handlers}=makeBranchLifecycleFixture();
+  const expiresAt=new Date(Date.now()+86400000).toISOString().slice(0,19)+'Z';
+  const out=json(await handlers.neon_branch_create({name:'unsafe',
+   parentBranchId:IDS.main,protected:true,expiresAt,confirm:true},{}));
+  expect(out.done).toBe(false);
+  expect(fake.calls).toHaveLength(0);
+ });
+ it('does not confirm a historical branch without exact recovered-source proof',async()=>{
+  const {fake,handlers}=makeBranchLifecycleFixture();
+  fake.when('getProject').resolves(projectResponse());
+  fake.when('listProjectBranches').resolves(list([mainBranch()]));
+  fake.when('createProjectBranch').resolves(responses.createProjectBranch());
+  fake.when('getProjectBranch').resolves(responses.getProjectBranch('dev'));
+  const out=json(await handlers.neon_branch_create({name:'dev',
+   parentBranchId:IDS.main,parentLsn:'0/16B6A60',confirm:true},{}));
+  expect(out.confirmed).toBe(false);
+  expect(fake.calls.filter(x=>x.method==='POST')).toHaveLength(1);
   fake.assertClean();
  });
  it('prices optional compute along with the new branch and verifies its endpoint',async()=>{
