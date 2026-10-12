@@ -7,7 +7,8 @@ const externalProjectWrites=new Set(['neon_project_create','neon_project_rename'
  'neon_project_set_quotas','neon_branch_rename','neon_branch_set_protected',
  'neon_branch_set_expiration','neon_branch_set_default',
  'neon_branch_create','neon_branch_delete','neon_branch_recover',
- 'neon_branch_reset_from_parent','neon_branch_restore']);
+ 'neon_branch_reset_from_parent','neon_branch_restore',
+ 'neon_compute_create','neon_compute_resize']);
 export function isToolAllowed(tool, connection, {productionDeployment=false}={}) {
   if(!tool || !profiles.has(connection?.profile) ||
       !Array.isArray(tool.profiles) || !tool.profiles.includes(connection.profile))return false;

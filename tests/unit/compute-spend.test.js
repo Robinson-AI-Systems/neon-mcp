@@ -2,7 +2,7 @@ import {describe,it,expect} from 'vitest';
 import {makeFakeNeon} from '../../test/helpers/fake-neon.js';
 import {makeNeonClient} from '../../src/neon/client.js';
 import {DEFAULT_PRICING} from '../../src/neon/pricing.js';
-import {IDS,project,devBranch,devEndpoint,responses} from '../../test/helpers/neon-fixtures.js';
+import {IDS,project,devEndpoint,responses} from '../../test/helpers/neon-fixtures.js';
 import {createComputeSpendHandlers,tools} from '../../src/tools/compute-spend.js';
 const parse=r=>JSON.parse(r.content[0].text);
 function make({allowed=true,plan='Launch'}={}){
