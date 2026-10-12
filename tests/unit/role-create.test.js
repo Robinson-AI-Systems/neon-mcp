@@ -43,7 +43,8 @@ describe('D-4 password-safe role creation',()=>{
   expect(json(await f.handlers.neon_role_create(args,{})).code).toBe('needs_confirmation');
   f.fake.when('createProjectBranchRole').resolves({role:role(IDS.dev,{
    name:'report_reader',password:'npg_FAKE_secret_value'}),operations:[]});
-  f.fake.when('getProjectBranchRole').resolves({role:role(IDS.dev,{name:'report_reader'})});
+  f.fake.when('getProjectBranchRole').resolves({role:role(IDS.dev,{name:'report_reader'})})
+   .resolves({role:role(IDS.dev,{name:'report_reader'})});
   const output=json(await f.handlers.neon_role_create({...args,confirm:true},{}));
   expect(output.confirmed).toBe(true);
   expect(output.oneTimeSecretLink).toMatch(/^https:\/\/fake-owner.invalid\/api\/neon\/setup\?once=/);
@@ -54,6 +55,22 @@ describe('D-4 password-safe role creation',()=>{
   const posts=f.fake.calls.filter(c=>c.method==='POST');
   expect(posts).toHaveLength(1);
   expect(posts[0].body.role).toEqual({name:'report_reader'});
+  f.fake.assertClean();
+ });
+ it('keeps a created but unverified role pending without storing its password',async()=>{
+  const f=make();reads(f.fake);
+  f.fake.when('createProjectBranchRole').resolves({role:role(IDS.dev,{
+   name:'report_reader',password:'npg_FAKE_unverified_secret'}),operations:[]});
+  // Neon POST may succeed while an independent role GET does not confirm it.
+  f.fake.when('getProjectBranchRole').resolves({role:role(IDS.dev,{
+   name:'some_other_role'})});
+  const result=json(await f.handlers.neon_role_create({
+   branchId:IDS.dev,name:'report_reader',confirm:true},{ }));
+  expect(result.confirmed).toBe('pending');
+  expect(result.oneTimeSecretLink).toBeUndefined();
+  expect(f.saved).toHaveLength(0);
+  expect(f.fake.calls.filter(x=>x.method==='POST')).toHaveLength(1);
+  expect(JSON.stringify({result,audits:f.audits})).not.toContain('npg_FAKE_unverified_secret');
   f.fake.assertClean();
  });
  it('refuses invalid encryption/storage before provider or SQL access',async()=>{
