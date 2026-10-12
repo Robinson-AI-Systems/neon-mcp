@@ -97,7 +97,9 @@ describe('D-8 independently verified project-security overview',()=>{
    enable_logical_replication:false,
    allowed_ips:{ips:['192.0.2.0/24'],protected_branches_only:true}}})});
   const result=json(await f.handler({},ctx));
-  expect(result.complete).toBe(true);
+  expect(result.metadataComplete).toBe(true);
+  expect(result.complete).toBeUndefined();
+  expect(result.notEvaluated).toContain('RLS policy coverage');
   expect(result.checks).toMatchObject({
    protectedBranches:{state:'observed',total:2,protected:1,default:1},
    publicConnectionsBlocked:{state:'observed',value:true},
