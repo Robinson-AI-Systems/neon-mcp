@@ -90,6 +90,21 @@ describe('RTC 1 read-only HTTPS route interop against hub contract',()=>{
     expect(JSON.stringify(who.body)).not.toContain(pass);
     expect(f.calls.meter).toBe(4);
   });
+  it('filters RTC callable tools before applying listing limits and search',async()=>{
+    const f=fixture();
+    const catalog=await run(f,req('GET','tools',{listing:'catalog',limit:'1'}));
+    expect(catalog.statusCode).toBe(200);
+    expect(catalog.body.result.tools).toHaveLength(1);
+    const filtered=await run(f,req('GET','tools',{
+      listing:'catalog',limit:'1',q:'neon_get_settings'}));
+    expect(filtered.statusCode).toBe(200);
+    expect(filtered.body.result.tools.map(t=>t.name)).toEqual(['neon_get_settings']);
+    const outside=await run(f,req('GET','tools',{
+      listing:'catalog',limit:'1',q:'neon_role_delete'}));
+    expect(outside.body.result.tools).toEqual([]);
+    expect(f.calls.meter).toBe(3);
+    expect(f.calls.neon).toBe(0);
+  });
   it('calls only existing protected handlers; no Neon mutations, writes or meta proxy',async()=>{
     const f=fixture();
     const good=await run(f,req('POST','tools',{name:'neon_whoami'},{}));

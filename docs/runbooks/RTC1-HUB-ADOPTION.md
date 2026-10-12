@@ -112,3 +112,12 @@ or live service was created as part of this change.
 PR #80 exact-head test correction: the first local wire fixture incorrectly sent the pass value without the RFC Bearer prefix, so the server correctly refused it with HTTP 401. The fixture now sends `Authorization: Bearer <pass>` and explicitly asserts that a raw, non-Bearer pass stays denied. Re-run full exact-head `ci` and `release-policy` after this fixture fix; the original red run is not acceptance.
 
 PR #80 cost/security self-review addition: an unset RTC1_ENABLED flag now causes the HTTP gateway to return 503 *before* initializing or migrating its Neon backing database. The Vercel build policy and disabled preview requirements are unchanged. The offline regression invokes the real API entrypoint without a configured database and proves an inert response; no traffic or live provider acceptance is claimed.
+
+## #81 — RTC scoped discovery limit correctness
+
+The HTTPS tool-list path now filters the real registry down to the three explicitly
+allowed read-only metadata tools **before** applying RTC catalog search and limit.
+Previously a small limit could select unrelated registry entries first and remove
+them after limiting, returning an incorrectly empty list. Tests prove a limit-one
+matching search stays discoverable while unsafe names never become visible. This
+is not broader RTC full conformance or real deployed route acceptance.
