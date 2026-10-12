@@ -7,6 +7,7 @@ import { publicOrigin,send,paramsOf,only,escapeHtml } from '../../src/core/http.
 import { configuredSelfResource } from '../../src/core/self-resource.js';
 import { mergeWithSelf,validateProtectedResources } from '../../src/core/protected-resources.js';
 import { activationEligible } from '../../src/core/owner-activation.js';
+import { issueReadOnlyRtcPass } from '../../src/core/rtc-passes.js';
 
 function page(message='',p={}) {
   const input=(name,type='text',value='')=>'<label>'+escapeHtml(name)+
@@ -28,6 +29,9 @@ function page(message='',p={}) {
   const outbound=form('view_once',org()+input('onceId','text',p.once||''));
   const inbound=form('submit_secret',org()+input('requestId','text',p.secret_request||'')+
     input('secret','password'));
+  const issueRtc=form('create_read_only_rtc_pass',org()+input('projectId')+
+    input('ttlHours','number','24'));
+  const revokeRtc=form('revoke_read_only_rtc_pass',org()+input('passId'));
   return '<!doctype html><html lang="en"><head><meta charset="utf-8">'+
     '<meta name="viewport" content="width=device-width,initial-scale=1">'+
     '<title>Neon MCP secure setup</title></head><body><main><h1>Neon MCP secure setup</h1>'+
@@ -40,7 +44,10 @@ function page(message='',p={}) {
     listProtected+protectedEditor+
     '<h2>Production access (OWNER ONLY)</h2>'+
     '<p>OFF until owner-approved X-2/X-3 checks and protected-list confirmation. An agent request alone NEVER enables writes. To approve a pending request from the last 10 minutes, type ENABLE_PRODUCTION in the approval field and enter your passphrase.</p>'+
-    approve+disable+'<h2>View secret once</h2>'+outbound+
+    approve+disable+
+    '<h2>Temporary read-only Toolkit Hub pass (owner only)</h2>'+
+    '<p>Scoped to one independently verified project key. Preview only, up to 24 hours, 60 calls/minute, no writes or production reads. Displayed only on the one-time owner page. RTC must be enabled by reviewed deployment configuration.</p>'+
+    issueRtc+revokeRtc+'<h2>View secret once</h2>'+outbound+
     '<h2>Supply requested secret</h2>'+inbound+'</main></body></html>';
 }
 export function createSetupHandler({db,vault,exchange,env=process.env}={}) {
@@ -68,6 +75,24 @@ export function createSetupHandler({db,vault,exchange,env=process.env}={}) {
     const orgId=typeof p.orgId==='string'?p.orgId.trim():'';
     if(!orgId||orgId.length>120)return send(res,400,{error:'invalid_organization'});
     try{
+      if(p.action==='create_read_only_rtc_pass'){
+        if(env.RTC1_ENABLED!=='1')return send(res,403,{error:'rtc_not_enabled'});
+        if(typeof p.projectId!=='string'||!/^[a-z0-9-]{1,60}$/.test(p.projectId)||
+          !/^([1-9]|1\\d|2[0-4])$/.test(String(p.ttlHours)))
+          return send(res,400,{error:'invalid_read_only_pass_scope'});
+        const receipt=await issueReadOnlyRtcPass({db,exchange,env,orgId,
+          projectScope:p.projectId,ttlHours:Number(p.ttlHours)});
+        // Only the one-time link, never the pass value, enters rendered HTML.
+        return send(res,200,page('Temporary read_only pass '+receipt.passId+
+          ' created. View once via '+receipt.oneTimeLink+
+          '. Expires '+receipt.expiresAt),'text/html; charset=utf-8');
+      }
+      if(p.action==='revoke_read_only_rtc_pass'){
+        const ok=await db.revokeRtcPass({orgId,passId:p.passId});
+        return send(res,ok?200:404,page(ok?'Temporary RTC pass revoked.':
+          'No active pass matched that organization and identifier.'),
+          'text/html; charset=utf-8');
+      }
       if(p.action==='list_keys'){
         const rows=await vault.listKeys(orgId);
         const safe=rows.map(({id,kind,project_id,last4,label,revoked_at})=>

@@ -24,6 +24,7 @@ const RULES = [
   ['Neon branch ID', new RegExp(`\\bbr-[a-z]+-[a-z]+-${digit}\\b`, 'g'), (m) => hasFake(m[0])],
   ['Neon organization ID', new RegExp(`\\borg-[a-z]+-[a-z]+-${digit}\\b`, 'g'), (m) => hasFake(m[0])],
   ['GitHub token', /\b(?:gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,})\b/g, () => false],
+  ['RTC bearer pass', /\brtc_pass_[A-Za-z0-9_-]{43}\b/g, () => false],
   ['Vercel ID', /\b(?:prj|team)_[A-Za-z0-9]{20,}\b/g, (m) => hasFake(m[0])],
   ['secret assignment', /\b(VERCEL_TOKEN|NEON_API_KEY|TOKEN_ENCRYPTION_KEY|ADMIN_PASSPHRASE|DATABASE_URL)\s*[=:]\s*['"]?([^\s'"`]{16,})/g,
     (m) => hasFake(m[2]) || m[2].startsWith('$') || /^postgres(?:ql)?:\/\/[^@]*@(localhost|127\.0\.0\.1)[:/]/.test(m[2])]

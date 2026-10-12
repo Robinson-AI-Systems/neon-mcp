@@ -22,6 +22,12 @@ describe('secret scan: planted secrets fail', () => {
     expect(labels('br-' + 'aged-salad-' + '637688')).toEqual(['Neon branch ID']);
     expect(labels('org-' + 'tiny-cloud-' + '12345678')).toEqual(['Neon organization ID']);
   });
+  it('scans any real-looking RTC pass whether or not next to an auth header',()=>{
+    const planted='rtc' + '_pass_' + A(43);
+    expect(labels('nothing special '+planted)).toEqual(['RTC bearer pass']);
+    expect(labels('Bearer '+planted)).toEqual(['RTC bearer pass']);
+    expect(labels('rtc_pass_SHORT')).toEqual([]);
+  });
   it('GitHub and Vercel credentials', () => {
     expect(labels('ghp' + '_' + A(36))).toEqual(['GitHub token']);
     expect(labels('github' + '_pat_' + A(40))).toEqual(['GitHub token']);

@@ -42,3 +42,26 @@ metadata and tests are offline groundwork. Public conformance, authorization,
 real Hub direct/relay/Sandbox connectivity, live provider reads and pass
 revocation are **NOT VERIFIED**. Do not represent a 503 manifest response,
 GitHub Actions unit success or a relay READY deployment as live RTC acceptance.
+
+## #78 — owner-issued pass and revocation safety slice
+
+Built an additive `oauth_tokens` kind=pass extension with scoped `rtc_areas`,
+`allow_writes=false`, hashed 32-byte random `rtc_pass_` credentials and no
+refresh grants. Only the owner passphrase/Origin-checked secure setup route can
+issue one under an independently verified project-scoped key. The resulting
+secret is encrypted, displayed once and expires in at most 24 hours.
+Owner-scoped pass-ID revocation invalidates the server credential immediately;
+the original value is never logged or returned by MCP. HTTPS pass admission is
+a **separate** mechanism from OAuth and will use the atomic database budget
+(60 calls/minute) and reject every write, production mode, broad area or
+unsafe backend read. The supported initial harmless reads are
+`neon_whoami`, `neon_get_settings`, `neon_where_is_setting`; no branch/role
+query is accepted without verified non-production evidence.
+
+DB and unit tests cover hash-only storage, no OAuth crossover, expiry,
+replay/revocation, owner cross-origin/passphrase denials and 61 overlapping
+budget requests across independent instances. This slice alone does **not**
+make the HTTPS tool routes or live Hub acceptance available. RTC remains off
+by default until the next route/conformance gate.
+
+#78 initial CI review correction: a refused bearer must return a null authorization result after sending a generic RTC error response; never return the HTTP response object as an identity. Red-check regression tests exercise actual null refusal, expired/revoked status, and default-deny. Fixture-only encryption keys must not weaken the repository scanner. CI and review must pass at the corrected head before merging.
