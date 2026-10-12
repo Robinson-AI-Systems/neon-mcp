@@ -71,7 +71,7 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 | `neon_project_delete` | Delete a project (recoverable for 7 days; preview lists every branch and database lost) | C D Pr | Ow | F | D-1 |
 | `neon_project_recover` | Bring back a project deleted in the last 7 days | C | Ow | F | D-1 |
 | `neon_project_list_regions` | Regions Neon offers now, with which backend services each supports | — | B | R | D-1 (built #46) |
-| `neon_project_get_settings` | Project-wide settings: IP allow, public/VPC blocking, logical replication, maintenance window, preload libraries (and available ones), quotas, history retention, default compute settings, audit level, HIPAA | — | Ow Op | R | D-1 |
+| `neon_project_get_settings` | Project-wide settings: IP allow, public/VPC blocking, logical replication, maintenance window, preload libraries (and available ones), quotas, history retention, default compute settings, audit level, HIPAA | — | Ow Op | R | D-1 (built #47) |
 | `neon_project_update_settings` | Maintenance window, preload libraries, default compute settings for new computes (spend increases go through the spend guard) | C Pr $ | Ow | F | D-1 |
 | `neon_project_set_history_retention` | How far back restores can reach (Neon bills instant-restore storage; preview shows the price) | C Pr $ | Ow | F | D-1 |
 | `neon_project_set_quotas` | Per-project consumption quotas; reaching one suspends computes (preview says what would stop today) | C Pr | Ow | F | D-1 |
@@ -80,8 +80,8 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 
 | Tool | What it does | Flags | Aud | Profile | Card |
 | --- | --- | --- | --- | --- | --- |
-| `neon_operation_list` | Recent operations on a project (what Neon did, when, status), filter by branch or compute | — | Op | R | D-1 |
-| `neon_operation_get` | One operation; `waitSeconds` (≤45) waits for it to finish and then reads the target back | — | B Op | R | D-1 |
+| `neon_operation_list` | Recent operations on a project (what Neon did, when, status), filter by branch or compute | — | Op | R | D-1 (built #47) |
+| `neon_operation_get` | One operation; `waitSeconds` (≤45) waits for it to finish and then reads the target back | — | B Op | R | D-1 (built #47) |
 
 ## Branches (`neon_branch_*`) — 13
 
@@ -352,7 +352,7 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #46 (production-deployment capability listing):** `read_only` 14; `everyday` 14; `full` 19. These are implemented tools, not the planned catalog; verified in CI using exact tool metadata.
+**Implemented registry at #47 (production-deployment capability listing):** `read_only` 17; `everyday` 17; `full` 22. These are implemented tools, not the planned catalog; verified in CI using exact tool metadata.
 
 ## Totals
 
