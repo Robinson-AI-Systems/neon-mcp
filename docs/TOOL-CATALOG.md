@@ -92,8 +92,8 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 | `neon_branch_create` | New branch from a parent (point in time, schema-only option, optional compute, optional expiry); confirm only when it raises spend (extra branch past the plan's allowance, compute above the setting) | C* $ | B Op | E | D-2 |
 | `neon_branch_rename` | Rename a branch (confirm on production: integrations and apps may look it up by name) | C* Pr | Op | E | D-2 (built #52) |
 | `neon_branch_set_protected` | Protect or unprotect with audited confirmation and production guard | C* Pr | Ow | F | D-2 (built #52) |
-| `neon_branch_set_expiration` | Set, change or remove a branch's expiry (max 30 days; refused on default, protected or parent branches) | P | B Op | E | D-2 |
-| `neon_branch_set_default` | Make a branch the project's default (production moves to it) | C Pr | Ow | F | D-2 |
+| `neon_branch_set_expiration` | Set, change or remove expiry (max 30 days; refuses default, protected or parent) | P | B Op | E | D-2 (built #53) |
+| `neon_branch_set_default` | Make a branch the project's default after owner production approval | C Pr | Ow | F | D-2 (built #53) |
 | `neon_branch_delete` | Delete a branch (recoverable for 7 days; refused when it has children; preview lists computes and databases) | C D Pr | Op | F | D-2 |
 | `neon_branch_recover` | Bring back a branch deleted in the last 7 days | C | Op | E | D-2 |
 | `neon_branch_reset_from_parent` | Replace a branch's data with its parent's latest state (production: keeps the old state under a new name) | C D Pr | B Op | F | D-2 |
@@ -352,7 +352,7 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #52 (production-deployment capability listing):** `read_only` 20; `everyday` 22; `full` 34. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
+**Implemented registry at #53 (production-deployment capability listing):** `read_only` 20; `everyday` 23; `full` 36. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
 
 ## Totals
 
