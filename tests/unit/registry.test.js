@@ -13,6 +13,7 @@ describe('tool registry', () => {
       'neon_compute_start','neon_compute_suspend','neon_compute_restart',
       'neon_compute_delete','neon_compute_update_settings',
       'neon_database_list','neon_database_get','neon_role_list','neon_role_get',
+      'neon_database_create','neon_database_update','neon_database_delete',
       'neon_search_tools','neon_call','neon_batch','neon_describe_tool']);
     for(const tool of registry.tools) {
       if (tool.writes) {
