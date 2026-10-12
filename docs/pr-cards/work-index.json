@@ -582,14 +582,18 @@
         "D-2"
       ],
       "card": "docs/pr-cards/D-7.md",
-      "status": "PLANNED",
+      "status": "IN_PROGRESS",
       "migration": "none",
       "budget": 300,
       "units": [
         "D-7"
       ],
-      "readiness": "WRITE_CARD_AT_START",
-      "ownerInputs": []
+      "readiness": "READY",
+      "ownerInputs": [],
+      "pr": [
+        87
+      ],
+      "note": "Independently eligible: D-2 merged, D-4 remains blocked and D-5 stays forbidden. #87 scoped snapshot list plus all independently verified branch backup schedules, metadata only. Six guarded snapshot mutations remain unimplemented; no live/provider or production acceptance."
     },
     {
       "id": "D-8",

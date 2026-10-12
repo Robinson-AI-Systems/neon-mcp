@@ -5,7 +5,7 @@ Written 2026-10-10 for an empty repository. [STATUS](STATUS.md) holds current st
 ## What is next
 
 **Done:** A-1 (#1), A-2 (#7), A-3 (#8/#9), A-4 (#10/#11), A-5 (#12/#13/#14), A-6 (#15), A-7 (#16).
-**Next:** D-4 scoped databases/roles/connections, with its JIT card written for #65. D-3 offline ten-tool implementation and late review corrections completed through #64; independent live owner/scratch acceptance remains gated (X-3). Production stays disabled; D-5 owns public SQL and X-3 owns live scratch restore verification.
+**Current:** D-4 is IN_PROGRESS and public role deletion remains blocked by independently unobservable idle pooled clients. D-5 cannot start because its dependency is incomplete. Independently approved D-7 snapshot work depends on already merged D-2 (not D-4): JIT D-7 #87 implements only scoped metadata reads, not restore/spend. D-3 offline tooling is complete; connected owner/scratch acceptance remains gated (X-3). Production stays disabled, RTC live activation remains OFF, and only scheduled checked main-to-live updates production.
 
 ## Order and why
 

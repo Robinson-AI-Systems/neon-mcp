@@ -191,7 +191,7 @@ The SQL guard (`docs/designs/BATCH-B.md` B-3) classifies every statement with th
 
 | Tool | What it does | Flags | Aud | Profile | Card |
 | --- | --- | --- | --- | --- | --- |
-| `neon_snapshot_list` | Snapshots in a project, and each branch's snapshot schedule | — | Op | R | D-7 |
+| `neon_snapshot_list` | Scoped bounded project snapshots and independently read backup schedules for every verified branch; no compute wake-up | — | Op | R | D-7 (built #87) |
 | `neon_snapshot_create` | Snapshot a branch now (or at a point in time), with a name and optional expiry | P | Op | E | D-7 |
 | `neon_snapshot_update` | Rename a snapshot or change its expiry | P | Op | E | D-7 |
 | `neon_snapshot_delete` | Delete a snapshot | C D | Op | F | D-7 |
@@ -358,7 +358,7 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #70 (production-deployment capability listing):** `read_only` 28; `everyday` 36; `full` 63. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
+**Implemented registry at #87 (production-deployment capability listing):** `read_only` 29; `everyday` 37; `full` 64. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
 
 ## Totals
 
