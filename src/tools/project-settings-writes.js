@@ -31,8 +31,8 @@ const validQuota=q=>!!q&&typeof q==='object'&&!Array.isArray(q)&&
  Object.keys(q).length>0&&Object.keys(q).every(k=>fields.includes(k)&&validLimit(q[k]));
 const zero={increaseCents:0,estimate:false,canApply:true};
 const quote=async(c,kind,before,after)=>{
- if(typeof c.db.getVerifiedNeonPlan!=='function')return null;
- const current=await c.db.getVerifiedNeonPlan(c.connection.neonOrg);
+ const current=typeof c.db.getVerifiedNeonPlan==='function'
+  ? await c.db.getVerifiedNeonPlan(c.connection.neonOrg) : await c.planFor?.();
  if(current?.verified!==true||!['Launch','Scale'].includes(current.name))
   return null;
  return createSpendGuard({db:c.db}).price({kind,plan:current.name,before,after});
