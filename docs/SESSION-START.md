@@ -172,10 +172,26 @@ remains. End every turn right after a push whose resume note's "Next step" is th
 file and function, e.g. "CI red at 8adb4bf: `tests/unit/billing.test.js` expects old message; update it, then lint
 `src/tools/billing.js`".
 
-**Stopping** happens only for a real blocker. Before stopping: update the resume note and `docs/STATUS.md`, then
-commit and push them with the work, and say in one plain-English paragraph what is done and exactly what Chris needs to decide.
+**Stopping:** normally at five qualifying substantive merges or actual project completion, and earlier
+when an owner/safety/dependency gate prevents another valuable PR. Before stopping, record the exact
+verified checkpoint, real capability/evidence, pending acceptance and actionable blockers in
+`docs/STATUS.md` and the permanent handoff on the last merged PR. Explain what Chris must decide
+only when a real owner decision is needed. Never pad a batch, violate gates, or call green CI live acceptance.
 
-## Restart message for Chris to paste when a session stops
+## Restart message for Chris to paste at a batch boundary
 
-> Continue the Neon MCP work. Read `docs/SESSION-START.md` and do §0 first: finish any open PR of yours (fix red
-> CI, then merge) before starting the next card. Then keep going card after card; stop only for a real blocker (§6).
+Build a **short, checkpoint-specific** message at the end of every session, never a copy
+of all rules. Example structure (replace with verified facts):
+
+> Neon MCP — resume from actual current `main`. Last merged PR #N and verified SHA
+> `<SHA>`; see its permanent handoff. Read `AGENTS.md`,
+> `docs/SESSION-START.md`, `docs/STATUS.md`, the work index, current approved card,
+> hosting policy and active reviews. Verify exact-head and post-merge CI, concurrent PRs,
+> owner answers, blockers and evidence. The current useful milestone is <outcome>;
+> remaining code/automated/deployed/real acceptance is <short specifics>. Prioritize
+> <next eligible action>; re-open blocked work only on its recorded evidence trigger.
+> Complete the next coherent normal five-substantive-PR session, stopping earlier for
+> completion or a genuine gate; preserve every owner/safety/cost/release requirement.
+> Update the authoritative ledger, place permanent handoff on final merged PR,
+> and generate the next compact continuation prompt in this exact style.
+
