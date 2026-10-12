@@ -36,7 +36,9 @@ async function inventory(args,ctx){
    throw Error('Snapshot source is protected or its status is unverified');
  }
  return {projectId:pid,snapshot,sourceBranchId:source??null,
-  snapshotIds:snaps.map(s=>s.id),snapshotNames:snaps.map(s=>s.name),client};
+  snapshotIds:snaps.map(s=>s.id),snapshotNames:snaps.map(s=>s.name),
+  branchIds:branches.map(b=>b.id),branchNames:branches.map(b=>b.name),
+  branchDefault:branches.map(b=>b.default),branchProtected:branches.map(b=>b.protected),client};
 }
 async function target(args,ctx){
  const data=await inventory(args,ctx);
