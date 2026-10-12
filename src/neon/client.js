@@ -74,7 +74,13 @@ function isUncertain(error) {
 export async function call(client, operationId, params = {}, {
   write = false, requestKey: key, budgetMs = 10000
 } = {}) {
-  if (typeof raw[operationId] !== 'function') throw new Error('Neon operation is not supported by the pinned SDK.');
+  // SDK 7.0.1 omits this beta operation although our pinned OpenAPI documents it.
+  // Use ONLY the SDK's own typed HTTP client and the exact vendored path template:
+  // no hand-built URL, direct fetch or change to retries/admission.
+  const recoverBranch = operationId === 'recoverProjectBranch' &&
+    typeof raw.recoverProjectBranch !== 'function';
+  if (!recoverBranch && typeof raw[operationId] !== 'function')
+    throw new Error('Neon operation is not supported by the pinned SDK.');
   if (!client?.sdk || typeof client?.budget?.consume !== 'function') throw new TypeError('Invalid Neon client');
   if (write && (typeof key !== 'string' || !key)) throw new TypeError('Writes require a request key');
   const deadline = Date.now() + Math.max(0, Math.min(45000, budgetMs));
@@ -83,7 +89,12 @@ export async function call(client, operationId, params = {}, {
     if (budgetError) return { error: budgetError, confirmed: false };
     let result;
     try {
-      result = await raw[operationId]({ client: client.sdk, ...params });
+      result = recoverBranch
+        ? await client.sdk.client.post({
+          url: '/projects/{project_id}/branches/{branch_id}/recover',
+          path: params.path
+        })
+        : await raw[operationId]({ client: client.sdk, ...params });
     } catch (error) {
       result = { error };
     }
