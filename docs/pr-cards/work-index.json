@@ -466,9 +466,10 @@
       "ownerInputs": [],
       "pr": [
         51,
-        52
+        52,
+        53
       ],
-      "note": "Five branch capabilities through #52: list/get/compare_schema/rename/protect; 7 more D-2 lifecycle capabilities and time-variant comparison pending."
+      "note": "D-2 seven tools through #53. Remaining create, delete, recover, reset and restore, plus time-variant schema compare. Owner gates remain."
     },
     {
       "id": "D-3",

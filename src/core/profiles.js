@@ -4,7 +4,8 @@ const internalControls=new Set(['neon_enable_production','neon_disable_productio
 const externalProjectWrites=new Set(['neon_project_create','neon_project_rename',
  'neon_project_delete','neon_project_recover',
  'neon_project_update_settings','neon_project_set_history_retention',
- 'neon_project_set_quotas','neon_branch_rename','neon_branch_set_protected']);
+ 'neon_project_set_quotas','neon_branch_rename','neon_branch_set_protected',
+ 'neon_branch_set_expiration','neon_branch_set_default']);
 export function isToolAllowed(tool, connection, {productionDeployment=false}={}) {
   if(!tool || !profiles.has(connection?.profile) ||
       !Array.isArray(tool.profiles) || !tool.profiles.includes(connection.profile))return false;
