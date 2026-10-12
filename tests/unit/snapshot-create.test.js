@@ -14,7 +14,7 @@ function fixture({size=20000000,profile='full',protectedBranch=false,afterPresen
  const fake=makeFakeNeon(),audit=[],expiresAt=iso(3);
  const client=makeNeonClient({key:'napi_FAKE_snapshot_create',orgId:IDS.org,
   fetch:fake.fetch,budget:{async consume(){return {allowed:true}}}});
- const branch=devBranch({logical_size:size,protected:protectedBranch});
+ const branch=devBranch({...(size===null?{}:{logical_size:size}),protected:protectedBranch});
  const changed=devBranch({logical_size:size+100,protected:protectedBranch});
  const newSnap={id:'snap-fake-000002',name:'new-backup',
   created_at:'2026-10-10T12:00:00Z',source_branch_id:IDS.dev,
@@ -31,6 +31,7 @@ function fixture({size=20000000,profile='full',protectedBranch=false,afterPresen
   .resolves({snapshots:afterPresent?[old,newSnap]:[old]});
  fake.when('createSnapshot').resolves({snapshot:newSnap,operations:[]});
  const db={async getPricing(){return price},
+  async getSpendPolicy(){return {perChangeCents:2500,perDayCents:5000}},
   async recordWritePreview(x){audit.push({type:'preview',...x});},
   async reserveWrite(x){audit.push({type:'reserve',...x});return {created:true,id:1}},
   async completeWrite(x){audit.push({type:'complete',...x})}};
