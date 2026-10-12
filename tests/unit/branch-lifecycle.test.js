@@ -64,6 +64,51 @@ describe('D-2 verified branch create, delete, recover',()=>{
   expect(events.some(e=>e.kind==='complete'&&e.confirmed==='true')).toBe(true);
   fake.assertClean();
  });
+ it('creates a historical branch with explicit expiry/protection, without a compute',async()=>{
+  const {fake,handlers}=makeBranchLifecycleFixture();
+  const expiresAt=new Date(Date.now()+86400000).toISOString().slice(0,19)+'Z';
+  fake.when('getProject').resolves(projectResponse());
+  fake.when('listProjectBranches').resolves(list([mainBranch()]));
+  fake.when('createProjectBranch').resolves(responses.createProjectBranch());
+  fake.when('getProjectBranch').resolves({branch:devBranch({expires_at:expiresAt,protected:true})});
+  const out=json(await handlers.neon_branch_create({
+   name:'dev',parentBranchId:IDS.main,parentLsn:'0/16B6A60',expiresAt,
+   protected:true,confirm:true},{}));
+  expect(out.confirmed).toBe(true);
+  expect(fake.calls.find(c=>c.method==='POST').body.branch).toMatchObject({
+   parent_lsn:'0/16B6A60',expires_at:expiresAt,protected:true});
+  fake.assertClean();
+ });
+ it('prices optional compute along with the new branch and verifies its endpoint',async()=>{
+  const {fake,handlers}=makeBranchLifecycleFixture();
+  fake.when('getProject').resolves(projectResponse());
+  fake.when('listProjectBranches').resolves(list([mainBranch()]));
+  fake.when('createProjectBranch').resolves(responses.createProjectBranch());
+  fake.when('getProjectBranch').resolves(responses.getProjectBranch('dev'));
+  fake.when('listProjectBranchEndpoints').resolves({endpoints:[devEndpoint({
+   type:'read_only',autoscaling_limit_min_cu:0.25,autoscaling_limit_max_cu:0.5})]});
+  const out=json(await handlers.neon_branch_create({name:'dev',parentBranchId:IDS.main,
+   computeType:'read_only',minCu:0.25,maxCu:0.5,confirm:true},{}));
+  expect(out.confirmed).toBe(true);
+  const payload=fake.calls.find(c=>c.method==='POST').body;
+  expect(payload.endpoints).toEqual([{type:'read_only',
+   autoscaling_limit_min_cu:0.25,autoscaling_limit_max_cu:0.5}]);
+  fake.assertClean();
+ });
+ it('refuses ambiguous history, bad expiration, or unpriced compute before provider writes',async()=>{
+  const {fake,handlers}=makeBranchLifecycleFixture();
+  for(const more of [
+   {parentLsn:'0/1',parentTimestamp:'2025-01-01T00:00:00Z'},
+   {expiresAt:'2999-01-01T00:00:00Z'},
+   {computeType:'read_only',minCu:0.5,maxCu:0.25},
+   {minCu:0.25,maxCu:0.5}
+  ]){
+   const out=json(await handlers.neon_branch_create({
+    name:'dev',parentBranchId:IDS.main,...more,confirm:true},{}));
+   expect(out.done).toBe(false);
+  }
+  expect(fake.calls).toHaveLength(0);
+ });
  it('refuses deletion of default or protected branch',async()=>{
   const {fake,handlers}=makeBranchLifecycleFixture();
   fake.when('getProject').resolves(projectResponse());

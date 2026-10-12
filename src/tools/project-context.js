@@ -33,7 +33,7 @@ export function branchSummary(b){
  return {id:b.id,name:b.name,default:b.default===true,protected:b.protected===true,
   parentId:b.parent_id||null,state:b.current_state||null,
   logicalSizeBytes:b.logical_size??null,updatedAt:b.updated_at||null,
-  expiresAt:b.expire_at||null};
+  expiresAt:b.expires_at||null};
 }
 export function computeSummary(e){
  return {id:e.id,branchId:e.branch_id,state:e.current_state||null,type:e.type||null,
