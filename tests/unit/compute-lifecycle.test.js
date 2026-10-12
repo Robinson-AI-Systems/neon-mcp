@@ -3,7 +3,7 @@ import {makeFakeNeon} from '../../test/helpers/fake-neon.js';
 import {makeNeonClient} from '../../src/neon/client.js';
 import {DEFAULT_PRICING} from '../../src/neon/pricing.js';
 import {IDS,project,devEndpoint,mainEndpoint,responses} from '../../test/helpers/neon-fixtures.js';
-import {createComputeLifecycleHandlers,tools} from '../../src/tools/compute-lifecycle.js';
+import {createComputeLifecycleHandlers,tools,validateSettings} from '../../src/tools/compute-lifecycle.js';
 const decode=r=>JSON.parse(r.content[0].text);
 function fixture({allowed=true,plan='Launch',connCount=null}={}){
  const fake=makeFakeNeon(),events=[];
@@ -136,14 +136,11 @@ describe('D-3 guarded compute lifecycle',()=>{
    .toEqual({statement_timeout:'5000'});
   fake.assertClean();
  });
- it('does not overwrite malformed null provider pg_settings',async()=>{
-  const {fake,handlers}=fixture({plan:'Free'});
-  identity(fake,devEndpoint({settings:{pg_settings:null}}));
-  const out=decode(await handlers.neon_compute_update_settings({
-   endpointId:IDS.devEndpoint,pgSettings:{statement_timeout:'5000'},confirm:true},{}));
-  expect(out.done).toBe(false);
-  expect(fake.calls.every(c=>c.method==='GET')).toBe(true);
-  fake.assertClean();
+ it('rejects explicit null provider settings without accepting the malformed API fixture',()=>{
+  // The fake provider validates the actual OpenAPI contract and correctly refuses
+  // to construct an invalid null settings response. Test this defense directly.
+  expect(()=>validateSettings({pgSettings:{statement_timeout:'5000'}},
+   {settings:{pg_settings:null}})).toThrow(/Existing Postgres settings/);
  });
  it('allows Free-plan no-cost scale-to-zero change while denying never-suspend',async()=>{
   const {fake,handlers}=fixture({plan:'Free'});
