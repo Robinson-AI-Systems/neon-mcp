@@ -111,7 +111,7 @@ const def=defineWrite({name:'neon_security_set_jwks',
    return baseline.length===expected.length+1&&
      JSON.stringify(rows)===JSON.stringify(expected);
   }
-  if(rows.length!==baseline.length+1||!baseline.every((v,i)=>
+  if(rows.length!==baseline.length+1||!baseline.every(v=>
       JSON.stringify(v)===JSON.stringify(rows.find(x=>x.id===v.id))))
    return false;
   const created=rows.filter(x=>!baseline.some(v=>v.id===x.id));

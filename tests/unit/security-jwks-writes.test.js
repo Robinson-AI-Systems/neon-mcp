@@ -1,7 +1,7 @@
 import {describe,it,expect} from 'vitest';
 import {makeFakeNeon} from '../../test/helpers/fake-neon.js';
 import {makeNeonClient} from '../../src/neon/client.js';
-import {IDS,AT,project,devBranch} from '../../test/helpers/neon-fixtures.js';
+import {IDS,AT,project,devBranch,responses} from '../../test/helpers/neon-fixtures.js';
 import {tools,createSecurityJwksWriteHandlers} from '../../src/tools/security-jwks-writes.js';
 const json=r=>JSON.parse(r.content[0].text);
 const old={id:'jwks-fake-000001',project_id:IDS.project,
@@ -66,7 +66,7 @@ describe('D-8 scope-bound JWT issuer trust lifecycle',()=>{
  });
  it('adds only a verified unprotected-branch issuer with explicit audience',async()=>{
   const f=fixture();reads(f,[[old],[old],[old,fresh]]);
-  f.fake.when('getProjectBranch').resolves({branch:devBranch()});
+  f.fake.when('getProjectBranch').resolves(responses.getProjectBranch('dev'));
   f.fake.when('addProjectJWKS').resolves({jwks:fresh,operations:[]});
   const result=json(await f.h({...add,confirm:true},{}));
   expect(result).toMatchObject({done:true,confirmed:true});
@@ -83,7 +83,7 @@ describe('D-8 scope-bound JWT issuer trust lifecycle',()=>{
   for(const b of [devBranch({protected:true}),devBranch({default:true}),
    devBranch({project_id:'proj-fake-other'})]){
    const f=fixture();reads(f,[[old]]);
-   f.fake.when('getProjectBranch').resolves({branch:b});
+   f.fake.when('getProjectBranch').resolves({...responses.getProjectBranch('dev'),branch:b});
    const result=json(await f.h({...add,confirm:true},{}));
    expect(result.done).toBe(false);
    expect(f.fake.calls.every(x=>x.method==='GET')).toBe(true);
