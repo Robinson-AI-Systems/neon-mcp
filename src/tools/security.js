@@ -113,7 +113,7 @@ export function createSecurityReadHandlers({getClient=projectClient}={}){
   const posture=verifiedBranchPosture(branches,scope.projectId);
   const issuerCount=verifiedEntries(jwks,scope.projectId).length;
   const security=settings??{};
-  return readText({projectId:scope.projectId,complete:true,
+  return readText({projectId:scope.projectId,metadataComplete:true,
    checks:{
     protectedBranches:posture,
     publicConnectionsBlocked:observedBoolean(security.block_public_connections),
