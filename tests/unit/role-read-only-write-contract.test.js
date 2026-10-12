@@ -67,6 +67,7 @@ function realFixture(opts={},door='direct'){
  async function http(args){
   if(!server){
    const transport=createMcpHandler({registry,db:{...db,
+    listNeonOrgs:async()=>[{id:IDS.org,production_enabled:true}],
     getAccessToken:async()=>({profile:ctx.connection.profile,listing:'catalog',
      mode:ctx.connection.mode,neon_org:IDS.org,
      project_scope:IDS.project,client_id:'fake-client'})},
