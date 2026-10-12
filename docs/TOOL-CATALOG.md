@@ -105,8 +105,8 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 
 | Tool | What it does | Flags | Aud | Profile | Card |
 | --- | --- | --- | --- | --- | --- |
-| `neon_compute_list` | Computes in a project or on a branch: type, size range, state, scale-to-zero time, last active | — | Op | R | D-3 |
-| `neon_compute_get` | One compute with its settings and recent operations | — | Op | R | D-3 |
+| `neon_compute_list` | Computes in a project or on a branch: type, size range, state, scale-to-zero time, last active | — | Op | R | D-3 (built #59) |
+| `neon_compute_get` | One compute with its settings and recent operations | — | Op | R | D-3 (built #59) |
 | `neon_compute_create` | New read-write or read-replica compute on a branch; dollar preview for its size range | C $ | B Ow | F | D-3 |
 | `neon_compute_resize` | Change autoscaling minimum/maximum (raising: dollar preview; production: confirm) | C* $ Pr | Ow Op | F | D-3 |
 | `neon_compute_update_settings` | Scale-to-zero delay (turning it off is a spend change), Postgres settings, pooler mode | C* $ Pr | Op | E | D-3 |
@@ -114,7 +114,7 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 | `neon_compute_suspend` | Suspend a compute now (production: confirm — open connections drop) | C* Pr | Op | E | D-3 |
 | `neon_compute_restart` | Restart a compute (production: confirm) | C* Pr | Op | E | D-3 |
 | `neon_compute_delete` | Delete a compute (connection strings using its host stop working) | C D Pr | Op | F | D-3 |
-| `neon_compute_estimate_cost` | Dollar estimate for a size range and hours per day from the stored price table | — | B Ow | R | D-3 |
+| `neon_compute_estimate_cost` | Dollar estimate for a size range and hours per day from the stored price table | — | B Ow | R | D-3 (built #59) |
 
 ## Databases and Postgres roles (`neon_database_*`, `neon_role_*`) — 11
 

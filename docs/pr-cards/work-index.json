@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-10-11",
+  "updated": "2026-10-12",
   "order": [
     "A",
     "B",
@@ -456,7 +456,7 @@
         "D-1"
       ],
       "card": "docs/pr-cards/D-2.md",
-      "status": "IN_PROGRESS",
+      "status": "MERGED",
       "migration": "none",
       "budget": 500,
       "units": [
@@ -469,9 +469,11 @@
         52,
         53,
         54,
-        55
+        55,
+        57,
+        58
       ],
-      "note": "12/12 D-2 tools registered through #55; formal D-2 completion still requires optional point-in-time schema compare and branch creation options plus full acceptance evidence. High-risk restore/reset have verified always-preserve guarded contracts, fake Neon only. Production off."
+      "note": "All 12 tools plus provider-approved history comparison and advanced branch create verified by exact-head and post-merge CI through #58; protected/production/spend gates retained. Live scratch X-3 separate."
     },
     {
       "id": "D-3",
@@ -482,14 +484,18 @@
         "D-2"
       ],
       "card": "docs/pr-cards/D-3.md",
-      "status": "PLANNED",
+      "status": "IN_PROGRESS",
       "migration": "none",
       "budget": 400,
       "units": [
         "D-3"
       ],
-      "readiness": "WRITE_CARD_AT_START",
-      "ownerInputs": []
+      "readiness": "READY",
+      "ownerInputs": [],
+      "pr": [
+        59
+      ],
+      "note": "Scoped list/get and hypothetical price estimate in #59; audited lifecycle, resize and settings follow."
     },
     {
       "id": "D-4",
