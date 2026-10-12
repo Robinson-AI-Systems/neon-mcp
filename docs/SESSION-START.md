@@ -112,6 +112,8 @@ via `gh api` when a terminal works, or the connected GitHub plugin's REST-backed
 - Wait until **all jobs** from one head finish, collect and fix every failure, then commit the next correction.
   Review the PR diff/threads; merge with the expected exact head SHA only after aggregate `ci` is green.
 
+**REST can reconstruct a local working tree only when the active runtime can write the retrieved tree/blob bytes to disk.** A connected GitHub REST action can read files and create commits, but does not itself mount a checkout or run npm. First check the actual terminal, REST connectivity and writable filesystem; use a local materialization bridge if truly available. When the shell cannot resolve GitHub and the connector has no file bridge, continue through REST-backed commits and exact-head GitHub Actions without falsely claiming local execution.
+
 **REST is a repository/CI access route, not a local test runner.** Explicitly record which local commands could
 not run, cite the GitHub Actions test evidence, and never claim local or live Neon tests occurred. Do not skip, weaken
 or bypass tests, owner approval, security, spending or production restrictions. Without a shell, save each coherent
