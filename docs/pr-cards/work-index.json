@@ -614,9 +614,10 @@
       "readiness": "READY",
       "ownerInputs": [],
       "pr": [
-        89
+        89,
+        90
       ],
-      "note": "Independent D-1 dependency satisfied. #89 read-only, project/org-verified JWKS inventory with duplicate/foreign denial and URL-query credential redaction; no mutations, no external acceptance; six more security tools remain."
+      "note": "Independent D-1 dependency satisfied. #89 read-only, project/org-verified JWKS inventory with duplicate/foreign denial and URL-query credential redaction; no mutations, no external acceptance; six more security tools remain. #90 adds observed-only, project/org-verified security posture: branch protection, configured network/IP/replication and trust counts; missing/unsupported RLS/login/advisor checks are explicitly unknown/not evaluated. Tests offline; real hosted acceptance and five B-1 security mutations remain OPEN. Recheck external blockers at session start; do not count PRs as acceptance."
     },
     {
       "id": "D-9",
