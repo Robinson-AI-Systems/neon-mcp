@@ -467,9 +467,10 @@
       "pr": [
         51,
         52,
-        53
+        53,
+        54
       ],
-      "note": "D-2 seven tools through #53. Remaining create, delete, recover, reset and restore, plus time-variant schema compare. Owner gates remain."
+      "note": "Ten D-2 tool names through #54; remaining reset-from-parent and restore, plus optional variants for branch creation and schema timestamps. Owner gates unchanged."
     },
     {
       "id": "D-3",
