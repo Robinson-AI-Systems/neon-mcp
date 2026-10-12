@@ -89,7 +89,7 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 | --- | --- | --- | --- | --- | --- |
 | `neon_branch_list` | Branches with default/protected/expiring marks, parent, size, compute state, last reset, annotations; count vs the plan's included branches | — | B Op | R | D-2 (built #51, plan/count refinements pending) |
 | `neon_branch_get` | One branch with its computes, databases, roles, storage and restore status | — | B Op | R | D-2 (built #51, status refinements pending) |
-| `neon_branch_create` | Create from verified parent, with schema-only option and B-4 branch-cost approval; compute/expiry variants remain pending | C* $ | B Op | E | D-2 (built #54, variants pending) |
+| `neon_branch_create` | Create from verified parent, with schema-only option and B-4 branch-cost approval; optional compute, expiry and point-in-time source variants supported | C* $ | B Op | E | D-2 (built #54, advanced create variants #58) |
 | `neon_branch_rename` | Rename a branch (confirm on production: integrations and apps may look it up by name) | C* Pr | Op | E | D-2 (built #52) |
 | `neon_branch_set_protected` | Protect or unprotect with audited confirmation and production guard | C* Pr | Ow | F | D-2 (built #52) |
 | `neon_branch_set_expiration` | Set, change or remove expiry (max 30 days; refuses default, protected or parent) | P | B Op | E | D-2 (built #53) |
@@ -98,7 +98,7 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 | `neon_branch_recover` | Owner-approved recover of independently verified soft-deleted branch within grace period | C | Op | F | D-2 (built #54) |
 | `neon_branch_reset_from_parent` | Reset from verified parent; always preserve prior state under a uniquely named new branch and apply guarded spend limits | C D Pr $ | B Op | F | D-2 (built #55) |
 | `neon_branch_restore` | Restore verified source/head/LSN/UTC timestamp; always preserve prior state and verify both branches | C D Pr $ | Op | F | D-2 (built #55) |
-| `neon_branch_compare_schema` | Compare verified branches for one database at HEAD, LSN or past UTC time independently on each side | — | B Op | R | D-2 (built #52, time variants pending) |
+| `neon_branch_compare_schema` | Compare verified branches for one database at HEAD, LSN or past UTC time independently on each side | — | B Op | R | D-2 (built #52, historical variants #57) |
 | `neon_branch_compare_data` | Row differences for chosen tables between two branches (or a branch and a point in time): counts, then added / removed / changed rows by primary key, capped with a handle; tables without a primary key compare by count and checksum only | — | B Op | R | D-9 |
 
 ## Computes (`neon_compute_*`) — 10
