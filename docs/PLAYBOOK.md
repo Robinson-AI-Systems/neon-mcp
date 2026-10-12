@@ -50,8 +50,8 @@ While implementing:
 
 ### Step 3a — PR size
 
-About 500 production lines (tests/docs not counted), about 15 production files, hard stop ~800 lines, at most one
-migration, one risk area (keys / production guard / SQL guard / spend / tools-of-one-area / doors). Measure before
+Prefer coherent groups of 450–800 production lines (tests/docs not counted), about 15 production files, hard stop ~800 lines, at most one
+migration, one risk area (keys / production guard / SQL guard / spend / tools-of-one-area / doors). Smaller complete PRs are valid: never pad or mix unrelated safety boundaries. Group operations sharing the API, permissions, guard and fixtures. Reuse `src/tools/read-descriptors.js` and tested provider helpers instead of duplicating schemas. Run focused validation before complete CI, and address all failing checks in one corrective push. When shell access is absent, make one GitHub REST tree commit per coherent completed change and require exact-head Actions evidence. Measure before
 opening the PR:
 
 ```bash

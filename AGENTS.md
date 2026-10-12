@@ -11,6 +11,7 @@ sections below when a step names them.
 **Other sessions** (design, planning, review): this file → `docs/START-HERE.md` → `docs/STATUS.md` →
 `docs/MASTER-ROADMAP.md` → the relevant `docs/PLAN.md` section and design headings.
 
+Efficiency: group same-API and safety-model capabilities into complete PRs, reuse `src/tools/read-descriptors.js` for Neon reads, run focused tests before full CI, and resolve all review findings before merging. See PLAYBOOK Step 3a. Never bypass mandatory gates.
 Implementation pointers: `docs/implementation-contracts/IMPLEMENTATION-RECIPES.md` routes each card to verified code seams,
 test recipes and remaining-work guidance. Open only the relevant section; this is supporting guidance, not new scope.
 
@@ -127,7 +128,7 @@ and cents; stored in integer cents (unit rates in integer micro-dollars).
   reviewed.
 - **Drift and reconciliation** (`docs/implementation-contracts/DRIFT-PROTOCOL.md`): checklist A before each PR, B inside
   each PR written as if it had already merged, C when a batch finishes.
-- **PR size:** about 500 production lines and 15 files, hard stop ~800 lines, at most one migration, one risk area
+- **PR size:** prefer cohesive 450–800 production lines where justified; hard stop ~800 lines, at most one migration, one risk area. Smaller complete work units are valid.
   (PLAYBOOK Step 3a).
 - **Model:** whichever model Chris selected does the work. Sol 5.6 is the routine implementer: light effort for an
   already-tested pattern (a new read tool), medium for the safety layer, guards, SQL, keys, passes, or anything
