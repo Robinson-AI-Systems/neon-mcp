@@ -9,7 +9,7 @@ const cleared={verified:true,role:'unused_reader',clear:true,
   totals:{objectReferences:0,databaseOwnerships:0,roleMemberships:0,activeSessions:0},
   visibility:'global_role_references_and_complete_compute_sessions'};
 function setup({blocked=false,pooler=false,unknown=false,sessions=0,
-  profile='full',rereadType='read_write'}={}){
+  profile='full',rereadType='read_write',duplicate=null}={}){
   const fake=makeFakeNeon(),inspected=[];
   const client=makeNeonClient({key:'napi_FAKE_delete_inventory',orgId:IDS.org,
     fetch:fake.fetch,budget:{async consume(){return {allowed:true}}}});
@@ -18,10 +18,14 @@ function setup({blocked=false,pooler=false,unknown=false,sessions=0,
   fake.when('getProjectBranch').resolves(responses.getProjectBranch('dev'));
   fake.when('getProjectBranchRole').resolves({role:role(IDS.dev,{name:'unused_reader'})})
     .resolves({role:role(IDS.dev)});
-  fake.when('listProjectEndpoints').resolves({endpoints:[e]});
-  fake.when('listProjectBranchDatabases').resolves({databases:[database(IDS.dev)]});
-  fake.when('listProjectBranchRoles').resolves({roles:[
-    role(IDS.dev,{name:'unused_reader'}),role(IDS.dev)]});
+  const endpointRows=duplicate==='endpoint'?[e,e]:[e];
+  const databaseRows=duplicate==='database'?[database(IDS.dev),database(IDS.dev)]:
+    [database(IDS.dev)];
+  const roleRows=[role(IDS.dev,{name:'unused_reader'}),role(IDS.dev)];
+  if(duplicate==='role')roleRows.push(role(IDS.dev));
+  fake.when('listProjectEndpoints').resolves({endpoints:endpointRows});
+  fake.when('listProjectBranchDatabases').resolves({databases:databaseRows});
+  fake.when('listProjectBranchRoles').resolves({roles:roleRows});
   fake.when('getProjectBranchDatabase').resolves({database:database(IDS.dev)});
   fake.when('getProjectEndpoint').resolves({endpoint:{...e,type:rereadType}});
   const ctx={connection:{neonOrg:IDS.org,projectScope:IDS.project,
@@ -58,6 +62,16 @@ describe('D-4 complete scoped role-deletion compute inventory',()=>{
     expect(f.inspected).toEqual([]);
     expect(f.fake.calls.every(c=>c.method==='GET')).toBe(true);
     f.fake.assertClean();
+  });
+  it('rejects repeated endpoint, database or role records before any SQL inspection',async()=>{
+    for(const duplicate of ['endpoint','database','role']){
+      const f=setup({duplicate});
+      await expect(inspectRoleDeleteReadiness(choice,f.ctx,
+        {inspectEndpoint:f.inspectEndpoint})).rejects.toThrow(/Duplicated Neon/);
+      expect(f.inspected).toEqual([]);
+      expect(f.fake.calls.every(c=>c.method==='GET')).toBe(true);
+      f.fake.assertClean();
+    }
   });
   it('retains dependent sessions as blockers without claiming safe deletion',async()=>{
     const f=setup({sessions:4});
