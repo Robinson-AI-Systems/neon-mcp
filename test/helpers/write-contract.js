@@ -45,7 +45,7 @@ export function makeContractFixture({ production = false, spendCents = null,
   });
   return {tool,handler,ctx,log,calls,parse};
 }
-export async function runWriteContract(make = makeContractFixture, {input = {}, expectedSpendCents = 100} = {}) {
+export async function runWriteContract(make = makeContractFixture, {input = {}, expectedSpendCents = 100, nonBillable = false} = {}) {
   const f=make();
   expect(f.tool.writes).toBe(true);
   expect(f.tool.writeContract).toBe('defineWrite-v1');
@@ -76,7 +76,8 @@ export async function runWriteContract(make = makeContractFixture, {input = {}, 
   expect(high.parse(await high.handler({...input,confirm:true},high.ctx)).code).toBe('refused_by_guard'); // 7
   const price=make({spendCents:100});
   const quoted=price.parse(await price.handler({...input,dryRun:true},price.ctx)).spendMonthCents;
-  if(expectedSpendCents===null)expect(quoted).toBeGreaterThanOrEqual(0);
+  if(nonBillable)expect(quoted).toBeUndefined();
+  else if(expectedSpendCents===null)expect(quoted).toBeGreaterThanOrEqual(0);
   else expect(quoted).toBe(expectedSpendCents);
   const app=make({appOwned:true});
   expect(app.parse(await app.handler({...input,confirm:true},app.ctx)).code).toBe('refused_by_guard'); // 8

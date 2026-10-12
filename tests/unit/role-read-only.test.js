@@ -6,7 +6,7 @@ import {tools,createReadOnlyRoleHandlers} from '../../src/tools/role-read-only.j
 const json=r=>JSON.parse(r.content[0].text);
 const args={branchId:IDS.dev,name:'scoped_reader',ownerName:'neondb_owner',
   databaseName:'neondb',endpointId:IDS.devEndpoint,schemas:['public']};
-function setup({allowed=true,grantFails=false,profile='full',wrongOwner=false}={}){
+function setup({allowed=true,grantFails=false,profile='full',wrongOwner=false,readOnlyEndpoint=false}={}){
   const fake=makeFakeNeon(),audit=[],saved=[],granted=[];
   const client=makeNeonClient({key:'napi_FAKE_role_read_only',orgId:IDS.org,
     fetch:fake.fetch,budget:{async consume(){return {allowed:true}}}});
@@ -28,7 +28,7 @@ function setup({allowed=true,grantFails=false,profile='full',wrongOwner=false}={
   fake.when('getProjectBranch').resolves(responses.getProjectBranch('dev'));
   fake.when('getProjectBranchDatabase').resolves({database:database(IDS.dev,
     wrongOwner?{owner_name:'foreign_owner'}:{})});
-  fake.when('getProjectEndpoint').resolves({endpoint:devEndpoint()});
+  fake.when('getProjectEndpoint').resolves({endpoint:devEndpoint({current_state:'active',...(readOnlyEndpoint?{type:'read_only'}:{})})});
   fake.when('listProjectBranchRoles').resolves({roles:[role(IDS.dev)]});
   fake.when('getProjectBranchRole').resolves({role:role(IDS.dev)})
     .resolves({role:role(IDS.dev)})
@@ -43,7 +43,8 @@ function setup({allowed=true,grantFails=false,profile='full',wrongOwner=false}={
       futureTablesForOwnerVerified:true};
   };
   return {fake,audit,saved,granted,ctx,
-    handler:createReadOnlyRoleHandlers({contextFor:async()=>ctx,grant})
+    handler:createReadOnlyRoleHandlers({contextFor:async()=>ctx,grant,
+    admission:async()=>true})
       .neon_role_create_read_only};
 }
 describe('D-4 verified read-only role and owner-secret handoff',()=>{
@@ -72,6 +73,13 @@ describe('D-4 verified read-only role and owner-secret handoff',()=>{
       expect(f.fake.calls.every(c=>c.method==='GET')).toBe(true);
       f.fake.assertClean();
     }
+  });
+  it('refuses a read-only compute without creating a role',async()=>{
+    const f=setup({readOnlyEndpoint:true});
+    const response=json(await f.handler({...args,confirm:true},{}));
+    expect(response.done).toBe(false);
+    expect(f.fake.calls.filter(c=>c.method==='POST')).toHaveLength(0);
+    f.fake.assertClean();
   });
   it('keeps uncertain SQL grants pending; never exposes a password or claims read-only',async()=>{
     const f=setup({grantFails:true});
