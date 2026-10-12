@@ -468,9 +468,10 @@
         51,
         52,
         53,
-        54
+        54,
+        55
       ],
-      "note": "Ten D-2 tool names through #54; remaining reset-from-parent and restore, plus optional variants for branch creation and schema timestamps. Owner gates unchanged."
+      "note": "12/12 D-2 tools registered through #55; formal D-2 completion still requires optional point-in-time schema compare and branch creation options plus full acceptance evidence. High-risk restore/reset have verified always-preserve guarded contracts, fake Neon only. Production off."
     },
     {
       "id": "D-3",
