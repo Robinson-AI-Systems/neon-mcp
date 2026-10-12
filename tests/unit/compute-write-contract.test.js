@@ -3,7 +3,7 @@
 import {describe,it,expect} from 'vitest';
 import {makeFakeNeon} from '../../test/helpers/fake-neon.js';
 import {makeNeonClient} from '../../src/neon/client.js';
-import {DEFAULT_PRICING} from '../../src/neon/pricing.js';
+import {DEFAULT_PRICING,estimateMonthlyIncrease} from '../../src/neon/pricing.js';
 import {IDS,project,devEndpoint,responses} from '../../test/helpers/neon-fixtures.js';
 import {createComputeSpendHandlers,tools} from '../../src/tools/compute-spend.js';
 import {runWriteContract} from '../../test/helpers/write-contract.js';
@@ -14,15 +14,15 @@ import {isToolAllowed} from '../../src/core/profiles.js';
 const json=x=>JSON.parse(x.content[0].text);
 const inputFor=name=>name==='neon_compute_create'
  ?{branchId:IDS.dev,type:'read_only',minCu:0.25,maxCu:0.5}
- :{endpointId:IDS.devEndpoint,minCu:0.25,maxCu:0.5};
+ :{endpointId:IDS.devEndpoint,minCu:0.25,maxCu:1.5};
 
 function realFixture(name,{production=false,blocked=false,appOwned=false,
- verify=true,spendCents=null}={}){
+ verify=true,spendCents=null}={},door='direct'){
  const fake=makeFakeNeon(),log=[];
  const client=makeNeonClient({key:'napi_FAKE_D3_shared_contract',orgId:IDS.org,
   fetch:fake.fetch,budget:{async consume(){return {allowed:true}}}});
  const initial=devEndpoint(),target=devEndpoint({
-  autoscaling_limit_min_cu:0.25,autoscaling_limit_max_cu:0.5});
+  autoscaling_limit_min_cu:0.25,autoscaling_limit_max_cu:1.5});
  fake.when('getProject').resolves({project:project()});
  fake.when('getProjectBranch').resolves(responses.getProjectBranch('dev'));
  if(name==='neon_compute_create'){
@@ -68,18 +68,30 @@ function realFixture(name,{production=false,blocked=false,appOwned=false,
    checkSpend:async()=>spendCents!==2600
   }};
  const handlers=createComputeSpendHandlers({contextFor:async()=>ctx});
+ const registry={tools:[...tools,...metaTools],handlers:{...handlers,...metaHandlers}};
+ const through=async(args)=>dispatchReadOnlyTool({
+  registry,name:door==='delegated'?'neon_call':name,
+  args:door==='delegated'?{name,args}:args,
+  connection:ctx.connection,db:ctx.db,env:{VERCEL_ENV:'production'}});
  return {fake,ctx,log,tool:tools.find(t=>t.name===name),
-  handler:(args)=>handlers[name](args,{}),parse:json,
+  handler:through,parse:json,
   get calls(){return fake.calls.filter(c=>['POST','PATCH','DELETE'].includes(c.method))}};
 }
 describe('D-3 compute write-contract acceptance through real provider handlers',()=>{
  for(const name of ['neon_compute_create','neon_compute_resize']){
-  it(name+' passes shared nine-case audited lifecycle (including production, replay, pricing)',async()=>{
-   const fixtures=[];
-   const make=opts=>{const f=realFixture(name,opts);fixtures.push(f);return f};
-   await runWriteContract(make,{input:inputFor(name),expectedSpendCents:null});
-   for(const f of fixtures)f.fake.assertClean();
-  });
+  for(const door of ['direct','delegated']){
+   it(name+' passes nine-case real-write contract through '+door+' MCP dispatch',async()=>{
+    const fixtures=[];
+    const make=opts=>{const f=realFixture(name,opts,door);fixtures.push(f);return f};
+    const expected=estimateMonthlyIncrease({kind:'compute',plan:'Launch',
+     before:{maxCu:name==='neon_compute_create'?0:1},
+     after:{maxCu:name==='neon_compute_create'?0.5:1.5},
+     pricing:DEFAULT_PRICING}).increaseCents;
+    expect(expected).toBe(3869);
+    await runWriteContract(make,{input:inputFor(name),expectedSpendCents:expected});
+    for(const f of fixtures)f.fake.assertClean();
+   });
+  }
   it(name+' is excluded from unsafe profiles and preview deployments on every dispatch',async()=>{
    const f=realFixture(name);
    const tool=tools.find(t=>t.name===name);
@@ -95,7 +107,7 @@ describe('D-3 compute write-contract acceptance through real provider handlers',
    const direct=await dispatchReadOnlyTool({registry,name,args,
     connection:f.ctx.connection,db:f.ctx.db,env:{VERCEL_ENV:'production'}});
    expect(json(direct).done).toBe(false);
-   expect(json(direct).spendMonthCents).toBeGreaterThanOrEqual(0);
+   expect(json(direct).spendMonthCents).toBe(3869);
    const delegated=await dispatchReadOnlyTool({registry,name:'neon_call',
     args:{name,args},connection:f.ctx.connection,db:f.ctx.db,
     env:{VERCEL_ENV:'production'}});
