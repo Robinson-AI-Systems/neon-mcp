@@ -430,7 +430,7 @@
         "C-2"
       ],
       "card": "docs/pr-cards/D-1.md",
-      "status": "IN_PROGRESS",
+      "status": "MERGED",
       "migration": "none",
       "budget": 500,
       "units": [
@@ -442,9 +442,10 @@
         46,
         47,
         48,
-        49
+        49,
+        50
       ],
-      "note": "Six reads, four guarded lifecycle writes and atomic spend admission complete; three settings/retention/quotas writes remain."
+      "note": "D-1 implemented in 5 PRs: 13 scoped reads/guarded mutations. Owner-dependent deployment, independent approval, verified storage forecast and live scratch tests remain separate gates."
     },
     {
       "id": "D-2",
