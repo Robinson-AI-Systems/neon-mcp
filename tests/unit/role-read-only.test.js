@@ -31,6 +31,7 @@ function setup({allowed=true,grantFails=false,profile='full',wrongOwner=false}={
   fake.when('getProjectEndpoint').resolves({endpoint:devEndpoint()});
   fake.when('listProjectBranchRoles').resolves({roles:[role(IDS.dev)]});
   fake.when('getProjectBranchRole').resolves({role:role(IDS.dev)})
+    .resolves({role:role(IDS.dev)})
     .resolves({role:role(IDS.dev,{name:args.name})});
   fake.when('createProjectBranchRole').resolves({
     role:role(IDS.dev,{name:args.name,password:'npg_FAKE_read_only_secret'}),
