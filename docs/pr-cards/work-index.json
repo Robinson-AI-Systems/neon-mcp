@@ -527,9 +527,10 @@
         70,
         71,
         72,
-        73
+        73,
+        74
       ],
-      "note": "D-4 verified reads #65, database writes #67, role create #68, password reset #69, connection information + owner secret handoff #70. Read-only role grants, role deletion and live acceptance remain pending; production OFF. #71 adds real-Postgres verified current-table and owner-specific future-default privilege grant foundation; tool not yet exposed. #72 wires verified scoped read-only role creation, guarded password delivery and fake-provider tests. #73 adds global catalog plus full-session visibility role-delete preflight; guarded provider delete remains unregistered."
+      "note": "D-4 verified reads #65, database writes #67, role create #68, password reset #69, connection information + owner secret handoff #70. Read-only role grants, role deletion and live acceptance remain pending; production OFF. #71 adds real-Postgres verified current-table and owner-specific future-default privilege grant foundation; tool not yet exposed. #72 wires verified scoped read-only role creation, guarded password delivery and fake-provider tests. #73 adds global catalog plus full-session visibility role-delete preflight; guarded provider delete remains unregistered. #74 validates full dependent-compute inventory with server-only SQL monitor and deletion admission; public delete follows."
     },
     {
       "id": "D-5",
