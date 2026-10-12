@@ -58,6 +58,40 @@ describe('D-8 verified IP allowlist mutations',()=>{
   expect(f.log.some(x=>x.kind==='complete'&&x.confirmed==='true')).toBe(true);
   f.fake.assertClean();
  });
+ it('uses live organization plan verification when runtime supplies planFor',async()=>{
+  const f=fixture({plan:null});let checked=0;
+  f.ctx.planFor=async()=>{checked++;return {name:'Scale',verified:true};};
+  f.fake.when('getProject').resolves({project:projectWith()})
+   .resolves({project:projectWith()})
+   .resolves({project:projectWith([...original,'198.51.100.15'])});
+  f.fake.when('updateProject').resolves({
+   project:projectWith([...original,'198.51.100.15']),operations:[]});
+  const result=parse(await f.h({action:'add',ips:['198.51.100.15'],confirm:true},{}));
+  expect(result).toMatchObject({done:true,confirmed:true});
+  expect(checked).toBe(3);
+  expect(f.fake.calls.filter(x=>x.method==='PATCH')).toHaveLength(1);
+  f.fake.assertClean();
+ });
+ it('rejects stale stored Scale evidence when the live plan is downgraded or unreachable',async()=>{
+  for(const planFor of [async()=>({name:'Launch',verified:true}),
+   async()=>{throw Error('organization plan provider unavailable');},
+   async()=>({name:'Scale',verified:false})]){
+   const f=fixture({plan:'Scale'});f.ctx.planFor=planFor;
+   const v=parse(await f.h({action:'replace',ips:['192.0.2.9'],confirm:true},{}));
+   expect(v.done).toBe(false);
+   expect(f.fake.calls).toHaveLength(0);
+  }
+ });
+ it('refuses an entitlement downgrade after preview but before apply',async()=>{
+  const f=fixture({plan:'Scale'});let checks=0;
+  f.ctx.planFor=async()=>({name:++checks===1?'Scale':'Launch',verified:true});
+  f.fake.when('getProject').resolves({project:projectWith()});
+  const v=parse(await f.h({action:'add',ips:['198.51.100.15'],confirm:true},{}));
+  expect(v).toMatchObject({done:false,confirmed:'pending'});
+  expect(checks).toBe(2);
+  expect(f.fake.calls.every(x=>x.method==='GET')).toBe(true);
+  f.fake.assertClean();
+ });
  it('refuses absent plan, unentitled plan, unverified project and missing allowance',async()=>{
   for(const plan of [null,'Free','Launch']){
    const f=fixture({plan});

@@ -297,3 +297,12 @@ inventory and before any add request, refusing changes as PENDING with no provid
 Adversarial fake-provider tests assert both branch reads, no POST and no automatic retry.
 This does not claim atomic isolation against changes after the last provider GET or real
 provider JWT authentication verification.
+
+**D-8 verified live Scale entitlement — PR #95 (2026-10-12):** IP-allowlist
+writes now use the already implemented authenticated `createProjectWriteContext.planFor`
+organization GET in actual runtime; the previous optional stored-plan-only lookup
+could always fail closed despite live Scale entitlement. Cached Scale evidence is
+never used to override a failed or downgraded live provider plan. Every preview,
+pre-apply and postwrite readback rechecks entitlement. Tests prove successful
+verified Scale operations and refusal of absent/downgraded/provider-error plans.
+No plan change, real network write or live application access proof.

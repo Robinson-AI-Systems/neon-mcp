@@ -27,7 +27,12 @@ function projectId(a,c){
 async function state(a,c){
  const id=projectId(a,c);
  // A project key cannot establish its own paid-plan entitlement.
- const plan=await c.db.getVerifiedNeonPlan?.(c.connection.neonOrg);
+ // Live runtime exposes an authenticated provider-side organization lookup via
+ // planFor; the optional durable snapshot alone may be outdated or unavailable.
+ // Never fall back to a cached Scale claim if the live read fails or downgrades.
+ const plan=typeof c.planFor==='function'
+  ?await c.planFor()
+  :await c.db.getVerifiedNeonPlan?.(c.connection.neonOrg);
  if(plan?.verified!==true||plan.name!=='Scale')
   throw Error('A verified existing Scale plan is required; this tool cannot upgrade plans');
  const p=(await projectRead(await c.clientFor(id),'getProject',
