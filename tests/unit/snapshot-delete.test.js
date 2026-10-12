@@ -22,8 +22,10 @@ function fixture({snap=one,source=devBranch(),scope=IDS.project,
  fake.when('listSnapshots').resolves({snapshots:items})
   .resolves({snapshots:changed?[{...one,name:'changed'}]:items})
   .resolves({snapshots:next});
- fake.when('getProjectBranch').resolves({branch:source})
-  .resolves({branch:source});
+ fake.when('getProjectBranch').resolves({branch:source,
+  annotation:{object:{type:'console/branch',id:source.id},value:{}}})
+  .resolves({branch:source,
+  annotation:{object:{type:'console/branch',id:source.id},value:{}}});
  fake.when('deleteSnapshot').resolves({});
  const db={
   async recordWritePreview(x){audit.push({kind:'preview',...x});},

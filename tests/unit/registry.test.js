@@ -18,7 +18,7 @@ describe('tool registry', () => {
       'neon_role_reset_password',
       'neon_role_create_read_only',
       'neon_connection_get_info','neon_connection_show_once',
-      'neon_snapshot_list','neon_security_list_jwks','neon_security_review',
+      'neon_snapshot_list','neon_snapshot_delete','neon_security_list_jwks','neon_security_review',
       'neon_security_set_public_access','neon_security_set_ip_allow',
       'neon_security_set_jwks',
       'neon_search_tools','neon_call','neon_batch','neon_describe_tool']);
