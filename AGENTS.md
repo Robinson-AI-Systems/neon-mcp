@@ -48,6 +48,8 @@ test recipes and remaining-work guidance. Open only the relevant section; this i
     tests; REST does not execute local tests. Report that local tests were unavailable and require exact-head green `ci`
     before merge. Follow `docs/SESSION-START.md` §6 and PLAYBOOK Steps 4–10; never bypass reviews, owner gates or CI.
 
+15. **Bounded GitHub REST handoff (2026-10-12):** A single large connector script can hit a tool-call limit and leave a branch untouched or partially changed; never replay without reading the exact remote SHA. Check pending CI once, do other useful work instead of tight polls. The exact decision tree, small blob/tree commit batches and one-shot four-check verifier are in [docs/runbooks/REST-RECOVERY.md](docs/runbooks/REST-RECOVERY.md). Confirm late reviews and final main CI before counting a merge.
+
 ## What this is
 
 **Robinson Neon MCP** is a hosted MCP server (Vercel + its own Neon database) that lets Chris's AI agents operate his
