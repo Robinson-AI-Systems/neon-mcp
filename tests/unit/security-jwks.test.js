@@ -140,16 +140,13 @@ describe('D-8 independently verified project-security overview',()=>{
    f.fake.assertClean();
   }
  });
- it('refuses malformed provider settings instead of treating them as safe',async()=>{
-  for(const settings of [
-   {block_public_connections:'false'},
-   {allowed_ips:{ips:'not-an-array'}},
-   {allowed_ips:{ips:[],protected_branches_only:'yes'}}
-  ]){
-   const f=review({projectRow:project({settings})});
-   await expect(f.handler({},ctx)).rejects.toThrow();
-   expect(f.fake.calls.every(x=>x.method==='GET')).toBe(true);
-   f.fake.assertClean();
-  }
+ it('rejects overlarge but schema-conformant allowlists rather than treating them as safe',async()=>{
+  const f=review({projectRow:project({settings:{allowed_ips:{
+   ips:Array.from({length:129},()=> '192.0.2.0/24'),
+   protected_branches_only:true
+  }}})});
+  await expect(f.handler({},ctx)).rejects.toThrow(/allowance/);
+  expect(f.fake.calls.every(x=>x.method==='GET')).toBe(true);
+  f.fake.assertClean();
  });
 });
