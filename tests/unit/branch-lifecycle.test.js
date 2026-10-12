@@ -70,7 +70,8 @@ describe('D-2 verified branch create, delete, recover',()=>{
   fake.when('getProject').resolves(projectResponse());
   fake.when('listProjectBranches').resolves(list([mainBranch()]));
   fake.when('createProjectBranch').resolves(responses.createProjectBranch());
-  fake.when('getProjectBranch').resolves({branch:devBranch({expires_at:expiresAt,protected:true})});
+  fake.when('getProjectBranch').resolves({...responses.getProjectBranch('dev'),
+   branch:devBranch({expires_at:expiresAt,protected:true})});
   const out=json(await handlers.neon_branch_create({
    name:'dev',parentBranchId:IDS.main,parentLsn:'0/16B6A60',expiresAt,
    protected:true,confirm:true},{}));
