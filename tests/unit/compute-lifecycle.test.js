@@ -136,6 +136,15 @@ describe('D-3 guarded compute lifecycle',()=>{
    .toEqual({statement_timeout:'5000'});
   fake.assertClean();
  });
+ it('does not overwrite malformed null provider pg_settings',async()=>{
+  const {fake,handlers}=fixture({plan:'Free'});
+  identity(fake,devEndpoint({settings:{pg_settings:null}}));
+  const out=decode(await handlers.neon_compute_update_settings({
+   endpointId:IDS.devEndpoint,pgSettings:{statement_timeout:'5000'},confirm:true},{}));
+  expect(out.done).toBe(false);
+  expect(fake.calls.every(c=>c.method==='GET')).toBe(true);
+  fake.assertClean();
+ });
  it('allows Free-plan no-cost scale-to-zero change while denying never-suspend',async()=>{
   const {fake,handlers}=fixture({plan:'Free'});
   identity(fake);
