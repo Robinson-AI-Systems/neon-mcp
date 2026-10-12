@@ -8,7 +8,8 @@ const choice={branchId:IDS.dev,roleName:'unused_reader',
 const cleared={verified:true,role:'unused_reader',clear:true,
   totals:{objectReferences:0,databaseOwnerships:0,roleMemberships:0,activeSessions:0},
   visibility:'global_role_references_and_complete_compute_sessions'};
-function setup({blocked=false,pooler=false,unknown=false,sessions=0,profile='full'}={}){
+function setup({blocked=false,pooler=false,unknown=false,sessions=0,
+  profile='full',rereadType='read_write'}={}){
   const fake=makeFakeNeon(),inspected=[];
   const client=makeNeonClient({key:'napi_FAKE_delete_inventory',orgId:IDS.org,
     fetch:fake.fetch,budget:{async consume(){return {allowed:true}}}});
@@ -22,7 +23,7 @@ function setup({blocked=false,pooler=false,unknown=false,sessions=0,profile='ful
   fake.when('listProjectBranchRoles').resolves({roles:[
     role(IDS.dev,{name:'unused_reader'}),role(IDS.dev)]});
   fake.when('getProjectBranchDatabase').resolves({database:database(IDS.dev)});
-  fake.when('getProjectEndpoint').resolves({endpoint:e});
+  fake.when('getProjectEndpoint').resolves({endpoint:{...e,type:rereadType}});
   const ctx={connection:{neonOrg:IDS.org,projectScope:IDS.project,
     profile,mode:'preview'},
     db:{getProtectedResources:async()=>[],getSqlReadPolicy:async()=>
@@ -47,6 +48,14 @@ describe('D-4 complete scoped role-deletion compute inventory',()=>{
       postgresDependenciesClear:true,poolerClientsVerified:false,
       computeIds:[IDS.devEndpoint],roleName:'unused_reader'});
     expect(f.inspected).toEqual([IDS.devEndpoint]);
+    expect(f.fake.calls.every(c=>c.method==='GET')).toBe(true);
+    f.fake.assertClean();
+  });
+  it('rejects compute role changes between listing and endpoint reread before SQL',async()=>{
+    const f=setup({rereadType:'read_only'});
+    await expect(inspectRoleDeleteReadiness(choice,f.ctx,
+      {inspectEndpoint:f.inspectEndpoint})).rejects.toThrow(/identity or state changed/);
+    expect(f.inspected).toEqual([]);
     expect(f.fake.calls.every(c=>c.method==='GET')).toBe(true);
     f.fake.assertClean();
   });
