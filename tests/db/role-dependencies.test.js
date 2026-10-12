@@ -3,11 +3,11 @@ import {randomBytes} from 'node:crypto';
 import {openIsolatedSchema,closeIsolatedSchema,rawQuery} from '../../test/helpers/pg-neon-adapter.js';
 import {requireLocalDatabaseUrl} from './local-url.js';
 import {inspectRoleDeletionDependencies} from '../../src/neon/role-dependencies.js';
-let schema,reader,owner;
+let reader,owner;
 const q=(text,params=[])=>rawQuery(text,params).then(rows=>({rows}));
 const quote=x=>'"'+x+'"';
 beforeAll(async()=>{
-  schema=await openIsolatedSchema(requireLocalDatabaseUrl());
+  await openIsolatedSchema(requireLocalDatabaseUrl());
   owner=(await rawQuery('SELECT current_user AS name'))[0].name;
   reader='rmcp_drop_'+randomBytes(4).toString('hex');
   await rawQuery('CREATE ROLE '+quote(reader)+' LOGIN NOSUPERUSER NOCREATEROLE NOCREATEDB');
