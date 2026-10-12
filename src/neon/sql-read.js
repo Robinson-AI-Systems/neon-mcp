@@ -56,7 +56,8 @@ export async function runAuthorizedSqlRead({ ctx, target, text, params = [], sql
     result = await sqlLayer({ neonOrg: orgId, projectScope: scope || null },
       { projectId: target.projectId, branchId: target.branchId, database: target.database,
         role: target.role, pooled: target.pooled === true,
-        ...(target.endpointId ? { endpointId: target.endpointId } : {}) },
+        ...(target.endpointId ? { endpointId: target.endpointId } : {}),
+        ...(target.expectedEndpointHost ? { expectedEndpointHost: target.expectedEndpointHost } : {}) },
       async client => {
         let began = false;
         try {

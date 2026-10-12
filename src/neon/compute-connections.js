@@ -2,12 +2,13 @@
 // Never count an unverified pooler, wrong endpoint, or partial-statistics role.
 import {projectRead} from '../tools/project-context.js';
 import {createSqlLayer} from './sql.js';
+import {runAuthorizedSqlRead} from './sql-read.js';
 import {createKeyVault} from './keys.js';
 
 const id=/^[a-z0-9-]{1,60}$/;
 const sqlName=/^[a-zA-Z_][a-zA-Z0-9_]{0,62}$/;
 export function createVerifiedComputeConnectionCount({
- connection,db,env=process.env,clientFor,sqlLayer
+ connection,db,env=process.env,clientFor,sqlLayer,authorizationContext
 }={}){
  if(!connection?.neonOrg||!db||typeof clientFor!=='function')
   throw new TypeError('Trusted organization, database and Neon client required');
@@ -45,21 +46,23 @@ export function createVerifiedComputeConnectionCount({
      known.has(x.owner_name))
    .sort((a,b)=>a.name.localeCompare(b.name))[0];
   if(!selected)throw Error('No independently verified monitoring database and role');
+  // Run the common SQL authorization policy before fetching a URI or opening a pool.
+  // An absent trusted context fails closed, even during a mutation preview.
   const run=sqlLayer??createSqlLayer({db,vault:createKeyVault({db,env}),env});
-  const result=await run({neonOrg:connection.neonOrg,
-   projectScope:connection.projectScope??null},{
-   projectId,branchId,endpointId,database:selected.name,role:selected.owner_name,
-   expectedEndpointHost:e.endpoint.host,pooled:false},async client=>{
-   const grant=await client.query("SELECT pg_has_role(current_user, 'pg_read_all_stats', 'MEMBER') AS visible");
-   if(grant?.rows?.length!==1||grant.rows[0].visible!==true)
-    throw Error('Full connection statistics privilege not verified');
-   const result=await client.query(
-    "SELECT count(*)::text AS total FROM pg_stat_activity WHERE backend_type = 'client backend'");
-   return {total:result?.rows?.length===1?result.rows[0].total:null};
+  const result=await runAuthorizedSqlRead({
+   ctx:authorizationContext??{connection,db},
+   target:{projectId,branchId,endpointId,database:selected.name,
+    role:selected.owner_name,expectedEndpointHost:e.endpoint.host,pooled:false},
+   text:"SELECT CASE WHEN pg_has_role(current_user, 'pg_read_all_stats', 'MEMBER') "+
+    "THEN (SELECT count(*)::text FROM pg_stat_activity "+
+    "WHERE backend_type = 'client backend') ELSE NULL END AS total",
+   sqlLayer:run
   });
-  if(typeof result?.total!=='string'||!/^(0|[1-9][0-9]{0,14})$/.test(result.total))
-   throw Error('Complete active connection count unavailable');
-  const count=Number(result.total);
+  if(result?.done!==true||result.rows?.length!==1||
+     typeof result.rows[0].total!=='string'||
+     !/^(0|[1-9][0-9]{0,14})$/.test(result.rows[0].total))
+   throw Error('Complete authorized active connection count unavailable');
+  const count=Number(result.rows[0].total);
   if(!Number.isSafeInteger(count))throw Error('Unsafe active connection count');
   // Includes this monitoring session, deliberately overestimating disruption.
   return count;

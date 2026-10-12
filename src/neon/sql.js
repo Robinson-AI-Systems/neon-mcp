@@ -53,7 +53,7 @@ export function createSqlLayer({db,vault,env=process.env,fetch,poolFactory=defau
       if(expectedEndpointHost!==undefined){
         const selected=new URL(uri);
         if(typeof expectedEndpointHost!=='string'||
-           targetHost!==normalizeHost(expectedEndpointHost)||
+           new URL(uri).hostname.toLowerCase()!==expectedEndpointHost.toLowerCase()||
            decodeURIComponent(selected.pathname.slice(1))!==database||
            decodeURIComponent(selected.username)!==role)
           throw Error('Connection URI does not match the verified endpoint, database and role');
