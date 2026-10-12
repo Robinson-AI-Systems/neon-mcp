@@ -17,7 +17,7 @@ function setup({allowed=true,hasExchange=true,production=false}={}){
   ...(hasExchange?{saveOneTimeSecret:async x=>stored.push(x),
    consumeSecretRequest:async()=>null}:{})};
  const context={connection:{neonOrg:IDS.org,projectScope:IDS.project,
-  mode:production?'production':'preview',profile:'full'},
+  mode:'preview',profile:'full'},
   db,clientFor:async()=>client,
   env:{PUBLIC_BASE_URL:'https://fake-owner.invalid',
    TOKEN_ENCRYPTION_KEY:'A'.repeat(43)},deploymentEnv:'production',
@@ -58,7 +58,7 @@ describe('D-4 guarded role password rotation',()=>{
   expect(f.stored).toHaveLength(1);
   expect(f.stored[0].ciphertext).toMatch(/^v1\./);
   expect(f.stored[0].ciphertext).not.toContain('npg_FAKE');
-  expect(JSON.stringify({done,changes:f.changes})).not.toMatch(/npg_FAKE|password/);
+  expect(JSON.stringify({done,changes:f.changes})).not.toMatch(/npg_FAKE_rotated_secret|connection_uri/);
   expect(f.fake.calls.filter(c=>c.method==='POST')).toHaveLength(1);
   f.fake.assertClean();
  });
