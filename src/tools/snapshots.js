@@ -10,7 +10,7 @@ export const tools=[defineReadTool('neon_snapshot_list',
  'List bounded project snapshots and independently read branch backup schedules.',{
   projectId:readId,limit:{type:'integer',minimum:1,maximum:100}
  },{area:'snapshots'})];
-function verifiedSnapshots(data){
+export function verifiedSnapshots(data){
  const items=data?.snapshots;
  if(!Array.isArray(items)||items.length>100||data.pagination?.cursor)
   throw Error('Complete project snapshot inventory unavailable');
@@ -29,13 +29,14 @@ function verifiedSnapshots(data){
    fullSizeBytes:s.full_size??null,diffSizeBytes:s.diff_size??null};
  });
 }
-function verifiedBranches(data,projectId){
+export function verifiedBranches(data,projectId){
  const items=data?.branches;
  if(!Array.isArray(items)||data.pagination?.cursor||items.length>32)
   throw Error('Complete bounded branch schedule inventory unavailable');
  const seen=new Set();
  return items.map(b=>{
-  if(!isId(b?.id)||b.project_id!==projectId||seen.has(b.id))
+  if(!isId(b?.id)||b.project_id!==projectId||seen.has(b.id)||
+      typeof b.default!=='boolean'||typeof b.protected!=='boolean')
    throw Error('Branch schedule identity unverified');
   seen.add(b.id);
   return {id:b.id,name:typeof b.name==='string'?b.name.slice(0,160):null,
