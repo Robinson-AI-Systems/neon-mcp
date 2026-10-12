@@ -90,7 +90,7 @@ export async function call(client, operationId, params = {}, {
     let result;
     try {
       result = recoverBranch
-        ? await client.sdk.client.post({
+        ? await client.sdk.post({
           url: '/projects/{project_id}/branches/{branch_id}/recover',
           path: params.path
         })
