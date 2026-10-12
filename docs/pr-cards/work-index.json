@@ -468,9 +468,10 @@
         51,
         52,
         53,
-        54
+        54,
+        55
       ],
-      "note": "Ten D-2 tool names through #54; remaining reset-from-parent and restore, plus optional variants for branch creation and schema timestamps. Owner gates unchanged."
+      "note": "All 12 named D-2 tools registered through #55. Still IN_PROGRESS pending approved create variants, historical schema compare refinements and formal D-2 acceptance/live scratch gates; do not mark complete without evidence."
     },
     {
       "id": "D-3",

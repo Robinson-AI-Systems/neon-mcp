@@ -96,8 +96,8 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 | `neon_branch_set_default` | Make a branch the project's default after owner production approval | C Pr | Ow | F | D-2 (built #53) |
 | `neon_branch_delete` | Soft-delete only; refuses default/protected/parent; previews computes and databases | C D Pr | Op | F | D-2 (built #54) |
 | `neon_branch_recover` | Owner-approved recover of independently verified soft-deleted branch within grace period | C | Op | F | D-2 (built #54) |
-| `neon_branch_reset_from_parent` | Replace a branch's data with its parent's latest state (production: keeps the old state under a new name) | C D Pr | B Op | F | D-2 |
-| `neon_branch_restore` | Restore a branch to a point in time or LSN from its own or another branch's history (production: always keeps the old state under a new name) | C D Pr | Op | F | D-2 |
+| `neon_branch_reset_from_parent` | Reset to verified parent head; mandatory previous-data preservation and owner-gated destructive change | C D Pr | B Op | F | D-2 (built #55) |
+| `neon_branch_restore` | Restore validated LSN or in-retention UTC timestamp; always preserve old data with provider-verified readback | C D Pr | Op | F | D-2 (built #55) |
 | `neon_branch_compare_schema` | Compare verified branches for one database; point-in-time support remains pending | — | B Op | R | D-2 (built #52, time variants pending) |
 | `neon_branch_compare_data` | Row differences for chosen tables between two branches (or a branch and a point in time): counts, then added / removed / changed rows by primary key, capped with a handle; tables without a primary key compare by count and checksum only | — | B Op | R | D-9 |
 
@@ -352,7 +352,7 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #54 (production-deployment capability listing):** `read_only` 20; `everyday` 24; `full` 39. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
+**Implemented registry at #55 (production-deployment capability listing):** `read_only` 20; `everyday` 24; `full` 41. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
 
 ## Totals
 
