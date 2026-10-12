@@ -45,6 +45,7 @@ function verifiedBranches(data,projectId){
 function verifiedSchedule(data){
  if(!Array.isArray(data?.schedule)||data.schedule.length>20)
   throw Error('Backup schedule unavailable or incomplete');
+ const seen=new Set();
  return data.schedule.map(s=>{
   if(!frequencies.has(s?.frequency)||
     (s.hour!==undefined&&!number(s.hour,0,23))||
@@ -53,6 +54,9 @@ function verifiedSchedule(data){
     (s.retention_seconds!==undefined&&
       !number(s.retention_seconds,3600,Number.MAX_SAFE_INTEGER)))
    throw Error('Backup schedule field unverified');
+  const identity=JSON.stringify([s.frequency,s.hour??null,s.day??null,s.month??null]);
+  if(seen.has(identity))throw Error('Duplicate backup schedule entry');
+  seen.add(identity);
   return {frequency:s.frequency,hour:s.hour??null,day:s.day??null,
    month:s.month??null,retentionSeconds:s.retention_seconds??null};
  });
