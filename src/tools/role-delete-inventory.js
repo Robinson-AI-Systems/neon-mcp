@@ -91,6 +91,7 @@ export async function inspectRoleDeleteReadiness(a,c,{
         exact.endpoint.branch_id!==t.bid||exact.endpoint.host!==ep.host||
         exact.endpoint.pooler_enabled!==false||
         exact.endpoint.current_state!=='active'||
+        exact.endpoint.type!=='read_write'||
         exact.endpoint.disabled!==false)
       throw Error('Dependent compute identity or state changed during the inspection');
     const result=await inspectEndpoint(a,c,t,ep,monitorDb,a.monitorRole);
