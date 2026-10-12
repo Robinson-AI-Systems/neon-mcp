@@ -25,6 +25,13 @@ export async function createRtcEndpoint({db,registry:catalog,env=process.env}){
   };
 }
 export default async function handler(req,res){
+  // Disabled means truly idle: do not instantiate or migrate the server database.
+  // Automated bots may probe public URLs; no provider/db wakeup or release implied.
+  if(process.env.RTC1_ENABLED!=='1'){
+    res.setHeader('Cache-Control','no-store');
+    res.setHeader('X-Content-Type-Options','nosniff');
+    return res.status(503).json(rtcError('service_error',{status:503}).body);
+  }
   try{
     const db=createDb();
     await db.initSchema();

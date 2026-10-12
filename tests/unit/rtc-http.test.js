@@ -1,6 +1,6 @@
 import {describe,it,expect} from 'vitest';
 import {registry} from '../../src/tools/index.js';
-import {createRtcEndpoint} from '../../api/rtc.js';
+import rtcHandler,{createRtcEndpoint} from '../../api/rtc.js';
 import {rtcManifest} from '../../src/core/rtc-contract.js';
 import {resultScope} from '../../src/core/result-store.js';
 import {readFileSync} from 'node:fs';
@@ -54,6 +54,19 @@ describe('RTC 1 read-only HTTPS route interop against hub contract',()=>{
       ['/api/results/:handle','/api/rtc?door=results&handle=:handle']
     ])expect(v.rewrites).toContainEqual({source,destination});
     expect(v.rewrites.some(x=>x.source==='/api/mcp')).toBe(false);
+    const original=process.env.RTC1_ENABLED;
+    delete process.env.RTC1_ENABLED;
+    try{
+      const disabled=res();
+      await rtcHandler(req('GET','tools'),disabled);
+      expect(disabled.statusCode).toBe(503);
+      // If database setup had been attempted, the unconfigured DATABASE_URL
+      // would cause provider initialization; disabled requests stay inert.
+      expect(disabled.body.error.code).toBe('service_error');
+    }finally{
+      if(original===undefined)delete process.env.RTC1_ENABLED;
+      else process.env.RTC1_ENABLED=original;
+    }
     const f=fixture();f.env.RTC1_ENABLED='0';
     const denied=await run(f,req('GET','tools'));
     expect(denied.statusCode).toBe(503);

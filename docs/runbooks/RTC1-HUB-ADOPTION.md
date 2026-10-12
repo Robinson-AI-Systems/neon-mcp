@@ -110,3 +110,5 @@ PR. No new Neon/Vercel project, paid build, keepalive, owner production approval
 or live service was created as part of this change.
 
 PR #80 exact-head test correction: the first local wire fixture incorrectly sent the pass value without the RFC Bearer prefix, so the server correctly refused it with HTTP 401. The fixture now sends `Authorization: Bearer <pass>` and explicitly asserts that a raw, non-Bearer pass stays denied. Re-run full exact-head `ci` and `release-policy` after this fixture fix; the original red run is not acceptance.
+
+PR #80 cost/security self-review addition: an unset RTC1_ENABLED flag now causes the HTTP gateway to return 503 *before* initializing or migrating its Neon backing database. The Vercel build policy and disabled preview requirements are unchanged. The offline regression invokes the real API entrypoint without a configured database and proves an inert response; no traffic or live provider acceptance is claimed.
