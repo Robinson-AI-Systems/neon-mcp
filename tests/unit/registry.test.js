@@ -16,6 +16,7 @@ describe('tool registry', () => {
       'neon_database_create','neon_database_update','neon_database_delete',
       'neon_role_create',
       'neon_role_reset_password',
+      'neon_connection_get_info','neon_connection_show_once',
       'neon_search_tools','neon_call','neon_batch','neon_describe_tool']);
     for(const tool of registry.tools) {
       if (tool.writes) {

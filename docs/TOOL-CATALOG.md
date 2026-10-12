@@ -138,8 +138,8 @@ D-2/D-3 post-merge security review #62: expiring protected branches are refused 
 
 | Tool | What it does | Flags | Aud | Profile | Card |
 | --- | --- | --- | --- | --- | --- |
-| `neon_connection_get_info` | Host, pooled host, database, role, SSL mode and ready-to-paste snippets that use `$DATABASE_URL` — never a password; `test: true` checks the connection server-side | — | B Op | R | D-4 |
-| `neon_connection_show_once` | Put the full connection string (with password) for a branch/database/role on the one-time-secret page for Chris | C S | B Op | E | D-4 |
+| `neon_connection_get_info` | Independently verified direct/pooled host, database, role, SSL, safe environment snippets; `test: true` uses authorized server-side SQL | — | B Op | R | D-4 (built #70) |
+| `neon_connection_show_once` | Encrypted expiring owner-only one-time page for exact validated URI, never returned in MCP text | C S | B Op | F | D-4 (built #70) |
 
 ## SQL (`neon_sql_*`) — 8
 
@@ -354,7 +354,7 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #69 (production-deployment capability listing):** `read_only` 27; `everyday` 35; `full` 60. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
+**Implemented registry at #70 (production-deployment capability listing):** `read_only` 28; `everyday` 36; `full` 62. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
 
 ## Totals
 
