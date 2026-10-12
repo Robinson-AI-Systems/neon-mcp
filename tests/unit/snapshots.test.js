@@ -71,9 +71,10 @@ describe('D-7 independently scoped snapshot and backup schedule discovery',()=>{
   }
  });
  it('never presents a partially verified schedule as completed inventory',async()=>{
-  const f=fixture({schedules:[{schedule:[]},{schedule:[{
-   frequency:'daily',retention_seconds:1}]}]});
-  await expect(f.handler({},ctx)).rejects.toThrow(/schedule/);
+  const f=fixture({schedules:[{schedule:[]},{schedule:[
+   {frequency:'daily',hour:2,retention_seconds:86400},
+   {frequency:'daily',hour:2,retention_seconds:86400}]}]});
+  await expect(f.handler({},ctx)).rejects.toThrow(/duplicate.*schedule/i);
   expect(f.fake.calls.every(x=>x.method==='GET')).toBe(true);
   f.fake.assertClean();
  });
