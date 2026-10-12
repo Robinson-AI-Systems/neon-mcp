@@ -41,6 +41,7 @@ describe('D-1 project mutation safety',()=>{
    NEON_MCP_SELF_PROJECT_ID:'proj-fake-self',NEON_MCP_SELF_ENDPOINT_HOST:'localhost',
    DATABASE_URL:'postgresql://fake:fake@localhost/db'};
   const ctx=await createProjectWriteContext({connection:{neonOrg:IDS.org,profile:'full'},db,env});
+  expect(typeof ctx.readComputeConnectionCount).toBe('function');
   const target={target:'project:'+IDS.project,projectId:IDS.project};
   expect(await ctx.guards.checkApp(target,ctx,{})).toBe(false);
   expect(await ctx.guards.checkApp(target,ctx,{outsideApp:true})).toBe(true);
