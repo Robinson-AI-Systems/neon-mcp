@@ -75,6 +75,35 @@ describe('D-2 scoped branch reads',()=>{
   expect(fake.calls.every(c=>c.method==='GET')).toBe(true);
   fake.assertClean();
  });
+ it('compares historical schemas with provider-supported LSN and UTC point-in-time mappings',async()=>{
+  const {fake,handlers}=setup();
+  fake.when('getProject').resolves({project:project()});
+  fake.when('getProjectBranch').resolves(responses.getProjectBranch('dev'))
+   .resolves(responses.getProjectBranch('main'));
+  fake.when('getProjectBranchSchemaComparison').resolves({diff:'ALTER TABLE public.jobs DROP COLUMN old;'});
+  const out=json(await handlers.neon_branch_compare_schema({
+   projectId:IDS.project,branchId:IDS.dev,baseBranchId:IDS.main,database:'neondb',
+   lsn:'0/16B6A60',baseTimestamp:'2025-10-01T12:00:00Z'},ctx));
+  expect(out.changed).toBe(true);
+  expect(out.baseTimestamp).toBe('2025-10-01T12:00:00Z');
+  expect(fake.calls.at(-1).query).toMatchObject({
+   base_branch_id:IDS.main,db_name:'neondb',lsn:'0/16B6A60',
+   base_timestamp:'2025-10-01T12:00:00Z'});
+  expect(fake.calls.every(x=>x.method==='GET')).toBe(true);
+  fake.assertClean();
+ });
+ it('refuses ambiguous, malformed and future history points before any provider calls',async()=>{
+  const {fake,handlers}=setup();
+  const base={projectId:IDS.project,branchId:IDS.dev,baseBranchId:IDS.main,database:'neondb'};
+  for(const extra of [
+   {lsn:'0/1',timestamp:'2025-01-01T00:00:00Z'},
+   {baseLsn:'0/1',baseTimestamp:'2025-01-01T00:00:00Z'},
+   {lsn:'malformed'},
+   {baseTimestamp:'2999-01-01T00:00:00Z'},
+   {timestamp:'2025-13-01T00:00:00Z'}
+  ])await expect(handlers.neon_branch_compare_schema({...base,...extra},ctx)).rejects.toThrow();
+  expect(fake.calls).toHaveLength(0);
+ });
  it('rejects missing schema database or forged branch identity before compare',async()=>{
   const {fake,handlers}=setup();
   await expect(handlers.neon_branch_compare_schema({branchId:IDS.dev,baseBranchId:IDS.main},ctx))

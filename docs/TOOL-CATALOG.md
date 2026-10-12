@@ -98,7 +98,7 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 | `neon_branch_recover` | Owner-approved recover of independently verified soft-deleted branch within grace period | C | Op | F | D-2 (built #54) |
 | `neon_branch_reset_from_parent` | Reset from verified parent; always preserve prior state under a uniquely named new branch and apply guarded spend limits | C D Pr $ | B Op | F | D-2 (built #55) |
 | `neon_branch_restore` | Restore verified source/head/LSN/UTC timestamp; always preserve prior state and verify both branches | C D Pr $ | Op | F | D-2 (built #55) |
-| `neon_branch_compare_schema` | Compare verified branches for one database; point-in-time support remains pending | — | B Op | R | D-2 (built #52, time variants pending) |
+| `neon_branch_compare_schema` | Compare verified branches for one database at HEAD, LSN or past UTC time independently on each side | — | B Op | R | D-2 (built #52, time variants pending) |
 | `neon_branch_compare_data` | Row differences for chosen tables between two branches (or a branch and a point in time): counts, then added / removed / changed rows by primary key, capped with a handle; tables without a primary key compare by count and checksum only | — | B Op | R | D-9 |
 
 ## Computes (`neon_compute_*`) — 10

@@ -9,7 +9,11 @@ export const tools=[
   projectId:readId,branchId:readId}),
  defineReadTool('neon_branch_compare_schema','Compare two branch database schemas as a bounded readable diff.',{
   projectId:readId,branchId:readId,baseBranchId:readId,
-  database:{type:'string',minLength:1,maxLength:63}})
+  database:{type:'string',minLength:1,maxLength:63},
+  lsn:{type:'string',pattern:'^[0-9a-fA-F]+/[0-9a-fA-F]+$'},
+  timestamp:{type:'string',format:'date-time'},
+  baseLsn:{type:'string',pattern:'^[0-9a-fA-F]+/[0-9a-fA-F]+$'},
+  baseTimestamp:{type:'string',format:'date-time'}})
 ];
 function target(args,ctx){
  const scope=projectScope(ctx,args.projectId??null);
@@ -36,6 +40,20 @@ export function createBranchReadHandlers({getClient=projectClient}={}){
     returned:page.items.length,projectId:scope.projectId});
   },
   async neon_branch_compare_schema(args,ctx){
+   // Provider history selectors are mutually exclusive per side; malformed
+   // or future references fail before any provider request.
+   const history=(lsn,timestamp)=>{
+    if(lsn!==undefined&&timestamp!==undefined)
+     throw Error('Choose one history locator per branch');
+    if(lsn!==undefined&&(typeof lsn!=='string'||!/^[0-9a-f]+\/[0-9a-f]+$/i.test(lsn)))
+     throw Error('Invalid schema history LSN');
+    if(timestamp!==undefined&&(typeof timestamp!=='string'||
+       !/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/.test(timestamp)||
+       !Number.isFinite(Date.parse(timestamp))||Date.parse(timestamp)>Date.now()))
+     throw Error('Schema history timestamp must be valid past UTC');
+   };
+   history(args.lsn,args.timestamp);
+   history(args.baseLsn,args.baseTimestamp);
    if(!/^[a-z0-9-]{1,60}$/.test(args.branchId||'')||
       !/^[a-z0-9-]{1,60}$/.test(args.baseBranchId||'')||
       typeof args.database!=='string'||! /^[a-zA-Z_][a-zA-Z0-9_-]{0,62}$/.test(args.database))
@@ -51,10 +69,17 @@ export function createBranchReadHandlers({getClient=projectClient}={}){
    if(args.branchId!==args.baseBranchId)await readBranch(args.baseBranchId);
    const data=await projectRead(client,'getProjectBranchSchemaComparison',{
     path:{project_id:scope.projectId,branch_id:args.branchId},
-    query:{base_branch_id:args.baseBranchId,db_name:args.database}});
+    query:{base_branch_id:args.baseBranchId,db_name:args.database,
+     ...(args.lsn?{lsn:args.lsn}:{}),
+     ...(args.timestamp?{timestamp:args.timestamp}:{}),
+     ...(args.baseLsn?{base_lsn:args.baseLsn}:{}),
+     ...(args.baseTimestamp?{base_timestamp:args.baseTimestamp}:{})}});
    if(typeof data?.diff!=='string')throw Error('Neon returned no schema diff');
    return readText({projectId:scope.projectId,branchId:args.branchId,
     baseBranchId:args.baseBranchId,database:args.database,
+    ...(args.lsn?{lsn:args.lsn}:{}),...(args.timestamp?{timestamp:args.timestamp}:{}),
+    ...(args.baseLsn?{baseLsn:args.baseLsn}:{}),
+    ...(args.baseTimestamp?{baseTimestamp:args.baseTimestamp}:{}),
     changed:data.diff.trim().length>0,diff:data.diff});
   },
   async neon_branch_get(args,ctx){
