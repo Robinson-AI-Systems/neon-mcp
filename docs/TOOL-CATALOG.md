@@ -87,8 +87,8 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 
 | Tool | What it does | Flags | Aud | Profile | Card |
 | --- | --- | --- | --- | --- | --- |
-| `neon_branch_list` | Branches with default/protected/expiring marks, parent, size, compute state, last reset, annotations; count vs the plan's included branches | — | B Op | R | D-2 |
-| `neon_branch_get` | One branch with its computes, databases, roles, storage and restore status | — | B Op | R | D-2 |
+| `neon_branch_list` | Branches with default/protected/expiring marks, parent, size, compute state, last reset, annotations; count vs the plan's included branches | — | B Op | R | D-2 (built #51, plan/count refinements pending) |
+| `neon_branch_get` | One branch with its computes, databases, roles, storage and restore status | — | B Op | R | D-2 (built #51, status refinements pending) |
 | `neon_branch_create` | New branch from a parent (point in time, schema-only option, optional compute, optional expiry); confirm only when it raises spend (extra branch past the plan's allowance, compute above the setting) | C* $ | B Op | E | D-2 |
 | `neon_branch_rename` | Rename a branch (confirm on production: integrations and apps may look it up by name) | C* Pr | Op | E | D-2 |
 | `neon_branch_set_protected` | Protect a branch (preview only) or remove protection (confirm; production guard) | C* Pr | Ow | F | D-2 |
@@ -352,7 +352,7 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #50 (production-deployment capability listing):** `read_only` 17; `everyday` 18; `full` 29. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
+**Implemented registry at #51 (production-deployment capability listing):** `read_only` 19; `everyday` 20; `full` 31. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
 
 ## Totals
 
