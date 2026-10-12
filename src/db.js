@@ -98,6 +98,54 @@ export function createDb(sql = productionSql()) {
       const row = rows[0];
       return row ? { client_id: row.client_id, ...connectionSettings(row) } : null;
     },
+    // RTC 1 early adoption: owner-only, short-lived project-scoped read_only passes.
+    // The pass is transient input to this method; only its SHA-256 hash is persisted.
+    async createRtcReadOnlyPass({token,passId,orgId,projectScope,expiresAt}) {
+      if(!/^rtc_pass_[A-Za-z0-9_-]{43}$/.test(token||'') ||
+        !/^rtc_[A-Za-z0-9_-]{16}$/.test(passId||'') ||
+        !/^[a-z0-9-]{1,60}$/.test(orgId||'') ||
+        !/^[a-z0-9-]{1,60}$/.test(projectScope||'') ||
+        !(expiresAt instanceof Date) || !Number.isFinite(expiresAt.getTime()) ||
+        expiresAt.getTime()<=Date.now() ||
+        expiresAt.getTime()>Date.now()+86401000)
+        throw new TypeError('RTC pass requires a verified owner, project and <=24h expiry');
+      const rows=await sql`INSERT INTO oauth_tokens
+        (token_hash,client_id,neon_org,project_scope,mode,profile,listing,kind,
+         rtc_areas,allow_writes,expires_at)
+        SELECT ${hashToken(token)},${passId},${orgId},${projectScope},
+          'preview','read_only','catalog','pass',
+          '["server","discovery"]'::jsonb,FALSE,${expiresAt}
+        WHERE EXISTS(SELECT 1 FROM neon_orgs WHERE id=${orgId})
+          AND EXISTS(SELECT 1 FROM neon_keys WHERE org_id=${orgId}
+            AND kind='project' AND project_id=${projectScope}
+            AND revoked_at IS NULL AND reach->>'verified'='true')
+        RETURNING client_id`;
+      if(rows.length!==1)throw Error('Verified project-scoped key required for RTC pass');
+      return {passId:rows[0].client_id};
+    },
+    async getRtcPass(token){
+      if(!/^rtc_pass_[A-Za-z0-9_-]{43}$/.test(token||''))return null;
+      const rows=await sql`SELECT client_id,neon_org,project_scope,mode,profile,
+        listing,kind,rtc_areas,allow_writes,expires_at,revoked_at
+        FROM oauth_tokens WHERE token_hash=${hashToken(token)} AND kind='pass'`;
+      return rows[0]||null;
+    },
+    async revokeRtcPass({orgId,passId}){
+      if(!/^[a-z0-9-]{1,60}$/.test(orgId||'') ||
+        !/^rtc_[A-Za-z0-9_-]{16}$/.test(passId||''))
+        throw new TypeError('Invalid owner pass selector');
+      const rows=await sql`UPDATE oauth_tokens SET revoked_at=now()
+        WHERE kind='pass' AND neon_org=${orgId} AND client_id=${passId}
+          AND revoked_at IS NULL RETURNING client_id`;
+      return rows.length===1;
+    },
+    async listRtcPasses(orgId){
+      if(!/^[a-z0-9-]{1,60}$/.test(orgId||''))
+        throw new TypeError('Invalid owner organization');
+      return sql`SELECT client_id AS pass_id,project_scope,expires_at,revoked_at
+        FROM oauth_tokens WHERE neon_org=${orgId} AND kind='pass'
+        ORDER BY created_at DESC LIMIT 50`;
+    },
     async revokeAccessToken(accessToken) {
       if (typeof accessToken !== 'string' || !accessToken) return false;
       const rows = await sql`UPDATE oauth_tokens SET revoked_at = now()
@@ -564,6 +612,10 @@ export function createDb(sql = productionSql()) {
         expires_at TIMESTAMPTZ, last_used_at TIMESTAMPTZ, revoked_at TIMESTAMPTZ,
         created_at TIMESTAMPTZ NOT NULL DEFAULT now()
       )`;
+      await sql`ALTER TABLE oauth_tokens ADD COLUMN IF NOT EXISTS
+        rtc_areas JSONB NOT NULL DEFAULT '[]'::jsonb`;
+      await sql`ALTER TABLE oauth_tokens ADD COLUMN IF NOT EXISTS
+        allow_writes BOOLEAN NOT NULL DEFAULT FALSE`;
       await sql`CREATE TABLE IF NOT EXISTS login_attempts (
         id BIGSERIAL PRIMARY KEY, ip TEXT NOT NULL,
         attempted_at TIMESTAMPTZ NOT NULL DEFAULT now(), success BOOLEAN NOT NULL

@@ -1016,7 +1016,7 @@
       "ownerInputs": [
         "IN-11"
       ],
-      "note": "Owner requested an early, strictly read-only non-production Hub RTC integration track beginning #77. This does not mark R-1/R-2/R-3 ready or waive IN-11; full pass/write/production and independent authorization remain under existing dependencies. See docs/runbooks/RTC1-HUB-ADOPTION.md."
+      "note": "Owner-requested early read-only nonproduction Hub RTC track: #77 adds gated manifest/metadata/OpenAPI; #78 adds scoped owner-issued hashed RTC passes, encrypted one-time delivery, database-atomic limits and server-side revocation. Does NOT complete R-1/R-2/R-3: full/write/production passes, official conformance and real Hub route acceptance still gated. See RTC1-HUB-ADOPTION runbook."
     },
     {
       "id": "R-3",
