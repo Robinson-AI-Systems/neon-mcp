@@ -17,7 +17,6 @@ const bool={type:'boolean'};
 const choice={projectId:readId,branchId:readId,endpointId:readId,
  databaseName:{type:'string',pattern:'^[A-Za-z_][A-Za-z0-9_-]{0,62}$'},
  roleName:roleSchema};
-const keys={branchId:null,endpointId:null,databaseName:null,roleName:null};
 async function target(a,c,getClient){
  const scope=projectScope(c,a.projectId??null);
  const pid=scope.projectId,bid=a.branchId;
@@ -138,7 +137,7 @@ export function createConnectionHandlers({
    const result={projectId:t.pid,branchId:t.bid,endpointId:t.endpointId,
     host:direct.safe.host,pooledHost,sslMode:direct.safe.sslMode,
     database:t.database,role:t.role,privilegesVerified:false,
-    snippets:{shell:'export DATABASE_URL=<owner-provided-secret>',
+    snippets:{shell:'read -rsp "DATABASE_URL: " DATABASE_URL && export DATABASE_URL',
      psql:'psql "$DATABASE_URL"',node:'process.env.DATABASE_URL',
      prisma:'url = env("DATABASE_URL")'},
     testPerformed:a.test===true};
