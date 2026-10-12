@@ -529,9 +529,10 @@
         72,
         73,
         74,
-        75
+        75,
+        76
       ],
-      "note": "D-4 verified reads #65, database writes #67, role create #68, password reset #69, connection information + owner secret handoff #70. Read-only role grants, role deletion and live acceptance remain pending; production OFF. #71 adds real-Postgres verified current-table and owner-specific future-default privilege grant foundation; tool not yet exposed. #72 wires verified scoped read-only role creation, guarded password delivery and fake-provider tests. #73 adds global catalog plus full-session visibility role-delete preflight; guarded provider delete remains unregistered. #74 validates full dependent-compute inventory with server-only SQL monitor and deletion admission; public delete follows. #75 resolves late P1/P2 reviews on #72/#74: central guarded internal SQL-run, all-door write contract, read-write endpoints and false pooled-absence claims."
+      "note": "D-4 scoped reads #65, guarded database lifecycle #67, role create/reset #68–#69, connection metadata/one-time delivery #70, transactional read-only grants #71–#72, role dependency probes #73–#74, SQL/contract security corrections #75. #76 strengthens PostgreSQL dependency evidence: strict integer/OID/reference validation, verified READ ONLY transaction and stable two-sample activity. Public role delete deliberately unregistered: independent idle PgBouncer client proof unavailable; no live scratch or production acceptance. Do not advance D-5 or claim pooled-client clearance."
     },
     {
       "id": "D-5",
