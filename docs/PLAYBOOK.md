@@ -33,6 +33,10 @@ Neon call, look the operation up in the vendored description first: `node script
 Before writing code, use the relevant [implementation recipe](implementation-contracts/IMPLEMENTATION-RECIPES.md)
 to pin actual signatures and input mappings. Proposed paths in the route guide are not existing helpers.
 
+### Repeated CI failure decision tree (PR #54 evidence)
+
+A repeated failure is not a reason to stop or keep changing tests. For each failed exact head: collect **all** failing job logs, locate the actual failing boundary and write down the expected request/response. Confirm the **construction and type** of each injected client (for Neon: `makeNeonClient` → `createNeonClient(...).client` → `client.sdk`). Verify the pinned SDK's raw operation list, then compare its documented lower-level route against the vendored OpenAPI contract. If an endpoint is documented but absent from the SDK raw export, use the existing configured low-level `client.sdk.post` through the central `src/neon/client.js` wrapper — never `client.sdk.client.post`, direct fetch or a separate credential path. Add a fake-Neon request-routing test and a failure/no-replay test. Require exact-head unit, check, DB and aggregate CI. After two unsuccessful attempts, switch from patching to tracing; document the failure and inherited fix in the JIT card.
+
 ## Step 3 — Implement in ordered commits
 
 One work unit = one local commit. Inside it: (1) additive SQL for this server's tables + `docs/ARCHITECTURE.md` table
