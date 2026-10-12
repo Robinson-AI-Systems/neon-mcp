@@ -57,7 +57,7 @@ describe('D-1 project lifecycle write gates',()=>{
   fake.assertClean();
  });
  it('refuses guarded project writes when protected or production gate says no',async()=>{
-  const {fake,ctx,handlers}=setup({production:false});
+  const {fake,handlers}=setup({production:false});
   fake.when('getProject').resolves(get());
   const denied=json(await handlers.neon_project_rename({projectId:IDS.project,name:'changed',
    confirm:true},{}));
@@ -85,7 +85,7 @@ describe('D-1 project lifecycle write gates',()=>{
   fake.assertClean();
  });
  it('create requires org-wide full owner scope and refuses when source plan is absent',async()=>{
-  const {fake,handlers,db}=setup();
+  const {fake,handlers}=setup();
   expect(json(await handlers.neon_project_create({name:'new-test',confirm:true},{})).done).toBe(false);
   expect(fake.calls).toHaveLength(0);
   const owner=setup({scoped:false});
