@@ -32,7 +32,8 @@ export function makeContractFixture({ production = false, spendCents = null,
   const connection={neon_org:'org-fake',project_scope:'prj-fake',
     mode:'preview',profile:'everyday'};
   const ctx={connection,db,guards,deploymentEnv:'production',
-    writeKey:()=> 'rmcp_sample_write_abcdef123456'};
+    writeKey:()=> 'rmcp_sample_write_abcdef123456',
+    reserveSpendWrite:async ({write})=>db.reserveWrite(write)};
   const {tool,handler}=defineWrite({name:'neon_sample_write',
     plan:async()=>({before:{id:'br-fake'},target:'br-fake',projectId:'prj-fake',
       summary:'Update disposable branch metadata'}),
