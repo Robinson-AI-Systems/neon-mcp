@@ -45,42 +45,42 @@ export function makeContractFixture({ production = false, spendCents = null,
   });
   return {tool,handler,ctx,log,calls,parse};
 }
-export async function runWriteContract(make = makeContractFixture) {
+export async function runWriteContract(make = makeContractFixture, {input = {}, expectedSpendCents = 100} = {}) {
   const f=make();
   expect(f.tool.writes).toBe(true);
   expect(f.tool.writeContract).toBe('defineWrite-v1');
-  expect(f.parse(await f.handler({dryRun:true},f.ctx)).done).toBe(false);
+  expect(f.parse(await f.handler({...input,dryRun:true},f.ctx)).done).toBe(false);
   expect(f.calls).toHaveLength(0); // 1 dry run never writes
   expect(f.log[0].kind).toBe('preview');
-  expect(f.parse(await f.handler({},f.ctx)).code).toBe('needs_confirmation'); // 2
+  expect(f.parse(await f.handler(input,f.ctx)).code).toBe('needs_confirmation'); // 2
   expect(f.calls).toHaveLength(0);
-  const one=f.parse(await f.handler({confirm:true},f.ctx));
+  const one=f.parse(await f.handler({...input,confirm:true},f.ctx));
   expect(one.confirmed).toBe(true); // 3
   expect(f.calls).toHaveLength(1);
   expect(f.log[1].confirmed).toBe('true');
   expect(f.log[1].requestKey).toMatch(/^rmcp_/);
-  const again=f.parse(await f.handler({confirm:true},f.ctx));
+  const again=f.parse(await f.handler({...input,confirm:true},f.ctx));
   expect(again.done).toBe(true);
   expect(f.calls).toHaveLength(1); // 3 duplicate
   const missing=make({verify:false});
-  expect(missing.parse(await missing.handler({confirm:true},missing.ctx)).confirmed).toBe(false); // 4
+  expect(missing.parse(await missing.handler({...input,confirm:true},missing.ctx)).confirmed).toBe(false); // 4
   const prod=make({production:true});
-  expect(prod.parse(await prod.handler({confirm:true},prod.ctx)).code).toBe('refused_by_guard'); // 5
+  expect(prod.parse(await prod.handler({...input,confirm:true},prod.ctx)).code).toBe('refused_by_guard'); // 5
   expect(prod.calls).toHaveLength(0);
   prod.ctx.connection.mode='production';
-  expect(prod.parse(await prod.handler({confirm:true},prod.ctx)).confirmed).toBe(true);
+  expect(prod.parse(await prod.handler({...input,confirm:true},prod.ctx)).confirmed).toBe(true);
   const blocked=make({blocked:true});
-  expect(blocked.parse(await blocked.handler({confirm:true},blocked.ctx)).code).toBe('refused_by_guard'); // 6
+  expect(blocked.parse(await blocked.handler({...input,confirm:true},blocked.ctx)).code).toBe('refused_by_guard'); // 6
   expect(blocked.calls).toHaveLength(0);
   const high=make({spendCents:2600});
-  expect(high.parse(await high.handler({confirm:true},high.ctx)).code).toBe('refused_by_guard'); // 7
+  expect(high.parse(await high.handler({...input,confirm:true},high.ctx)).code).toBe('refused_by_guard'); // 7
   const price=make({spendCents:100});
-  expect(price.parse(await price.handler({dryRun:true},price.ctx)).spendMonthCents).toBe(100);
+  expect(price.parse(await price.handler({...input,dryRun:true},price.ctx)).spendMonthCents).toBe(expectedSpendCents);
   const app=make({appOwned:true});
-  expect(app.parse(await app.handler({confirm:true},app.ctx)).code).toBe('refused_by_guard'); // 8
+  expect(app.parse(await app.handler({...input,confirm:true},app.ctx)).code).toBe('refused_by_guard'); // 8
   const secret=make();
   secret.ctx.writeKey=()=> 'rmcp_secret_sample_abc123';
-  expect(JSON.stringify(secret.parse(await secret.handler({confirm:true},secret.ctx))))
+  expect(JSON.stringify(secret.parse(await secret.handler({...input,confirm:true},secret.ctx))))
     .not.toMatch(/napi_|postgresql:\/\//i); // 9 safe output
   expect(JSON.stringify(secret.log)).not.toMatch(/napi_|postgresql:\/\//i);
 }
