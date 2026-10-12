@@ -85,7 +85,7 @@ const recover=defineWrite({name:'neon_project_recover',projectWide:true,key:'org
 });
 const create=defineWrite({name:'neon_project_create',projectWide:true,key:'org',
  secret:true,
- spend:async(a,c,before)=>{
+ spend:async(a,c,_before)=>{
   if(typeof c.db.getVerifiedNeonPlan!=='function')throw Error('Plan verification unavailable');
   const plan=await c.db.getVerifiedNeonPlan(c.connection.neonOrg);
   if(!['Launch','Scale'].includes(plan?.name)||plan.verified!==true)
