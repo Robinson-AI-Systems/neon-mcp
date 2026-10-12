@@ -10,7 +10,10 @@ it('encrypts authenticated ciphertext and binds it to a specific org and key sco
   expect(()=>decryptSecret(encoded,{env,context:'different-scope'})).toThrow(/Unable to decrypt/);
   expect(()=>decryptSecret(encoded,{env:{TOKEN_ENCRYPTION_KEY:fakeKey(24)},
     context:'org-fake/project-fake'})).toThrow(/Unable to decrypt/);
-  const bad=encoded.slice(0,-2)+'ab';
+  // Mutate one authenticated tag byte deterministically (random ciphertext suffixes can match).
+  const parts=encoded.split('.');
+  parts[2]=(parts[2][0]==='A'?'B':'A')+parts[2].slice(1);
+  const bad=parts.join('.');
   expect(()=>decryptSecret(bad,{env,context:'org-fake/project-fake'})).toThrow(/Unable to decrypt/);
 });
 it('never accepts a missing or incorrectly-sized encryption key',()=>{
