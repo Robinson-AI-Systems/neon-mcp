@@ -1,12 +1,7 @@
 // D-1b: operation inspection and safe project settings, never write to Neon.
 import {projectScope,projectClient,projectRead,projectPages,operationSummary} from './project-context.js';
 import {waitForOperations} from '../neon/operations.js';
-const profiles=['read_only','everyday','full'];
-const id={type:'string',pattern:'^[a-z0-9-]{1,60}$'};
-const schema=properties=>({type:'object',properties,additionalProperties:false});
-const text=value=>({content:[{type:'text',text:JSON.stringify(value)}]});
-const read=(name,description,properties)=>({name,description,writes:false,profiles,
- area:'projects',audience:['builder','owner','operator'],inputSchema:schema(properties)});
+import {defineReadTool as read,readId as id,readText as text} from './read-descriptors.js';
 export const tools=[
  read('neon_operation_list','List bounded operation history for an allowed project, with optional local filters.',{
   projectId:id,branchId:id,computeId:id,limit:{type:'integer',minimum:1,maximum:100}}),

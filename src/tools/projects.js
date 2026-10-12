@@ -1,12 +1,6 @@
 import {projectScope,projectClient,projectRead,projectPages,projectSummary,
  branchSummary,computeSummary,operationSummary} from './project-context.js';
-const profiles=['read_only','everyday','full'];
-const schema=properties=>({type:'object',properties,additionalProperties:false});
-const id={type:'string',pattern:'^[a-z0-9-]{1,60}$'};
-const text=value=>({content:[{type:'text',text:JSON.stringify(value)}]});
-const read=(name,description,properties)=>({name,description,
- writes:false,profiles,area:'projects',audience:['builder','owner','operator'],
- inputSchema:schema(properties)});
+import {defineReadTool as read,readId as id,readText as text} from './read-descriptors.js';
 export const tools=[
  read('neon_project_list','List bounded, organization-matched projects or the single scoped project.',{
   recoverable:{type:'boolean'},limit:{type:'integer',minimum:1,maximum:100}}),

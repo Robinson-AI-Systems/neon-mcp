@@ -36,7 +36,7 @@ GitHub only as git commits pushed to an `ai/*` branch. Never copy source files t
    Do not restart work it lists as done.
 4. Read your card (`docs/pr-cards/<ID>.md`). If the roadmap says JIT (no card yet), write it first from the design
    (`docs/pr-cards/README.md`, 40–100 lines). Read only what the card's "Read only these" list says.
-   Card missing concrete seams/mappings? Use `implementation-contracts/IMPLEMENTATION-RECIPES.md` routing table;
+   Start with a cohesive same-area PR and reuse `src/tools/read-descriptors.js` for new scoped reads. Run impacted tests before the complete suite and consolidate known CI failures into one correction. Card missing concrete seams/mappings? Use `implementation-contracts/IMPLEMENTATION-RECIPES.md` routing table;
    B-3 has a worked example. Read only your unit's recipe/route and reconcile its baseline before copying.
 
 ## 2. Never do these without Chris (AGENTS "Hard limits")
