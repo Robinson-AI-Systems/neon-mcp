@@ -204,7 +204,7 @@ The SQL guard (`docs/designs/BATCH-B.md` B-3) classifies every statement with th
 | Tool | What it does | Flags | Aud | Profile | Card |
 | --- | --- | --- | --- | --- | --- |
 | `neon_security_review` | Verified protected branch, network, replication, IP allowlist and JWKS metadata; unsupported RLS/login/advisor checks explicitly not evaluated | — | Ow Op | R | D-8 (built read-only subset #90) |
-| `neon_security_set_ip_allow` | Replace, add to or remove from the IP allow list (Scale plan); preview warns when the app's own addresses would be blocked | C Pr A | Ow | F | D-8 |
+| `neon_security_set_ip_allow` | Guarded Scale-plan add/remove/replace with bounded exact resulting IP list, Vercel egress warning and verified readback | C Pr A | Ow | F | D-8 (built offline #92) |
 | `neon_security_set_logical_replication` | Turn on logical replication (cannot be turned off; restarts computes) | C D Pr | Ow | F | D-8 |
 | `neon_security_set_public_access` | Guarded preview/confirm of public internet/VPC access with verified current flags and exact readback; refuses both-path lockout | C Pr | Ow | F | D-8 (built offline #91) |
 | `neon_security_list_jwks` | Project-verified trusted JWKS issuers, refusing foreign/duplicate entries and redacting credential-bearing URLs | — | B Ow | R | D-8 (built #89) |

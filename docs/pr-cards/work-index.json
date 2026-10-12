@@ -616,9 +616,10 @@
       "pr": [
         89,
         90,
-        91
+        91,
+        92
       ],
-      "note": "Independent D-1 dependency satisfied. #89 read-only, project/org-verified JWKS inventory with duplicate/foreign denial and URL-query credential redaction; no mutations, no external acceptance; six more security tools remain. #90 adds observed-only, project/org-verified security posture: branch protection, configured network/IP/replication and trust counts; missing/unsupported RLS/login/advisor checks are explicitly unknown/not evaluated. Tests offline; real hosted acceptance and five B-1 security mutations remain OPEN. Recheck external blockers at session start; do not count PRs as acceptance. #91 adds owner-only B-1 guarded public/VPC network flags with verified before/after and lockout refusal; fake-provider CI, no live acceptance. Four guarded D-8 mutations remain."
+      "note": "Independent D-1 dependency satisfied. #89 read-only, project/org-verified JWKS inventory with duplicate/foreign denial and URL-query credential redaction; no mutations, no external acceptance; six more security tools remain. #90 adds observed-only, project/org-verified security posture: branch protection, configured network/IP/replication and trust counts; missing/unsupported RLS/login/advisor checks are explicitly unknown/not evaluated. Tests offline; real hosted acceptance and five B-1 security mutations remain OPEN. Recheck external blockers at session start; do not count PRs as acceptance. #91 adds owner-only B-1 guarded public/VPC network flags with verified before/after and lockout refusal; fake-provider CI, no live acceptance. Four guarded D-8 mutations remain. #92 implements verified-existing-Scale IP allow add/remove/replace, exact bounded preview and provider readback; three D-8 writes remain. No live acceptance."
     },
     {
       "id": "D-9",
