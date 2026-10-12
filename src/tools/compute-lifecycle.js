@@ -71,6 +71,7 @@ async function afterDelete(a,c){
 
 function definition(action){
  const def=defineWrite({name:'neon_compute_'+action,destructive:action==='delete',
+  needsConfirm:action==='delete',
   plan:(a,c)=>planAction(a,c,action),
   apply:(a,c,s)=>applyAction(a,c,s,action),
   readAfter:action==='delete'?afterDelete:afterEndpoint,
@@ -90,7 +91,7 @@ function definition(action){
    action==='restart'?'Restart compute after assessing active connection disruption.':
    'Start an inactive compute with verified post-state.',schema()];
 }
-function validateSettings(a,e){
+export function validateSettings(a,e){
  const hasTimeout=a.suspendSeconds!==undefined;
  const hasPg=a.pgSettings!==undefined;
  if(!hasTimeout&&!hasPg)throw Error('Choose suspendSeconds or approved pgSettings');
@@ -106,8 +107,9 @@ function validateSettings(a,e){
   if(Object.entries(a.pgSettings).some(([k,v])=>!keys.includes(k)||
     typeof v!=='string'||!/^\d{1,7}$/.test(v)||Number(v)>3600000))
    throw Error('Only bounded nonnegative timeouts in milliseconds are allowed');
-  const current=e.settings?.pg_settings;
-  if(!current||typeof current!=='object'||Array.isArray(current))
+  const current=e.settings?.pg_settings===undefined?{}:e.settings.pg_settings;
+  if(e.settings==null||typeof e.settings!=='object'||Array.isArray(e.settings)||
+     !current||typeof current!=='object'||Array.isArray(current))
    throw Error('Existing Postgres settings must be independently verified');
   settings.pg_settings={...current,...a.pgSettings};
  }
@@ -115,6 +117,8 @@ function validateSettings(a,e){
 }
 const setting=defineWrite({name:'neon_compute_update_settings',
  spend:async(_a,c,before)=>{
+  // Safe timeout edits cannot add billable CU; only newly always-on computes do.
+  if(!before.goingAlwaysOn)return {increaseCents:0,canApply:true};
   const plan=typeof c.db.getVerifiedNeonPlan==='function'
    ?await c.db.getVerifiedNeonPlan(c.connection.neonOrg):await c.planFor?.();
   if(plan?.verified!==true||!['Launch','Scale'].includes(plan.name))return null;
@@ -132,7 +136,7 @@ const setting=defineWrite({name:'neon_compute_update_settings',
    e.suspend_timeout_seconds!==-1;
   return {target:'branch:'+e.branch_id,projectId:pid,branchId:e.branch_id,
    before:{id:e.id,projectId:pid,branchId:e.branch_id,
-    fromCu:goingAlwaysOn?0:e.autoscaling_limit_max_cu,
+    goingAlwaysOn,fromCu:goingAlwaysOn?0:e.autoscaling_limit_max_cu,
     toCu:e.autoscaling_limit_max_cu,
     timeout:e.suspend_timeout_seconds,settings:e.settings?.pg_settings??{}},
    summary:'Update verified compute '+e.id+' settings'+

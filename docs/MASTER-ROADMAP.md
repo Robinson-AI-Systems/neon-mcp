@@ -5,7 +5,7 @@ Written 2026-10-10 for an empty repository. [STATUS](STATUS.md) holds current st
 ## What is next
 
 **Done:** A-1 (#1), A-2 (#7), A-3 (#8/#9), A-4 (#10/#11), A-5 (#12/#13/#14), A-6 (#15), A-7 (#16).
-**Next:** D-2 branches (D-1 completed through PR #50; D-2 started with read tools in #51). Production stays disabled; D-5 owns public SQL, X-3 owns scratch restore verification.
+**Next:** Close eight late D-2/D-3 review findings from #58/#60/#61 and D-3 acceptance before the D-4 just-in-time card. D-2 named implementations accepted at #59, D-3 named compute tools merged at #61 but formal acceptance remains in progress. Production stays disabled; D-5 owns public SQL, X-3 owns scratch restore verification.
 
 ## Order and why
 
