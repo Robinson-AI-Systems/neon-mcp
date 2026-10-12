@@ -1,7 +1,7 @@
 import {describe,it,expect} from 'vitest';
 import {makeFakeNeon} from '../../test/helpers/fake-neon.js';
 import {makeNeonClient} from '../../src/neon/client.js';
-import {IDS,project,devBranch} from '../../test/helpers/neon-fixtures.js';
+import {IDS,project,devBranch,responses} from '../../test/helpers/neon-fixtures.js';
 import {createBranchWriteHandlers,tools} from '../../src/tools/branch-writes.js';
 const json=r=>JSON.parse(r.content[0].text);
 function setup({allowed=true,production=false}={}){
@@ -23,7 +23,8 @@ function setup({allowed=true,production=false}={}){
  return {fake,events,handlers};
 }
 const original=()=>({project:project()});
-const before=()=>({branch:devBranch()});
+const response=branch=>({...responses.getProjectBranch('dev'),branch});
+const before=()=>response(devBranch());
 describe('D-2 branch name and protection write contracts',()=>{
  it('registers B-1 audited and closed-schema writes',()=>{
   expect(tools.map(t=>t.name)).toEqual(['neon_branch_rename','neon_branch_set_protected']);
@@ -36,7 +37,7 @@ describe('D-2 branch name and protection write contracts',()=>{
   const {fake,handlers,events}=setup();
   fake.when('getProject').resolves(original());
   fake.when('getProjectBranch').resolves(before()).resolves(before())
-   .resolves({branch:devBranch({name:'new-name'})});
+   .resolves(response(devBranch({name:'new-name'})));
   fake.when('updateProjectBranch').resolves({branch:devBranch({name:'new-name'}),operations:[]});
   const dry=json(await handlers.neon_branch_rename({branchId:IDS.dev,name:'new-name',dryRun:true},{}));
   expect(dry.done).toBe(false);
@@ -59,7 +60,7 @@ describe('D-2 branch name and protection write contracts',()=>{
  it('cannot silently remove protection when production permission is not enabled',async()=>{
   const {fake,handlers}=setup({production:true,allowed:false});
   fake.when('getProject').resolves(original());
-  fake.when('getProjectBranch').resolves({branch:devBranch({protected:true})});
+  fake.when('getProjectBranch').resolves(response(devBranch({protected:true})));
   const result=json(await handlers.neon_branch_set_protected({branchId:IDS.dev,protected:false,confirm:true},{}));
   expect(result.done).toBe(false);
   expect(fake.calls.every(c=>c.method==='GET')).toBe(true);
@@ -68,7 +69,7 @@ describe('D-2 branch name and protection write contracts',()=>{
  it('protects development branches only with confirmed, verified readback',async()=>{
   const {fake,handlers}=setup();
   fake.when('getProject').resolves(original());
-  fake.when('getProjectBranch').resolves(before()).resolves({branch:devBranch({protected:true})});
+  fake.when('getProjectBranch').resolves(before()).resolves(response(devBranch({protected:true})));
   fake.when('updateProjectBranch').resolves({branch:devBranch({protected:true}),operations:[]});
   const out=json(await handlers.neon_branch_set_protected({branchId:IDS.dev,protected:true,confirm:true},{}));
   expect(out.confirmed).toBe(true);
