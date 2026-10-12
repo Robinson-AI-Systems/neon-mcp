@@ -107,9 +107,9 @@ function validateSettings(a,e){
   if(Object.entries(a.pgSettings).some(([k,v])=>!keys.includes(k)||
     typeof v!=='string'||!/^\d{1,7}$/.test(v)||Number(v)>3600000))
    throw Error('Only bounded nonnegative timeouts in milliseconds are allowed');
-  const current=e.settings?.pg_settings??{};
+  const current=e.settings?.pg_settings===undefined?{}:e.settings.pg_settings;
   if(e.settings==null||typeof e.settings!=='object'||Array.isArray(e.settings)||
-     typeof current!=='object'||Array.isArray(current))
+     !current||typeof current!=='object'||Array.isArray(current))
    throw Error('Existing Postgres settings must be independently verified');
   settings.pg_settings={...current,...a.pgSettings};
  }
