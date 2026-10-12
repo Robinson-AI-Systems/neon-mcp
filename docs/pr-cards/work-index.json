@@ -593,9 +593,10 @@
       "ownerInputs": [],
       "pr": [
         87,
-        97
+        97,
+        98
       ],
-      "note": "D-7 #87 bounded GET-only snapshots and branch schedules, #97 full-owner B-1 protected/manual-development-only snapshot delete with independent inventory drift and readback. Five additional snapshot mutations remain; live/scratch/owner acceptance and billed creation/retention estimates still blocked."
+      "note": "D-7 #87 metadata, #97 safeguarded manual development snapshot deletion, #98 name-only snapshot update with strict protection, drift and readback (no billing-changing expiry). Four other snapshot mutations and priced retention extension unimplemented; real hosted/scratch acceptance gated."
     },
     {
       "id": "D-8",

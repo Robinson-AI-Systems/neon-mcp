@@ -36,7 +36,7 @@ async function inventory(args,ctx){
    throw Error('Snapshot source is protected or its status is unverified');
  }
  return {projectId:pid,snapshot,sourceBranchId:source??null,
-  snapshotIds:snaps.map(s=>s.id),client};
+  snapshotIds:snaps.map(s=>s.id),snapshotNames:snaps.map(s=>s.name),client};
 }
 async function target(args,ctx){
  const data=await inventory(args,ctx);
@@ -86,3 +86,7 @@ export function createSnapshotDeleteHandlers({contextFor=createProjectWriteConte
   deletion.handler(a,await contextFor(c))};
 }
 export const handlers=createSnapshotDeleteHandlers();
+
+// Reuse the same strict project/source verification for non-costed rename.
+export const snapshotInventory=inventory;
+export const manualDevelopmentSnapshot=target;
