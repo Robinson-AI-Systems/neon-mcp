@@ -61,6 +61,19 @@ describe('bounded Neon SQL layer',()=>{
       .toThrow(/Unable to connect/);
     expect(stats()).toEqual({released:2,ended:2,opened:2});
   });
+  it('rejects pooled aliases instead of treating them as the verified direct endpoint',async()=>{
+    const selected={...target,pooled:false,database:'neondb',role:'neondb_owner',
+      expectedEndpointHost:'db.fake.invalid'};
+    const direct=fixture('postgresql://neondb_owner@db.fake.invalid/neondb');
+    await expect(direct.run(ctx,selected,async()=>true)).resolves.toBe(true);
+    const alias=fixture('postgresql://neondb_owner@db-pooler.fake.invalid/neondb');
+    await expect(alias.run(ctx,selected,async()=>true)).rejects.toThrow(/Unable to connect/);
+    expect(alias.stats().opened).toBe(0);
+    const opposite=fixture('postgresql://neondb_owner@db.fake.invalid/neondb');
+    await expect(opposite.run(ctx,{...selected,expectedEndpointHost:'db-pooler.fake.invalid'},
+      async()=>true)).rejects.toThrow(/Unable to connect/);
+    expect(opposite.stats().opened).toBe(0);
+  });
   it('refuses absent database identity configuration',async()=>{
     const db=createFakeDb(),vault={async keyFor(){return {key};}};
     const run=createSqlLayer({db,vault,env:{}});

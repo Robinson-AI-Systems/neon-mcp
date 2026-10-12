@@ -49,7 +49,7 @@ export async function createProjectWriteContext({connection,db,env=process.env}=
   }
  };
  ctx.readComputeConnectionCount=createVerifiedComputeConnectionCount({
-  connection,db,env,clientFor:ctx.clientFor});
+  connection,db,env,clientFor:ctx.clientFor,authorizationContext:ctx});
  ctx.guards={
   checkProtected:(target,c)=>target.target?.startsWith('project:create:')
    ? target.projectId===null : checkProtectedTarget(target,c),
