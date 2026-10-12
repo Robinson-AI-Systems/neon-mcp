@@ -82,6 +82,7 @@ describe('D-4 guarded database lifecycle',()=>{
  it('rejects wrong org and duplicate names without provider mutation',async()=>{
   const foreign=setup();
   foreign.fake.when('getProject').resolves({project:project({org_id:'org-fake-other'})});
+  foreign.fake.when('getProjectBranch').resolves(responses.getProjectBranch('dev'));
   expect(result(await foreign.handlers.neon_database_create({...args,confirm:true},{})).done).toBe(false);
   expect(foreign.fake.calls.every(x=>x.method==='GET')).toBe(true);
   foreign.fake.assertClean();
