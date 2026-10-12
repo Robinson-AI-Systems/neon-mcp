@@ -148,7 +148,7 @@ describe('MCP read-only boundary and known-key project scope',()=>{
       keyEnc:'fake-ciphertext-only',last4:'1234',reach:{verified:true}});
     expect(registry.tools.map(t=>t.name)).toEqual(['neon_whoami','neon_list_accounts',
       'neon_enable_production','neon_disable_production',
-      'neon_list_connections','neon_recent_changes','neon_get_settings','neon_where_is_setting','neon_revoke_connection','neon_check_key_access','neon_update_settings','neon_get_result','neon_project_list','neon_project_list_regions','neon_project_overview','neon_operation_list','neon_operation_get','neon_project_get_settings','neon_search_tools','neon_call','neon_batch','neon_describe_tool']);
+      'neon_list_connections','neon_recent_changes','neon_get_settings','neon_where_is_setting','neon_revoke_connection','neon_check_key_access','neon_update_settings','neon_get_result','neon_project_list','neon_project_list_regions','neon_project_overview','neon_operation_list','neon_operation_get','neon_project_get_settings','neon_project_rename','neon_project_delete','neon_project_recover','neon_project_create','neon_search_tools','neon_call','neon_batch','neon_describe_tool']);
     const connection={neonOrg:'org-fake-one',projectScope:'proj-fake-one',
       mode:'preview',profile:'read_only',listing:'catalog'};
     for(const tool of registry.tools.filter(t=>['neon_whoami','neon_list_accounts'].includes(t.name))) {
