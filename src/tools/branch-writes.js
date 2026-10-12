@@ -61,11 +61,89 @@ const protect=defineWrite({name:'neon_branch_set_protected',access:true,
  readAfter:load,
  verify:(before,after,a)=>after?.id===before.id&&after.protected===a.protected
 });
+
+// D-2 branch expiry (EA feature) and default branch transfer.
+const expiry=defineWrite({name:'neon_branch_set_expiration',
+ plan:async(a,c)=>{
+  if((a.remove===true)===(a.expiresAt!==undefined))
+   throw Error('Provide exactly one of expiresAt or remove:true');
+  let value=null;
+  if(a.remove!==true){
+   if(typeof a.expiresAt!=='string'||!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/.test(a.expiresAt))
+    throw Error('Expiration must be a UTC second-precision timestamp');
+   const date=Date.parse(a.expiresAt),now=Date.now();
+   if(!Number.isFinite(date)||date<=now||date>now+30*86400000)
+    throw Error('Expiration must be within the next 30 days');
+   value=a.expiresAt;
+  }
+  const before=await load(a,c);
+  if(before.default===true||before.protected===true)
+   throw Error('Expiration forbidden on default or protected branch');
+  const client=await c.clientFor(before.project_id);
+  const listing=await projectRead(client,'listProjectBranches',{
+   path:{project_id:before.project_id},query:{limit:100}});
+  if(!Array.isArray(listing.branches)||listing.pagination?.cursor||
+     listing.branches.some(b=>b.project_id!==before.project_id)||
+     listing.branches.some(b=>b.parent_id===before.id))
+   throw Error('Cannot verify this is a safe leaf branch');
+  if((before.expires_at??null)===value)throw Error('Expiration unchanged');
+  return {target:'branch:'+before.id,projectId:before.project_id,branchId:before.id,before,
+   summary:value?'Schedule leaf branch '+before.id+' to expire at '+value:
+    'Remove automatic expiration from leaf branch '+before.id};
+ },
+ apply:(a,c,{requestKey:key})=>run(a,c,{expires_at:a.remove===true?null:a.expiresAt},key),
+ readAfter:load,
+ verify:(before,after,a)=>before.id===after?.id&&
+  (after.expires_at??null)===(a.remove===true?null:a.expiresAt)
+});
+const defaultBranch=defineWrite({name:'neon_branch_set_default',projectWide:true,
+ plan:async(a,c)=>{
+  const before=await load(a,c);
+  if(before.default===true)throw Error('Branch already is the project default');
+  const client=await c.clientFor(before.project_id);
+  const data=await projectRead(client,'listProjectBranches',{
+   path:{project_id:before.project_id},query:{limit:100}});
+  if(!Array.isArray(data.branches)||data.pagination?.cursor||
+     data.branches.some(b=>b.project_id!==before.project_id))
+   throw Error('Incomplete default branch listing');
+  const old=data.branches.filter(b=>b.default===true);
+  if(old.length!==1||data.branches.filter(b=>b.id===before.id).length!==1)
+   throw Error('Cannot identify existing project default');
+  return {target:'project:'+before.project_id,projectId:before.project_id,
+   before:{target:before,prior:old[0].id},
+   summary:'PRODUCTION default switch from '+old[0].id+' to '+before.id+
+    '; application connection routing may change; owner confirmation required'};
+ },
+ apply:async(a,c,{requestKey:key})=>{
+  const {projectId,branchId}=selected(a,c);
+  return applyNeonWrite({client:await c.clientFor(projectId),
+   operationId:'setDefaultProjectBranch',
+   params:{path:{project_id:projectId,branch_id:branchId}},
+   projectId,requestKey:key});
+ },
+ readAfter:async(a,c)=>{
+  const selectedIds=selected(a,c),client=await c.clientFor(selectedIds.projectId);
+  const data=await projectRead(client,'listProjectBranches',{
+   path:{project_id:selectedIds.projectId},query:{limit:100}});
+  if(!Array.isArray(data.branches)||data.pagination?.cursor||
+     data.branches.some(b=>b.project_id!==selectedIds.projectId))
+   return null;
+  return data.branches;
+ },
+ verify:(before,after)=>Array.isArray(after)&&
+  after.filter(b=>b.default===true).length===1&&
+  after.some(b=>b.id===before.target.id&&b.default===true)&&
+  after.some(b=>b.id===before.prior&&b.default===false)
+});
+
 const specs=[
  [rename,'Rename a branch after scope and production approval.',schema({
   name:{type:'string',minLength:1,maxLength:256}},['branchId','name']),['everyday','full']],
  [protect,'Protect or unprotect a branch with audited confirmation.',schema({
-  protected:{type:'boolean'}},['branchId','protected']),['full']]
+  protected:{type:'boolean'}},['branchId','protected']),['full']],
+ [expiry,'Set or remove expiry on a non-protected leaf branch within 30 days.',schema({
+  expiresAt:{type:'string',format:'date-time'},remove:{type:'boolean'}},['branchId']),['everyday','full']],
+ [defaultBranch,'Switch project default branch with audited production approval.',schema({},['branchId']),['full']]
 ];
 export const tools=specs.map(([def,description,inputSchema,profiles])=>({
  ...def.tool,description,inputSchema,profiles,area:'branches',audience:['owner','operator']}));
