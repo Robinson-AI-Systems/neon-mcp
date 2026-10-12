@@ -15,7 +15,7 @@ function setup(){
 }
 describe('D-2 scoped branch reads',()=>{
  it('declares two bounded read-only tools with closed schemas',()=>{
-  expect(tools.map(t=>t.name)).toEqual(['neon_branch_list','neon_branch_get']);
+  expect(tools.map(t=>t.name)).toEqual(['neon_branch_list','neon_branch_get','neon_branch_compare_schema']);
   for(const t of tools){
    expect(t.writes).toBe(false);expect(t.profiles).toContain('read_only');
    expect(t.inputSchema.additionalProperties).toBe(false);
@@ -59,6 +59,33 @@ describe('D-2 scoped branch reads',()=>{
   expect(result.roles[0].name).toBe('neondb_owner');
   expect(JSON.stringify(result)).not.toMatch(/password|proxy_host|\.neon\.tech|connection_uri/);
   expect(fake.calls.map(c=>c.method)).toEqual(['GET','GET','GET','GET','GET']);
+  fake.assertClean();
+ });
+ it('compares exact, verified branches with required database, GET only',async()=>{
+  const {fake,handlers}=setup();
+  fake.when('getProject').resolves({project:project()});
+  fake.when('getProjectBranch').resolves(responses.getProjectBranch('dev'))
+   .resolves(responses.getProjectBranch('main'));
+  fake.when('getProjectBranchSchemaComparison').resolves({diff:'ALTER TABLE public.jobs ADD COLUMN note text;'});
+  const out=json(await handlers.neon_branch_compare_schema({
+   projectId:IDS.project,branchId:IDS.dev,baseBranchId:IDS.main,database:'neondb'},ctx));
+  expect(out.changed).toBe(true);
+  expect(out.diff).toContain('ALTER TABLE');
+  expect(fake.calls.at(-1).query).toMatchObject({base_branch_id:IDS.main,db_name:'neondb'});
+  expect(fake.calls.every(c=>c.method==='GET')).toBe(true);
+  fake.assertClean();
+ });
+ it('rejects missing schema database or forged branch identity before compare',async()=>{
+  const {fake,handlers}=setup();
+  await expect(handlers.neon_branch_compare_schema({branchId:IDS.dev,baseBranchId:IDS.main},ctx))
+   .rejects.toThrow(/database/);
+  expect(fake.calls).toHaveLength(0);
+  fake.when('getProject').resolves({project:project()});
+  fake.when('getProjectBranch').resolves(responses.getProjectBranch('main'));
+  await expect(handlers.neon_branch_compare_schema({
+   projectId:IDS.project,branchId:IDS.dev,baseBranchId:IDS.main,database:'neondb'},ctx))
+   .rejects.toThrow(/identity/);
+  expect(fake.calls.every(c=>c.method==='GET')).toBe(true);
   fake.assertClean();
  });
  it('refuses malformed branch IDs and organization mismatch',async()=>{

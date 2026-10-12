@@ -6,7 +6,10 @@ export const tools=[
  defineReadTool('neon_branch_list','List bounded branches with safe default, protection and parent summaries.',{
   projectId:readId,limit:{type:'integer',minimum:1,maximum:100}}),
  defineReadTool('neon_branch_get','Inspect a branch, computes, databases and roles without credentials.',{
-  projectId:readId,branchId:readId})
+  projectId:readId,branchId:readId}),
+ defineReadTool('neon_branch_compare_schema','Compare two branch database schemas as a bounded readable diff.',{
+  projectId:readId,branchId:readId,baseBranchId:readId,
+  database:{type:'string',minLength:1,maxLength:63}})
 ];
 function target(args,ctx){
  const scope=projectScope(ctx,args.projectId??null);
@@ -31,6 +34,28 @@ export function createBranchReadHandlers({getClient=projectClient}={}){
     throw Error('Branch belongs to a different project');
    return readText({branches:page.items.map(branchSummary),capped:page.capped,
     returned:page.items.length,projectId:scope.projectId});
+  },
+  async neon_branch_compare_schema(args,ctx){
+   if(!/^[a-z0-9-]{1,60}$/.test(args.branchId||'')||
+      !/^[a-z0-9-]{1,60}$/.test(args.baseBranchId||'')||
+      typeof args.database!=='string'||! /^[a-zA-Z_][a-zA-Z0-9_-]{0,62}$/.test(args.database))
+    throw Error('Select two branches and a valid database');
+   const {client,scope}=await verifiedClient(args,ctx,getClient);
+   const readBranch=async id=>{
+    const data=await projectRead(client,'getProjectBranch',{path:{
+     project_id:scope.projectId,branch_id:id}});
+    if(data?.branch?.id!==id||data.branch.project_id!==scope.projectId)
+     throw Error('Branch identity mismatch');
+   };
+   await readBranch(args.branchId);
+   if(args.branchId!==args.baseBranchId)await readBranch(args.baseBranchId);
+   const data=await projectRead(client,'getProjectBranchSchemaComparison',{
+    path:{project_id:scope.projectId,branch_id:args.branchId},
+    query:{base_branch_id:args.baseBranchId,db_name:args.database}});
+   if(typeof data?.diff!=='string')throw Error('Neon returned no schema diff');
+   return readText({projectId:scope.projectId,branchId:args.branchId,
+    baseBranchId:args.baseBranchId,database:args.database,
+    changed:data.diff.trim().length>0,diff:data.diff});
   },
   async neon_branch_get(args,ctx){
    if(typeof args.branchId!=='string'||!/^[a-z0-9-]{1,60}$/.test(args.branchId))

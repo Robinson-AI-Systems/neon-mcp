@@ -4,7 +4,7 @@ import {checkProtectedTarget} from '../core/protected-resources.js';
 import {checkProductionAccess} from './production.js';
 import {createSpendGuard} from './spend.js';
 import {requestKey,call} from './client.js';
-import {projectClient} from '../tools/project-context.js';
+import {projectClient,projectRead} from '../tools/project-context.js';
 
 export async function createProjectWriteContext({connection,db,env=process.env}={}){
  if(!connection?.neonOrg||!db)throw new Error('Authenticated connection and database required');
@@ -20,6 +20,20 @@ export async function createProjectWriteContext({connection,db,env=process.env}=
    return decision.allowed===true?{created:true,id:decision.claimId}:null;
   },
   clientFor:async projectId=>(await projectClient({connection,db,env},projectId)).client,
+  // B-2 classification must fetch the branch itself; absent/unverified data always deny.
+  getBranch:async({projectId,branchId})=>{
+   if(typeof branchId!=='string'||!/^[a-z0-9-]{1,60}$/.test(branchId))
+    throw Error('Invalid branch identity');
+   const client=(await projectClient({connection,db,env},projectId)).client;
+   const project=await projectRead(client,'getProject',{path:{project_id:projectId}});
+   if(project?.project?.id!==projectId||project.project.org_id!==connection.neonOrg)
+    throw Error('Project identity mismatch');
+   const result=await projectRead(client,'getProjectBranch',{
+    path:{project_id:projectId,branch_id:branchId}});
+   if(result?.branch?.project_id!==projectId||result.branch.id!==branchId)
+    throw Error('Branch identity mismatch');
+   return result.branch;
+  },
   // Verified on-demand from Neon's org endpoint, not from caller-declared plan names.
   planFor:async()=>{
    if(connection.projectScope)throw new Error('Organization key needed to verify plan');

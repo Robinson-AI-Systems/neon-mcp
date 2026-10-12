@@ -13,8 +13,7 @@ const validName=v=>typeof v==='string'&&v.length>=1&&v.length<=256&&
  !/[\x00-\x1f\x7f]/.test(v);
 function selected(a,c){
  const projectId=projectScope(c,a.projectId??null).projectId;
- if(!projectId||typeof a.branchId!=='string'||!id.pattern||
-    !/^[a-z0-9-]{1,60}$/.test(a.branchId))
+ if(!projectId||typeof a.branchId!=='string'||!/^[a-z0-9-]{1,60}$/.test(a.branchId))
   throw Error('A scoped project and branch are required');
  return {projectId,branchId:a.branchId};
 }
