@@ -3,7 +3,7 @@ import {makeFakeNeon} from '../../test/helpers/fake-neon.js';
 import {makeNeonClient} from '../../src/neon/client.js';
 import {IDS,AT,project,mainBranch,devBranch,mainEndpoint,devEndpoint} from '../../test/helpers/neon-fixtures.js';
 import {projectScope} from '../../src/tools/project-context.js';
-import {createSecurityReadHandlers,tools} from '../../src/tools/security.js';
+import {createSecurityReadHandlers,tools,observedAuditLevel,verifiedReplicationExposure} from '../../src/tools/security.js';
 
 const ctx={connection:{neonOrg:IDS.org,projectScope:IDS.project,profile:'read_only'}};
 const row={id:'jwks-fake-000001',project_id:IDS.project,
@@ -142,13 +142,11 @@ describe('D-8 independently verified project-security overview',()=>{
    f.fake.assertClean();
   }
  });
- it('rejects unknown audit levels rather than inventing a secure default',async()=>{
-  for(const level of ['off','HIPAA',true,7]){
-   const f=review({projectRow:project({settings:{audit_log_level:level}})});
-   await expect(f.handler({},ctx)).rejects.toThrow();
-   expect(f.fake.calls.every(x=>x.method==='GET')).toBe(true);
-   f.fake.assertClean();
-  }
+ it('rejects any unsupported or malformed audit level without a default',()=>{
+  for(const level of ['off','HIPAA',true,7,'EXTENDED',''])
+   expect(()=>observedAuditLevel(level)).toThrow(/audit logging level/);
+  expect(observedAuditLevel(undefined)).toEqual({state:'unknown'});
+  expect(observedAuditLevel(null)).toEqual({state:'unknown'});
  });
  it('validates every compute and prices no extra replication charges',async()=>{
   const f=review({endpoints:[mainEndpoint({current_state:'active'}),
@@ -161,21 +159,30 @@ describe('D-8 independently verified project-security overview',()=>{
   expect(JSON.stringify(result)).not.toContain('ep-fake-endpoint');
   f.fake.assertClean();
  });
- it('rejects incomplete, duplicated, foreign and malformed compute impact evidence',async()=>{
+ it('refuses duplicate, wrong-project and foreign-branch provider endpoints',async()=>{
   for(const endpoints of [
    [mainEndpoint(),mainEndpoint()],
    [mainEndpoint({project_id:'proj-fake-other'})],
-   [mainEndpoint({branch_id:'br-fake-foreign'})],
-   [mainEndpoint({autoscaling_limit_max_cu:NaN})],
-   [mainEndpoint({autoscaling_limit_max_cu:0})],
-   [mainEndpoint({type:'unknown'})],
-   [mainEndpoint({disabled:'false'})]
+   [mainEndpoint({branch_id:'br-fake-foreign'})]
   ]){
    const f=review({endpoints});
-   await expect(f.handler({},ctx)).rejects.toThrow();
+   await expect(f.handler({},ctx)).rejects.toThrow(/Compute identity/);
    expect(f.fake.calls.every(x=>x.method==='GET')).toBe(true);
    f.fake.assertClean();
   }
+ });
+ it('rejects invalid endpoint capacity and metadata independent of API fixture schema',()=>{
+  const branches=[mainBranch(),devBranch()];
+  for(const endpoints of [
+   [mainEndpoint({autoscaling_limit_max_cu:NaN})],
+   [mainEndpoint({autoscaling_limit_max_cu:0})],
+   [mainEndpoint({type:'unknown'})],
+   [mainEndpoint({disabled:'false'})],
+   [mainEndpoint({current_state:null})]
+  ])expect(()=>verifiedReplicationExposure({endpoints},IDS.project,branches))
+   .toThrow(/Compute identity|capacity/);
+  expect(()=>verifiedReplicationExposure({endpoints:[mainEndpoint(),mainEndpoint()]},
+   IDS.project,branches)).toThrow(/Compute identity/);
  });
  it('refuses foreign scope without provider access',async()=>{
   const f=review();

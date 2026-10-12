@@ -48,7 +48,7 @@ export function verifiedEntries(data,projectId){
 }
 // Audit configuration is directly observable, but log delivery/retention, usage
 // and billable impact are NOT established by reading a project's settings.
-function observedAuditLevel(value){
+export function observedAuditLevel(value){
  if(value===undefined||value===null)return {state:'unknown'};
  if(!['base','extended','full'].includes(value))
   throw Error('Unrecognized project audit logging level');
@@ -57,7 +57,7 @@ function observedAuditLevel(value){
 }
 // Replication can suspend all active endpoints and may prevent scale-to-zero.
 // Inventory compute metadata without waking databases or assuming live clients.
-function verifiedReplicationExposure(data,projectId,branches){
+export function verifiedReplicationExposure(data,projectId,branches){
  if(!Array.isArray(data?.endpoints)||data.endpoints.length>100||
     data.pagination?.cursor)
   throw Error('Complete bounded compute impact inventory unavailable');
