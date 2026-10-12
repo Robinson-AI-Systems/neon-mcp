@@ -352,7 +352,7 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #55 (production-deployment capability listing):** `read_only` 20; `everyday` 24; `full` 41. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
+**Implemented registry at #59 (production-deployment capability listing):** `read_only` 23; `everyday` 27; `full` 44. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
 
 ## Totals
 
