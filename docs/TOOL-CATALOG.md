@@ -1,3 +1,5 @@
+**D-4 private role-deletion inventory (#85):** Before opening any role-dependency SQL, provider endpoint IDs, branch database names and role names must each be unique; repeated identities make the full inventory untrusted. `neon_role_delete` is still NOT registered; pooled-client safety remains unverified.
+
 **D-4 private role deletion preflight (#83):** The unregistered `neon_role_delete` dependency inspector now verifies each compute remains `read_write` on its independent exact-endpoint reread, not just initial inventory. A changed compute type aborts before any SQL. Role deletion is still NOT registered: idle pooled-client absence remains unverified.
 
 **C-2 listing modes (#44):** Connections default to compact except Claude-identified clients (catalog); authenticated `?listing=` override affects display only, never authorization. Compact includes guarded meta tools, identity and stored-result retrieval.

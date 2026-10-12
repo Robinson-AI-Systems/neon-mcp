@@ -10,10 +10,16 @@ const id = x => typeof x==='string' && /^[a-z0-9-]{1,60}$/.test(x);
 const name = x => typeof x==='string' && /^[A-Za-z_][A-Za-z0-9_-]{0,62}$/.test(x);
 const host = x => typeof x==='string' && /^[A-Za-z0-9.-]{4,255}$/.test(x) &&
   x.includes('.') && !x.includes('..');
-function complete(list,key,max,validate){
+function complete(list,key,max,validate,identity){
   if(!Array.isArray(list?.[key]) || list.pagination?.cursor ||
       list[key].length > max || !list[key].every(validate))
     throw Error('Complete Neon role deletion inventory unavailable');
+  // Duplicate identities can mask missing resources in provider inventories;
+  // fail closed rather than treating repeated rows as separate evidence.
+  const identifiers=list[key].map(identity);
+  if(identifiers.some(x=>typeof x!=='string'||!x)||
+      new Set(identifiers).size!==identifiers.length)
+    throw Error('Duplicated Neon role deletion inventory identity');
   return list[key];
 }
 async function authorize(a,c){
@@ -57,11 +63,11 @@ export async function inspectRoleDeleteReadiness(a,c,{
     rolesOnBranch(t)
   ]);
   const endpoints=complete(allEndpoints,'endpoints',32,
-    e=>id(e.id)&&id(e.branch_id)&&e.project_id===t.pid);
+    e=>id(e.id)&&id(e.branch_id)&&e.project_id===t.pid,e=>e.id);
   const databases=complete(allDatabases,'databases',100,
-    d=>d.branch_id===t.bid&&name(d.name)&&roleName(d.owner_name));
+    d=>d.branch_id===t.bid&&name(d.name)&&roleName(d.owner_name),d=>d.name);
   const known=complete({roles:allRoles},'roles',100,
-    x=>x.branch_id===t.bid&&roleName(x.name));
+    x=>x.branch_id===t.bid&&roleName(x.name),x=>x.name);
   const active=endpoints.filter(e=>e.branch_id===t.bid);
   if(!active.length||active.length>16||
       active.some(e=>e.pooler_enabled!==false||e.disabled!==false||
