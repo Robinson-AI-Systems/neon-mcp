@@ -122,13 +122,13 @@ D-2/D-3 post-merge security review #62: expiring protected branches are refused 
 
 | Tool | What it does | Flags | Aud | Profile | Card |
 | --- | --- | --- | --- | --- | --- |
-| `neon_database_list` | Databases on a branch with owner and size | — | B Op | R | D-4 |
-| `neon_database_get` | One database | — | Op | R | D-4 |
+| `neon_database_list` | Scoped bounded database names and owners (size not independently available) | — | B Op | R | D-4 (built #65) |
+| `neon_database_get` | Exact verified database details and owner, no secrets | — | Op | R | D-4 (built #65) |
 | `neon_database_create` | New database on a branch | P | B Op | E | D-4 |
 | `neon_database_update` | Rename a database or change its owner (production: confirm) | C* Pr | Op | E | D-4 |
 | `neon_database_delete` | Delete a database and all its data on that branch | C D Pr | Op | F | D-4 |
-| `neon_role_list` | Neon-managed Postgres roles on a branch (never passwords) | — | B Op | R | D-4 |
-| `neon_role_get` | One role with a summary of its privileges (read by SQL where allowed) | — | Op | R | D-4 |
+| `neon_role_list` | Scoped bounded Postgres roles on a branch (never passwords) | — | B Op | R | D-4 (built #65) |
+| `neon_role_get` | Exact role metadata; privileges shown as unverified until separately authorized SQL | — | Op | R | D-4 (built #65) |
 | `neon_role_create` | New login role; its password only on the one-time page | P S | B Op | E | D-4 |
 | `neon_role_create_read_only` | New login role with SELECT on chosen schemas (including future tables); password on the one-time page | C A S | B Ow | F | D-4 |
 | `neon_role_delete` | Delete a role (preview lists objects it owns and computes using it) | C D Pr | Op | F | D-4 |
