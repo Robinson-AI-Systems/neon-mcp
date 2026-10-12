@@ -465,9 +465,10 @@
       "readiness": "READY",
       "ownerInputs": [],
       "pr": [
-        51
+        51,
+        52
       ],
-      "note": "Two scoped branch read tools merged in #51; remaining ten D-2 capabilities require guarded JIT slices and independent owner approvals."
+      "note": "Five branch capabilities through #52: list/get/compare_schema/rename/protect; 7 more D-2 lifecycle capabilities and time-variant comparison pending."
     },
     {
       "id": "D-3",
