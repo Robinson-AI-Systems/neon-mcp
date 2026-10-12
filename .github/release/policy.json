@@ -1,0 +1,7 @@
+{
+  "repository": "Robinson-AI-Systems/neon-mcp",
+  "requiredChecks": [
+    "release-policy",
+    "ci"
+  ]
+}
