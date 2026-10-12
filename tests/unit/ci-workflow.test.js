@@ -33,7 +33,7 @@ describe('.github/workflows/ci.yml', () => {
     for (const j of jobs) expect(script).toContain(`test "$${j.toUpperCase()}" = success`);
   });
   it('the database job uses a throwaway localhost Postgres service', () => {
-    expect(wf.jobs.db.services.postgres.image).toBe('public.ecr.aws/docker/library/postgres:17');
+    expect(wf.jobs.db.services.postgres.image).toBe('postgres:17');
     expect(wf.jobs.db.steps.at(-1).env.TEST_DATABASE_URL).toMatch(/@127\.0\.0\.1:5432\//);
   });
 });
