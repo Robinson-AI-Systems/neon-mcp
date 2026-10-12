@@ -121,3 +121,13 @@ Previously a small limit could select unrelated registry entries first and remov
 them after limiting, returning an incorrectly empty list. Tests prove a limit-one
 matching search stays discoverable while unsafe names never become visible. This
 is not broader RTC full conformance or real deployed route acceptance.
+
+## #84 — read-only schema parity with actual HTTPS execution
+
+The RTC tool metadata now describes the existing guarded result-shaping `fields`
+(comma-separated dotted selector, max 512) and `detail` (`summary`/`full`)
+arguments for reads, just as the standalone MCP metadata does. Every write
+metadata schema is unchanged; the HTTPS allowlist remains restricted to three
+non-provider metadata reads. Registry and real-handler tests confirm listing
+and describe metadata. This is offline subset correctness, not full RTC
+conformance or real Hub direct/relay/Sandbox acceptance.
