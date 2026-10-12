@@ -68,6 +68,24 @@ describe('D-3 guarded compute spend',()=>{
    autoscaling_limit_min_cu:0.25,autoscaling_limit_max_cu:0.5});
   fake.assertClean();
  });
+ it('never confirms compute creation against a stale or cross-project readback',async()=>{
+  for(const override of [{id:'ep-fake-other-0003'},{project_id:'proj-fake-other-003'}]){
+   const {fake,handlers}=make();
+   const endpoint=devEndpoint({type:'read_only',
+    autoscaling_limit_min_cu:0.25,autoscaling_limit_max_cu:0.5});
+   withProject(fake);
+   fake.when('getProjectBranch').resolves(responses.getProjectBranch('dev'));
+   fake.when('listProjectBranchEndpoints').resolves({endpoints:[]});
+   fake.when('createProjectEndpoint').resolves({endpoint,operations:[]});
+   fake.when('getProject').resolves({project:project()});
+   fake.when('getProjectEndpoint').resolves({endpoint:devEndpoint({...endpoint,...override})});
+   const out=parse(await handlers.neon_compute_create({branchId:IDS.dev,
+    type:'read_only',minCu:0.25,maxCu:0.5,confirm:true},{}));
+   expect(out.confirmed).toBe(false);
+   expect(fake.calls.filter(c=>c.method==='POST')).toHaveLength(1);
+   fake.assertClean();
+  }
+ });
  it('refuses a second read-write endpoint on a branch',async()=>{
   const {fake,handlers}=make();
   withProject(fake);
