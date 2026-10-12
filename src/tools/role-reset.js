@@ -18,7 +18,7 @@ const reset=defineWrite({name:'neon_role_reset_password',secret:true,access:true
     '; existing apps and connection strings using this role will stop working when Neon applies it. '+
     'Update every dependent configuration; individual consumers are not independently enumerated'};
  },
- apply:async(a,c,{requestKey:key})=>{
+ apply:async(a,c,{requestKey:key,before})=>{
   const t=await existingRole(a,c);
   const reply=await call(t.client,'resetProjectBranchRolePassword',{
    path:{...t.path,role_name:a.roleName}
@@ -28,15 +28,26 @@ const reset=defineWrite({name:'neon_role_reset_password',secret:true,access:true
   if(role?.branch_id!==t.bid||role.name!==a.roleName||
      typeof role.password!=='string'||!role.password)
    return {confirmed:'pending'};
+  // A response carrying a new password is not proof that Neon applied it.
+  // Keep uncertain rotations PENDING without persisting an unusable secret.
+  if(reply.operations?.length){
+   const done=await waitForOperations(t.client,t.pid,reply.operations,{budgetMs:15000});
+   if(done.confirmed!==true)
+    return {confirmed:'pending',operations:done.operations};
+  }
+  const checked=(await projectRead(t.client,'getProjectBranchRole',{
+   path:{...t.path,role_name:a.roleName}}))?.role;
+  if(checked?.name!==a.roleName||checked.branch_id!==t.bid||
+      checked.protected===true||
+      typeof checked.updated_at!=='string'||
+      !Number.isFinite(Date.parse(checked.updated_at))||
+      !(Date.parse(checked.updated_at)>Date.parse(before.updatedAt)))
+   return {confirmed:'pending',operations:reply.operations||[]};
   const secret=await checkSecretStorage(c).putOneTimeSecret({
    org:c.connection.neonOrg,kind:'role_password',
    label:'Rotated role '+a.roleName,secret:role.password});
   c.roleSecretLink=secret.link;
-  if(reply.operations?.length){
-   const done=await waitForOperations(t.client,t.pid,reply.operations,{budgetMs:15000});
-   return {confirmed:done.confirmed===true?true:'pending',operations:done.operations};
-  }
-  return {confirmed:true,operations:[]};
+  return {confirmed:true,operations:reply.operations||[]};
  },
  readAfter:async(a,c)=>{
   const t=await roleBranch(a,c);
