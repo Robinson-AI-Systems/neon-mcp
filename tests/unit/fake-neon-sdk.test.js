@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { createNeonClient } from '@neon/sdk';
 import { createProjectBranch, getProject } from '@neon/sdk/raw';
 import { makeFakeNeon } from '../../test/helpers/fake-neon.js';
+import { call, makeNeonClient } from '../../src/neon/client.js';
 import * as fx from '../../test/helpers/neon-fixtures.js';
 
 const client = (fake) => createNeonClient({ apiKey: 'napi_FAKE_sdk_test_key', fetch: fake.fetch, retries: 0 }).client;
@@ -43,4 +44,23 @@ describe('fake Neon behind @neon/sdk raw functions', () => {
     const second = await getProject({ client: client(fake), path: { project_id: fx.IDS.project } });
     expect(second.data.project.id).toBe(fx.IDS.project);
   });
+  it('routes SDK raw-missing branch recovery through the configured low-level client', async () => {
+    const fake = makeFakeNeon();
+    fake.when('recoverProjectBranch').resolves({
+      branch: fx.devBranch(), endpoints: [fx.devEndpoint()]
+    });
+    const scoped = makeNeonClient({ key: 'napi_FAKE_branch_recovery',
+      orgId: fx.IDS.org, fetch: fake.fetch,
+      budget: { async consume(){ return { allowed:true }; } } });
+    const result = await call(scoped, 'recoverProjectBranch', {
+      path: { project_id: fx.IDS.project, branch_id: fx.IDS.dev }
+    }, { write:true, requestKey:'rmcp_fake_recover_123456789' });
+    expect(result.error).toBeUndefined();
+    expect(result.confirmed).toBe(true);
+    expect(result.data.branch.id).toBe(fx.IDS.dev);
+    expect(fake.calls).toMatchObject([{operationId:'recoverProjectBranch',
+      method:'POST',auth:true,path:`/projects/${fx.IDS.project}/branches/${fx.IDS.dev}/recover`}]);
+    fake.assertClean();
+  });
+
 });

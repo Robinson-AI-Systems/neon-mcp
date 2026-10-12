@@ -129,3 +129,5 @@ plugin (or `gh api`) to inspect and change repository branches and PRs, then obt
 checks from GitHub Actions. REST does not itself run local tests; never claim local validation, bypass CI, commit to
 `main`, skip self-review or weaken production/spending/approval restrictions. Current procedure lives in
 `AGENTS.md`, `docs/SESSION-START.md` §6 and `docs/PLAYBOOK.md` Step 4.
+
+**2026-10-11 — D-2 beta branch recovery SDK compatibility:** The vendored Neon API includes POST branch recover, but pinned @neon/sdk 7.0.1 omits the generated raw recoverProjectBranch export. Keep the approved recovery behavior behind src/neon/client.js only: use the official SDK client's own POST method with one literal path template copied from the vendored API, its existing authenticated client, shared budget, error rules and write-uncertainty handling. No handwritten HTTP client, concatenated endpoint, automatic unsafe replay or authorization bypass. Fake-Neon validates the full request/response. If the SDK later exports the raw operation, use it without changing the public tool contract.
