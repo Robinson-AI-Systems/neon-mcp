@@ -36,6 +36,8 @@ function validateCreateOptions(a){
  }
  if(a.protected!==undefined&&typeof a.protected!=='boolean')
   throw Error('Protected must be boolean');
+ if(a.protected===true&&a.expiresAt!==undefined)
+  throw Error('Protected branches cannot expire');
  if(a.computeType!==undefined){
   if(!['read_write','read_only'].includes(a.computeType)||
      ![a.minCu,a.maxCu].every(n=>typeof n==='number'&&Number.isFinite(n)&&n>=0.25&&n<=16)||
@@ -143,6 +145,8 @@ const create=defineWrite({name:'neon_branch_create',
  verify:(before,after,a)=>after?.branch?.name===before.name&&
   (a.schemaOnly===true?after.branch.parent_id==null:
    after.branch.parent_id===a.parentBranchId)&&after.branch.default!==true&&
+  (a.parentLsn===undefined||after.branch.parent_lsn===a.parentLsn)&&
+  (a.parentTimestamp===undefined||after.branch.parent_timestamp===a.parentTimestamp)&&
   (a.expiresAt===undefined||after.branch.expires_at===a.expiresAt)&&
   (a.protected===undefined||after.branch.protected===a.protected)&&
   (!before.compute||(after.computes.length===1&&
