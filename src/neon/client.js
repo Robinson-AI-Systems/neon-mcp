@@ -59,7 +59,18 @@ export function makeNeonClient({ key, orgId, budget, fetch, baseUrl, sleep = DEF
     url: '/projects/{project_id}/jwks',
     path, headers: { Authorization: 'Bearer ' + key }
   });
-  return Object.freeze({ sdk, orgId, budget, sleep, recoverBranch, getProjectJWKS });
+  // Two beta JWKS mutation routes are absent from some SDK 7.0.1 raw exports.
+  // Keep literal vendor-pinned paths, auth, budget and non-replay semantics here.
+  const addProjectJWKS = (path, body) => sdk.post({
+    url: '/projects/{project_id}/jwks', path, body,
+    headers: { Authorization: 'Bearer ' + key }
+  });
+  const deleteProjectJWKS = path => sdk.delete({
+    url: '/projects/{project_id}/jwks/{jwks_id}', path,
+    headers: { Authorization: 'Bearer ' + key }
+  });
+  return Object.freeze({ sdk, orgId, budget, sleep, recoverBranch, getProjectJWKS,
+    addProjectJWKS, deleteProjectJWKS });
 }
 
 function safeError(error, fallbackStatus) {
@@ -95,11 +106,18 @@ export async function call(client, operationId, params = {}, {
     typeof raw.recoverProjectBranch !== 'function';
   const jwksRead = operationId === 'getProjectJWKS' &&
     typeof raw.getProjectJWKS !== 'function';
-  if (!recoverBranch && !jwksRead && typeof raw[operationId] !== 'function')
+  const jwksAdd = operationId === 'addProjectJWKS' &&
+    typeof raw.addProjectJWKS !== 'function';
+  const jwksDelete = operationId === 'deleteProjectJWKS' &&
+    typeof raw.deleteProjectJWKS !== 'function';
+  if (!recoverBranch && !jwksRead && !jwksAdd && !jwksDelete &&
+      typeof raw[operationId] !== 'function')
     throw new Error('Neon operation is not supported by the pinned SDK.');
   if (!client?.sdk || typeof client?.budget?.consume !== 'function' ||
       (recoverBranch && typeof client.recoverBranch !== 'function') ||
-      (jwksRead && typeof client.getProjectJWKS !== 'function'))
+      (jwksRead && typeof client.getProjectJWKS !== 'function') ||
+      (jwksAdd && typeof client.addProjectJWKS !== 'function') ||
+      (jwksDelete && typeof client.deleteProjectJWKS !== 'function'))
     throw new TypeError('Invalid Neon client');
   if (write && (typeof key !== 'string' || !key)) throw new TypeError('Writes require a request key');
   const deadline = Date.now() + Math.max(0, Math.min(45000, budgetMs));
@@ -112,7 +130,11 @@ export async function call(client, operationId, params = {}, {
         ? await client.recoverBranch(params.path)
         : jwksRead
           ? await client.getProjectJWKS(params.path)
-          : await raw[operationId]({ client: client.sdk, ...params });
+          : jwksAdd
+            ? await client.addProjectJWKS(params.path, params.body)
+            : jwksDelete
+              ? await client.deleteProjectJWKS(params.path)
+              : await raw[operationId]({ client: client.sdk, ...params });
     } catch (error) {
       result = { error };
     }

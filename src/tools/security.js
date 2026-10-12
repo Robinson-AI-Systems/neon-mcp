@@ -22,7 +22,7 @@ function safeJwksUrl(raw){
    jwksUrl:safe?u.href:null,urlRedacted:!safe};
  }catch{throw Error('JWKS URL could not be parsed safely');}
 }
-function verifiedEntries(data,projectId){
+export function verifiedEntries(data,projectId){
  if(!Array.isArray(data?.jwks)||data.jwks.length>100||
       data.pagination?.cursor)
   throw Error('Complete bounded JWKS trust inventory unavailable');
