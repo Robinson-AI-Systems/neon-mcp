@@ -97,9 +97,13 @@ export function createRtcHttpHandlers({db,registry,env=process.env}={}){
         limit=Number(q.limit);
       else return error(res,'invalid_args',400);
       try{
-        const visible=rtcCatalog(registry,connection,{
-          q:q.q,area:q.area,audience:q.audience,listing:q.listing,limit},env)
-          .filter(t=>rtcNonproductionTool(t.name));
+        // Filter to genuinely callable RTC tools before discovery pagination.
+        // Filtering after limit would silently hide valid read-only tools.
+        const scoped={tools:registry.tools.filter(t=>
+          rtcNonproductionTool(t.name)&&t.writes===false&&
+          t.profiles?.includes(connection.profile))};
+        const visible=rtcCatalog(scoped,connection,{
+          q:q.q,area:q.area,audience:q.audience,listing:q.listing,limit},env);
         return send(res,200,{ok:true,result:{tools:visible,
           count:visible.length,next:null,listing:q.listing||connection.listing}});
       }catch{return error(res,'invalid_args',400);}
