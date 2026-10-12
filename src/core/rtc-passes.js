@@ -41,7 +41,7 @@ export async function issueReadOnlyRtcPass({db,exchange,env=process.env,
 }
 const refuse=(res,code,status,headers={})=>{
   for(const [k,v] of Object.entries(headers))res.setHeader(k,v);
-  const error=rtcError(code,{status});return send(res,status,error.body);
+  const error=rtcError(code,{status});send(res,status,error.body);return null;
 };
 export async function requireRtcPass(req,res,db,{now=()=>Date.now()}={}){
   const bearer=String(req.headers?.authorization||'');

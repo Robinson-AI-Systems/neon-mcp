@@ -2,8 +2,8 @@ import {describe,it,expect} from 'vitest';
 import {issueReadOnlyRtcPass,requireRtcPass,rtcNonproductionTool,
   RTC_PASS_PATTERN} from '../../src/core/rtc-passes.js';
 
-const env={PUBLIC_BASE_URL:'https://neon.example.test',
-  TOKEN_ENCRYPTION_KEY:Buffer.alloc(32,47).toString('base64url')};
+const fakeKey=Buffer.alloc(32,47).toString('base64url');
+const env={PUBLIC_BASE_URL:'https://neon.example.test',TOKEN_ENCRYPTION_KEY:fakeKey};
 const response=()=>({headers:{},setHeader(k,v){this.headers[k]=v;return this;},
   status(s){this.code=s;return this;},send(data){this.body=JSON.parse(data);return this;}});
 const row={client_id:'rtc_'+ 'A'.repeat(16),neon_org:'org-fake-one',

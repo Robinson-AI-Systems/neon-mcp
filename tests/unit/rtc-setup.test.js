@@ -2,8 +2,9 @@ import {describe,it,expect} from 'vitest';
 import {createFakeDb} from '../../test/helpers/fake-db.js';
 import {createOneTimeSecrets} from '../../src/core/one-time.js';
 import {createSetupHandler} from '../../api/neon/setup.js';
+const fakeKey=Buffer.alloc(32,16).toString('base64url');
 const env={PUBLIC_BASE_URL:'https://neon-mcp.example.test',
-  TOKEN_ENCRYPTION_KEY:Buffer.alloc(32,16).toString('base64url'),
+  TOKEN_ENCRYPTION_KEY:fakeKey,
   ADMIN_PASSPHRASE:'FAKE_owner_password',VERCEL_ENV:'preview',RTC1_ENABLED:'1'};
 function res(){return {headers:{},statusCode:200,body:'',
   setHeader(k,v){this.headers[k]=v;return this;},

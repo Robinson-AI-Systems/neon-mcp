@@ -63,3 +63,5 @@ replay/revocation, owner cross-origin/passphrase denials and 61 overlapping
 budget requests across independent instances. This slice alone does **not**
 make the HTTPS tool routes or live Hub acceptance available. RTC remains off
 by default until the next route/conformance gate.
+
+#78 initial CI review correction: a refused bearer must return a null authorization result after sending a generic RTC error response; never return the HTTP response object as an identity. Red-check regression tests exercise actual null refusal, expired/revoked status, and default-deny. Fixture-only encryption keys must not weaken the repository scanner. CI and review must pass at the corrected head before merging.
