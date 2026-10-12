@@ -430,14 +430,18 @@
         "C-2"
       ],
       "card": "docs/pr-cards/D-1.md",
-      "status": "PLANNED",
+      "status": "IN_PROGRESS",
       "migration": "none",
       "budget": 500,
       "units": [
         "D-1"
       ],
       "readiness": "READY",
-      "ownerInputs": []
+      "ownerInputs": [],
+      "pr": [
+        46
+      ],
+      "note": "Three project discovery reads shipped in #46; operation reads and guarded writes remain."
     },
     {
       "id": "D-2",
