@@ -53,7 +53,13 @@ export function makeNeonClient({ key, orgId, budget, fetch, baseUrl, sleep = DEF
     url: '/projects/{project_id}/branches/{branch_id}/recover',
     path, headers: { Authorization: 'Bearer ' + key }
   });
-  return Object.freeze({ sdk, orgId, budget, sleep, recoverBranch });
+  // SDK 7.0.1 omits the read-only JWKS beta operation. Use the same
+  // typed HTTP client and vendored literal template, never an external fetch.
+  const getProjectJWKS = path => sdk.get({
+    url: '/projects/{project_id}/jwks',
+    path, headers: { Authorization: 'Bearer ' + key }
+  });
+  return Object.freeze({ sdk, orgId, budget, sleep, recoverBranch, getProjectJWKS });
 }
 
 function safeError(error, fallbackStatus) {
@@ -87,10 +93,13 @@ export async function call(client, operationId, params = {}, {
   // no hand-built URL, direct fetch or change to retries/admission.
   const recoverBranch = operationId === 'recoverProjectBranch' &&
     typeof raw.recoverProjectBranch !== 'function';
-  if (!recoverBranch && typeof raw[operationId] !== 'function')
+  const jwksRead = operationId === 'getProjectJWKS' &&
+    typeof raw.getProjectJWKS !== 'function';
+  if (!recoverBranch && !jwksRead && typeof raw[operationId] !== 'function')
     throw new Error('Neon operation is not supported by the pinned SDK.');
   if (!client?.sdk || typeof client?.budget?.consume !== 'function' ||
-      (recoverBranch && typeof client.recoverBranch !== 'function'))
+      (recoverBranch && typeof client.recoverBranch !== 'function') ||
+      (jwksRead && typeof client.getProjectJWKS !== 'function'))
     throw new TypeError('Invalid Neon client');
   if (write && (typeof key !== 'string' || !key)) throw new TypeError('Writes require a request key');
   const deadline = Date.now() + Math.max(0, Math.min(45000, budgetMs));
@@ -101,7 +110,9 @@ export async function call(client, operationId, params = {}, {
     try {
       result = recoverBranch
         ? await client.recoverBranch(params.path)
-        : await raw[operationId]({ client: client.sdk, ...params });
+        : jwksRead
+          ? await client.getProjectJWKS(params.path)
+          : await raw[operationId]({ client: client.sdk, ...params });
     } catch (error) {
       result = { error };
     }
