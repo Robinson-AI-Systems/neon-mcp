@@ -39,6 +39,33 @@ GitHub only as git commits pushed to an `ai/*` branch. Never copy source files t
    Start with a cohesive same-area PR and reuse `src/tools/read-descriptors.js` for new scoped reads. Run impacted tests before the complete suite and consolidate known CI failures into one correction. Card missing concrete seams/mappings? Use `implementation-contracts/IMPLEMENTATION-RECIPES.md` routing table;
    B-3 has a worked example. Read only your unit's recipe/route and reconcile its baseline before copying.
 
+## 1a. Choose a concrete batch outcome and re-open resolved blockers
+
+After §0, use the current `docs/STATUS.md` ledger, `docs/pr-cards/work-index.json`,
+`docs/MASTER-ROADMAP.md`, active card and `docs/OWNER-INPUTS.md` to select the
+highest-priority **approved, dependency-eligible capability**. Identify the user-visible
+or developer-visible milestone the next coherent PRs will actually advance.
+List what acceptance still requires: code, meaningful CI/throwaway tests, deployed
+service behavior, and real owner-authorized provider/RTC acceptance are **separate**.
+Do not count documentation or mocks as deployed proof.
+
+For every OPEN/DEFERRED ledger row check (a) exact blocker, (b) evidence or decision
+needed, (c) dependency, (d) precise unblock condition and (e) next action. Inspect
+new owner answers and merge/contract/environment evidence before reasking anything.
+Move cleared items back to the work queue; keep unresolved acceptance marked
+blocked. No dependency bypass: a prospective independent slice must already be
+approved by the index, or receive an explicit owner-approved narrow plan amendment.
+Fix new security/review/CI regressions before taking the next slice.
+
+The normal batch is **five substantive merges**, not five arbitrary PRs. Use
+coherent, suitably sized increments under all existing checks and gates; if fewer
+can be safely merged, stop truthfully at the real blocker. A completed session
+updates the existing status/index/card (not a duplicate workflow file), saves
+a permanent handoff comment on the last merged PR, and produces a short continuation
+prompt containing the checkpoint, current milestone, remaining acceptance, blocked
+items to recheck, next eligible action, and instructions to reuse this same procedure.
+The repository owns the detail; the pasted prompt is an index, not a copy of rules.
+
 ## 2. Never do these without Chris (AGENTS "Hard limits")
 
 A real Neon key or account from tests or scripts (except X-2/X-3 once Chris set them up); any write to a production
