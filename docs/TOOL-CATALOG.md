@@ -131,7 +131,7 @@ D-2/D-3 post-merge security review #62: expiring protected branches are refused 
 | `neon_role_get` | Exact role metadata; privileges shown as unverified until separately authorized SQL | — | Op | R | D-4 (built #65) |
 | `neon_role_create` | New login role; its password only on the one-time page | P S | B Op | E | D-4 (built #68) |
 | `neon_role_create_read_only` | New login role with SELECT on chosen schemas (including future tables); password on the one-time page | C A S | B Ow | F | D-4 (built #72) |
-| `neon_role_delete` | Delete a role (preview lists objects it owns and computes using it) | C D Pr | Op | F | D-4 |
+| `neon_role_delete` | Delete only after exact global PostgreSQL dependencies and independently verified complete compute inventory (private preflight #73–#74; public action pending) | C D Pr | Op | F | D-4 |
 | `neon_role_reset_password` | New password for a role; old one stops working; new one only on the one-time page; preview warns dependent apps | C Pr S | Op | E | D-4 (built #69) |
 
 ## Connections (`neon_connection_*`) — 2
