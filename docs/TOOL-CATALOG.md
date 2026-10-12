@@ -132,7 +132,7 @@ D-2/D-3 post-merge security review #62: expiring protected branches are refused 
 | `neon_role_create` | New login role; its password only on the one-time page | P S | B Op | E | D-4 (built #68) |
 | `neon_role_create_read_only` | New login role with SELECT on chosen schemas (including future tables); password on the one-time page | C A S | B Ow | F | D-4 |
 | `neon_role_delete` | Delete a role (preview lists objects it owns and computes using it) | C D Pr | Op | F | D-4 |
-| `neon_role_reset_password` | New password for a role; old one stops working; new one only on the one-time page; preview says which apps break | C Pr S | Op | E | D-4 |
+| `neon_role_reset_password` | New password for a role; old one stops working; new one only on the one-time page; preview warns dependent apps | C Pr S | Op | E | D-4 (built #69) |
 
 ## Connections (`neon_connection_*`) — 2
 
@@ -354,7 +354,7 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #68 (production-deployment capability listing):** `read_only` 27; `everyday` 35; `full` 59. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
+**Implemented registry at #69 (production-deployment capability listing):** `read_only` 27; `everyday` 35; `full` 60. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
 
 ## Totals
 
