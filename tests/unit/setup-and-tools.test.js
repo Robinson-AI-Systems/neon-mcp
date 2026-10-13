@@ -35,6 +35,25 @@ function fixture() {
   return {db,events,exchange,handler:createSetupHandler({db,vault,exchange,env})};
 }
 describe('owner-only setup route',()=>{
+  it('permits only the exact rendered stylesheet and preserves browser form origin',async()=>{
+    const {handler}=fixture();
+    const page=await invoke(handler,req('GET'));
+    const css=page.body.match(/<style>([\s\S]*?)<\/style>/)[1];
+    const hash=createHash('sha256').update(css).digest('base64');
+    expect(page.headers['Referrer-Policy']).toBe('strict-origin');
+    expect(page.headers['Content-Security-Policy']).toBe(
+      `default-src 'none'; style-src 'sha256-${hash}'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'`);
+    // Null/missing/foreign origins remain denied before credential processing.
+    for(const origin of [undefined,'null','https://foreign.example.test']){
+      const denied=await invoke(handler,req('POST',{action:'list_keys',orgId:'org-fake-one',
+        passphrase:env.ADMIN_PASSPHRASE},{origin}));
+      expect(denied.statusCode).toBe(403);
+      expect(denied.body).toContain('invalid_origin');
+    }
+    const accepted=await invoke(handler,req('POST',{action:'list_keys',orgId:'org-fake-one',
+      passphrase:env.ADMIN_PASSPHRASE},{origin:env.PUBLIC_BASE_URL}));
+    expect(accepted.statusCode).toBe(200);
+  });
   it('renders guided stacked credential fields without changing form names or prefilling secrets',async()=>{
     const {handler}=fixture();
     const page=await invoke(handler,req('GET'));
