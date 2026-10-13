@@ -3,7 +3,7 @@ import {makeFakeNeon} from '../../test/helpers/fake-neon.js';
 import {makeNeonClient} from '../../src/neon/client.js';
 import {IDS,AT,project,mainBranch,devBranch,mainEndpoint,devEndpoint} from '../../test/helpers/neon-fixtures.js';
 import {projectScope} from '../../src/tools/project-context.js';
-import {createSecurityReadHandlers,tools,observedAuditLevel,verifiedReplicationExposure,configuredIssuerCoverage} from '../../src/tools/security.js';
+import {createSecurityReadHandlers,tools,observedAuditLevel,verifiedReplicationExposure,configuredIssuerCoverage,verifiedEntries} from '../../src/tools/security.js';
 
 const ctx={connection:{neonOrg:IDS.org,projectScope:IDS.project,profile:'read_only'}};
 const row={id:'jwks-fake-000001',project_id:IDS.project,
@@ -251,5 +251,42 @@ describe('D-8 independently verified project-security overview',()=>{
   await expect(f.handler({},ctx)).rejects.toThrow(/allowance/);
   expect(f.fake.calls.every(x=>x.method==='GET')).toBe(true);
   f.fake.assertClean();
+ });
+});
+
+describe('D-8 fail-closed security provider metadata',()=>{
+ it('refuses malformed JWT audience and duplicate configured role grants',()=>{
+  for(const entry of [
+   {...row,role_names:['authenticated','authenticated']},
+   {...row,jwt_audience:123},
+   {...row,jwt_audience:[]},
+   {...row,jwt_audience:'x'.repeat(2049)}
+  ])expect(()=>verifiedEntries({jwks:[entry]},IDS.project))
+    .toThrow(/JWKS identity/);
+  expect(verifiedEntries({jwks:[{...row,jwt_audience:'example-audience'}]},
+    IDS.project)[0].jwtAudienceConfigured).toBe(true);
+ });
+ it('distinguishes missing IP scope from explicitly all-branch scope',async()=>{
+  const f=review({projectRow:project({settings:{allowed_ips:{
+   ips:['192.0.2.1','2001:db8::/64']}}})});
+  const out=json(await f.handler({},ctx));
+  expect(out.checks.ipAllowlist).toEqual({state:'observed',addressCount:2,
+   protectedBranchesOnly:null});
+  expect(f.fake.calls.every(x=>x.method==='GET')).toBe(true);
+  f.fake.assertClean();
+ });
+ it('refuses invalid addresses, duplicates and unknown provider allowlist restrictions',async()=>{
+  for(const value of [
+   {ips:['not-an-ip'],protected_branches_only:true},
+   {ips:['192.0.2.1','192.0.2.1'],protected_branches_only:false},
+   {ips:['192.0.2.0/33'],protected_branches_only:true},
+   {ips:['192.0.2.1'],protected_branches_only:true,managedByProvider:true},
+   {ips:['2001:db8::/129'],protected_branches_only:true}
+  ]){
+   const f=review({projectRow:project({settings:{allowed_ips:value}})});
+   await expect(f.handler({},ctx)).rejects.toThrow(/allowance/);
+   expect(f.fake.calls.every(x=>x.method==='GET')).toBe(true);
+   f.fake.assertClean();
+  }
  });
 });
