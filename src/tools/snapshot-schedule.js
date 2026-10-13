@@ -71,7 +71,7 @@ const write=defineWrite({
  name:'neon_snapshot_set_schedule',destructive:true,
  plan:async(a,c)=>{
   const before=await inventory(a,c);
-  const after=reduced(a,before);
+  reduced(a,before);
   return {target:'branch:'+before.branchId,projectId:before.projectId,
    branchId:before.branchId,before,
    summary:'Shorten existing '+a.frequency+' snapshot retention on unprotected development branch '+

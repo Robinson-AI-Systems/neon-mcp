@@ -85,7 +85,7 @@ describe('D-7 strictly reducing automatic snapshot retention',()=>{
    [original,{...input,retentionSeconds:604800}],
    [original,{...input,retentionSeconds:9999999}],
    [original,{...input,frequency:'monthly'}],
-   [[{...original[0],retention_seconds:undefined},original[1]],input],
+   [[{frequency:'daily',hour:4},original[1]],input],
    [[{...original[0],new_field:'unknown'},original[1]],input],
    [[original[0],original[0]],input],
    [[],input]]){
