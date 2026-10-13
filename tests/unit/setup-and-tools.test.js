@@ -7,6 +7,7 @@ import {configuredSelfResource} from '../../src/core/self-resource.js';
 import { createOAuthHandlers } from '../../src/core/oauth-handlers.js';
 import { dispatchReadOnlyTool } from '../../src/core/mcp-server.js';
 import { registry } from '../../src/tools/index.js';
+import {KeySetupError} from '../../src/neon/keys.js';
 
 const fakeKey=n=>Buffer.alloc(32,n).toString('base64url');
 const env={PUBLIC_BASE_URL:'https://neon-mcp.example.test',
@@ -35,6 +36,23 @@ function fixture() {
   return {db,events,exchange,handler:createSetupHandler({db,vault,exchange,env})};
 }
 describe('owner-only setup route',()=>{
+  it('shows only allowlisted enrollment diagnostics and keeps arbitrary errors private',async()=>{
+    const db=createFakeDb();
+    let error=new KeySetupError('project_probe_failed',403);
+    const vault={storeKey:async()=>{throw error;}};
+    const handler=createSetupHandler({db,vault,exchange:{},env});
+    const input=req('POST',{action:'add_key',orgId:'org-fake-one',projectId:'proj-fake-one',
+      kind:'project',key:'napi_FAKE_private_payload',passphrase:env.ADMIN_PASSPHRASE},
+    {origin:env.PUBLIC_BASE_URL});
+    const known=await invoke(handler,input);
+    expect(known.statusCode).toBe(400);
+    expect(known.body).toContain('project_probe_failed / Neon HTTP 403');
+    expect(known.body).not.toContain('napi_FAKE_private_payload');
+    error=new Error('napi_FAKE_private_payload');
+    const unknown=await invoke(handler,input);
+    expect(unknown.body).toContain('Action unsuccessful');
+    expect(unknown.body).not.toContain(error.message);
+  });
   it('permits only the exact rendered stylesheet and preserves browser form origin',async()=>{
     const {handler}=fixture();
     const page=await invoke(handler,req('GET'));

@@ -2,11 +2,43 @@ import { expect,it } from 'vitest';
 import { createFakeDb } from '../../test/helpers/fake-db.js';
 import { makeFakeNeon } from '../../test/helpers/fake-neon.js';
 import * as fx from '../../test/helpers/neon-fixtures.js';
-import { createKeyVault } from '../../src/neon/keys.js';
+import { createKeyVault,keySetupMessage,KeySetupError } from '../../src/neon/keys.js';
 
 const fakeKey=(n)=>Buffer.alloc(32,n).toString('base64url');
 const env={TOKEN_ENCRYPTION_KEY:fakeKey(23),VERCEL_ENV:'preview'};
 const key='napi_FAKE_abcdefghijklmnopqrstuvw';
+it('reports safe authentication stage and status without returning provider secrets',async()=>{
+  const db=createFakeDb();
+  const vault=createKeyVault({db,env,fetch:async()=>new Response(JSON.stringify({
+    code:'FORBIDDEN',message:'Bearer '+key+' raw private provider details'
+  }),{status:403,headers:{'content-type':'application/json'}})});
+  let failure;
+  try{await vault.storeKey({orgId:fx.IDS.org,kind:'project',projectId:fx.IDS.project,key});}
+  catch(error){failure=error;}
+  expect(failure).toBeInstanceOf(KeySetupError);
+  expect(keySetupMessage(failure)).toContain('authentication_failed / Neon HTTP 403');
+  expect(keySetupMessage(failure)).not.toContain(key);
+  expect(keySetupMessage(failure)).not.toContain('raw private');
+  expect(await vault.listKeys(fx.IDS.org)).toEqual([]);
+  expect(keySetupMessage(new Error(key))).toBeNull();
+});
+it('separates encryption and storage failures and permits adding after stored revocation',async()=>{
+  const {db,vault,fake}=fixture();
+  const missing=createKeyVault({db,env:{VERCEL_ENV:'preview'},fetch:fake.fetch});
+  await expect(missing.storeKey({orgId:fx.IDS.org,kind:'project',projectId:fx.IDS.project,key}))
+    .rejects.toMatchObject({code:'encryption_unavailable'});
+  expect(fake.calls).toHaveLength(0);
+  const original=await vault.storeKey({orgId:fx.IDS.org,kind:'project',projectId:fx.IDS.project,key});
+  expect(await vault.revokeKey({orgId:fx.IDS.org,id:original.id})).toBe(true);
+  const replacement=await vault.storeKey({orgId:fx.IDS.org,kind:'project',projectId:fx.IDS.project,key});
+  expect(replacement.id).not.toBe(original.id);
+  db.saveEncryptedNeonKey=async()=>{throw Object.assign(new Error(key),{code:'23505'});};
+  await expect(vault.storeKey({orgId:fx.IDS.org,kind:'project',projectId:fx.IDS.project,key}))
+    .rejects.toMatchObject({code:'duplicate_key'});
+  db.saveEncryptedNeonKey=async()=>{throw new Error(key);};
+  await expect(vault.storeKey({orgId:fx.IDS.org,kind:'project',projectId:fx.IDS.project,key}))
+    .rejects.toMatchObject({code:'storage_failed'});
+});
 function fixture(){
   const fake=makeFakeNeon();
   fake.when('getAuthDetails').resolves({account_id:'fake-owner',auth_method:'api_key_user'});
