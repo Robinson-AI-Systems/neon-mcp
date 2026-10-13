@@ -1,5 +1,17 @@
 # Current outcome and acceptance ledger (2026-10-12; #97–#99 merged, #100 implementation)
 
+## Current gateway recovery disposition — 2026-10-12
+
+Owner requested cross-repository architecture/planning correction. Prioritize independently usable provider tools
+and existing approved RTC/isolation acceptance; do not wait for K-3 publication or force internal code adoption.
+Hub agent owns fixed broker surface, registry, routing, grant mapping, cache, forwarding audit and scale testing.
+This service agent owns authenticated RTC/mode/resource isolation, original direct-MCP parity and safe deployed
+read/denial/revocation evidence. A public manifest, reference conformance or private-core rehearsal is not proof
+of actual hosted acceptance. Full provider roadmap and existing external gates remain; no card is closed here.
+Next: reconcile current implementation/concurrency and existing RTC acceptance gaps, obtain exact deployed
+revision and authorized short-lived read_only non-production pass securely, and run the supported harmless read
+and denials through Hub when available. Never alias preview to TEST without real isolation or expose credentials.
+
 **Active capability:** owner-guarded project security and independent D-7 snapshot safeguards. #91 implements public/VPC restriction,
 #92 implements Scale-plan IP allowance and #93 implements scoped JWKS trust/revocation.
 #94 fixes the JWKS protection race; #95 verifies current Scale entitlement via Neon's

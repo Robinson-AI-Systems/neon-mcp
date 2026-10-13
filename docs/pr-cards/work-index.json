@@ -536,7 +536,7 @@
         86,
         88
       ],
-      "note": "D-4 scoped reads #65, guarded database lifecycle #67, role create/reset #68–#69, connection metadata/one-time delivery #70, transactional read-only grants #71–#72, role dependency probes #73–#74, SQL/contract security corrections #75. #76 strengthens PostgreSQL dependency evidence: strict integer/OID/reference validation, verified READ ONLY transaction and stable two-sample activity. Public role delete deliberately unregistered: independent idle PgBouncer client proof unavailable; no live scratch or production acceptance. Do not advance D-5 or claim pooled-client clearance. #83 closes a private compute-reread race: require type=read_write at second independent GET, not just initial inventory; type changes abort before SQL. Pooled-client proof and public deletion remain blocked. #85 hardens private deletion proof by refusing duplicate compute IDs, database names and role names before SQL; no role delete publication, pooled-client clearance or live acceptance. #86 only encrypts/delivers a read-only role password after successful grant evidence; grant or delivery uncertainty remains pending with no automatic retry. Pooled clients unverified. #88 defers ordinary role create/reset password handoffs until operations and provider role/revision readback; uncertain results PENDING, no secret handoff."
+      "note": "D-4 scoped reads #65, guarded database lifecycle #67, role create/reset #68\u2013#69, connection metadata/one-time delivery #70, transactional read-only grants #71\u2013#72, role dependency probes #73\u2013#74, SQL/contract security corrections #75. #76 strengthens PostgreSQL dependency evidence: strict integer/OID/reference validation, verified READ ONLY transaction and stable two-sample activity. Public role delete deliberately unregistered: independent idle PgBouncer client proof unavailable; no live scratch or production acceptance. Do not advance D-5 or claim pooled-client clearance. #83 closes a private compute-reread race: require type=read_write at second independent GET, not just initial inventory; type changes abort before SQL. Pooled-client proof and public deletion remain blocked. #85 hardens private deletion proof by refusing duplicate compute IDs, database names and role names before SQL; no role delete publication, pooled-client clearance or live acceptance. #86 only encrypts/delivers a read-only role password after successful grant evidence; grant or delivery uncertainty remains pending with no automatic retry. Pooled clients unverified. #88 defers ordinary role create/reset password handoffs until operations and provider role/revision readback; uncertain results PENDING, no secret handoff."
     },
     {
       "id": "D-5",
@@ -1154,5 +1154,19 @@
         "IN-06"
       ]
     }
-  ]
+  ],
+  "gatewayBoundary": {
+    "sharedCoreAdoption": "OPTIONAL_NOT_REQUIRED_FOR_RTC",
+    "serviceOwnership": [
+      "direct MCP",
+      "provider credentials",
+      "canonical schemas",
+      "guarded execution",
+      "durable state",
+      "approval",
+      "results"
+    ],
+    "gatewayOwnership": "Hub broker/routing/grant mapping; separately issued scoped service pass",
+    "acceptance": "Existing service-owned isolation and deployed TEST route/denial/revocation gates remain OPEN"
+  }
 }

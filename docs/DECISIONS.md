@@ -131,3 +131,11 @@ checks from GitHub Actions. REST does not itself run local tests; never claim lo
 `AGENTS.md`, `docs/SESSION-START.md` §6 and `docs/PLAYBOOK.md` Step 4.
 
 **2026-10-11 — D-2 beta branch recovery SDK compatibility:** The vendored Neon API includes POST branch recover, but pinned @neon/sdk 7.0.1 omits the generated raw recoverProjectBranch export. Keep the approved recovery behavior behind src/neon/client.js only: use the official SDK client's own POST method with one literal path template copied from the vendored API, its existing authenticated client, shared budget, error rules and write-uncertainty handling. No handwritten HTTP client, concatenated endpoint, automatic unsafe replay or authorization bypass. Fake-Neon validates the full request/response. If the SDK later exports the raw operation, use it without changing the public tool contract.
+
+## 2026-10-12 — owner-requested independent server / universal gateway planning repair
+
+RTC external interoperability is independent of shared internal implementation. Hub owns compact broker,
+routing and grant mapping; this service owns provider credentials, canonical tools, state and guarded dispatch.
+Core adoption is optional and separately gated; do not require K-3 for RTC/Hub acceptance or reduce standalone
+capability for common code. Existing source/fake/deployed/real evidence and every owner/CI/release gate remain.
+This explicit docs/planning request permits this focused documentation PR; routine cadence remains unchanged.
