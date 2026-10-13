@@ -180,6 +180,31 @@ describe('RTC 1 read-only HTTPS route interop against hub contract',()=>{
     expect((await run(wrong,req('GET','results',{handle}))).statusCode).toBe(404);
     expect(f.calls.stored).toBe(1);
   });
+  it('maps a rejected oversized-result write to safe RTC service errors without a secret or partial batch',async()=>{
+    const marker='napi_FAKE_STORAGE_FAILURE_NOT_PUBLIC';
+    let attempts=0;
+    const fakeKeys=Array.from({length:160},(_,i)=>({
+      kind:'project',project_id:'proj-fake-'+i+'-'.repeat(60),
+      last4:'FAKE',revoked_at:null
+    }));
+    const f=fixture({
+      async listNeonKeySummaries(){return fakeKeys;},
+      async saveResultHandle(){attempts++;await Promise.resolve();throw new Error(marker);}
+    });
+    const single=await run(f,req('POST','tools',{name:'neon_whoami'},{detail:'full'}));
+    expect(single.statusCode).toBe(503);
+    expect(single.body.error.code).toBe('service_error');
+    expect(JSON.stringify(single.body)).not.toContain(marker);
+    const batch=await run(f,req('POST','tools',{name:'_batch'},{calls:[
+      {name:'neon_whoami',args:{detail:'full'}},
+      {name:'neon_get_settings',args:{}}
+    ]}));
+    expect(batch.statusCode).toBe(503);
+    expect(batch.body.error.code).toBe('service_error');
+    expect(batch.body.result).toBeUndefined();
+    expect(JSON.stringify(batch.body)).not.toContain(marker);
+    expect(attempts).toBe(2);
+  });
   it('rejects OAuth bearers, revoked RTC passes and shared-rate-limit failures',async()=>{
     const f=fixture();
     const oauth=await run(f,req('GET','whoami',{},undefined,'oauth123'));

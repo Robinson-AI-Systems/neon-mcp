@@ -73,7 +73,7 @@ export async function dispatchReadOnlyTool({ registry, name, args, connection, d
   if (typeof handler !== 'function') {
     return {isError:true,content:[{type:'text',text:'Tool unavailable'}]};
   }
-  try { return safeMcpResult(await handler(args || {},{connection,db,env,registry}),{args:args||{},tool:item,db,connection}); }
+  try { return await safeMcpResult(await handler(args || {},{connection,db,env,registry}),{args:args||{},tool:item,db,connection}); }
   catch {
     return {isError:true,content:[{type:'text',text:'Could not read account details; check server setup'}]};
   }

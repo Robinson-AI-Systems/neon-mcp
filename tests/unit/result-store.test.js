@@ -53,3 +53,38 @@ it('buffers through the actual MCP dispatcher and never returns more than 8 KB',
  expect(db.saved).toHaveLength(1);
  expect(JSON.stringify(db.saved)).not.toContain('FAKE_SECRET_MUST_HIDE');
 });
+
+it('sanitizes an asynchronous result-store failure inside the actual MCP dispatcher',async()=>{
+  const marker='napi_FAKE_STORAGE_EXCEPTION_NOT_FOR_CLIENT';
+  let stored=0;
+  const db={async saveResultHandle(){
+    stored++;await Promise.resolve();throw new Error(marker);
+  }};
+  const registry={tools:[{name:'neon_storage_read',writes:false,profiles:['read_only']}],
+    handlers:{neon_storage_read:async()=>({content:[{type:'text',text:JSON.stringify({
+      records:Array.from({length:160},(_,i)=>({id:i,note:'z'.repeat(150)}))
+    })}]})}};
+  const response=await dispatchReadOnlyTool({registry,name:'neon_storage_read',
+    connection,db,env:{VERCEL_ENV:'production'},args:{detail:'full'}});
+  expect(stored).toBe(1);
+  expect(response).toEqual({isError:true,content:[{type:'text',
+    text:'Could not read account details; check server setup'}]});
+  expect(JSON.stringify(response)).not.toContain(marker);
+});
+
+it('turns result-size and projection errors into stable MCP failures without storage or leaks',async()=>{
+  const marker='napi_FAKE_SHOULD_NOT_REACH_CLIENT';
+  const registry={tools:[{name:'neon_guarded_read',writes:false,profiles:['read_only']}],
+    handlers:{neon_guarded_read:async()=>({content:[{type:'text',text:JSON.stringify({
+      entries:Array.from({length:25},()=>({value:'x'.repeat(100000)})),api_key:marker
+    })}]})}};
+  const db={async saveResultHandle(){throw Error('Must not save oversized results');}};
+  for(const args of [{detail:'full'},{fields:'__proto__.constructor'}]){
+    const response=await dispatchReadOnlyTool({registry,name:'neon_guarded_read',
+      connection,db,env:{VERCEL_ENV:'production'},args});
+    expect(response.isError).toBe(true);
+    expect(response.content).toEqual([{type:'text',
+      text:'Could not read account details; check server setup'}]);
+    expect(JSON.stringify(response)).not.toContain(marker);
+  }
+});

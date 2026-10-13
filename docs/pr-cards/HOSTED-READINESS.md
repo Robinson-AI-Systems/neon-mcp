@@ -25,4 +25,4 @@ OFF until its owner/resource-isolation contracts hold. Hub optional; direct OAut
 must remain independently usable. No preview-to-TEST relabel or broad-key fallback.
 
 Reference: https://vercel.com/docs/project-configuration#functions
-Next: protocol/readiness regression and authorized hosted reads after repair release.
+#112: read-only transport result error containment: await the asynchronous scrub/projection/storage result inside dispatch try/catch, preserve the generic denial and service-error shape on single and batch routes. Adversarial tests reject storage after a microtask, deny results over storage cap and invalid projection; assert no provider exception, credential marker or partial batch escapes. No permission/production/RTC mode change. Source/CI do not prove hosted behavior.\n\nNext: verify exact checked #111+ release, public startup routes and separately authorized harmless OAuth read, denial, expiry, revocation. While external acceptance remains gated, advance approved independent D-7/D-8 work.
