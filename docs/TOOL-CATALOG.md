@@ -197,7 +197,7 @@ The SQL guard (`docs/designs/BATCH-B.md` B-3) classifies every statement with th
 | `neon_snapshot_delete` | Owner-guarded, independently verified deletion of a manual development snapshot; protected/default/scheduled/source-vanished snapshots refuse, exact readback and no automatic retry | C D | Op | F | D-7 (built #97) |
 | `neon_snapshot_restore` | Full-owner B-4 priced staging to a separate non-finalized development review branch, no compute reassignment or original replacement, exact readback | C $ | Ow | F | D-7 (built #100, offline) |
 | `neon_snapshot_finalize_restore` | Swap a restored branch in for the original: production computes move to it (restart). The 2026-09-28 Appliance Desk incident action — always asks | C D Pr | Ow | F | D-7 |
-| `neon_snapshot_set_schedule` | B-1 owner-confirmed shortening only of existing finite schedule retention on a verified unprotected nondefault development branch; cannot add cadence/extend cost, refuses unknown provider fields and reads back full replacement | C D | Ow | F | D-7 (built #102; offline; expansions deferred) |
+| `neon_snapshot_set_schedule` | B-1 owner-confirmed shortening of existing finite dev snapshot retention or removal of one redundant cadence only when daily-or-better 24h recovery remains; never adds/extends, rejects unknown fields and verifies full readback | C D | Ow | F | D-7 (built #102–#103; offline; expansions deferred) |
 
 ## Project security (`neon_security_*`) — 7
 

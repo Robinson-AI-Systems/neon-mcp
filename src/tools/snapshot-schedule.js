@@ -16,16 +16,30 @@ function selects(s,a){
 }
 function reduced(a,state){
  if(!['hourly','daily','weekly','monthly','yearly'].includes(a.frequency)||
-    !Number.isSafeInteger(a.retentionSeconds)||a.retentionSeconds<3600)
-  throw Error('Choose a valid existing frequency and finite shorter retention');
+    !['shorten_retention','remove_cadence'].includes(a.action??'shorten_retention'))
+  throw Error('Choose a valid existing frequency and schedule action');
  for(const [k,min,max] of [['hour',0,23],['day',1,31],['month',1,12]]){
   if(a[k]!==undefined&&(!Number.isSafeInteger(a[k])||a[k]<min||a[k]>max))
    throw Error('Invalid schedule time selector');
  }
  const matches=state.schedule.filter(s=>selects(s,a));
- if(matches.length!==1||!Number.isSafeInteger(matches[0].retentionSeconds)||
+ if(matches.length!==1)
+  throw Error('Exactly one existing schedule entry must match the chosen time');
+ if(a.action==='remove_cadence'){
+  if(a.retentionSeconds!==undefined||state.schedule.length<2)
+   throw Error('Removal cannot specify retention or remove the last backup cadence');
+  const remaining=state.schedule.filter(s=>!selects(s,a));
+  // Never leave a development branch with only monthly/weekly backups or a
+  // daily/hourly schedule retaining less than one full day of recovery.
+  if(!remaining.some(s=>['hourly','daily'].includes(s.frequency)&&
+      s.retentionSeconds>=86400))
+   throw Error('Removal must preserve daily-or-better scheduled recovery');
+  return remaining;
+ }
+ if(!Number.isSafeInteger(a.retentionSeconds)||a.retentionSeconds<3600||
+    !Number.isSafeInteger(matches[0].retentionSeconds)||
     a.retentionSeconds>=matches[0].retentionSeconds)
-  throw Error('Schedule entry must exist with a strictly longer finite retention');
+  throw Error('Retention must strictly shorten an existing finite value');
  return state.schedule.map(s=>selects(s,a)?
   {...s,retentionSeconds:a.retentionSeconds}:s);
 }
@@ -74,9 +88,13 @@ const write=defineWrite({
   reduced(a,before);
   return {target:'branch:'+before.branchId,projectId:before.projectId,
    branchId:before.branchId,before,
-   summary:'Shorten existing '+a.frequency+' snapshot retention on unprotected development branch '+
-    before.branchId+' to '+a.retentionSeconds+' seconds. No cadence is added or extended. '+
-    'Older recovery points may expire sooner; confirm loss of recovery coverage.'};
+   summary:(a.action==='remove_cadence'?
+    'Remove an existing redundant '+a.frequency+' backup cadence from development branch '+
+     before.branchId+'. A daily-or-better finite recovery cadence stays configured.':
+    'Shorten existing '+a.frequency+' snapshot retention on unprotected development branch '+
+     before.branchId+' to '+a.retentionSeconds+' seconds.')+
+    ' No cadence is added or extended. Older recovery points may expire sooner; '+
+    'confirm loss of recovery coverage.'};
  },
  apply:async(a,c,{before,requestKey})=>{
   const current=await inventory(a,c);
@@ -97,16 +115,17 @@ const write=defineWrite({
   equal(after.schedule,reduced(a,before))
 });
 export const tools=[{...write.tool,profiles:['full'],area:'snapshots',
- audience:['owner'],description:'Owner-confirmed shortening of verified existing finite development snapshot retention, never cadence expansion; exact readback.',
+ audience:['owner'],description:'Owner-confirmed reduction of development snapshot retention or redundant cadence without loss of daily recovery; exact readback.',
  inputSchema:{type:'object',properties:{projectId:id,branchId:id,
   frequency:{type:'string',enum:['hourly','daily','weekly','monthly','yearly']},
+  action:{type:'string',enum:['shorten_retention','remove_cadence']},
   hour:{type:'integer',minimum:0,maximum:23},
   day:{type:'integer',minimum:1,maximum:31},
   month:{type:'integer',minimum:1,maximum:12},
   retentionSeconds:{type:'integer',minimum:3600},
   dryRun:{type:'boolean'},confirm:{type:'boolean'},
   requestKey:{type:'string',minLength:8,maxLength:128},
-  outsideApp:{type:'boolean'}},required:['branchId','frequency','retentionSeconds'],
+  outsideApp:{type:'boolean'}},required:['branchId','frequency'],
   additionalProperties:false}}];
 export function createSnapshotScheduleHandlers({contextFor=createProjectWriteContext}={}){
  return {neon_snapshot_set_schedule:async(a,c)=>
