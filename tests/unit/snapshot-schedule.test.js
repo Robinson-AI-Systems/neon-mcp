@@ -11,21 +11,26 @@ const input={branchId:IDS.dev,frequency:'daily',hour:4,
  retentionSeconds:86400,confirm:true};
 const parse=out=>JSON.parse(out.content[0].text);
 function fixture({source=devBranch(),existing=original,after=shortened,
- changed=false,allowed=true,profile='full',expanded=false}={}){
+ changed=false,allowed=true,profile='full',expanded=false,
+ beforeReorder=false,afterReorder=false,postBranchDrift=false,
+ sourceNameMismatch=false}={}){
  const fake=makeFakeNeon(),audit=[];
  const client=makeNeonClient({key:'napi_FAKE_schedule_fixture',orgId:IDS.org,
   fetch:fake.fetch,budget:{async consume(){return {allowed:true}}}});
  for(let i=0;i<3;i++){
   const src=i===1&&changed?{...source,protected:true}:source;
   fake.when('getProject').resolves({project:project()});
-  fake.when('listProjectBranches').resolves({branches:[mainBranch(),src],annotations:{}});
-  fake.when('getProjectBranch').resolves({branch:src,
+  let branches=[i===2&&postBranchDrift?mainBranch({name:'changed-main'}):mainBranch(),src];
+  if((i===1&&beforeReorder)||(i===2&&afterReorder))branches=branches.reverse();
+  fake.when('listProjectBranches').resolves({branches,annotations:{}});
+  fake.when('getProjectBranch').resolves({branch:i===0&&sourceNameMismatch?
+   {...src,name:'different-source-name'}:src,
    annotation:{object:{type:'console/branch',id:src.id},value:{}}});
  }
  fake.when('getSnapshotSchedule')
   .resolves({schedule:existing})
-  .resolves({schedule:changed&&expanded?[]:existing})
-  .resolves({schedule:after});
+  .resolves({schedule:changed&&expanded?[]:beforeReorder?[...existing].reverse():existing})
+  .resolves({schedule:afterReorder?[...after].reverse():after});
  fake.when('setSnapshotSchedule').resolves({});
  const db={
   async recordWritePreview(x){audit.push({kind:'preview',...x})},
@@ -63,6 +68,23 @@ describe('D-7 strictly reducing automatic snapshot retention',()=>{
   expect(put[0].body).toEqual({schedule:shortened});
   expect(f.fake.calls.filter(c=>c.operationId==='getSnapshotSchedule')).toHaveLength(3);
   f.fake.assertClean();
+ });
+ it('compares complete branch and cadence records by identity across provider reorder',async()=>{
+  const f=fixture({beforeReorder:true,afterReorder:true});
+  const out=parse(await f.handler(input,{}));
+  expect(out).toMatchObject({done:true,confirmed:true});
+  expect(f.fake.calls.filter(c=>c.method==='PUT')).toHaveLength(1);
+  f.fake.assertClean();
+ });
+ it('refuses mismatched exact source identity or unrelated branch drift',async()=>{
+  for(const variant of [{sourceNameMismatch:true},{postBranchDrift:true}]){
+   const f=fixture(variant),out=parse(await f.handler(input,{}));
+   expect(out.done).toBe(false);
+   expect(f.fake.calls.filter(c=>c.method==='PUT')).toHaveLength(
+    variant.sourceNameMismatch?0:1);
+   if(variant.postBranchDrift)expect(out.confirmed).toBe(false);
+   f.fake.assertClean();
+  }
  });
  it('refuses false provider readback without claiming success',async()=>{
   const f=fixture({after:original}),out=parse(await f.handler(input,{}));
