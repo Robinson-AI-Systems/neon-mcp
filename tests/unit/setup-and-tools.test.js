@@ -35,6 +35,22 @@ function fixture() {
   return {db,events,exchange,handler:createSetupHandler({db,vault,exchange,env})};
 }
 describe('owner-only setup route',()=>{
+  it('renders guided stacked credential fields without changing form names or prefilling secrets',async()=>{
+    const {handler}=fixture();
+    const page=await invoke(handler,req('GET'));
+    const add=page.body.match(/<form method="post"><input type="hidden" name="action" value="add_key">([\s\S]*?)<\/form>/)[1];
+    const labels=[...add.matchAll(/<label class="field"><span>([^<]+)<\/span>[\s\S]*?<input name="([^"]+)" type="([^"]+)" value="([^"]*)"/g)];
+    expect(labels.map(m=>[m[1],m[2],m[3],m[4]])).toEqual([
+      ['Organization ID','orgId','text',''],['Organization name','orgLabel','text',''],
+      ['Project ID','projectId','text',''],['Neon API key','key','password',''],
+      ['Key name','label','text',''],['Administrator passphrase','passphrase','password','']
+    ]);
+    expect(add).toContain('name="kind" value="project"');
+    expect(add).toContain('configured in Vercel as ADMIN_PASSPHRASE');
+    expect(page.body).toContain('.field { display: grid;');
+    expect(page.body).toContain('@media (max-width: 480px)');
+    expect(page.body).not.toContain(env.ADMIN_PASSPHRASE);
+  });
   it('renders no secrets, refuses cross-origin posts and requires owner passphrase',async()=>{
     const {handler}=fixture();
     const page=await invoke(handler,req('GET',{once:'fake-once'}));
