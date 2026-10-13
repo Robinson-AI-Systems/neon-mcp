@@ -3,7 +3,9 @@
 import { publicOrigin, send } from './http.js';
 
 export async function requireMcpToken(req, res, db, env = process.env) {
-  const origin = publicOrigin(env);
+  let origin;
+  try { origin = publicOrigin(env); }
+  catch { send(res, 503, { error: 'service_unavailable' }); return null; }
   const challenge = 'Bearer resource_metadata="' + origin + '/.well-known/oauth-protected-resource"';
   const match = /^Bearer ([A-Za-z0-9_-]{30,256})$/.exec(String(req.headers?.authorization || ''));
   if (!match) {
@@ -11,7 +13,9 @@ export async function requireMcpToken(req, res, db, env = process.env) {
     send(res, 401, { error: 'unauthorized', error_description: 'A valid connection is required' });
     return null;
   }
-  const record = await db.getAccessToken(match[1]);
+  let record;
+  try { record = await db.getAccessToken(match[1]); }
+  catch { send(res, 503, { error: 'service_unavailable' }); return null; }
   if (!record || !['read_only','everyday','full'].includes(record.profile) ||
       !['catalog','compact'].includes(record.listing) || !['preview','production'].includes(record.mode)) {
     res.setHeader('WWW-Authenticate', challenge + ', error="invalid_token"');
@@ -20,7 +24,9 @@ export async function requireMcpToken(req, res, db, env = process.env) {
   }
   // A preview deployment shares storage but must not inherit production permissions.
   if (record.mode === 'production' && env.VERCEL_ENV === 'production') {
-    const orgs = await db.listNeonOrgs();
+    let orgs;
+    try { orgs = await db.listNeonOrgs(); }
+    catch { send(res, 503, { error: 'service_unavailable' }); return null; }
     if (!orgs.some(org => org.id === record.neon_org && org.production_enabled === true)) {
       res.setHeader('WWW-Authenticate', challenge + ', error="invalid_token"');
       send(res, 401, { error: 'invalid_token' });
