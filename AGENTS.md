@@ -141,8 +141,9 @@ unresolved reviews and the latest permanent PR handoff. Follow `docs/SESSION-STA
 developer outcome, and list its unmet acceptance conditions. Repair demonstrated CI,
 security, correctness or review failures before opening unrelated work. Group coherent
 implementation around that outcome; do not manufacture hardening tasks or broaden
-permission to achieve an arbitrary PR count. Stop with fewer if required gates prevent
-another substantive merge. Existing PR-size, owner and deployment rules still govern.
+permission to achieve an arbitrary PR count. If a genuine external requirement prevents completing the expected batch after all
+authorized remedies and independent approved work are examined, pause for owner action;
+do not end the unfinished session or issue a continuation prompt. Existing PR-size, owner and deployment rules still govern.
 
 **A blocker for one capability is not a project-wide blocker (owner correction, 2026-10-12).**
 Before calling any operation or acceptance blocked, reproduce/investigate its root cause,
@@ -158,8 +159,8 @@ and a testable re-entry trigger. Review the entire approved work index and
 dependency graph for independent eligible implementation immediately; continue the
 highest-priority capability rather than ending a session or dumping a continuation
 prompt. Reopen deferred work automatically as soon as its condition is met.
-An early stop requires documented evidence that all approved alternatives are
-ineligible or a concrete execution limit. Five substantial merges are a normal
+A pause requires documented evidence of the precise unavailable external requirement
+and the attempted remedies, with qualifying merges completed and remaining. Five substantial merges are a normal
 boundary; count already-merged work in the active session, never redo it or pad
 another PR to hit a number. Preserve code, automation, CI, reviews, owner gates,
 hosting/spending and scheduled release boundaries throughout.
@@ -187,8 +188,25 @@ on the last merged PR: verified `main` SHA and checks, achieved capability, four
 acceptance, actionable blockers, next eligible action and a **compact paste-ready
 continuation prompt**. That prompt tells the next agent to verify actual current state,
 read these authoritative instructions/hand-off rather than copying every rule,
-re-check blockers, implement the next coherent ~five-PR batch under unchanged gates,
+re-check blockers, dynamically align the next substantive batch to a PR-number multiple of five,
 and regenerate the same handoff/prompt format. PR count is secondary to real progress.
+
+## Dynamic PR alignment and owner-assistance pause (owner directive, 2026-10-13)
+
+Normal cadence is five substantial reviewed merges. At session start inspect the latest
+assigned repository PR number, including concurrent work. If it ends in 0 or 5, plan five;
+otherwise plan the number needed to reach the next multiple of five. Recalculate whenever
+concurrent numbering changes. The final PR number must end in 0 or 5. Never pad, weaken
+checks or manufacture work to satisfy numbering.
+
+Before a blocked-batch pause, investigate the cause, implement authorized remedies and
+inspect all approved independent work and dependencies. If a genuine external requirement
+still prevents finishing, tell Chris the exact blocker, attempted remedies, secure owner
+action needed, and qualifying merges completed/remaining. Do not request raw secrets.
+Pause the same session without an incomplete-session handoff or continuation prompt.
+After owner intervention reverify state and finish that same aligned batch. If the action
+is unavailable, explain safe alternatives and ask for a decision. Every future completed-
+batch continuation prompt must carry both dynamic alignment and this pause/resume rule.
 
 ## How work is organized
 
