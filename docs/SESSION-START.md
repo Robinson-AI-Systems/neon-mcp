@@ -60,7 +60,8 @@ protections, claim unverified acceptance, invent test success or request an appr
 already given. Record attempted fixes and exact re-entry evidence in the existing ledger.
 The normal five-merge session count includes PRs already merged; no restart, filler PR,
 repeated continuation prompt or premature stop because the preferred item is blocked.
-If stopping early, identify the verified lack of eligible work or concrete execution limit.
+If no approved alternative can advance, pause with exact secure owner instructions and the
+merged/remaining count; resume the same session after owner intervention.
 
 For every OPEN/DEFERRED ledger row check (a) exact blocker, (b) evidence or decision
 needed, (c) dependency, (d) precise unblock condition and (e) next action. Inspect
@@ -71,8 +72,8 @@ approved by the index, or receive an explicit owner-approved narrow plan amendme
 Fix new security/review/CI regressions before taking the next slice.
 
 The normal batch is **five substantive merges**, not five arbitrary PRs. Use
-coherent, suitably sized increments under all existing checks and gates; if fewer
-can be safely merged, stop truthfully at the real blocker. A completed session
+coherent, suitably sized increments under all existing checks and gates; if a genuine external requirement prevents the expected batch, pause for owner action
+without issuing a continuation prompt; finish the same batch after intervention. A completed session
 updates the existing status/index/card (not a duplicate workflow file), saves
 a permanent handoff comment on the last merged PR, and produces a short continuation
 prompt containing the checkpoint, current milestone, remaining acceptance, blocked
@@ -185,8 +186,12 @@ remains. End every turn right after a push whose resume note's "Next step" is th
 file and function, e.g. "CI red at 8adb4bf: `tests/unit/billing.test.js` expects old message; update it, then lint
 `src/tools/billing.js`".
 
-**Stopping:** normally at five qualifying substantive merges or actual project completion, and earlier
-when an owner/safety/dependency gate prevents another valuable PR. Before stopping, record the exact
+**Batch boundary:** inspect the latest assigned PR number (including concurrent work).
+Plan five substantive merges when aligned, otherwise reach the next multiple of five;
+recalculate on numbering changes. No padding. A genuine owner/safety/dependency gate
+requires investigation and independent-work review, then a pause with attempted remedies,
+secure owner action and completed/remaining counts. Reverify and resume the same batch;
+do not issue an incomplete-session continuation prompt. Before stopping, record the exact
 verified checkpoint, real capability/evidence, pending acceptance and actionable blockers in
 `docs/STATUS.md` and the permanent handoff on the last merged PR. Explain what Chris must decide
 only when a real owner decision is needed. Never pad a batch, violate gates, or call green CI live acceptance.
@@ -203,8 +208,10 @@ of all rules. Example structure (replace with verified facts):
 > owner answers, blockers and evidence. The current useful milestone is <outcome>;
 > remaining code/automated/deployed/real acceptance is <short specifics>. Prioritize
 > <next eligible action>; re-open blocked work only on its recorded evidence trigger.
-> Complete the next coherent normal five-substantive-PR session, stopping earlier for
-> completion or a genuine gate; preserve every owner/safety/cost/release requirement.
+> Dynamically align the batch to the next PR-number multiple of five (five when aligned).
+> If a genuine external gate prevents finishing after remedies and independent-work review,
+> pause with exact secure owner instructions and merged/remaining counts; resume the same
+> batch after intervention, without an early continuation prompt. Preserve every gate.
 > Update the authoritative ledger, place permanent handoff on final merged PR,
 > and generate the next compact continuation prompt in this exact style.
 

@@ -15,13 +15,13 @@ Only the existing scheduled, checked workflow automatically advances `main` to `
 
 Do not merge development PRs into `live`, force-update it, delete promotion markers, manually trigger production builds, promote previews or release at a development-batch boundary. Record the scheduled promotion and actual source commit/READY separately after they happen; a passing main CI or historical main deployment is not proof of a live release. The first scheduled promotion and Basic-build performance remain future observations, not completed acceptance.
 
-This repository has no separate linked Vercel project in the verified account inventory. Do not create hosting or a database merely to match the other servers. When deployment becomes approved, re-inventory and use the idle-cost settings below.
+October 13 reconciliation: the dedicated Vercel project is now configured and production tracks `live`. The separately owner-authorized #110 release reached READY at its exact merged revision. Earlier no-project inventory is historical; do not request provisioning again. Scheduled-event and authenticated runtime acceptance remain separate.
 
 All six non-Cortiware existing linked projects were verified Basic/queued. Vercel's team default for future projects remains Elastic and was not changed. Do not buy additions or assume new projects inherit Basic. Recheck actual project settings when hosting is separately authorized; do not trigger a paid test deployment merely to verify this document.
 
 ## Database and spending
 
-No separate Neon project for this repository appeared in the verified inventory. Do not provision resources as a documentation task.
+October 13 reconciliation: the dedicated Neon service database is configured and six encrypted selected-project keys are enrolled and verified. Earlier missing-project/key setup blockers are resolved. Scratch TEST isolation and owner-authorized provider mutation acceptance remain unverified; no extra resource provisioning is authorized.
 
 All seven existing Neon project defaults and eleven computes retain 0.25 CU caps and five-minute autosuspend. All six non-Cortiware primary branches are protected; Cortiware's primary branch is unprotected and deliberately deferred. This is an idle-development profile, not proof of production capacity.
 

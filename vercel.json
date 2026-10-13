@@ -30,5 +30,10 @@
       "**": false,
       "live": true
     }
+  },
+  "functions": {
+    "api/**/*.js": {
+      "includeFiles": "node_modules/libpg-query/wasm/libpg-query.wasm"
+    }
   }
 }
