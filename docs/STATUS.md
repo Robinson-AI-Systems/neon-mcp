@@ -4,6 +4,8 @@
 
 **D-7 redundant development backup-cadence removal — PR #103 (2026-10-12; source/CI pending):** Extends `neon_snapshot_set_schedule` with owner-confirmed removal of exactly one existing automatic backup cadence only if at least one daily-or-hourly schedule with finite 24h+ retention remains. Never creates a cadence, enlarges retention or removes the last recovery schedule; B-1 destructive preview, provider-fixed full PUT, complete stale-state recheck, exact post-write proof and no automatic replay remain mandatory. Tests cover safe removal, false readback, bad selectors and unsafe preservation. Offline-only; no deployed/provider acceptance or new cost estimate. D-8 and RTC evidence separate, production OFF.
 
+**D-8 configured JWT issuer exposure coverage — PR #104 (2026-10-12; source/CI pending):** `neon_security_review` now correlates the complete provider JWKS inventory with verified live branch inventory and returns bounded configured issuer counts per current branch, protected/default-branch counts, missing-source branch issuer IDs and explicitly unscoped issuer count. It identifies configured role references without representing them as effective SQL login permission or accepted JWTs. All calls remain project-scoped GET metadata and existing read-only MCP dispatch; no external token fetch, SQL, mutations, permissions or new provider cost. Fake-Neon and pure adversarial coverage; real authenticated JWT and network effectiveness still unverified. D-8 IN_PROGRESS, audit/replication writes remain deferred.
+
 ## Current gateway recovery disposition — 2026-10-12
 
 Owner requested cross-repository architecture/planning correction. Prioritize independently usable provider tools
