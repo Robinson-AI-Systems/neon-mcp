@@ -167,7 +167,9 @@ describe('D-8 independently verified project-security overview',()=>{
   for(const k of ['publicConnectionsBlocked','vpcConnectionsBlocked',
    'logicalReplicationEnabled','auditLoggingLevel','ipAllowlist'])
    expect(result.checks[k]).toEqual({state:'unknown'});
-  expect(result.checks.trustedJwks).toEqual({state:'observed',issuerCount:1});
+  expect(result.checks.trustedJwks).toMatchObject({state:'observed',issuerCount:1,
+   configuredCoverage:{unspecifiedSourceBranchCount:1,assignedToCurrentBranches:0,
+    tokenVerification:'notEvaluated',roleLoginEffectiveness:'notEvaluated'}});
   f.fake.assertClean();
  });
  it('reports current audit level without claiming actual log delivery or pricing',async()=>{
