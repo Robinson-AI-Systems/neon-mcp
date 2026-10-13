@@ -35,3 +35,13 @@ it('does not turn provider or storage errors into successful partial inventories
  const handlers=createProjectReadHandlers({getClient:async()=>{throw Error('provider failed');},getVault:()=>{throw Error('must not enumerate');}});
  await expect(handlers.neon_project_list({},{connection})).rejects.toThrow('provider failed');
 });
+it('keeps organization-only lifecycle operations on the org credential when a project key also exists',async()=>{
+ const calls=[];const db={saveEncryptedNeonKey(){},consumeApiBudget:async()=>({allowed:true}),async getEncryptedNeonKey(input){calls.push(input);const row={org_id:IDS.org,kind:input.kind,project_id:input.kind==='project'?IDS.project:null};row.key_enc=encryptSecret('napi_FAKE_org_lifecycle_fixture',{env,context:JSON.stringify([IDS.org,row.kind,row.project_id])});return row;}};
+ await projectClient({connection,db,env},IDS.project,{need:'org'});
+ expect(calls).toEqual([{orgId:IDS.org,kind:'org'}]);
+ await expect(projectClient({connection:{...connection,projectScope:IDS.project},db,env},IDS.project,{need:'org'})).rejects.toThrow(/scope/);
+});
+it('refuses recoverable inventory without the provider authority to verify it',async()=>{
+ const handlers=createProjectReadHandlers({getClient:async()=>{const e=Error('missing');e.code='NEON_KEY_UNAVAILABLE';throw e;},getVault:()=>({listKeys:async()=>[{org_id:IDS.org,kind:'project',project_id:IDS.project}]})});
+ await expect(handlers.neon_project_list({recoverable:true},{connection})).rejects.toThrow('organization-capable');
+});

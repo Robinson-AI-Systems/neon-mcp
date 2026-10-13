@@ -142,8 +142,8 @@ const definitions=[
 ];
 export const tools=definitions.map(([def,extra,opt])=>make(def,extra,opt));
 export function createProjectWriteHandlers({contextFor=createProjectWriteContext}={}){
- return Object.fromEntries(definitions.map(([def])=>[def.tool.name,async(args,ctx)=>{
-  const writeCtx=await contextFor(ctx);
+ return Object.fromEntries(definitions.map(([def,_extra,options])=>[def.tool.name,async(args,ctx)=>{
+  const writeCtx=await contextFor(ctx,{keyNeed:options.key||null});
   const result=await def.handler(args,writeCtx);
   if(def===create&&writeCtx.oneTime&&result.isError!==true){
    const parsed=JSON.parse(result.content[0].text);

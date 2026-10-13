@@ -54,3 +54,5 @@ its readback; standalone MCP initialization or a bare service RTC request is ins
 
 ## Project-key routing recovery
 Unscoped full developer connections may select an explicitly requested enrolled project key. Project discovery falls back to live readbacks of active enrolled projects when no org key exists. This does not authorize arbitrary unenrolled projects or bypass connection tenancy. Native provider retest remains pending checked release.
+
+Organization-only lifecycle tools carry an explicit key requirement into their write context. Project-key fallback must not manufacture an empty recoverable inventory; recovery discovery needs organization-capable provider evidence.

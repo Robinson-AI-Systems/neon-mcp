@@ -25,7 +25,7 @@ export function createProjectReadHandlers({getClient=projectClient,
       row.org_id===scope.org).map(row=>row.project_id))];
     const limit=Math.min(100,args.limit??50),projects=[];
     if(!ids.length)throw error;
-    if(args.recoverable===true)return text({projects:[],capped:false,scope:'enrolled_projects'});
+    if(args.recoverable===true)throw new Error('Recoverable project discovery requires an organization-capable key');
     for(const projectId of ids.slice(0,limit)){
      const {client}=await getClient(ctx,projectId);
      const data=await projectRead(client,'getProject',{path:{project_id:projectId}});

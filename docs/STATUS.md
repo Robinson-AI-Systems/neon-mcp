@@ -1,6 +1,6 @@
 ## Developer project-key routing correction — 2026-10-13
 
-Live native consent, initialization, full profile, reuse and rotating refresh passed. Provider project reads failed because an unscoped full connection ignored an explicit project ID and requested an unavailable organization key. The correction selects the exact enrolled project key. Project listing can read back active enrolled projects individually without requesting a broader credential; foreign/revoked rows are excluded, caps are explicit and provider failures remain failures. Source regression tests and CI are separate from deployed retest; no new provider key or owner consent is required.
+Live native consent, initialization, full profile, reuse and rotating refresh passed. Provider project reads failed because an unscoped full connection ignored an explicit project ID and requested an unavailable organization key. The correction selects the exact enrolled project key. Project listing can read back active enrolled projects individually without requesting a broader credential; foreign/revoked rows are excluded, caps are explicit and provider failures remain failures. Review corrections preserve explicit organization-key routing for org-only lifecycle operations and refuse unverified recoverable inventories. Source regression tests and CI are separate from deployed retest; no new provider key or owner consent is required.
 
 ## Review corrections — 2026-10-13
 
