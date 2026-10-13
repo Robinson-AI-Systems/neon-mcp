@@ -19,6 +19,28 @@ function validate(ips){
   throw Error('IP allowance requires at most 12 unique literal addresses/CIDRs');
  return ips;
 }
+export function verifiedAccessFlags(settings){
+ if(!settings||typeof settings!=='object'||Array.isArray(settings))
+  throw Error('Project network settings unavailable');
+ const names=['block_public_connections','block_vpc_connections'];
+ const flags={};
+ for(const name of names){
+  const value=settings[name];
+  if(value!==undefined&&typeof value!=='boolean')
+   throw Error('Project network access metadata malformed');
+  // Missing is explicitly unknown, never treated as permission granted.
+  flags[name]=value??null;
+ }
+ return flags;
+}
+export function verifiedAllowance(value){
+ if(!value||typeof value!=='object'||Array.isArray(value)||
+    Object.keys(value).some(k=>!['ips','protected_branches_only'].includes(k))||
+    typeof value.protected_branches_only!=='boolean')
+  throw Error('Current provider IP policy is incomplete or has unknown fields');
+ validate(value.ips);
+ return {ips:[...value.ips],protected_branches_only:value.protected_branches_only};
+}
 function projectId(a,c){
  const id=projectScope(c,a.projectId??null).projectId;
  if(!id||c.connection.profile!=='full')throw Error('Full owner project connection required');
@@ -39,12 +61,9 @@ async function state(a,c){
   {path:{project_id:id}}))?.project;
  if(p?.id!==id||p.org_id!==c.connection.neonOrg)
   throw Error('IP allowance project identity not verified');
- const v=p.settings?.allowed_ips;
- if(!v||typeof v!=='object'||Array.isArray(v)||
-    typeof v.protected_branches_only!=='boolean')
-  throw Error('Current IP allowance is unknown');
- validate(v.ips);
- return {project:p,allow:{ips:[...v.ips],protected_branches_only:v.protected_branches_only}};
+ const network=verifiedAccessFlags(p.settings);
+ const allow=verifiedAllowance(p.settings.allowed_ips);
+ return {project:p,allow,network};
 }
 function proposed(a,prior){
  if(!['add','remove','replace'].includes(a.action))throw Error('Invalid IP change action');
@@ -74,17 +93,23 @@ function proposed(a,prior){
 const def=defineWrite({name:'neon_security_set_ip_allow',
  access:true,projectWide:true,
  plan:async(a,c)=>{
-  const {project,allow}=await state(a,c),after=proposed(a,allow);
+  const {project,allow,network}=await state(a,c),after=proposed(a,allow);
   const list=after.ips.join(', ');
-  return {projectId:project.id,target:'project:'+project.id,before:{project,allow},
+  return {projectId:project.id,target:'project:'+project.id,before:{project,allow,network},
    summary:'Change project '+project.id+' IP allowance to ['+list+'] ('+
     (after.protected_branches_only?'protected branches':'all branches')+
-    '). Vercel dynamic egress has no guaranteed fixed IP; this may block all application connections. Verify required app addresses before confirming. Existing Scale entitlement only; no plan upgrade.'};
+    '). Vercel dynamic egress has no guaranteed fixed IP; this may block all application connections. '+
+    (network.block_public_connections===true
+     ?'Public connections are already blocked, so allowlist changes will not restore public access. '
+     :network.block_public_connections===null
+      ?'Public-access effectiveness is unknown from current provider metadata. ':'')+
+    'Verify required app addresses before confirming. Existing Scale entitlement only; no plan upgrade.'};
  },
  apply:async(a,c,{before,requestKey})=>{
   const now=await state(a,c);
-  if(JSON.stringify(now.allow)!==JSON.stringify(before.allow))
-   throw Error('IP allowance changed since preview; refuse write');
+  if(JSON.stringify(now.allow)!==JSON.stringify(before.allow)||
+     JSON.stringify(now.network)!==JSON.stringify(before.network))
+   throw Error('IP allowance or network access changed since preview; refuse write');
   const next=proposed(a,before.allow);
   return applyNeonWrite({client:await c.clientFor(before.project.id),
    operationId:'updateProject',params:{path:{project_id:before.project.id},
@@ -94,6 +119,7 @@ const def=defineWrite({name:'neon_security_set_ip_allow',
  readAfter:async(a,c)=>(await state(a,c)),
  verify:(before,after,a)=>after?.project?.id===before.project.id&&
   after.project.org_id===before.project.org_id&&
+  JSON.stringify(after.network)===JSON.stringify(before.network)&&
   JSON.stringify(after.allow)===JSON.stringify(proposed(a,before.allow))
 });
 export const tools=[{...def.tool,profiles:['full'],area:'security',audience:['owner'],

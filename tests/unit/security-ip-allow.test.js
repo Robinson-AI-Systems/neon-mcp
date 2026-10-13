@@ -2,11 +2,12 @@ import {describe,it,expect} from 'vitest';
 import {makeFakeNeon} from '../../test/helpers/fake-neon.js';
 import {makeNeonClient} from '../../src/neon/client.js';
 import {IDS,project} from '../../test/helpers/neon-fixtures.js';
-import {tools,createSecurityIpHandlers} from '../../src/tools/security-ip-allow.js';
+import {tools,createSecurityIpHandlers,verifiedAllowance,verifiedAccessFlags} from '../../src/tools/security-ip-allow.js';
 const parse=r=>JSON.parse(r.content[0].text);
 const original=['192.0.2.0/24','2001:db8::1/128'];
-const projectWith=(ips=original,only=true)=>project({settings:{
- allowed_ips:{ips,protected_branches_only:only}}});
+const projectWith=(ips=original,only=true,network={
+ block_public_connections:false,block_vpc_connections:false})=>project({settings:{
+ ...network,allowed_ips:{ips,protected_branches_only:only}}});
 function fixture({plan='Scale',allowed=true}={}){
  const fake=makeFakeNeon(),log=[];
  const client=makeNeonClient({key:'napi_FAKE_ip_allow',orgId:IDS.org,
@@ -104,6 +105,58 @@ describe('D-8 verified IP allowlist mutations',()=>{
    expect(v.done).toBe(false);expect(f.fake.calls.every(x=>x.method==='GET')).toBe(true);
    f.fake.assertClean();
   }
+ });
+ it('previews ineffective policy changes when current public access is blocked',async()=>{
+  const f=fixture();
+  f.fake.when('getProject').resolves({project:projectWith(original,true,{
+   block_public_connections:true,block_vpc_connections:false})});
+  const v=parse(await f.h({action:'add',ips:['198.51.100.10'],dryRun:true},{}));
+  expect(v.preview).toMatch(/allowlist changes will not restore public access/);
+  expect(f.fake.calls.every(x=>x.method==='GET')).toBe(true);
+  f.fake.assertClean();
+ });
+ it('refuses to overwrite provider extension fields that a PUT/PATCH would erase',async()=>{
+  const f=fixture();
+  const current=projectWith();
+  current.settings.allowed_ips.future_vendor_policy='FAKE_CONFIG';
+  f.fake.when('getProject').resolves({project:current});
+  const result=parse(await f.h({action:'add',ips:['198.51.100.12'],confirm:true},{}));
+  expect(result.done).toBe(false);
+  expect(f.fake.calls.every(x=>x.method==='GET')).toBe(true);
+  f.fake.assertClean();
+  expect(()=>verifiedAllowance({ips:original,protected_branches_only:true,
+   unknown_exposure:true})).toThrow(/unknown fields/);
+  expect(()=>verifiedAllowance({ips:original})).toThrow(/incomplete/);
+ });
+ it('refuses network-flag drift between preview and apply before PATCH',async()=>{
+  const f=fixture();
+  f.fake.when('getProject').resolves({project:projectWith()})
+   .resolves({project:projectWith(original,true,{
+    block_public_connections:true,block_vpc_connections:false})});
+  const out=parse(await f.h({action:'add',ips:['198.51.100.12'],confirm:true},{}));
+  expect(out).toMatchObject({done:false,confirmed:'pending'});
+  expect(f.fake.calls.every(x=>x.method==='GET')).toBe(true);
+  f.fake.assertClean();
+ });
+ it('does not claim confirmed effective policy if public access changed after PATCH',async()=>{
+  const f=fixture(),added=[...original,'198.51.100.12'];
+  f.fake.when('getProject').resolves({project:projectWith()})
+   .resolves({project:projectWith()})
+   .resolves({project:projectWith(added,true,{
+    block_public_connections:true,block_vpc_connections:false})});
+  f.fake.when('updateProject').resolves({project:projectWith(added),operations:[]});
+  const out=parse(await f.h({action:'add',ips:['198.51.100.12'],confirm:true},{}));
+  expect(out).toMatchObject({done:false,confirmed:false});
+  expect(f.fake.calls.filter(x=>x.method==='PATCH')).toHaveLength(1);
+  f.fake.assertClean();
+ });
+ it('labels absent provider network flags unknown, rejects invalid values',()=>{
+  expect(verifiedAccessFlags({allowed_ips:{}})).toEqual({
+   block_public_connections:null,block_vpc_connections:null});
+  expect(()=>verifiedAccessFlags({block_public_connections:'false'}))
+   .toThrow(/malformed/);
+  expect(()=>verifiedAccessFlags({block_vpc_connections:null}))
+   .toThrow(/malformed/);
  });
  it('refuses malformed, duplicate, out-of-range CIDRs, absent removals, and empty result',async()=>{
   const cases=[
