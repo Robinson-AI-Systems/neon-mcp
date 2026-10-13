@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 // The setup page is the ONLY place where an owner types or views secrets.
 import { createDb } from '../../src/db.js';
 import { createKeyVault } from '../../src/neon/keys.js';
@@ -8,6 +9,26 @@ import { configuredSelfResource } from '../../src/core/self-resource.js';
 import { mergeWithSelf,validateProtectedResources } from '../../src/core/protected-resources.js';
 import { activationEligible } from '../../src/core/owner-activation.js';
 import { issueReadOnlyRtcPass } from '../../src/core/rtc-passes.js';
+
+const styles=`
+    :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: Canvas; color: CanvasText; line-height: 1.5; }
+    main { max-width: 46rem; margin: 0 auto; padding: 1.5rem; }
+    h1 { line-height: 1.2; } h2 { margin-top: 2rem; }
+    form { display: grid; gap: 1.25rem; padding: 1.25rem; border: 1px solid GrayText; border-radius: .75rem; }
+    .field { display: grid; gap: .35rem; min-width: 0; }
+    .field span { font-weight: 650; } small { font-size: .9rem; }
+    input:not([type=hidden]), textarea { display: block; width: 100%; min-width: 0;
+      padding: .75rem; font: inherit; border: 1px solid GrayText; border-radius: .35rem;
+      background: Field; color: FieldText; }
+    textarea { resize: vertical; } button { min-height: 2.75rem; padding: .65rem 1rem;
+      font: inherit; font-weight: 650; cursor: pointer; }
+    :focus-visible { outline: 3px solid Highlight; outline-offset: 3px; }
+    [role=status] { padding: 1rem; border: 2px solid Highlight; overflow-wrap: anywhere; }
+    @media (max-width: 480px) { main { padding: 1rem; } form { padding: 1rem; } }
+  `;
+const styleHash=createHash('sha256').update(styles).digest('base64');
 
 function page(message='',p={}) {
   const fields={
@@ -51,24 +72,6 @@ function page(message='',p={}) {
   const issueRtc=form('create_read_only_rtc_pass',org()+input('projectId')+
     input('ttlHours','number','24'));
   const revokeRtc=form('revoke_read_only_rtc_pass',org()+input('passId'));
-  const styles=`
-    :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
-    * { box-sizing: border-box; }
-    body { margin: 0; background: Canvas; color: CanvasText; line-height: 1.5; }
-    main { max-width: 46rem; margin: 0 auto; padding: 1.5rem; }
-    h1 { line-height: 1.2; } h2 { margin-top: 2rem; }
-    form { display: grid; gap: 1.25rem; padding: 1.25rem; border: 1px solid GrayText; border-radius: .75rem; }
-    .field { display: grid; gap: .35rem; min-width: 0; }
-    .field span { font-weight: 650; } small { font-size: .9rem; }
-    input:not([type=hidden]), textarea { display: block; width: 100%; min-width: 0;
-      padding: .75rem; font: inherit; border: 1px solid GrayText; border-radius: .35rem;
-      background: Field; color: FieldText; }
-    textarea { resize: vertical; } button { min-height: 2.75rem; padding: .65rem 1rem;
-      font: inherit; font-weight: 650; cursor: pointer; }
-    :focus-visible { outline: 3px solid Highlight; outline-offset: 3px; }
-    [role=status] { padding: 1rem; border: 2px solid Highlight; overflow-wrap: anywhere; }
-    @media (max-width: 480px) { main { padding: 1rem; } form { padding: 1rem; } }
-  `;
   return '<!doctype html><html lang="en"><head><meta charset="utf-8">'+
     '<meta name="viewport" content="width=device-width,initial-scale=1">'+
     '<title>Neon MCP secure setup</title><style>'+styles+'</style></head><body><main><h1>Neon MCP secure setup</h1>'+
@@ -94,8 +97,9 @@ export function createSetupHandler({db,vault,exchange,env=process.env}={}) {
   return async function setup(req,res) {
     res.setHeader('Cache-Control','no-store');
     res.setHeader('X-Content-Type-Options','nosniff');
-    res.setHeader('Referrer-Policy','no-referrer');
-    res.setHeader('Content-Security-Policy',"default-src 'none'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'");
+    // Preserve the Origin of HTTPS form POSTs without disclosing paths or query secrets.
+    res.setHeader('Referrer-Policy','strict-origin');
+    res.setHeader('Content-Security-Policy',`default-src 'none'; style-src 'sha256-${styleHash}'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'`);
     if(!only(res,req,['GET','POST']))return;
     let origin;
     try {origin=publicOrigin(env);} catch{return send(res,503,{error:'server_not_configured'});}
