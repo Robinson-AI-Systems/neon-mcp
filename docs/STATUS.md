@@ -1,3 +1,7 @@
+## Developer project-key routing correction — 2026-10-13
+
+Live native consent, initialization, full profile, reuse and rotating refresh passed. Provider project reads failed because an unscoped full connection ignored an explicit project ID and requested an unavailable organization key. The correction selects the exact enrolled project key. Project listing can read back active enrolled projects individually without requesting a broader credential; foreign/revoked rows are excluded, caps are explicit and provider failures remain failures. Source regression tests and CI are separate from deployed retest; no new provider key or owner consent is required.
+
 ## Review corrections — 2026-10-13
 
 Developer connection retries retain encrypted codes until expiry, concurrent starts use an atomic trusted-IP quota, and backend failures remain retryable. Google consent preserves the requested profile and supports actual native code length. Windows protected credentials fit bounded chunks; cloud refresh locks recover after process exit. Evidence requires every layer and genuine custom-service read/write/denial/readback observations. Production functionality remains intact. Local regression checks passed; exact-head CI, deployed connection, provider, Hub, revocation and cleanup proofs remain separate.
