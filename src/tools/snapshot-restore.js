@@ -91,7 +91,15 @@ const restore=defineWrite({
      JSON.stringify(after.snapshotIds)!==JSON.stringify(b.snapshotIds)||
      JSON.stringify(after.endpoints)!==JSON.stringify(b.endpoints))
     return false;
-  if(!b.branchIds.every(id=>after.branchIds.includes(id)))return false;
+  // The restore may add one branch, but must not silently change existing
+  // branch names or protection/default flags. Correlate by ID: provider
+  // listing order is not a security property.
+  if(!b.branchIds.every((id,i)=>{
+   const j=after.branchIds.indexOf(id);
+   return j>=0&&after.branchNames[j]===b.branchNames[i]&&
+    after.branchDefault[j]===b.branchDefault[i]&&
+    after.branchProtected[j]===b.branchProtected[i];
+  }))return false;
   const i=after.branchIds.indexOf(newId);
   return i>=0&&after.branchNames[i]===a.name&&
    after.branchProtected[i]===false&&after.branchDefault[i]===false;

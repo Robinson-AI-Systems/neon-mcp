@@ -14,7 +14,7 @@ const arg={snapshotId:original.id,name:'snapshot-review',confirm:true};
 const parse=r=>JSON.parse(r.content[0].text);
 function fixture({after:trueAfter=true,changed=false,missingSize=false,
  source=devBranch(),allowed=true,plan='Launch',price=DEFAULT_PRICING,
- newEndpoint=false}={}){
+ newEndpoint=false,afterExistingDrift=null}={}){
  const fake=makeFakeNeon(),audit=[];
  const client=makeNeonClient({key:'napi_FAKE_snapshot_restore',orgId:IDS.org,
   fetch:fake.fetch,budget:{async consume(){return {allowed:true}}}});
@@ -23,7 +23,14 @@ function fixture({after:trueAfter=true,changed=false,missingSize=false,
  for(let i=0;i<3;i++){
   fake.when('getProject').resolves({project:project()});
   const src=(changed&&i===1)?{...source,name:'changed-dev'}:source;
-  const branches=i===2&&trueAfter?[mainBranch(),source,review]:[mainBranch(),src];
+  let branches=i===2&&trueAfter?[mainBranch(),source,review]:[mainBranch(),src];
+  if(i===2&&trueAfter){
+   // Exercise the independent after-readback, never the pre-POST state.
+   if(afterExistingDrift==='name')branches[1]={...source,name:'renamed-dev'};
+   if(afterExistingDrift==='default')branches[0]=mainBranch({default:false});
+   if(afterExistingDrift==='protected')branches[0]=mainBranch({protected:false});
+   if(afterExistingDrift==='order')branches=[source,review,mainBranch()];
+  }
   fake.when('listProjectBranches').resolves({branches,annotations:{}});
   fake.when('listSnapshots').resolves({snapshots:[item]});
   fake.when('getProjectBranch').resolves({branch:source,
@@ -83,6 +90,22 @@ describe('D-7 owner-guarded staged snapshot restore',()=>{
    expect(f.fake.calls.filter(c=>c.method==='POST')).toHaveLength(1);
    f.fake.assertClean();
   }
+ });
+ it('refuses success when a pre-existing branch name, default or protected flag changes after POST',async()=>{
+  for(const afterExistingDrift of ['name','default','protected']){
+   const f=fixture({afterExistingDrift});
+   const out=parse(await f.handler(arg,{}));
+   expect(out).toMatchObject({done:false,confirmed:false});
+   expect(f.fake.calls.filter(c=>c.operationId==='restoreSnapshot')).toHaveLength(1);
+   f.fake.assertClean();
+  }
+ });
+ it('matches unchanged existing branch invariants by ID, not provider listing order',async()=>{
+  const f=fixture({afterExistingDrift:'order'});
+  const out=parse(await f.handler(arg,{}));
+  expect(out).toMatchObject({done:true,confirmed:true});
+  expect(f.fake.calls.filter(c=>c.operationId==='restoreSnapshot')).toHaveLength(1);
+  f.fake.assertClean();
  });
  it('refuses protected, missing size, changed, unpriced, wrong plan and owner gate',async()=>{
   for(const options of [
