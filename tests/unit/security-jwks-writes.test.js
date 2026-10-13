@@ -12,6 +12,9 @@ const fresh={...old,id:'jwks-fake-000002',provider_name:'NewOIDC',
 const add={action:'add',branchId:IDS.dev,provider:'NewOIDC',
  url:fresh.jwks_url,audience:'new-aud'};
 const remove={action:'remove',jwksId:old.id};
+// Model an allowed root record with an absent optional parent field.
+const parentless=devBranch();
+delete parentless.parent_id;
 function fixture({allowed=true,profile='full',production=true}={}){
  const fake=makeFakeNeon(),audit=[];
  const client=makeNeonClient({key:'napi_FAKE_jwks_write',orgId:IDS.org,
@@ -83,7 +86,7 @@ describe('D-8 scope-bound JWT issuer trust lifecycle',()=>{
  });
  it('rejects default/protected and foreign branch identity before creating trust',async()=>{
   for(const b of [devBranch({protected:true}),devBranch({default:true}),
-   devBranch({project_id:'proj-fake-other'}),devBranch({parent_id:undefined}),
+   devBranch({project_id:'proj-fake-other'}),parentless,
    devBranch({parent_id:IDS.dev})]){
    const f=fixture();reads(f,[[old]]);
    f.fake.when('getProjectBranch').resolves({...responses.getProjectBranch('dev'),branch:b});
@@ -109,7 +112,7 @@ describe('D-8 scope-bound JWT issuer trust lifecycle',()=>{
  });
  it('never confirms newly added trust if its source branch changes after POST',async()=>{
   for(const mutation of [devBranch({protected:true}),devBranch({default:true}),
-   devBranch({parent_id:undefined}),devBranch({name:'unexpected-rename'})]){
+   parentless,devBranch({name:'unexpected-rename'})]){
    const f=fixture();reads(f,[[old],[old],[old,fresh]]);
    f.fake.when('getProjectBranch').resolves(responses.getProjectBranch('dev'))
     .resolves(responses.getProjectBranch('dev'))
