@@ -72,18 +72,21 @@ async function verifyWritableBranch(client,projectId,branchId){
  const b=(await projectRead(client,'getProjectBranch',{
   path:{project_id:projectId,branch_id:branchId}}))?.branch;
  if(b?.id!==branchId||b.project_id!==projectId||
-    b.default!==false||b.protected!==false)
+    b.default!==false||b.protected!==false||
+    !id(b.parent_id)||b.parent_id===branchId||
+    typeof b.name!=='string'||b.name.length<1||b.name.length>160)
   throw Error('JWKS trust creation requires a currently verified unprotected child branch');
+ return {id:b.id,parentId:b.parent_id,name:b.name,
+  default:b.default,protected:b.protected};
 }
 const def=defineWrite({name:'neon_security_set_jwks',
  access:true,projectWide:true,
  plan:async(a,c)=>{
   const state=await load(a,c),t=check(a,state);
-  if(t.action==='add'){
-   await verifyWritableBranch(state.client,state.project.id,t.branchId);
-  }
+  const trustBranch=t.action==='add'
+   ?await verifyWritableBranch(state.client,state.project.id,t.branchId):null;
   return {target:'project:'+state.project.id,projectId:state.project.id,
-   before:{project:state.project,entries:state.entries},
+   before:{project:state.project,entries:state.entries,trustBranch},
    summary:t.action==='remove'
     ?'Revoke JWT trust '+t.entry.id+' on project '+state.project.id+
      '. Tokens signed by this issuer may stop authenticating immediately.'
@@ -96,7 +99,9 @@ const def=defineWrite({name:'neon_security_set_jwks',
   if(JSON.stringify(state.entries)!==JSON.stringify(before.entries))
    throw Error('JWKS trust registry changed since the preview');
   // Recheck authorization at the last safe point, not just during plan.
-  if(t.action==='add')await verifyWritableBranch(state.client,state.project.id,t.branchId);
+  if(t.action==='add'&&JSON.stringify(await verifyWritableBranch(
+    state.client,state.project.id,t.branchId))!==JSON.stringify(before.trustBranch))
+   throw Error('JWKS source branch identity or protection changed after preview');
   const pid=before.project.id;
   const params=t.action==='remove'
    ?{path:{project_id:pid,jwks_id:t.jwksId}}
@@ -107,7 +112,14 @@ const def=defineWrite({name:'neon_security_set_jwks',
    operationId:t.action==='remove'?'deleteProjectJWKS':'addProjectJWKS',
    params,projectId:pid,requestKey});
  },
- readAfter:async(a,c)=>load(a,c),
+ readAfter:async(a,c)=>{
+  const state=await load(a,c),t=intent(a);
+  if(t.action==='add'){
+   state.trustBranch=await verifyWritableBranch(
+    state.client,state.project.id,t.branchId);
+  }
+  return state;
+ },
  verify:(before,after,a)=>{
   if(after?.project?.id!==before.project.id||
      after.project.org_id!==before.project.org_id)return false;
@@ -117,7 +129,8 @@ const def=defineWrite({name:'neon_security_set_jwks',
    return baseline.length===expected.length+1&&
      JSON.stringify(rows)===JSON.stringify(expected);
   }
-  if(rows.length!==baseline.length+1||!baseline.every(v=>
+  if(JSON.stringify(before.trustBranch)!==JSON.stringify(after.trustBranch)||
+     rows.length!==baseline.length+1||!baseline.every(v=>
       JSON.stringify(v)===JSON.stringify(rows.find(x=>x.id===v.id))))
    return false;
   const created=rows.filter(x=>!baseline.some(v=>v.id===x.id));

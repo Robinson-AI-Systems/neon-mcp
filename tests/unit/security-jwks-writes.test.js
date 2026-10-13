@@ -12,6 +12,9 @@ const fresh={...old,id:'jwks-fake-000002',provider_name:'NewOIDC',
 const add={action:'add',branchId:IDS.dev,provider:'NewOIDC',
  url:fresh.jwks_url,audience:'new-aud'};
 const remove={action:'remove',jwksId:old.id};
+// Model an allowed root record with an absent optional parent field.
+const parentless=devBranch();
+delete parentless.parent_id;
 function fixture({allowed=true,profile='full',production=true}={}){
  const fake=makeFakeNeon(),audit=[];
  const client=makeNeonClient({key:'napi_FAKE_jwks_write',orgId:IDS.org,
@@ -67,6 +70,7 @@ describe('D-8 scope-bound JWT issuer trust lifecycle',()=>{
  it('adds only a verified unprotected-branch issuer with explicit audience',async()=>{
   const f=fixture();reads(f,[[old],[old],[old,fresh]]);
   f.fake.when('getProjectBranch').resolves(responses.getProjectBranch('dev'))
+   .resolves(responses.getProjectBranch('dev'))
    .resolves(responses.getProjectBranch('dev'));
   f.fake.when('addProjectJWKS').resolves({jwks:fresh,operations:[]});
   const result=json(await f.h({...add,confirm:true},{}));
@@ -82,7 +86,8 @@ describe('D-8 scope-bound JWT issuer trust lifecycle',()=>{
  });
  it('rejects default/protected and foreign branch identity before creating trust',async()=>{
   for(const b of [devBranch({protected:true}),devBranch({default:true}),
-   devBranch({project_id:'proj-fake-other'})]){
+   devBranch({project_id:'proj-fake-other'}),parentless,
+   devBranch({parent_id:IDS.dev})]){
    const f=fixture();reads(f,[[old]]);
    f.fake.when('getProjectBranch').resolves({...responses.getProjectBranch('dev'),branch:b});
    const result=json(await f.h({...add,confirm:true},{}));
@@ -102,6 +107,21 @@ describe('D-8 scope-bound JWT issuer trust lifecycle',()=>{
    expect(f.fake.calls.filter(x=>x.method==='POST')).toHaveLength(0);
    expect(f.fake.calls.filter(x=>x.operationId==='getProjectBranch')).toHaveLength(2);
    expect(f.audit.some(x=>x.kind==='reserve')).toBe(true);
+   f.fake.assertClean();
+  }
+ });
+ it('never confirms newly added trust if its source branch changes after POST',async()=>{
+  for(const mutation of [devBranch({protected:true}),devBranch({default:true}),
+   parentless,devBranch({name:'unexpected-rename'})]){
+   const f=fixture();reads(f,[[old],[old],[old,fresh]]);
+   f.fake.when('getProjectBranch').resolves(responses.getProjectBranch('dev'))
+    .resolves(responses.getProjectBranch('dev'))
+    .resolves({...responses.getProjectBranch('dev'),branch:mutation});
+   f.fake.when('addProjectJWKS').resolves({jwks:fresh,operations:[]});
+   const result=json(await f.h({...add,confirm:true},{}));
+   expect(result.done).toBe(false);
+   expect(f.fake.calls.filter(x=>x.operationId==='addProjectJWKS')).toHaveLength(1);
+   expect(f.audit.some(x=>x.kind==='complete'&&x.confirmed!=='true')).toBe(true);
    f.fake.assertClean();
   }
  });
