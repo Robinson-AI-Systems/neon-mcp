@@ -33,3 +33,21 @@ it does not work yet. This file is updated as features ship.
 ## Reading large results
 
 When a read result is too large for the default 8KB response, retain the returned `res_...` handle. Call `neon_get_result` with that handle and `page: 0`, following `nextPage`. Each handle expires after 24 hours and only the same scoped connection can read it. Oversized items may use base64 JSON fragments: decode and concatenate fragments in page order, then parse the JSON. No Neon production access is enabled by this feature.
+
+## Coding-agent development access (2026-10-13)
+
+The implementing agent uses a renewable native OAuth connection, not a new copied RTC
+pass for every retest. `rtool developer-connect ALIAS --profile full` prepares one mobile
+link using the custom service. Choose the intended account/resources and authorize once;
+return to chat without copying secrets. The agent reruns the command to finish privately,
+then uses developer-check, developer-tools and developer-call. Existing original service
+write previews, owner approvals and resource guards still apply. This developer workflow
+does not reduce the finished product's tool capabilities.
+
+On a managed POSIX cloud runner, configure RTOOL_DEVELOPER_VAULT_DIR to an absolute private
+folder outside every Git checkout. The CLI creates a separate 0600 encryption key and
+AES-GCM encrypted connection files in a 0700 folder; keep that private runner state for
+resumes. OS credential managers remain the desktop default. Neither option places secrets
+in chats, prompts, Git or shared artifacts. Initial provider consent or an expired/revoked
+underlying authorization can still require a new owner sign-in. Source/tests are not
+proof that the new deployed workflow has been exercised against the real provider.
