@@ -597,9 +597,10 @@
         98,
         99,
         100,
-        102
+        102,
+        103
       ],
-      "note": "D-7 #87 bounded reads; #97 manual development deletion; #98 rename; #99 B-4 priced creation; #100 B-4 staged (nonfinalized) restore with exact compute placement proof. Live acceptance, finalize/schedule, billed audit/replication remain gated. #102 provides B-1 confirmed finite-retention reduction of an existing development backup schedule, with complete replacement readback; no schedule increase, live provider or finalization acceptance."
+      "note": "D-7 #87 bounded reads; #97 manual development deletion; #98 rename; #99 B-4 priced creation; #100 B-4 staged (nonfinalized) restore with exact compute placement proof. Live acceptance, finalize/schedule, billed audit/replication remain gated. #102 provides B-1 confirmed finite-retention reduction of an existing development backup schedule, with complete replacement readback; no schedule increase, live provider or finalization acceptance. #103 safely removes one redundant existing dev backup cadence while verified 24h daily-or-better coverage remains; no additive schedule costs or live acceptance."
     },
     {
       "id": "D-8",

@@ -96,3 +96,59 @@ describe('D-7 strictly reducing automatic snapshot retention',()=>{
   }
  });
 });
+
+
+describe('D-7 safe elimination of a redundant automatic backup cadence',()=>{
+ const remove={branchId:IDS.dev,frequency:'weekly',day:1,
+  action:'remove_cadence',confirm:true};
+ it('previews recovery loss without provider mutation',async()=>{
+  const f=fixture();
+  const out=parse(await f.handler({...remove,dryRun:true},{}));
+  expect(out.preview).toMatch(/Remove an existing redundant weekly backup cadence/);
+  expect(f.fake.calls.every(c=>c.method==='GET')).toBe(true);
+  f.fake.assertClean();
+ });
+ it('removes only the selected weekly cadence, retaining a finite daily schedule',async()=>{
+  const f=fixture({after:[original[0]]});
+  const out=parse(await f.handler(remove,{}));
+  expect(out).toMatchObject({done:true,confirmed:true});
+  const writes=f.fake.calls.filter(c=>c.method==='PUT');
+  expect(writes).toHaveLength(1);
+  expect(writes[0].operationId).toBe('setSnapshotSchedule');
+  expect(writes[0].body).toEqual({schedule:[original[0]]});
+  f.fake.assertClean();
+ });
+ it('fails closed when the provider does not persist the reduction',async()=>{
+  const f=fixture({after:original}),out=parse(await f.handler(remove,{}));
+  expect(out).toMatchObject({done:false,confirmed:false});
+  expect(f.fake.calls.filter(c=>c.method==='PUT')).toHaveLength(1);
+  f.fake.assertClean();
+ });
+ it('refuses removing the only cadence or the last daily-or-better protection',async()=>{
+  const hourly={frequency:'hourly',retention_seconds:86400};
+  for(const [existing,requested] of [
+   [[original[1]],remove],
+   [[original[0],original[1]],{...remove,frequency:'daily',hour:4,day:undefined}],
+   [[hourly,original[1]],{...remove,frequency:'hourly',day:undefined}],
+   [[{frequency:'daily',retention_seconds:7200},original[1]],remove],
+   [original,{...remove,retentionSeconds:86400}],
+   [original,{...remove,day:2}],
+   [original,{...remove,action:'unsupported'}]
+  ]){
+   const f=fixture({existing}),out=parse(await f.handler(requested,{}));
+   expect(out.done).toBe(false);
+   expect(f.fake.calls.every(c=>c.method==='GET')).toBe(true);
+   f.fake.assertClean();
+  }
+ });
+ it('does not bypass owner and branch-protection safeguards for cadence removal',async()=>{
+  for(const opt of [{source:devBranch({protected:true})},
+   {source:devBranch({default:true})},{profile:'read_only'},
+   {allowed:false},{changed:true}]){
+   const f=fixture(opt),out=parse(await f.handler(remove,{}));
+   expect(out.done).toBe(false);
+   expect(f.fake.calls.every(c=>c.method==='GET')).toBe(true);
+   f.fake.assertClean();
+  }
+ });
+});
