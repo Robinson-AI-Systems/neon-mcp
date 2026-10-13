@@ -1,5 +1,6 @@
 // D-8: project-scoped JWKS trust inventory. No JWT keys are fetched or returned.
 // A provider URL with credentials, query parameters or fragments is redacted.
+import {isIP} from 'node:net';
 import {projectScope,projectClient,projectRead} from './project-context.js';
 import {defineReadTool,readId,readText} from './read-descriptors.js';
 
@@ -36,7 +37,10 @@ export function verifiedEntries(data,projectId){
       typeof j.created_at!=='string'||!Number.isFinite(Date.parse(j.created_at))||
       typeof j.updated_at!=='string'||!Number.isFinite(Date.parse(j.updated_at))||
       (j.role_names!==undefined&&(!Array.isArray(j.role_names)||
-        j.role_names.length>20||j.role_names.some(x=>!role(x))))||
+        j.role_names.length>20||j.role_names.some(x=>!role(x))||
+        new Set(j.role_names).size!==j.role_names.length))||
+      (j.jwt_audience!==undefined&&
+        (typeof j.jwt_audience!=='string'||j.jwt_audience.length>2048))||
       typeof j.jwks_url!=='string'||j.jwks_url.length>2048)
    throw Error('JWKS identity or scope unverified');
   seen.add(j.id);
@@ -147,15 +151,27 @@ function observedBoolean(value){
  if(typeof value!=='boolean')throw Error('Invalid project security setting');
  return {state:'observed',value};
 }
+// Read-only security posture does not treat invalid or future provider fields as verified.
+function validIpOrCidr(value){
+ if(typeof value!=='string'||value.length>64||value.trim()!==value)return false;
+ const parts=value.split('/');
+ const family=isIP(parts[0]);
+ if(parts.length>2||!family)return false;
+ return parts.length===1||(/^(0|[1-9][0-9]{0,2})$/.test(parts[1])&&
+   Number(parts[1])<=(family===4?32:128));
+}
 function observedIps(value){
  if(value===undefined||value===null)return {state:'unknown'};
- if(!value||!Array.isArray(value.ips)||value.ips.length>128||
-    value.ips.some(x=>typeof x!=='string'||x.length>64||x.length===0)||
+ if(!value||typeof value!=='object'||Array.isArray(value)||
+    Object.keys(value).some(k=>!['ips','protected_branches_only'].includes(k))||
+    !Array.isArray(value.ips)||value.ips.length>128||
+    value.ips.some(x=>!validIpOrCidr(x))||
+    new Set(value.ips.map(x=>x.toLowerCase())).size!==value.ips.length||
     (value.protected_branches_only!==undefined&&
       typeof value.protected_branches_only!=='boolean'))
   throw Error('Invalid IP allowance metadata');
  return {state:'observed',addressCount:value.ips.length,
-  protectedBranchesOnly:value.protected_branches_only===true};
+  protectedBranchesOnly:value.protected_branches_only??null};
 }
 function verifiedBranchPosture(data,projectId){
  if(!Array.isArray(data?.branches)||data.branches.length>100||
