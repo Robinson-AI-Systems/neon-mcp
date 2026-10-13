@@ -7,10 +7,12 @@ import {tools,createSnapshotRenameHandlers} from '../../src/tools/snapshot-renam
 const one={id:'snap-fake-000001',name:'dev-before-change',
  created_at:'2026-10-10T12:00:00Z',source_branch_id:IDS.dev,
  full_size:1024,manual:true,expires_at:'2026-11-01T12:00:00Z'};
+const other={...one,id:'snap-fake-000002',name:'unrelated'};
 const parse=r=>JSON.parse(r.content[0].text);
 const args={snapshotId:one.id,name:'new-name',confirm:true};
 function fixture({snapshot=one,source=devBranch(),profile='full',
- allow=true,stale=false,readbackName='new-name'}={}){
+ allow=true,stale=false,readbackName='new-name',
+ extra=false,afterOtherDrift=false,afterBranchDrift=false}={}){
  const fake=makeFakeNeon(),audit=[];
  const client=makeNeonClient({key:'napi_FAKE_snapshot_rename',orgId:IDS.org,
   fetch:fake.fetch,budget:{async consume(){return {allowed:true}}}});
@@ -18,13 +20,17 @@ function fixture({snapshot=one,source=devBranch(),profile='full',
  for(let i=0;i<3;i++){
   fake.when('getProject').resolves({project:project()});
   fake.when('listProjectBranches').resolves({
-   branches:[mainBranch(),source],annotations:{}});
+   branches:[afterBranchDrift&&i===2?mainBranch({name:'renamed-main'}):mainBranch(),source],
+   annotations:{}});
   fake.when('getProjectBranch').resolves({branch:source,annotation});
  }
- const items=snapshot?[snapshot]:[];
+ const items=snapshot?[snapshot,...(extra?[other]:[])]:[];
  fake.when('listSnapshots').resolves({snapshots:items})
   .resolves({snapshots:stale?[{...snapshot,name:'other-name'}]:items})
-  .resolves({snapshots:snapshot?[{...snapshot,name:readbackName}]:[]});
+  .resolves({snapshots:snapshot?[
+   {...snapshot,name:readbackName},
+   ...(extra?[afterOtherDrift?{...other,expires_at:'2026-11-03T12:00:00Z'}:other]:[])
+  ]:[]});
  fake.when('updateSnapshot').resolves({
   snapshot:{...one,name:'new-name'},operations:[]});
  const db={async recordWritePreview(x){audit.push({type:'preview',...x});},
@@ -69,6 +75,19 @@ describe('D-7 snapshot name-only update',()=>{
   const f=fixture({readbackName:'not-renamed'});
   const out=parse(await f.handler(args,{}));
   expect(out).toMatchObject({done:false,confirmed:false});
+  f.fake.assertClean();
+ });
+ it('refuses confirmation when another recovery point or existing branch changes after PATCH',async()=>{
+  for(const option of [{extra:true,afterOtherDrift:true},{afterBranchDrift:true}]){
+   const f=fixture(option),out=parse(await f.handler(args,{}));
+   expect(out).toMatchObject({done:false,confirmed:false});
+   expect(f.fake.calls.filter(x=>x.operationId==='updateSnapshot')).toHaveLength(1);
+   f.fake.assertClean();
+  }
+ });
+ it('allows preserving unrelated snapshots while renaming exactly one',async()=>{
+  const f=fixture({extra:true}),out=parse(await f.handler(args,{}));
+  expect(out).toMatchObject({done:true,confirmed:true});
   f.fake.assertClean();
  });
  it('refuses stale metadata before any mutation',async()=>{

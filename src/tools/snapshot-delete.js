@@ -19,6 +19,7 @@ async function inventory(args,ctx){
  const snaps=verifiedSnapshots(await projectRead(client,'listSnapshots',{path}));
  const branches=verifiedBranches(await projectRead(client,'listProjectBranches',{
   path,query:{limit:100}}),pid);
+ if(branches.some(b=>!b.name))throw Error('Complete branch names are required');
  const snapshot=snaps.find(s=>s.id===args.snapshotId)??null;
  // The source must still exist. No deletion of legacy, scheduled, protected
  // or default-branch backups, and no deletion if provider flags are missing.
@@ -36,9 +37,25 @@ async function inventory(args,ctx){
    throw Error('Snapshot source is protected or its status is unverified');
  }
  return {projectId:pid,snapshot,sourceBranchId:source??null,
+  snapshots:snaps,branchRows:branches,
   snapshotIds:snaps.map(s=>s.id),snapshotNames:snaps.map(s=>s.name),
   branchIds:branches.map(b=>b.id),branchNames:branches.map(b=>b.name),
   branchDefault:branches.map(b=>b.default),branchProtected:branches.map(b=>b.protected),client};
+}
+// Validate identities independently of response ordering. Deletion and rename
+// may remove/rename only the targeted snapshot, never mutate existing branches.
+export function sameExistingBranches(before,after){
+ if(!Array.isArray(after?.branchRows)||after.branchRows.length!==before.branchRows.length)
+  return false;
+ const byId=new Map(after.branchRows.map(b=>[b.id,b]));
+ return byId.size===before.branchRows.length&&before.branchRows.every(b=>
+  JSON.stringify(byId.get(b.id))===JSON.stringify(b));
+}
+export function sameSnapshotRows(expected,actual){
+ if(!Array.isArray(actual)||actual.length!==expected.length)return false;
+ const byId=new Map(actual.map(s=>[s.id,s]));
+ return byId.size===expected.length&&expected.every(s=>
+  JSON.stringify(byId.get(s.id))===JSON.stringify(s));
 }
 async function target(args,ctx){
  const data=await inventory(args,ctx);
@@ -61,7 +78,8 @@ const deletion=defineWrite({
   if(current.projectId!==before.projectId||
      current.sourceBranchId!==before.sourceBranchId||
      JSON.stringify(current.snapshot)!==JSON.stringify(before.snapshot)||
-     JSON.stringify(current.snapshotIds)!==JSON.stringify(before.snapshotIds))
+     !sameSnapshotRows(before.snapshots,current.snapshots)||
+     !sameExistingBranches(before,current))
    throw Error('Snapshot inventory changed since preview; do not delete');
   return applyNeonWrite({client:current.client,operationId:'deleteSnapshot',
    params:{path:{project_id:before.projectId,snapshot_id:a.snapshotId}},
@@ -72,9 +90,8 @@ const deletion=defineWrite({
   after?.projectId===before.projectId&&
   after?.snapshot===null&&
   after.sourceBranchId===null&&
-  before.snapshotIds.filter(id=>id!==a.snapshotId).length===after.snapshotIds.length&&
-  before.snapshotIds.filter(id=>id!==a.snapshotId)
-   .every((id,i)=>after.snapshotIds[i]===id)
+  sameExistingBranches(before,after)&&
+  sameSnapshotRows(before.snapshots.filter(s=>s.id!==a.snapshotId),after.snapshots)
 });
 export const tools=[{...deletion.tool,profiles:['full'],area:'snapshots',
  audience:['owner'],description:'Owner-only permanent deletion of a verified manual development snapshot, with independent stale-state refusal and readback.',

@@ -3,7 +3,8 @@
 import {defineWrite} from '../core/write.js';
 import {createProjectWriteContext} from '../neon/project-write-context.js';
 import {applyNeonWrite} from '../neon/write-neon.js';
-import {manualDevelopmentSnapshot,snapshotInventory} from './snapshot-delete.js';
+import {manualDevelopmentSnapshot,snapshotInventory,
+ sameExistingBranches,sameSnapshotRows} from './snapshot-delete.js';
 
 const id={type:'string',pattern:'^[a-z0-9-]{1,60}$'};
 const goodName=n=>typeof n==='string'&&/^[A-Za-z0-9][A-Za-z0-9 _.-]{0,79}$/.test(n);
@@ -29,8 +30,8 @@ const rename=defineWrite({
   if(now.projectId!==before.projectId||
     now.sourceBranchId!==before.sourceBranchId||
     JSON.stringify(now.snapshot)!==JSON.stringify(before.snapshot)||
-    JSON.stringify(now.snapshotIds)!==JSON.stringify(before.snapshotIds)||
-    JSON.stringify(now.snapshotNames)!==JSON.stringify(before.snapshotNames))
+    !sameSnapshotRows(before.snapshots,now.snapshots)||
+    !sameExistingBranches(before,now))
    throw Error('Snapshot metadata changed since preview; no rename sent');
   return applyNeonWrite({client:now.client,projectId:before.projectId,
    requestKey,operationId:'updateSnapshot',params:{
@@ -43,10 +44,9 @@ const rename=defineWrite({
  verify:(before,after,a)=>
   after?.projectId===before.projectId&&
   after.sourceBranchId===before.sourceBranchId&&
-  JSON.stringify(after.snapshotIds)===JSON.stringify(before.snapshotIds)&&
-  after.snapshot?.name===a.name&&
-  JSON.stringify({...after.snapshot,name:before.snapshot.name})===
-   JSON.stringify(before.snapshot)
+  sameExistingBranches(before,after)&&
+  sameSnapshotRows(before.snapshots.map(s=>s.id===a.snapshotId
+   ?{...s,name:a.name}:s),after.snapshots)
 });
 export const tools=[{...rename.tool,profiles:['full'],area:'snapshots',
  audience:['owner'],description:'Rename a verified manual unprotected-development snapshot without changing expiry or storage; owner-guarded and read back.',
