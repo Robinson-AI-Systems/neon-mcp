@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { createFakeDb } from '../../test/helpers/fake-db.js';
 import { createOAuthHandlers } from '../../src/core/oauth-handlers.js';
 import { requireMcpToken } from '../../src/core/mcp-auth.js';
+import { createMcpHandler } from '../../src/core/mcp-server.js';
 
 const env = { PUBLIC_BASE_URL: 'https://neon-mcp.example.test', ADMIN_PASSPHRASE: 'FAKE_only-the-owner-knows' };
 const resource = env.PUBLIC_BASE_URL + '/api/mcp';
@@ -192,4 +193,46 @@ describe('C-2 OAuth client listing defaults',()=>{
    expect(stored.listing).toBe(expected);
   }
  });
+});
+describe('hosted MCP bearer transport failure containment',()=>{
+  const bearer='Bearer '+'a'.repeat(60);
+  const marker='napi_FAKE_DB_PRIVATE_EXCEPTION';
+  const fakeRegistry={tools:[],handlers:{}};
+  it('returns a fixed no-store 503 when access-token lookup rejects, never reaching the transport',async()=>{
+    let lookups=0;
+    const db={async getAccessToken(){lookups++;await Promise.resolve();throw Error(marker);}};
+    const res=response();
+    await createMcpHandler({db,registry:fakeRegistry,env})(
+      request('POST',{}, {authorization:bearer}),res);
+    expect(lookups).toBe(1);
+    expect(res.statusCode).toBe(503);
+    expect(res.headers['Cache-Control']).toBe('no-store');
+    expect(json(res)).toEqual({error:'service_unavailable'});
+    expect(res.body).not.toContain(marker);
+  });
+  it('fails closed on production-authorization inventory errors rather than inheriting a mode grant',async()=>{
+    let orgReads=0;
+    const db={
+      async getAccessToken(){return {client_id:'client-fake',neon_org:'org-fake-one',
+        project_scope:null,mode:'production',profile:'full',listing:'catalog'};},
+      async listNeonOrgs(){orgReads++;throw Error(marker);}
+    };
+    const res=response();
+    await createMcpHandler({db,registry:fakeRegistry,env:{...env,VERCEL_ENV:'production'}})(
+      request('POST',{}, {authorization:bearer}),res);
+    expect(orgReads).toBe(1);
+    expect(res.statusCode).toBe(503);
+    expect(json(res)).toEqual({error:'service_unavailable'});
+    expect(res.body).not.toContain(marker);
+  });
+  it('denies invalid origin configuration without consulting token storage or leaking runtime details',async()=>{
+    let called=0;
+    const db={async getAccessToken(){called++;throw Error(marker);}};
+    const res=response();
+    await createMcpHandler({db,registry:fakeRegistry,env:{PUBLIC_BASE_URL:'http://invalid.example.test'}})(
+      request('POST',{}, {authorization:bearer}),res);
+    expect(called).toBe(0);
+    expect(res.statusCode).toBe(503);
+    expect(json(res)).toEqual({error:'service_unavailable'});
+  });
 });

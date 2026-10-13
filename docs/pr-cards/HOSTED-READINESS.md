@@ -27,4 +27,6 @@ must remain independently usable. No preview-to-TEST relabel or broad-key fallba
 Reference: https://vercel.com/docs/project-configuration#functions
 #112: read-only transport result error containment: await the asynchronous scrub/projection/storage result inside dispatch try/catch, preserve the generic denial and service-error shape on single and batch routes. Adversarial tests reject storage after a microtask, deny results over storage cap and invalid projection; assert no provider exception, credential marker or partial batch escapes. No permission/production/RTC mode change. Source/CI do not prove hosted behavior.
 
+#113: make bearer admission fail closed with fixed, no-store 503 when secure origin, access-token persistence or production-organization inventory is unavailable. Exercise actual MCP request handler's early exit and secret-free transport refusals; no bypass, cached grants or production enablement.
+
 Next: verify exact checked #111+ release, public startup routes and separately authorized harmless OAuth read, denial, expiry, revocation. While external acceptance remains gated, advance approved independent D-7/D-8 work.
