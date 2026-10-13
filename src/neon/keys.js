@@ -48,6 +48,19 @@ export function createKeyVault({db,env=process.env,fetch}={}) {
       throw new Error('An organization key is required for this access level.');
     if(kind==='personal' && auth.data.auth_method!=='api_key_user')
       throw new Error('A personal key is required for this access level.');
+    if(kind==='project'){
+      // Verify only the resource the owner selected. A project-scoped key need
+      // not be allowed to enumerate organization-wide project inventory.
+      let selected;
+      try{selected=await call(client,'getProject',{path:{project_id:projectId}});}
+      catch{throw new KeySetupError('project_probe_failed');}
+      if(selected.error||!selected.data?.project)
+        throw new KeySetupError('project_probe_failed',selected.error?.status);
+      if(selected.data.project.id!==projectId)throw new KeySetupError('project_mismatch');
+      if(selected.data.project.org_id!==orgId)throw new KeySetupError('organization_mismatch');
+      return {method:auth.data.auth_method,projects:1,verified:true,
+        verification:'selected_project',projectInventoryComplete:false};
+    }
     let projects;
     try{projects=await call(client,'listProjects',{query:{org_id:orgId,limit:100}});}
     catch{throw new KeySetupError('project_probe_failed');}
@@ -56,8 +69,6 @@ export function createKeyVault({db,env=process.env,fetch}={}) {
     const known=projects.data.projects.filter(p=>p.org_id===orgId);
     if(projects.data.projects.some(p=>p.org_id!==orgId))
       throw new KeySetupError('organization_mismatch');
-    if(kind==='project' && !known.some(p=>p.id===projectId))
-      throw new KeySetupError('project_mismatch');
     if(kind==='org') {
       const members=await call(client,'getOrganizationMembers',{path:{org_id:orgId}});
       if(members.error || !Array.isArray(members.data?.members))
@@ -117,7 +128,8 @@ export function createKeyVault({db,env=process.env,fetch}={}) {
         const key=decryptSecret(saved.key_enc,{env,context:aad(orgId,row.kind,row.project_id||null)});
         const reach=await verify({key,orgId,kind:row.kind,projectId:row.project_id||null});
         keys.push({...publicFields,reachable:true,projectCount:reach.projects,
-          organizationActions:reach.method==='api_key_org'});
+          projectInventoryComplete:reach.projectInventoryComplete??false,
+          organizationActions:row.kind==='org'&&reach.method==='api_key_org'});
       }catch{
         keys.push({...publicFields,reachable:false,
           reason:'Access could not be verified. Check this key on the owner setup page.'});

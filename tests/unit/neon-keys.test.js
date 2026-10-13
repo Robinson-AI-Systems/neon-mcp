@@ -42,8 +42,8 @@ it('separates encryption and storage failures and permits adding after stored re
 function fixture(){
   const fake=makeFakeNeon();
   fake.when('getAuthDetails').resolves({account_id:'fake-owner',auth_method:'api_key_user'});
-  fake.when('listProjects').resolves({projects:[{...fx.project(),active_time:0}],
-    pagination:{cursor:'fake-cursor'},applications:{},integrations:{}});
+  fake.when('getProject').resolves({project:fx.project()});
+  fake.when('listProjects').rejects(404,{code:'NOT_FOUND',message:'inventory unavailable'});
   const db=createFakeDb();
   return {fake,db,vault:createKeyVault({db,env,fetch:fake.fetch})};
 }
@@ -62,7 +62,7 @@ it('verifies a project-scoped key, stores ciphertext only, and selects the narro
   expect(await vault.keyFor({orgId:fx.IDS.org,projectId:fx.IDS.project,need:'project'}))
     .toEqual({key,kind:'project'});
   expect((await vault.keyFor({orgId:fx.IDS.org,projectId:'proj-fake-other'})).missing).toMatch(/scoped/);
-  expect(fake.calls.map(x=>x.operationId)).toEqual(['getAuthDetails','listProjects']);
+  expect(fake.calls.map(x=>x.operationId)).toEqual(['getAuthDetails','getProject']);
   fake.assertClean();
 });
 it('refuses org keys on preview and cannot decrypt ciphertext with a rotated master key',async()=>{
@@ -79,8 +79,7 @@ it('refuses org keys on preview and cannot decrypt ciphertext with a rotated mas
 it('does not store a key that fails Neon identity or project checks',async()=>{
   const fake=makeFakeNeon();
   fake.when('getAuthDetails').resolves({account_id:'fake-owner',auth_method:'api_key_user'});
-  fake.when('listProjects').resolves({projects:[],pagination:{cursor:'fake-cursor'},
-    applications:{},integrations:{}});
+  fake.when('getProject').resolves({project:fx.project({id:'proj-fake-wrong'})});
   const db=createFakeDb();
   const vault=createKeyVault({db,env,fetch:fake.fetch});
   await expect(vault.storeKey({orgId:fx.IDS.org,kind:'project',projectId:fx.IDS.project,key}))
@@ -88,10 +87,38 @@ it('does not store a key that fails Neon identity or project checks',async()=>{
   expect(await vault.listKeys(fx.IDS.org)).toEqual([]);
 });
 
+it('rejects a different organization or missing identity from the selected project',async()=>{
+  for(const org_id of ['org-fake-foreign',undefined]){
+    const fake=makeFakeNeon();
+    fake.when('getAuthDetails').resolves({account_id:'fake-owner',auth_method:'api_key_org'});
+    const project=fx.project();
+    if(org_id)project.org_id=org_id;else delete project.org_id;
+    fake.when('getProject').resolves({project});
+    const db=createFakeDb();
+    const vault=createKeyVault({db,env,fetch:fake.fetch});
+    await expect(vault.storeKey({orgId:fx.IDS.org,kind:'project',projectId:fx.IDS.project,key}))
+      .rejects.toMatchObject({code:'organization_mismatch'});
+    expect(await vault.listKeys(fx.IDS.org)).toEqual([]);
+  }
+});
+
+it('keeps direct project denial fail-closed without falling back to inventory or another key',async()=>{
+  const fake=makeFakeNeon();
+  fake.when('getAuthDetails').resolves({account_id:'fake-owner',auth_method:'api_key_org'});
+  fake.when('getProject').rejects(404,{code:'NOT_FOUND',message:'not found'});
+  const db=createFakeDb();
+  const vault=createKeyVault({db,env,fetch:fake.fetch});
+  await expect(vault.storeKey({orgId:fx.IDS.org,kind:'project',projectId:fx.IDS.project,key}))
+    .rejects.toMatchObject({code:'project_probe_failed',status:404});
+  expect(fake.calls.map(c=>c.operationId)).toEqual(['getAuthDetails','getProject']);
+  expect(fake.calls[1].params.project_id).toBe(fx.IDS.project);
+  expect(await vault.listKeys(fx.IDS.org)).toEqual([]);
+});
+
 it('rechecks an encrypted stored project key without revealing bytes or using a wider key',async()=>{
  const fake=makeFakeNeon();
  fake.when('getAuthDetails').resolves({account_id:'fake-owner',auth_method:'api_key_user'});
- fake.when('listProjects').resolves({projects:[{...fx.project(),active_time:0}],pagination:{cursor:'fake-cursor'},applications:{},integrations:{}});
+ fake.when('getProject').resolves({project:fx.project()});
  const db=createFakeDb();
  const vault=createKeyVault({db,env:{...env,VERCEL_ENV:'production'},fetch:fake.fetch});
  await vault.storeKey({orgId:fx.IDS.org,projectId:fx.IDS.project,kind:'project',key});
