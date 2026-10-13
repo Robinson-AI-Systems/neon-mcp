@@ -3,7 +3,7 @@ import {makeFakeNeon} from '../../test/helpers/fake-neon.js';
 import {makeNeonClient} from '../../src/neon/client.js';
 import {IDS,AT,project,mainBranch,devBranch,mainEndpoint,devEndpoint} from '../../test/helpers/neon-fixtures.js';
 import {projectScope} from '../../src/tools/project-context.js';
-import {createSecurityReadHandlers,tools,observedAuditLevel,verifiedReplicationExposure} from '../../src/tools/security.js';
+import {createSecurityReadHandlers,tools,observedAuditLevel,verifiedReplicationExposure,configuredIssuerCoverage} from '../../src/tools/security.js';
 
 const ctx={connection:{neonOrg:IDS.org,projectScope:IDS.project,profile:'read_only'}};
 const row={id:'jwks-fake-000001',project_id:IDS.project,
@@ -122,13 +122,54 @@ describe('D-8 independently verified project-security overview',()=>{
   expect(JSON.stringify(result)).not.toMatch(/napi_FAKE|FAKE_SENSITIVE|postgresql:\/\//);
   f.fake.assertClean();
  });
+ it('classifies configured JWT issuer trust on protected, development and removed branches without effectiveness claims',async()=>{
+  const devIssuer={...row,id:'jwks-fake-000002',branch_id:IDS.dev,
+   role_names:['authenticated']};
+  const mainIssuer={...row,id:'jwks-fake-000003',branch_id:mainBranch().id,
+   role_names:['authenticated']};
+  const orphan={...row,id:'jwks-fake-000004',branch_id:'br-fake-deleted',
+   role_names:['authenticated']};
+  const f=review({jwks:[row,devIssuer,mainIssuer,orphan]});
+  const out=json(await f.handler({},ctx));
+  expect(out.checks.trustedJwks).toMatchObject({
+   state:'observed',issuerCount:4,
+   configuredCoverage:{state:'observed',configuredIssuerCount:4,
+    assignedToCurrentBranches:2,unspecifiedSourceBranchCount:1,
+    missingSourceBranchCount:1,protectedBranchIssuerCount:1,
+    defaultBranchIssuerCount:1,configuredRoleReferences:4,
+    missingSourceBranches:[{issuerId:orphan.id,sourceBranchId:orphan.branch_id}],
+    tokenVerification:'notEvaluated',roleLoginEffectiveness:'notEvaluated'}});
+  expect(out.checks.trustedJwks.configuredCoverage.perBranch)
+   .toEqual(expect.arrayContaining([
+    expect.objectContaining({branchId:IDS.dev,issuerCount:1}),
+    expect.objectContaining({branchId:mainBranch().id,issuerCount:1,
+     protected:true,default:true})
+   ]));
+  expect(out.notEvaluated).toContain('JWT token verification and PostgreSQL role login effectiveness');
+  expect(f.fake.calls.every(x=>x.method==='GET')).toBe(true);
+  f.fake.assertClean();
+ });
+ it('refuses fabricated role references and inconsistent issuer branch identity',()=>{
+  const branch=[mainBranch(),devBranch()];
+  const one={id:row.id,roles:['authenticated'],branchId:IDS.dev};
+  for(const entries of [
+   [{...one,roles:['non role']}],
+   [{...one,roles:'admin'}],
+   [{...one,branchId:{id:IDS.dev}}],
+   [{...one,id:'../evil'}]
+  ])expect(()=>configuredIssuerCoverage(entries,branch)).toThrow(/Issuer/);
+  expect(()=>configuredIssuerCoverage([one],[devBranch(),devBranch()]))
+   .toThrow(/branch inventory/);
+ });
  it('treats omitted project settings as unknown, never safe or enabled defaults',async()=>{
   const f=review();
   const result=json(await f.handler({},ctx));
   for(const k of ['publicConnectionsBlocked','vpcConnectionsBlocked',
    'logicalReplicationEnabled','auditLoggingLevel','ipAllowlist'])
    expect(result.checks[k]).toEqual({state:'unknown'});
-  expect(result.checks.trustedJwks).toEqual({state:'observed',issuerCount:1});
+  expect(result.checks.trustedJwks).toMatchObject({state:'observed',issuerCount:1,
+   configuredCoverage:{unspecifiedSourceBranchCount:1,assignedToCurrentBranches:0,
+    tokenVerification:'notEvaluated',roleLoginEffectiveness:'notEvaluated'}});
   f.fake.assertClean();
  });
  it('reports current audit level without claiming actual log delivery or pricing',async()=>{

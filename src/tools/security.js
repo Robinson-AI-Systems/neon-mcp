@@ -88,6 +88,59 @@ export function verifiedReplicationExposure(data,projectId,branches){
   reversible:false,activeClientSessions:'notEvaluated',
   incrementalCharges:'notEvaluated'};
 }
+// Classify only provider-CONFIGURED issuer assignments. Branch IDs missing
+// from the current complete inventory are orphaned evidence, not safe removals;
+// an unspecified branch is not assumed to trust every existing branch.
+export function configuredIssuerCoverage(entries,branches){
+ if(!Array.isArray(entries)||!Array.isArray(branches)||
+    entries.length>100||branches.length>100)
+  throw Error('Complete issuer and branch evidence required');
+ const byId=new Map();
+ for(const branch of branches){
+  if(!id(branch?.id)||byId.has(branch.id)||
+      typeof branch.protected!=='boolean'||typeof branch.default!=='boolean')
+   throw Error('Issuer source branch inventory unverified');
+  byId.set(branch.id,{branchId:branch.id,
+   protected:branch.protected,default:branch.default,
+   issuerCount:0,roleReferences:0});
+ }
+ let unspecifiedBranch=0,orphanedSource=0,protectedBranch=0,
+  defaultBranch=0,totalRoleReferences=0;
+ const orphans=[];
+ for(const entry of entries){
+  if(!id(entry?.id)||!Array.isArray(entry.roles)||
+     entry.roles.length>20||entry.roles.some(x=>!role(x)))
+   throw Error('Issuer roles or identity unverified');
+  totalRoleReferences+=entry.roles.length;
+  if(entry.branchId===null){
+   unspecifiedBranch++;
+   continue;
+  }
+  if(!id(entry.branchId))throw Error('Issuer branch identity unverified');
+  const branch=byId.get(entry.branchId);
+  if(!branch){
+   orphanedSource++;
+   orphans.push({issuerId:entry.id,sourceBranchId:entry.branchId});
+   continue;
+  }
+  branch.issuerCount++;
+  branch.roleReferences+=entry.roles.length;
+  if(branch.protected)protectedBranch++;
+  if(branch.default)defaultBranch++;
+ }
+ return {state:'observed',configuredIssuerCount:entries.length,
+  assignedToCurrentBranches:entries.length-unspecifiedBranch-orphanedSource,
+  unspecifiedSourceBranchCount:unspecifiedBranch,
+  missingSourceBranchCount:orphanedSource,
+  protectedBranchIssuerCount:protectedBranch,
+  defaultBranchIssuerCount:defaultBranch,
+  configuredRoleReferences:totalRoleReferences,
+  missingSourceBranches:orphans,
+  perBranch:[...byId.values()].filter(x=>x.issuerCount>0),
+  tokenVerification:'notEvaluated',roleLoginEffectiveness:'notEvaluated',
+  note:'Assignments and role references are configured provider metadata, not verified token acceptance or SQL role access.'};
+}
+
 // Unknown fields are not safe defaults. Observed fields are facts, not approvals.
 function observedBoolean(value){
  if(value===undefined||value===null)return {state:'unknown'};
@@ -154,7 +207,8 @@ export function createSecurityReadHandlers({getClient=projectClient}={}){
    projectRead(client,'listProjectEndpoints',{path})
   ]);
   const posture=verifiedBranchPosture(branches,scope.projectId);
-  const issuerCount=verifiedEntries(jwks,scope.projectId).length;
+  const issuers=verifiedEntries(jwks,scope.projectId);
+  const issuerCoverage=configuredIssuerCoverage(issuers,branches.branches);
   const exposure=verifiedReplicationExposure(endpoints,scope.projectId,branches.branches);
   const security=settings??{};
   return readText({projectId:scope.projectId,metadataComplete:true,
@@ -166,12 +220,14 @@ export function createSecurityReadHandlers({getClient=projectClient}={}){
     logicalReplicationImpact:exposure,
     auditLoggingLevel:observedAuditLevel(security.audit_log_level),
     ipAllowlist:observedIps(security.allowed_ips),
-    trustedJwks:{state:'observed',issuerCount}
+    trustedJwks:{state:'observed',issuerCount:issuers.length,
+      configuredCoverage:issuerCoverage}
    },
    notEvaluated:['RLS policy coverage','Login role access',
     'Advisor findings and live network reachability',
-    'Real replication subscribers, audit delivery and incremental billing'],
-   note:'Compute impact is a point-in-time metadata inventory, not an active-client probe or billable increment. Enabling replication is irreversible and suspends active endpoints. Audit level is configured state only, not proof of delivered logs. No database or external JWKS endpoint was contacted.'});
+    'Real replication subscribers, audit delivery and incremental billing',
+    'JWT token verification and PostgreSQL role login effectiveness'],
+   note:'Compute impact is a point-in-time metadata inventory, not an active-client probe or billable increment. Enabling replication is irreversible and suspends active endpoints. Audit level is configured state only, not proof of delivered logs. JWKS branch/role assignments are configured metadata, not proof of usable JWT authentication. No database or external JWKS endpoint was contacted.'});
  }};
 }
 export const handlers=createSecurityReadHandlers();
