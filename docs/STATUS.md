@@ -1,4 +1,6 @@
-# Current outcome and acceptance ledger (2026-10-12; #97–#99 merged, #100 implementation)
+# Current outcome and acceptance ledger (2026-10-12; #101 architecture recovery merged, #102 implementation)
+
+**D-7 guarded existing schedule retention reduction — PR #102 (2026-10-12; implementation, verify CI before merge):** New owner-only `neon_snapshot_set_schedule` permits only a strictly shorter finite retention on one already-configured schedule entry of independently verified nondefault/unprotected development branch. The pinned complete PUT schedule preserves all other frequency/time/retention entries; provider extension fields or missing finite retention cause refusal. B-1 destructive preview/approval, no additional cadence, stale-state recheck and exact independent readback prevent unreviewed recovery-point loss and fabricated success. This cannot increase configured frequency or duration, so no added snapshot-retention forecast is claimed; actual billing and owner-authorized live behavior are not verified. Broader schedule increases and restore finalization remain deferred for B-4/provider/owner evidence. Standalone MCP, RTC and production gates unchanged.
 
 ## Current gateway recovery disposition — 2026-10-12
 
