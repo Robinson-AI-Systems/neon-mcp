@@ -10,7 +10,8 @@ const parse=r=>JSON.parse(r.content[0].text);
 const old={id:'snap-fake-000001',name:'prior',created_at:'2026-10-10T12:00:00Z',
  source_branch_id:IDS.dev,manual:true,full_size:1000};
 function fixture({size=20000000,profile='full',protectedBranch=false,afterPresent=true,
- price=DEFAULT_PRICING,plan='Launch',allowed=true,drift=false,confirmed=true}={}){
+ price=DEFAULT_PRICING,plan='Launch',allowed=true,drift=false,confirmed=true,
+ afterBranchDrift=false,prewriteBranchDrift=false,afterBranchOrder=false}={}){
  const fake=makeFakeNeon(),audit=[],expiresAt=iso(3);
  const client=makeNeonClient({key:'napi_FAKE_snapshot_create',orgId:IDS.org,
   fetch:fake.fetch,budget:{async consume(){return {allowed:true}}}});
@@ -21,7 +22,10 @@ function fixture({size=20000000,profile='full',protectedBranch=false,afterPresen
   expires_at:expiresAt,manual:true,...(size===null?{}:{full_size:size})};
  for(let i=0;i<3;i++){
   fake.when('getProject').resolves({project:project()});
-  fake.when('listProjectBranches').resolves({branches:[mainBranch(),branch],annotations:{}});
+  let branches=[(prewriteBranchDrift&&i===1)||(afterBranchDrift&&i===2)
+   ?mainBranch({protected:false}):mainBranch(),branch];
+  if(afterBranchOrder&&i===2)branches=branches.reverse();
+  fake.when('listProjectBranches').resolves({branches,annotations:{}});
   const row=(drift&&i===1)?changed:branch;
   fake.when('getProjectBranch').resolves({branch:row,
    annotation:{object:{type:'console/branch',id:row.id},value:{}}});
@@ -93,6 +97,21 @@ describe('D-7 guarded manually billed snapshot creation',()=>{
   const out=parse(await f.handler(args(f),{}));
   expect(out).toMatchObject({done:false,confirmed:'pending'});
   expect(f.fake.calls.every(x=>x.method==='GET')).toBe(true);
+  f.fake.assertClean();
+ });
+ it('refuses unrelated branch policy drift before POST or false confirmation afterward',async()=>{
+  for(const options of [{prewriteBranchDrift:true},{afterBranchDrift:true}]){
+   const f=fixture(options),out=parse(await f.handler(args(f),{}));
+   expect(out.done).toBe(false);
+   expect(out.confirmed).toBe(options.prewriteBranchDrift?'pending':false);
+   expect(f.fake.calls.filter(x=>x.operationId==='createSnapshot')).toHaveLength(
+    options.prewriteBranchDrift?0:1);
+   f.fake.assertClean();
+  }
+ });
+ it('confirms unchanged existing branch identities even when provider order varies',async()=>{
+  const f=fixture({afterBranchOrder:true}),out=parse(await f.handler(args(f),{}));
+  expect(out).toMatchObject({done:true,confirmed:true});
   f.fake.assertClean();
  });
  it('refuses unverified price, plan, ownership, protected branch, missing size and denied guard',async()=>{
