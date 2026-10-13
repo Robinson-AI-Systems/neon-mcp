@@ -6,6 +6,7 @@ import {createSpendGuard} from '../neon/spend.js';
 import {applyNeonWrite} from '../neon/write-neon.js';
 import {projectScope,projectRead} from './project-context.js';
 import {verifiedSnapshots,verifiedBranches} from './snapshots.js';
+import {sameExistingBranches,sameSnapshotRows} from './snapshot-delete.js';
 
 const id=/^[a-z0-9-]{1,60}$/;
 const validName=n=>typeof n==='string'&&/^[A-Za-z0-9][A-Za-z0-9 _.-]{0,79}$/.test(n);
@@ -27,18 +28,20 @@ async function inventory(a,c){
  const branches=verifiedBranches(await projectRead(client,'listProjectBranches',{
   path,query:{limit:100}}),projectId);
  const listed=branches.find(b=>b.id===a.branchId);
- if(!listed||listed.protected||listed.default)
-  throw Error('Only unprotected non-default development branches are eligible');
+ if(!listed||listed.protected||listed.default||!listed.name||
+    branches.some(b=>!b.name))
+  throw Error('Only fully verified unprotected development branches are eligible');
  const branch=(await projectRead(client,'getProjectBranch',{
   path:{...path,branch_id:a.branchId}}))?.branch;
  if(branch?.id!==a.branchId||branch.project_id!==projectId||
+    branch.name!==listed.name||
     branch.protected!==false||branch.default!==false||
     !Number.isSafeInteger(branch.logical_size)||branch.logical_size<0||
     branch.logical_size>100000000000)
   throw Error('Current development branch size or protection is unverified');
  const snapshots=verifiedSnapshots(await projectRead(client,'listSnapshots',{path}));
  return {projectId,branchId:a.branchId,bytes:branch.logical_size,
-  snapshots,client};
+  branchRows:branches,snapshots,client};
 }
 function eligible(a,state){
  if(!validName(a.name))throw Error('Choose a safe snapshot name');
@@ -74,7 +77,8 @@ const create=defineWrite({
   const current=await inventory(a,c);eligible(a,current);
   if(current.bytes!==before.bytes||current.projectId!==before.projectId||
      current.branchId!==before.branchId||
-     JSON.stringify(current.snapshots)!==JSON.stringify(before.snapshots))
+     !sameExistingBranches(before,current)||
+     !sameSnapshotRows(before.snapshots,current.snapshots))
    throw Error('Snapshot/branch inventory or price basis drifted since preview');
   const result=await applyNeonWrite({client:current.client,
    operationId:'createSnapshot',projectId:before.projectId,requestKey,
@@ -87,6 +91,7 @@ const create=defineWrite({
  verify:(before,after,a,c)=>{
   if(after?.projectId!==before.projectId||
     after.branchId!==before.branchId||
+    !sameExistingBranches(before,after)||
     after.snapshots.length!==before.snapshots.length+1||
     !id.test(c.newSnapshotId||''))return false;
   const prior=new Map(before.snapshots.map(s=>[s.id,JSON.stringify(s)]));
