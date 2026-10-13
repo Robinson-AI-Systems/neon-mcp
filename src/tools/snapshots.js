@@ -43,8 +43,8 @@ export function verifiedBranches(data,projectId){
    default:b.default===true,protected:b.protected===true};
  });
 }
-function verifiedSchedule(data){
- if(!Array.isArray(data?.schedule)||data.schedule.length>20)
+export function verifiedSchedule(data){
+ if(!Array.isArray(data?.schedule)||data.schedule.length>20||data.pagination?.cursor)
   throw Error('Backup schedule unavailable or incomplete');
  const seen=new Set();
  return data.schedule.map(s=>{
