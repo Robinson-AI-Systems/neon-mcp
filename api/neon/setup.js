@@ -10,8 +10,27 @@ import { activationEligible } from '../../src/core/owner-activation.js';
 import { issueReadOnlyRtcPass } from '../../src/core/rtc-passes.js';
 
 function page(message='',p={}) {
-  const input=(name,type='text',value='')=>'<label>'+escapeHtml(name)+
-    '<input name="'+name+'" type="'+type+'" value="'+escapeHtml(value)+'" required></label>';
+  const fields={
+    orgId:['Organization ID','Copy the organization ID from Neon organization settings.'],
+    orgLabel:['Organization name','A recognizable name for this organization, such as its account email.'],
+    projectId:['Project ID','Copy the ID of the single Neon project this key can access.'],
+    key:['Neon API key','Paste the project-scoped API key copied from Neon.'],
+    label:['Key name','Use the same descriptive name you gave this key in Neon.'],
+    passphrase:['Administrator passphrase','Enter your Neon MCP administrator passphrase, configured in Vercel as ADMIN_PASSPHRASE.'],
+    keyId:['Stored key ID','Use the numeric ID returned by List keys.'],
+    approvalPhrase:['Production approval phrase','Only enter the approval phrase after completing the required owner checks.'],
+    onceId:['One-time secret ID','Use the ID from your one-time secret link.'],
+    requestId:['Secret request ID','Use the ID of the pending secret request.'],
+    secret:['Requested secret','Paste the secret requested by this operation.'],
+    ttlHours:['Pass lifetime in hours','The read-only pass expires after this many hours.'],
+    passId:['Read-only pass ID','Use the ID of the pass you want to revoke.']
+  };
+  const input=(name,type='text',value='')=>{
+    const [title,help]=fields[name]||[name,''];
+    return '<label class="field"><span>'+escapeHtml(title)+'</span><small>'+escapeHtml(help)+
+      '</small><input name="'+name+'" type="'+type+'" value="'+escapeHtml(value)+
+      '" autocomplete="'+(name==='passphrase'?'current-password':'off')+'" required></label>';
+  };
   const password=()=>input('passphrase','password');
   const form=(action,fields)=>'<form method="post"><input type="hidden" name="action" value="'+action+'">'+
     fields+password()+'<button type="submit">'+escapeHtml(action.replaceAll('_',' '))+'</button></form>';
@@ -32,12 +51,32 @@ function page(message='',p={}) {
   const issueRtc=form('create_read_only_rtc_pass',org()+input('projectId')+
     input('ttlHours','number','24'));
   const revokeRtc=form('revoke_read_only_rtc_pass',org()+input('passId'));
+  const styles=`
+    :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: Canvas; color: CanvasText; line-height: 1.5; }
+    main { max-width: 46rem; margin: 0 auto; padding: 1.5rem; }
+    h1 { line-height: 1.2; } h2 { margin-top: 2rem; }
+    form { display: grid; gap: 1.25rem; padding: 1.25rem; border: 1px solid GrayText; border-radius: .75rem; }
+    .field { display: grid; gap: .35rem; min-width: 0; }
+    .field span { font-weight: 650; } small { font-size: .9rem; }
+    input:not([type=hidden]), textarea { display: block; width: 100%; min-width: 0;
+      padding: .75rem; font: inherit; border: 1px solid GrayText; border-radius: .35rem;
+      background: Field; color: FieldText; }
+    textarea { resize: vertical; } button { min-height: 2.75rem; padding: .65rem 1rem;
+      font: inherit; font-weight: 650; cursor: pointer; }
+    :focus-visible { outline: 3px solid Highlight; outline-offset: 3px; }
+    [role=status] { padding: 1rem; border: 2px solid Highlight; overflow-wrap: anywhere; }
+    @media (max-width: 480px) { main { padding: 1rem; } form { padding: 1rem; } }
+  `;
   return '<!doctype html><html lang="en"><head><meta charset="utf-8">'+
     '<meta name="viewport" content="width=device-width,initial-scale=1">'+
-    '<title>Neon MCP secure setup</title></head><body><main><h1>Neon MCP secure setup</h1>'+
+    '<title>Neon MCP secure setup</title><style>'+styles+'</style></head><body><main><h1>Neon MCP secure setup</h1>'+
     '<p>The owner passphrase is required for every operation. AI tools never accept keys.</p>'+
     (message?'<p role="status">'+escapeHtml(message)+'</p>':'')+
-    '<h2>List keys</h2>'+list+'<h2>Add scoped key</h2>'+add+
+    '<h2>List keys</h2>'+list+'<h2>Add scoped key</h2>'+
+    '<p>Save one project-scoped key at a time. Fill the fields below from top to bottom, then select add key. '+
+    'This connects Neon MCP to that project; it does not change the application’s database connection.</p>'+add+
     '<h2>Revoke a key</h2>'+revoke+
     '<h2>Protected resources (owner only)</h2>'+
     '<p>Your Neon MCP database cannot be removed from protection. Configure and verify its own project in Vercel first.</p>'+
