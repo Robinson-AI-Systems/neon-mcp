@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 // The setup page is the ONLY place where an owner types or views secrets.
 import { createDb } from '../../src/db.js';
-import { createKeyVault } from '../../src/neon/keys.js';
+import { createKeyVault,keySetupMessage } from '../../src/neon/keys.js';
 import { createOneTimeSecrets } from '../../src/core/one-time.js';
 import { evaluateLogin,clientIp,LOCKOUT_WINDOW_MINUTES } from '../../src/core/oauth.js';
 import { publicOrigin,send,paramsOf,only,escapeHtml } from '../../src/core/http.js';
@@ -202,8 +202,8 @@ export function createSetupHandler({db,vault,exchange,env=process.env}={}) {
           'Request unavailable or already completed.'),'text/html; charset=utf-8');
       }
       return send(res,400,{error:'unsupported_action'});
-    }catch{
-      return send(res,400,page('Action unsuccessful. Check your organization, key and setup settings.'),
+    }catch(error){
+      return send(res,400,page(keySetupMessage(error)||'Action unsuccessful. Check your organization, key and setup settings.'),
         'text/html; charset=utf-8');
     }
   };
