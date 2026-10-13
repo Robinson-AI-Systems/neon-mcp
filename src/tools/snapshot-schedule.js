@@ -9,7 +9,18 @@ import {verifiedBranches,verifiedSchedule} from './snapshots.js';
 const id={type:'string',pattern:'^[a-z0-9-]{1,60}$'};
 const validId=x=>typeof x==='string'&&/^[a-z0-9-]{1,60}$/.test(x);
 const fields=['hour','day','month'];
-const equal=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+// Provider ordering is not identity. These verified inventories are bounded
+// and unique; compare complete original rows by their stable identity keys.
+function sameRows(before,after,key){
+ if(!Array.isArray(before)||!Array.isArray(after)||before.length!==after.length)
+  return false;
+ const map=new Map(after.map(row=>[key(row),row]));
+ return map.size===before.length&&before.every(row=>
+  JSON.stringify(map.get(key(row)))===JSON.stringify(row));
+}
+const sameBranches=(a,b)=>sameRows(a,b,row=>row.id);
+const cadenceKey=row=>JSON.stringify([row.frequency,row.hour,row.day,row.month]);
+const sameSchedule=(a,b)=>sameRows(a,b,cadenceKey);
 function selects(s,a){
  return s.frequency===a.frequency&&
   fields.every(k=>s[k]===(a[k]??null));
@@ -62,10 +73,13 @@ async function inventory(a,c){
  const branches=verifiedBranches(await projectRead(client,'listProjectBranches',{
   path,query:{limit:100}}),projectId);
  const listed=branches.find(b=>b.id===a.branchId);
+ if(branches.some(b=>!b.name))
+  throw Error('Complete named branch inventory required for schedule replacement');
  const branch=(await projectRead(client,'getProjectBranch',{
   path:{...path,branch_id:a.branchId}}))?.branch;
  if(!listed||listed.default||listed.protected||
     branch?.id!==a.branchId||branch.project_id!==projectId||
+    branch.name!==listed.name||
     branch.default!==false||branch.protected!==false)
   throw Error('Only verified non-default unprotected development branches are eligible');
  const response=await projectRead(client,'getSnapshotSchedule',{
@@ -99,8 +113,8 @@ const write=defineWrite({
  apply:async(a,c,{before,requestKey})=>{
   const current=await inventory(a,c);
   if(current.projectId!==before.projectId||current.branchId!==before.branchId||
-    !equal(current.branches,before.branches)||
-    !equal(current.schedule,before.schedule))
+    !sameBranches(current.branches,before.branches)||
+    !sameSchedule(current.schedule,before.schedule))
    throw Error('Backup schedule or branch protection changed since preview');
   const schedule=reduced(a,current);
   return applyNeonWrite({client:current.client,operationId:'setSnapshotSchedule',
@@ -111,8 +125,8 @@ const write=defineWrite({
  readAfter:inventory,
  verify:(before,after,a)=>after?.projectId===before.projectId&&
   after.branchId===before.branchId&&
-  equal(after.branches,before.branches)&&
-  equal(after.schedule,reduced(a,before))
+  sameBranches(after.branches,before.branches)&&
+  sameSchedule(after.schedule,reduced(a,before))
 });
 export const tools=[{...write.tool,profiles:['full'],area:'snapshots',
  audience:['owner'],description:'Owner-confirmed reduction of development snapshot retention or redundant cadence without loss of daily recovery; exact readback.',
