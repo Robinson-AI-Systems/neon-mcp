@@ -1,17 +1,41 @@
 import {projectScope,projectClient,projectRead,projectPages,projectSummary,
  branchSummary,computeSummary,operationSummary} from './project-context.js';
 import {defineReadTool as read,readId as id,readText as text} from './read-descriptors.js';
+import {createKeyVault} from '../neon/keys.js';
 export const tools=[
- read('neon_project_list','List bounded, organization-matched projects or the single scoped project.',{
+ read('neon_project_list','List organization projects, enrolled projects when only project keys exist, or the single scoped project.',{
   recoverable:{type:'boolean'},limit:{type:'integer',minimum:1,maximum:100}}),
  read('neon_project_list_regions','Show Neon regions available to the selected organization.',{}),
  read('neon_project_overview','Summarize one allowed project with branches, computes and recent operations.',{
   projectId:id})
 ];
-export function createProjectReadHandlers({getClient=projectClient}={}){
+export function createProjectReadHandlers({getClient=projectClient,
+ getVault=ctx=>createKeyVault({db:ctx.db,env:ctx.env})}={}){
  return {
   async neon_project_list(args,ctx){
-   const {client,scope}=await getClient(ctx);
+   let selected;
+   try{selected=await getClient(ctx);}catch(error){
+    const scope=projectScope(ctx);
+    if(error.code!=='NEON_KEY_UNAVAILABLE'||scope.scoped)throw error;
+    // Full access can use the owner's enrolled project keys without an org key.
+    // Every row is read back from Neon using its exact key and verified identity.
+    const rows=await getVault(ctx).listKeys(scope.org);
+    if(!Array.isArray(rows))throw new Error('Stored project inventory unavailable');
+    const ids=[...new Set(rows.filter(row=>!row.revoked_at&&row.kind==='project'&&
+      row.org_id===scope.org).map(row=>row.project_id))];
+    const limit=Math.min(100,args.limit??50),projects=[];
+    if(!ids.length)throw error;
+    if(args.recoverable===true)throw new Error('Recoverable project discovery requires an organization-capable key');
+    for(const projectId of ids.slice(0,limit)){
+     const {client}=await getClient(ctx,projectId);
+     const data=await projectRead(client,'getProject',{path:{project_id:projectId}});
+     if(data?.project?.id!==projectId||data.project.org_id!==scope.org)
+      throw new Error('Project identity could not be verified');
+     projects.push(projectSummary(data.project));
+    }
+    return text({projects,capped:ids.length>limit,scope:'enrolled_projects'});
+   }
+   const {client,scope}=selected;
    if(scope.scoped){
     const data=await projectRead(client,'getProject',{path:{project_id:scope.scoped}});
     if(data?.project?.id!==scope.scoped||data.project.org_id!==scope.org)

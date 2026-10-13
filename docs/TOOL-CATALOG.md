@@ -68,7 +68,7 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 
 | Tool | What it does | Flags | Aud | Profile | Card |
 | --- | --- | --- | --- | --- | --- |
-| `neon_project_list` | Projects (organization, region, Postgres version, size, last active); recoverable deleted projects and projects shared with you on request | — | Ow Op | R | D-1 (built #46) |
+| `neon_project_list` | Organization projects, or live readbacks of active enrolled projects when only project keys exist; explicit cap and exact selected-project key routing | — | Ow Op | R | D-1 (built #46) |
 | `neon_project_overview` | One project in one call: branches with production marks, computes and sizes, databases, roles, key settings, storage, plan limits that matter, recent operations | — | B Ow Op | R | D-1 (built #46) |
 | `neon_project_create` | New project (region default from settings, Neon's default Postgres version); compute size previewed in dollars; connection string only via the one-time page | C $ S | B Ow | F | D-1 (built #49) |
 | `neon_project_rename` | Rename a project | P | Ow Op | E | D-1 (built #49) |

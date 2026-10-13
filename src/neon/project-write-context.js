@@ -7,7 +7,7 @@ import {requestKey,call} from './client.js';
 import {createVerifiedComputeConnectionCount} from './compute-connections.js';
 import {projectClient,projectRead} from '../tools/project-context.js';
 
-export async function createProjectWriteContext({connection,db,env=process.env}={}){
+export async function createProjectWriteContext({connection,db,env=process.env}={}, {keyNeed=null}={}){
  if(!connection?.neonOrg||!db)throw new Error('Authenticated connection and database required');
  const selfProject=configuredSelfResource(env);
  const spendGuard=createSpendGuard({db});
@@ -20,7 +20,7 @@ export async function createProjectWriteContext({connection,db,env=process.env}=
     orgId,estimate,confirm:true,write,requestKey:key});
    return decision.allowed===true?{created:true,id:decision.claimId}:null;
   },
-  clientFor:async projectId=>(await projectClient({connection,db,env},projectId)).client,
+  clientFor:async projectId=>(await projectClient({connection,db,env},projectId,{need:keyNeed})).client,
   // B-2 classification must fetch the branch itself; absent/unverified data always deny.
   getBranch:async({projectId,branchId})=>{
    if(typeof branchId!=='string'||!/^[a-z0-9-]{1,60}$/.test(branchId))
