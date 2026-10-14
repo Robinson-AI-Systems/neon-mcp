@@ -28,7 +28,10 @@ export function createSqlStopHandlers({contextFor=createProjectWriteContext,
    if(c.connection?.profile!=='full'||!Number.isSafeInteger(a.pid)||
       a.pid<1||a.pid>2147483647)
     throw Error('A full owner and valid query PID are required');
-   const t=chosen(await verifyTarget(a,c));
+   const observed=await verifyTarget(a,c);
+   if(observed.endpoint.current_state!=='active'||observed.endpoint.disabled!==false)
+    throw Error('Cancellation never starts an idle or disabled compute');
+   const t=chosen(observed);
    return {target:'branch:'+t.branchId,projectId:t.projectId,branchId:t.branchId,
     before:{target:t,pid:a.pid},
     summary:'Cancel the active query on PID '+a.pid+' in verified database '+
@@ -36,7 +39,10 @@ export function createSqlStopHandlers({contextFor=createProjectWriteContext,
      '; interruption may cause an application request to fail'};
   },
   apply:async(a,c,{before})=>{
-   const t=chosen(await verifyTarget(a,c));
+   const observed=await verifyTarget(a,c);
+   if(observed.endpoint.current_state!=='active'||observed.endpoint.disabled!==false)
+    return {confirmed:'pending'};
+   const t=chosen(observed);
    if(!matches(t,before.target)||a.pid!==before.pid)
     return {confirmed:'pending'};
    const outcome=await requestStop({ctx:c,target:t,pid:a.pid});
