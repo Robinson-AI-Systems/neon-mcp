@@ -1,3 +1,23 @@
+## D-6 verified generated TypeScript and Zod row schemas — PR #146
+
+The registered `neon_schema_generate_types` tool reads a verified
+non-system schema through existing fixed B-3 catalog SELECTs and
+returns copyable TypeScript row interfaces or Zod object validators
+for up to twenty tables. Selection and every column are independently
+read; absent tables, truncated inventories, malformed or duplicate
+columns, colliding export names and oversized output fail closed.
+No application row values, database defaults or migration SQL are
+fetched or copied. Type mappings reflect JSON-facing values:
+numeric/bigint/date-time as strings; JSON, domain/enum and bytea
+uncertainties use `unknown` rather than fabricated precision.
+Column and model names are escaped/validated, never injected as SQL.
+Fake-provider tests verify exact project/branch/compute/database/role
+and unpooled host, syntax/nullable semantics and adverse catalogs.
+Disposable PostgreSQL 17 tests generate type declarations and Zod
+validators from a real table without changing records.
+Production writes and spending remain OFF; custom hosted SQL/type
+acceptance still awaits the checked normal release.
+
 ## D-6 15-check PostgreSQL health diagnostics — PR #145
 
 Implemented registered owner/operator `neon_health_check`, offering

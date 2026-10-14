@@ -178,7 +178,7 @@ The SQL guard (`docs/designs/BATCH-B.md` B-3) classifies every statement with th
 | `neon_schema_disable_extension` | Remove an extension (preview lists dependent objects) | C D Pr | Op | F | D-6 |
 | `neon_schema_create_index` | Create an index, CONCURRENTLY by default (production: confirm) | C* Pr | B Op | E | D-6 |
 | `neon_schema_drop_index` | Drop an index (preview shows its recent use) | C D Pr | Op | F | D-6 |
-| `neon_schema_generate_types` | TypeScript types (or Zod schemas) generated from the tables | — | B | R | D-6 |
+| `neon_schema_generate_types` | TypeScript types (or Zod schemas) generated from the tables | — | B | R | D-6 (built #146, real PostgreSQL metadata test; live acceptance pending) |
 | `neon_schema_list_migrations` | The app's migration history read from its own table (Prisma `_prisma_migrations`, Drizzle, Knex, Flyway, golang-migrate detected): applied, failed or rolled back, with dates; given the repo's migration names, also which are not applied yet. Read-only — applying stays with the app or `neon_workflow_safe_migration` | — | B Op | R | D-9 |
 
 ## Health (`neon_health_*`) — 4
@@ -361,7 +361,7 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #145 (source capability listing, deployment acceptance separate):** `read_only` 42; `everyday` 50; `full` 80. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
+**Implemented registry at #146 (source capability listing, deployment acceptance separate):** `read_only` 43; `everyday` 51; `full` 81. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
 
 ## Totals
 
