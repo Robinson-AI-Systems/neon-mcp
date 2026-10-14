@@ -13,6 +13,7 @@ const whole=x=>x?.done===true&&x.truncated===false&&x.cellsCapped!==true&&
 export const INDEX_INVENTORY_SQL='SELECT ix.oid::text AS index_oid,ix.relname AS index_name,'+
  ' t.relname AS table_name,i.indisvalid AS valid_index,i.indisready AS ready_index,'+
  ' i.indisunique AS unique_index,i.indisprimary AS primary_index,'+
+ ' i.indisexclusion AS exclusion_index,'+
  ' EXISTS(SELECT 1 FROM pg_catalog.pg_constraint con WHERE con.conindid=ix.oid) AS constraint_index,'+
  ' am.amname AS method,(i.indpred IS NOT NULL OR i.indexprs IS NOT NULL) AS custom_expression,'+
  ' i.indnkeyatts::int AS key_count,i.indnatts::int AS attribute_count,'+

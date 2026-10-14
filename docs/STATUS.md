@@ -35,6 +35,17 @@ open obligations, original fixture ownership, approvals and deployment provenanc
     "dependsOn": [],
     "status": "PENDING",
     "lastEvidence": "Existing ledger/card remains authoritative; current live/provider acceptance must be reconciled at session start. Seed revision conservatively includes reviewed current main."
+  },
+  {
+    "id": "NEON-D9-REINDEX",
+    "priority": 3,
+    "requiredRevision": "75f2e6ac12d9c2bfc3107957bda9ee098660260a",
+    "task": "Run authenticated custom development INDEX/TABLE REINDEX CONCURRENTLY, independent valid/ready readback, scope denials and exact fixture recovery",
+    "procedure": "docs/pr-cards/D-9.md",
+    "gates": "Original approved scratch isolation, direct exact PostgreSQL target, full-owner B-1 confirmation, production OFF and zero autonomous spending",
+    "dependsOn": [],
+    "status": "PENDING",
+    "lastEvidence": "Implementation branch source pending required CI and merge; no deployed custom acceptance. Revision pinned to implementation commit."
   }
 ]
 ```
