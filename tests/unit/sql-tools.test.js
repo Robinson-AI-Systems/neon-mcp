@@ -1,7 +1,7 @@
 import {describe,it,expect} from 'vitest';
 import {makeFakeNeon} from '../../test/helpers/fake-neon.js';
 import {makeNeonClient} from '../../src/neon/client.js';
-import {IDS,project,devEndpoint,database,role,responses,devBranch,mainBranch}
+import {IDS,project,devEndpoint,database,role,responses,devBranch}
  from '../../test/helpers/neon-fixtures.js';
 import {verifyConnectionTarget} from '../../src/tools/connections.js';
 import {tools,createSqlQueryHandlers} from '../../src/tools/sql.js';
@@ -26,7 +26,7 @@ function setup({policy={productionReads:true,maxRows:20},protectedItem=false,
   profile:'full',mode:'preview'};
  const ctx={connection,db,env:{DATABASE_URL:'postgresql://self@self.fake.invalid/service'}};
  const trusted={connection,db,selfProject:{org:IDS.org,project_id:'proj-fake-own'},
-  getBranch:async()=>production?mainBranch():devBranch()};
+  getBranch:async()=>production?devBranch({default:true,protected:true}):devBranch()};
  const withSql=async(_scope,target,callback)=>{
   opens.push(target);
   return callback({query:async(sql,params=[])=>{
