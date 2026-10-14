@@ -4,13 +4,14 @@ import {makeNeonClient} from '../../src/neon/client.js';
 import {IDS,project,devEndpoint,database,role,responses,devBranch}
  from '../../test/helpers/neon-fixtures.js';
 import {verifyConnectionTarget} from '../../src/tools/connections.js';
+import {runPublicSqlQuery} from '../../src/neon/sql-run.js';
 import {tools,createSqlQueryHandlers} from '../../src/tools/sql.js';
 
 const args={projectId:IDS.project,branchId:IDS.dev,endpointId:IDS.devEndpoint,
  databaseName:'neondb',roleName:'neondb_owner',query:'SELECT $1::int AS answer',params:[7]};
 const body=response=>JSON.parse(response.content[0].text);
 function setup({policy={productionReads:true,maxRows:20},protectedItem=false,
- fakeEndpoint=null,production=false}={}){
+ fakeEndpoint=null,production=false,huge=false}={}){
  const fake=makeFakeNeon(),queries=[],opens=[];
  const client=makeNeonClient({key:'napi_FAKE_sql_d5',orgId:IDS.org,
   fetch:fake.fetch,budget:{async consume(){return {allowed:true};}}});
@@ -31,13 +32,17 @@ function setup({policy={productionReads:true,maxRows:20},protectedItem=false,
   opens.push(target);
   return callback({query:async(sql,params=[])=>{
    queries.push({sql,params});
-   if(sql.startsWith('SELECT'))return {rows:[{answer:7}],rowCount:1};
+   if(sql.startsWith('SELECT')){
+    const rows=huge?Array.from({length:300},(_,i)=>({answer:'x'.repeat(600),id:i})):[{answer:7}];
+    return {rows:rows.slice(0,params.at(-1)),rowCount:rows.length};
+   }
    return {rows:[]};
   }});
  };
  const handlers=createSqlQueryHandlers({
   verifyTarget:(a,c)=>verifyConnectionTarget(a,c,async()=>({client})),
-  contextFor:async()=>trusted,layerFactory:()=>withSql
+  contextFor:async()=>trusted,
+  runQuery:options=>runPublicSqlQuery({...options,sqlLayer:withSql})
  });
  return {fake,queries,opens,handlers,ctx};
 }
@@ -62,8 +67,17 @@ describe('D-5 owner-approved SQL query',()=>{
    database:'neondb',role:'neondb_owner',pooled:false}]);
   expect(f.queries.map(x=>x.sql)).toEqual(['BEGIN READ ONLY',
    'SET LOCAL statement_timeout = 15000','SET LOCAL lock_timeout = 5000',
-   args.query,'COMMIT']);
-  expect(f.queries[3].params).toEqual([7]);
+   'SELECT * FROM ('+args.query+') AS rmcp_bounded_query LIMIT $2','COMMIT']);
+  expect(f.queries[3].params).toEqual([7,201]);
+  f.fake.assertClean();
+ });
+ it('bounds rows at the database and compacts oversized cells before results are stored',async()=>{
+  const f=setup({huge:true,policy:{productionReads:true,maxRows:200}});
+  const result=body(await f.handlers.neon_sql_query(args,f.ctx));
+  expect(result).toMatchObject({done:true,rowCount:200,truncated:true,cellsCapped:true});
+  expect(result.rows).toHaveLength(200);
+  expect(result.rows[0].answer.length).toBeLessThanOrEqual(129);
+  expect(f.queries[3].params.at(-1)).toBe(201);
   f.fake.assertClean();
  });
  it('refuses write SQL and unsafe plans before opening a connection',async()=>{
