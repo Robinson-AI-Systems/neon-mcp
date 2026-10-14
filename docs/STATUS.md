@@ -1,3 +1,7 @@
+## October 14 — V-2 deterministic, read-only scenario preview (PR #165)
+
+Cohesive source slice: synthetic SaaS, store, rental, and blog datasets (five dependency-ordered tables each), deterministic validated seed, bounded 1–100 rows/table and previews of fabricated example.com/555 contacts. The enrolled service tool `neon_dev_list_scenarios` has no SQL/provider effect. This is not a complete V-2 seed-write workflow: real development database seeding, `auto`/file import, audit/idempotency, deny tests and provider acceptance remain engineering work. V-1/D-4/D-6/D-9 fixture acceptance remains queued, and the new read-only tool requires a checked release for custom-host acceptance.
+
 ### Owner-requested throughput measurement update — October 14, 2026
 
 Focused maintenance: 400–800 changed production lines and 2–5 completely
@@ -117,6 +121,17 @@ open obligations, original fixture ownership, approvals and deployment provenanc
     "dependsOn": [],
     "status": "PENDING",
     "lastEvidence": "2026-10-14: production READY exact 71fc6416. Authenticated custom neon_dev_list_runs returned empty; full scratch provider inventory includes only baseline, no run-owned branches. neon_dev_branch_create dryRun refused_by_guard before mutation. App ownership guard needs trustworthy source evidence; no spend or cleanup performed; maintain PENDING. October 14 follow-up source changes propose a passphrase-only scoped owner certification of isolated non-app scratch; still unmerged/unreleased, no certificate issued or write/readback acceptance performed; preserve existing original fixture approval."
+  },
+  {
+    "id": "NEON-V2-SCENARIOS",
+    "priority": 4,
+    "requiredRevision": "4b8db57c587fdde4936469b52bac6a150d69f8e3",
+    "task": "After checked release, verify genuine custom Neon MCP read-only scenario discovery and bounded seeded previews for four synthetic demos, with malformed-input denial",
+    "procedure": "docs/pr-cards/V-2.md",
+    "gates": "No DB/SQL mutation, no real customer data or money; V-1 acceptance remains separate",
+    "dependsOn": [],
+    "status": "PENDING",
+    "lastEvidence": "Source-only V-2 deterministic scenario preview implementation in PR #165; no deployed custom MCP read or neon_dev_seed application acceptance; do not mark PASSED."
   }
 ]
 ```
