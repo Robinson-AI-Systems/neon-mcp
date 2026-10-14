@@ -733,7 +733,7 @@
       "pr": [
         165
       ],
-      "note": "PR #165: read-only deterministic synthetic preview for 4 five-table scenarios with dependency ordering and bounded full generated rows. Source/unit/CI proven only; actual guarded seed writes, existing-schema auto mode, public CSV/JSON import, idempotent replay and deployed custom acceptance remain incomplete. Original V-1 hosted write/cleanup gates remain queued. Next source stage: guarded owner-confirmed four demo schema/data seeding on active expiring V-1 run-owned branches with B-1/B-3 idempotency and exact PG readback, subject to CI, release and provider acceptance. Auto existing-schema mode, public CSV/JSON URL import and >20 applied rows/table remain incomplete."
+      "note": "PR #165: read-only deterministic synthetic preview for 4 five-table scenarios with dependency ordering and bounded full generated rows. Source/unit/CI proven only; actual guarded seed writes, existing-schema auto mode, public CSV/JSON import, idempotent replay and deployed custom acceptance remain incomplete. Original V-1 hosted write/cleanup gates remain queued. Next source stage: guarded owner-confirmed four demo schema/data seeding on active expiring V-1 run-owned branches with B-1/B-3 idempotency and exact PG readback, subject to CI, release and provider acceptance. Auto existing-schema mode, public CSV/JSON URL import and >20 applied rows/table remain incomplete. Following V-2 source: plain-language ambiguity-refusing descriptions plus complete bounded 1-100 rows/table JSONB batch apply (<=16 guarded statements), with real 500-row disposable PostgreSQL acceptance; live/owner acceptance queued. Existing-schema auto and public import still incomplete."
     },
     {
       "id": "V-3",
