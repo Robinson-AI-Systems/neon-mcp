@@ -33,7 +33,7 @@ describe('D-6 verified non-executing index candidates',()=>{
   for(const sql of [INDEX_STATS_SQL,INDEX_COLUMNS_SQL]){
    expect((await classifySql(sql)).kind).toBe('read');
    expect(sql).toMatch(/LIMIT 201$/);
-   expect(sql).not.toMatch(/SELECT\\s+\\*/i);
+   expect(sql).not.toMatch(/SELECT\s+\*/i);
   }
  });
  it('only recommends review when verified stats and caller-selected columns justify it',async()=>{
