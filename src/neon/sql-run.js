@@ -375,7 +375,10 @@ export async function runReviewedReindexMutation({ctx,target,schema,table,index,
 // D-6 development-only VACUUM (ANALYZE): no transaction, no automatic replay.
 export function buildReviewedVacuumDDL({schema,table}={}){
  if(typeof schema!=='string'||schema.startsWith('pg_')||
-    schema==='information_schema')throw Error('Non-system schema required');
+    schema==='information_schema'||
+    !/^[A-Za-z_][A-Za-z0-9_-]{0,62}$/.test(schema)||
+    !/^[A-Za-z_][A-Za-z0-9_-]{0,62}$/.test(table))
+  throw Error('Exact non-system regular-table identifier required');
  return 'VACUUM (ANALYZE) '+quoteIdent(schema)+'.'+quoteIdent(table);
 }
 export async function runReviewedVacuumMutation({ctx,target,schema,table,sqlLayer}={}){
