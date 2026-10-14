@@ -1,3 +1,19 @@
+## October 14 — V-2 natural-language mapping and full-size relational seed (unreleased source)
+
+Read-only scenario previews and owner-confirmed scenario seeding accept reviewed
+plain descriptions when exactly one of SaaS/store/rental/blog matches.
+Ambiguous/unmatched text is refused; no model, network fetch, raw SQL or
+real-person data enters matching. The complete existing scenario limit
+(1–100 rows/table, up to 500 rows across five tables) now uses 50-row bound
+JSONB batches: no more than 16 reviewed DDL/DML statements and one ≤8,192
+character bound parameter per INSERT. Every row must independently read back
+before either write audit confirms success; replays remain deduplicated.
+
+Fake/unit and disposable PostgreSQL 500-row FK/unique tests authored.
+Exact-head CI/merge, checked release, full-owner custom TEST acceptance and
+fixture cleanup remain separate PENDING gates. No production activation or
+spend authority changed. V-2 `auto` and public CSV/JSON modes remain unfinished.
+
 ## October 14 — V-2 synthetic scenario seed application (source under CI review)
 
 Four deterministic demo schemas can now be planned as 11 bounded SQL statements:
