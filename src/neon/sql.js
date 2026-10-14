@@ -4,9 +4,10 @@ import { createDb } from '../db.js';
 import { createKeyVault } from './keys.js';
 import { makeNeonClient,call } from './client.js';
 import { makeNeonBudget } from './budget.js';
+import { canonicalNeonEndpointHost } from '../core/self-resource.js';
 
 const defaultPoolFactory=(config)=>new Pool(config);
-const normalizeHost=host=>host.toLowerCase().replace(/-pooler(?=\.)/,'');
+const normalizeHost=canonicalNeonEndpointHost;
 function hostOf(raw) {
   const parsed=new URL(raw);
   if(!['postgres:','postgresql:'].includes(parsed.protocol) || !parsed.hostname)
