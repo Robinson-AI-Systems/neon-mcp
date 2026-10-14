@@ -28,6 +28,7 @@ function fixture(opts={},door='direct'){
   mutate:async()=>{f.calls.push('ddl');
    if(opts.throwOnWrite){if(opts.leaveInvalid)index={...index,valid_index:false};throw Error('uncertain');}
    if(opts.verify!==false)index={...index,index_oid:'456',index_bytes:'16384',scans:'1'};
+   else index={...index,index_oid:'456',method:'hash'};
    return {issued:true};}});
  const registry={tools:[...impl.tools,...metaTools],handlers:{...impl.handlers,...metaHandlers}};
  async function invoke(args){

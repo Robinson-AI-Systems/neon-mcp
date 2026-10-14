@@ -41,7 +41,7 @@ function publicObservation(snapshot){
 export function createReindexHandlers({contextFor=createProjectWriteContext,
  verifyTarget=verifyConnectionTarget,query=runPublicSqlQuery,
  mutate=runReviewedReindexMutation}={}){
- async function observe(a,c){
+ async function observe(a,c,{allowInvalid=false}={}){
   if(c?.connection?.profile!=='full'||!valid(a?.schemaName)||
      a.schemaName.startsWith('pg_')||a.schemaName==='information_schema'||
      !valid(a.tableName)||!['index','table'].includes(a.scope)||
@@ -65,7 +65,7 @@ export function createReindexHandlers({contextFor=createProjectWriteContext,
   const all=inventory.rows.filter(x=>x.table_name===a.tableName);
   const selection=a.scope==='index'?all.filter(x=>x.index_name===a.indexName):all;
   if(!selection.length||a.scope==='index'&&selection.length!==1||
-     selection.some(x=>!x.valid_index||!x.ready_index))
+     (!allowInvalid&&selection.some(x=>!x.valid_index||!x.ready_index)))
    throw Error('Only observed valid ready indexes can be rebuilt');
   // Refuse a same-name index on a different table rather than silently
   // selecting nothing, and never silently rebuild an incomplete inventory.
@@ -114,7 +114,7 @@ export function createReindexHandlers({contextFor=createProjectWriteContext,
   const ctx=await contextFor(connectionCtx),result=await write.handler(a,ctx);
   const value=JSON.parse(result.content[0].text);
   if(value.confirmed==='pending'){
-   try{const observed=publicObservation(await observe(a,ctx));
+   try{const observed=publicObservation(await observe(a,ctx,{allowInvalid:true}));
     return {content:[{type:'text',text:JSON.stringify({...value,
      observationOnly:true,observed,
      warning:'Operation unconfirmed; inspect invalid _ccnew artifacts before any separately approved cleanup. Do not retry.'})}]};}

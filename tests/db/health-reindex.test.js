@@ -41,7 +41,7 @@ it('rebuilds INDEX and TABLE concurrently with independently read catalogs and p
   const preview=parsed(await handlers.neon_health_reindex({...args,dryRun:true},c));
   expect(preview.done).toBe(false);
   const result=parsed(await handlers.neon_health_reindex({...args,confirm:true},c));
-  expect(result).toMatchObject({done:true,confirmed:true});
+  expect(result,JSON.stringify(result)).toMatchObject({done:true,confirmed:true});
   const indexes=(await client.query(INDEX_INVENTORY_SQL,['public'])).rows.filter(x=>x.table_name==='people');
   expect(indexes.length).toBe(3);
   expect(indexes.every(x=>x.valid_index&&x.ready_index)).toBe(true);
