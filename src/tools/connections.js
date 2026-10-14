@@ -17,7 +17,7 @@ const bool={type:'boolean'};
 const choice={projectId:readId,branchId:readId,endpointId:readId,
  databaseName:{type:'string',pattern:'^[A-Za-z_][A-Za-z0-9_-]{0,62}$'},
  roleName:roleSchema};
-async function target(a,c,getClient){
+export async function verifyConnectionTarget(a,c,getClient=projectClient){
  const scope=projectScope(c,a.projectId??null);
  const pid=scope.projectId,bid=a.branchId;
  if(!id(pid)||!id(bid)||!id(a.endpointId)||
@@ -90,7 +90,7 @@ const reveal=defineWrite({name:'neon_connection_show_once',
  secret:true,access:true,productionEffect:'write',
  plan:async(a,c)=>{
   checkSecretStorage(c);
-  const t=await target(a,c,projectClient);
+  const t=await verifyConnectionTarget(a,c,projectClient);
   if(t.endpoint.disabled===true)
    throw Error('Cannot issue a URI for a disabled compute');
   return {...writeTarget(t),before:{id:t.endpointId},
@@ -99,7 +99,7 @@ const reveal=defineWrite({name:'neon_connection_show_once',
     '; credential must be kept out of chats, logs, and repositories'};
  },
  apply:async(a,c)=>{
-  const t=await target(a,c,projectClient);
+  const t=await verifyConnectionTarget(a,c,projectClient);
   if(t.endpoint.disabled===true)
    return {confirmed:false};
   const {uri}=await uriFor(t,false);
@@ -127,7 +127,7 @@ export function createConnectionHandlers({
  testConnection=guardedConnectionTest}={}){
  return {
   async neon_connection_get_info(a,c){
-   const t=await target(a,c,getClient);
+   const t=await verifyConnectionTarget(a,c,getClient);
    const direct=await uriFor(t,false);
    let pooledHost=null;
    if(t.endpoint.pooler_enabled===true){
