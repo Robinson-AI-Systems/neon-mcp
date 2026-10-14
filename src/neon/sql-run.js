@@ -176,14 +176,14 @@ export async function runPublicSqlExplain({ctx,target,text,params=[],analyze=fal
 // D-5: fixed SQL for a single guarded query cancellation. Never terminate a
 // backend, expose SQL text, or accept a caller-provided statement or target DB.
 const ACTIVE_SESSION_SQL='SELECT pid,datname,usename,backend_type,state,'+
- ' backend_start::text AS backend_start,query_start::text AS query_start'+
+ ' EXTRACT(EPOCH FROM backend_start)::text AS backend_start,EXTRACT(EPOCH FROM query_start)::text AS query_start'+
  ' FROM pg_catalog.pg_stat_activity WHERE pid=$1 AND datname=current_database()'+
  " AND usename=current_user AND backend_type='client backend'"+
  ' AND pid<>pg_backend_pid()';
 const SIGNAL_CANCEL_SQL='SELECT pg_cancel_backend(pid) AS cancelled'+
  ' FROM pg_catalog.pg_stat_activity WHERE pid=$1 AND datname=current_database()'+
  " AND usename=current_user AND backend_type='client backend' AND state='active'"+
- ' AND backend_start::text=$2 AND query_start::text=$3 AND pid<>pg_backend_pid()';
+ ' AND EXTRACT(EPOCH FROM backend_start)::text=$2 AND EXTRACT(EPOCH FROM query_start)::text=$3 AND pid<>pg_backend_pid()';
 const validPid=value=>Number.isSafeInteger(value)&&value>=1&&value<=2147483647;
 const validSignature=row=>validPid(row?.pid)&&row.state==='active'&&
  typeof row.backend_start==='string'&&row.backend_start.length>0&&
