@@ -722,14 +722,18 @@
         "V-1"
       ],
       "card": "docs/pr-cards/V-2.md",
-      "status": "PLANNED",
+      "status": "IN_PROGRESS",
       "migration": "none",
       "budget": 500,
       "units": [
         "V-2"
       ],
-      "readiness": "WRITE_CARD_AT_START",
-      "ownerInputs": []
+      "readiness": "READ_ONLY_SCENARIO_PREVIEW",
+      "ownerInputs": [],
+      "pr": [
+        165
+      ],
+      "note": "PR #165: read-only deterministic synthetic preview for 4 five-table scenarios with dependency ordering and bounded full generated rows. Source/unit/CI proven only; actual guarded seed writes, existing-schema auto mode, public CSV/JSON import, idempotent replay and deployed custom acceptance remain incomplete. Original V-1 hosted write/cleanup gates remain queued."
     },
     {
       "id": "V-3",
