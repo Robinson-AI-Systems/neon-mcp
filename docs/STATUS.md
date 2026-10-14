@@ -1,4 +1,4 @@
-## D-9 verified application migration history — implementation PR in progress
+## D-9 verified application migration history — PR #149
 
 Registered `neon_schema_list_migrations` with safe bounded read-only
 metadata from PostgreSQL's five recognized migration tracking tables:

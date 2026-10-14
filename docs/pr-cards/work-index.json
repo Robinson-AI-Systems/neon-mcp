@@ -674,7 +674,10 @@
       ],
       "readiness": "READY",
       "ownerInputs": [],
-      "note": "Real PostgreSQL migration history read tooling implemented in current implementation PR, with independently verified exact B-3 SQL policy, bounded catalogs and comprehensive provider-compatible fixtures. Provider-connected acceptance remains pending checked deployment; data compare and reindex remain open."
+      "note": "Real PostgreSQL migration history read tooling implemented in PR #149, with independently verified exact B-3 SQL policy, bounded catalogs and comprehensive provider-compatible fixtures. Provider-connected acceptance remains pending checked deployment; data compare and reindex remain open.",
+      "pr": [
+        149
+      ]
     },
     {
       "id": "V-1",

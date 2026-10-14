@@ -6,7 +6,7 @@ let schema;
 beforeAll(async()=>{
  schema=await openIsolatedSchema(requireLocalDatabaseUrl());
  await rawQuery('CREATE TABLE _prisma_migrations (migration_name text, started_at timestamptz, finished_at timestamptz, rolled_back_at timestamptz)');
- await rawQuery("INSERT INTO _prisma_migrations VALUES ('20261001_initial',now(),now(),NULL),('20261002_broken',now(),NULL,NULL)");
+ await rawQuery("INSERT INTO _prisma_migrations VALUES ('20261001_initial',now()-interval '1 day',now()-interval '1 day',NULL),('20261002_broken',now(),NULL,NULL)");
  await rawQuery('CREATE TABLE knex_migrations (id integer, name text, migration_time timestamptz)');
  await rawQuery("INSERT INTO knex_migrations VALUES (1,'create_users',now())");
 });
