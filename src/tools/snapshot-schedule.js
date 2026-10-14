@@ -129,7 +129,7 @@ const write=defineWrite({
   sameSchedule(after.schedule,reduced(a,before))
 });
 export const tools=[{...write.tool,profiles:['full'],area:'snapshots',
- audience:['owner'],description:'Owner-confirmed reduction of development snapshot retention or redundant cadence without loss of daily recovery; exact readback.',
+ audience:['owner'],description:'Reduce development backup retention/cadence, preserving daily recovery.',
  inputSchema:{type:'object',properties:{projectId:id,branchId:id,
   frequency:{type:'string',enum:['hourly','daily','weekly','monthly','yearly']},
   action:{type:'string',enum:['shorten_retention','remove_cadence']},

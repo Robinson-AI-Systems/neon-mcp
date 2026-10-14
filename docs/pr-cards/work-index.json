@@ -593,9 +593,10 @@
         145,
         146,
         147,
-        148
+        148,
+        151
       ],
-      "note": "Four of the planned D-6 schema inspection reads implemented with provider-bound SQL, bounded catalog metadata and genuine disposable Postgres tests; external custom SQL acceptance requires checked deployment, remaining schema/health tools pending. #144 full cross-schema name search and 8-kind object inventory; fixed SQL and real PostgreSQL fixtures, live custom read pending. #145 adds selected fifteen PostgreSQL health read checks with per-check observed/incomplete/unavailable evidence, real disposable PG tests; live custom acceptance pending. #146 bounded generated TypeScript/Zod row types from fully observed catalog metadata; exact B-3 direct target with safe JSON scalars and real Postgres proof; hosted read pending. #147 adds clearly non-executable structural DDL from fully verified PostgreSQL table/key metadata with real PG tests; never claim complete restorable DDL. #148 adds guarded read-only stats/leading-index review-only CREATE INDEX candidates for caller-chosen columns; exact-head CI and live service remain distinct."
+      "note": "Four of the planned D-6 schema inspection reads implemented with provider-bound SQL, bounded catalog metadata and genuine disposable Postgres tests; external custom SQL acceptance requires checked deployment, remaining schema/health tools pending. #144 full cross-schema name search and 8-kind object inventory; fixed SQL and real PostgreSQL fixtures, live custom read pending. #145 adds selected fifteen PostgreSQL health read checks with per-check observed/incomplete/unavailable evidence, real disposable PG tests; live custom acceptance pending. #146 bounded generated TypeScript/Zod row types from fully observed catalog metadata; exact B-3 direct target with safe JSON scalars and real Postgres proof; hosted read pending. #147 adds clearly non-executable structural DDL from fully verified PostgreSQL table/key metadata with real PG tests; never claim complete restorable DDL. #148 adds guarded read-only stats/leading-index review-only CREATE INDEX candidates for caller-chosen columns; exact-head CI and live service remain distinct. #151 adds owner-confirmed guarded six-extension development-only install/upgrade; production, extension deletion and provider acceptance pending."
     },
     {
       "id": "D-7",

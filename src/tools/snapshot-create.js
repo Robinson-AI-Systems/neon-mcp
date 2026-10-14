@@ -107,7 +107,7 @@ const create=defineWrite({
 });
 const strId={type:'string',pattern:'^[a-z0-9-]{1,60}$'};
 export const tools=[{...create.tool,profiles:['full'],area:'snapshots',
- audience:['owner'],description:'Create a time-limited manual dev snapshot with independently verified size, source-dated storage forecast and B-4 spend reservation.',
+ audience:['owner'],description:'Confirm a priced temporary development snapshot with verified size.',
  inputSchema:{type:'object',properties:{projectId:strId,branchId:strId,
   name:{type:'string',minLength:1,maxLength:80},
   expiresAt:{type:'string',format:'date-time'},

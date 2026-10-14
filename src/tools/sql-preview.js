@@ -108,7 +108,7 @@ export function createSqlPreviewHandlers({
    typeof after.previewToken==='string'&&after.previewToken.length>=40
  });
  const tool={...definition.tool,profiles:['full'],area:'sql',audience:['owner'],
-  description:'Preview classified SQL on a disposable isolated Neon child with owner confirmation, atomic spend reservation, verified cleanup and one-use token.',
+  description:'Confirm isolated SQL rehearsal, priced cleanup and a one-use token.',
   inputSchema:{type:'object',properties:{
    projectId:id,branchId:id,endpointId:id,databaseName:dbName,roleName:dbName,
    statements:{type:'array',minItems:1,maxItems:20,items:{type:'string',minLength:1,maxLength:20000}},

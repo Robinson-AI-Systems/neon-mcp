@@ -1,3 +1,25 @@
+## Release follow-up queue — October 14 session
+
+| Capability | Minimum source | Run as soon as that revision is READY | Last evidence / gates |
+| --- | --- | --- | --- |
+| D-4 scratch retirement | merged #150 | Verify deployed SHA and custom identity; branch-create dryRun; resume approved isolated fixture/consent/refusal/delete cycle, independent role absence, fresh authentication denial and cleanup | READY #148 only; original scratch baseline preserved; existing IN-06/IN-16 approvals, production OFF, spending $0 |
+| D-6 extension workflow | merged #151 | Custom full-owner write preview, scoped install/update, catalog readback, protection/production denials and fixture cleanup | Local/CI tracked separately; no hosted mutation performed |
+| D-6 schema/type/health and D-9 history | merged #149 or newer | Verify exact direct scratch SQL target; bounded read acceptance for types, DDL sketches, health/index advice and migration history | Source tests only; protected/self-resource and read gates remain |
+| Daily release recovery | merged #152 | Inspect future scheduled event, once-per-Denver-day marker, exact-main checks and live/READY alias readback | #152 source merged; October 14 receipt already exists at #148, so later same-day backups must skip |
+
+This is planned release-dependent acceptance; continue eligible implementation.
+Update rows after every observed release and acceptance run. No manual release implied.
+
+## D-6 development extension workflow — PR #151
+
+Owner-confirmed install/upgrade of six audited extensions, durable B-1 audit,
+exact direct SQL identity and independent version readback. Rechecks provider
+classification, protected resources and application ownership immediately before
+DDL. Disposable PostgreSQL installation, update, rollback and all three transport
+write contracts verify source behavior; custom hosted acceptance awaits the normal
+checked release. Preserves #150 D-4 correction and #152 release repair.
+Production OFF; autonomous spending $0.
+
 <!-- Current repair also records no-change daily receipts: backups cannot publish later same-day development after a successful no-op. -->
 ## October 14 owner-requested daily release recovery repair — current
 

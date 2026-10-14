@@ -107,7 +107,7 @@ const define = defineWrite({name:'neon_role_create_read_only',secret:true,access
 });
 export const tools=[{...define.tool,profiles:['full'],area:'roles',
   audience:['owner'],secretRoute:'/api/neon/setup',oneTimeOnly:true,
-  description:'Create a login role with independently verified SELECT grants and future defaults in chosen database schemas; owner-only password handoff.',
+  description:'Confirm SELECT-only login/future grants; owner-only password handoff.',
   inputSchema:schema({
     name:roleSchema,ownerName:roleSchema,
     databaseName:{type:'string',pattern:'^[A-Za-z_][A-Za-z0-9_-]{0,62}$'},

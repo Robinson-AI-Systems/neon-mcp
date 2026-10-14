@@ -9,7 +9,7 @@ import {TABLES_SQL,COLUMNS_SQL} from './schema-reads.js';
 const identifier={type:'string',pattern:'^[A-Za-z_][A-Za-z0-9_-]{0,62}$'};
 const required=['projectId','branchId','endpointId','databaseName','roleName','schemaName'];
 const tool=defineReadTool('neon_schema_generate_types',
- 'Generate TypeScript row interfaces or Zod schemas from verified, bounded database metadata.',
+ 'Generate verified TypeScript/Zod row schemas.',
  {projectId:readId,branchId:readId,endpointId:readId,
   databaseName:identifier,roleName:identifier,schemaName:identifier,
   tableNames:{type:'array',minItems:1,maxItems:20,uniqueItems:true,
