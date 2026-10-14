@@ -11,6 +11,7 @@ import {applyGuardedSql} from '../neon/sql-apply.js';
 import {createSqlLayer} from '../neon/sql.js';
 import {createKeyVault} from '../neon/keys.js';
 import {compileDemoSeed,verifyDemoSeed} from '../dev/seed-plan.js';
+import {chooseDemoScenario} from '../dev/scenario-choice.js';
 
 const id={type:'string',pattern:'^[a-z0-9-]{1,60}$'};
 const run={type:'string',pattern:'^[a-z0-9-]{4,64}$'};
@@ -21,11 +22,12 @@ const schema={
  properties:{projectId:id,branchId:id,runId:run,endpointId:id,
   databaseName:name,roleName:name,
   scenario:{type:'string',enum:['saas','store','rental','blog']},
+  description:{type:'string',minLength:5,maxLength:400},
   seed:{type:'string',pattern:'^[A-Za-z0-9_-]{1,80}$'},
-  rowsPerTable:{type:'integer',minimum:1,maximum:20},
+  rowsPerTable:{type:'integer',minimum:1,maximum:100},
   dryRun:{type:'boolean'},confirm:{type:'boolean'},
   requestKey:{type:'string',minLength:8,maxLength:128}},
- required:['projectId','branchId','runId','endpointId','databaseName','roleName','scenario']
+ required:['projectId','branchId','runId','endpointId','databaseName','roleName']
 };
 async function targetFor(a,c,verifyTarget){
  if(c?.connection?.profile!=='full'||!RUN.test(a.runId||'')||
@@ -71,26 +73,28 @@ export function createDemoSeedHandlers({
  const definition=defineWrite({name:'neon_dev_seed',productionEffect:'none',
   plan:async(a,c)=>{
    const state=await targetFor(a,c,verifyTarget);
+   const chosen=chooseDemoScenario(a);
    const key=c.writeKey('neon_dev_seed',a);
    const seedPlan=compileDemoSeed({
-    scenario:a.scenario,seed:a.seed??'demo',rowsPerTable:a.rowsPerTable??3,
+    scenario:chosen.scenario,seed:a.seed??'demo',rowsPerTable:a.rowsPerTable??3,
     requestKey:key});
    return {projectId:state.target.projectId,branchId:state.target.branchId,
     target:'dev-seed:'+state.target.projectId+'/'+state.target.branchId+
      '/'+state.target.database+'/'+seedPlan.schema,
     before:{...state,seedPlan,requestKey:key},
     summary:'Create isolated '+seedPlan.schema+' with '+seedPlan.totalRows+
-     ' fabricated '+a.scenario+' rows in five foreign-key ordered tables on run '+
+     ' fabricated '+chosen.scenario+' rows in five foreign-key ordered tables on run '+
      a.runId+'. No customer data, existing-schema changes, provider provisioning'+
      ' or production writes. Review the bounded SQL and confirm once.'};
   },
   apply:async(a,c,{before,requestKey})=>{
    const state=await targetFor(a,c,verifyTarget);
+   const chosen=chooseDemoScenario(a);
    if(requestKey!==before.requestKey||
       JSON.stringify(state)!==JSON.stringify({target:before.target,expiry:before.expiry}))
     throw Error('Run, scope or target changed after preview');
    const plan=compileDemoSeed({
-    scenario:a.scenario,seed:a.seed??'demo',rowsPerTable:a.rowsPerTable??3,
+    scenario:chosen.scenario,seed:a.seed??'demo',rowsPerTable:a.rowsPerTable??3,
     requestKey});
    if(plan.schema!==before.seedPlan.schema)
     throw Error('Seed identity changed since preview');
@@ -127,7 +131,7 @@ export function createDemoSeedHandlers({
  });
  const tool={...definition.tool,inputSchema:schema,
   area:'developer',audience:['builder','owner'],profiles:['full'],
-  description:'Confirm synthetic SaaS, store, rental or blog schema/data on an expiring run-owned dev branch; verify every seeded row.'};
+  description:'Confirm a bounded 1–100 row/table synthetic demo from a name or exact description on a run-owned dev branch; verify every row.'};
  return {tools:[tool],handlers:{
   neon_dev_seed:async(a,raw)=>definition.handler(a,await contextFor(raw))
  }};
