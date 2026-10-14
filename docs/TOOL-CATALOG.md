@@ -188,7 +188,7 @@ The SQL guard (`docs/designs/BATCH-B.md` B-3) classifies every statement with th
 | `neon_health_check` | Database health in one call (any of 15 checks): sizes, cache hit rate, connections, locks, long-running queries, bloat, autovacuum, unused/duplicate indexes, transaction-ID age, replication | — | Op | R | D-6 (built #145; hosted acceptance pending) |
 | `neon_health_suggest_indexes` | Review-only candidate on explicitly selected columns from verified PostgreSQL scan/index stats; no SQL execution or query text | — | B Op | R | D-6 (built #148; live SQL acceptance pending) |
 | `neon_health_vacuum_analyze` | VACUUM (ANALYZE) a table or database (production: confirm; load warning) | C* Pr | Op | E | D-6 |
-| `neon_health_reindex` | Rebuild a bloated or invalid index, or all indexes of a table, `CONCURRENTLY` by default (preview shows sizes before and the bloat estimate; production: confirm; never a whole database or system catalogs) | C* Pr | Op | E | D-9 |
+| `neon_health_reindex` | Owner-confirmed INDEX/TABLE REINDEX CONCURRENTLY on verified regular development tables; size and scans are observations only, production remains gated | C Pr | Op | E | D-9 built #157 |
 
 ## Snapshots (`neon_snapshot_*`) — 7
 
