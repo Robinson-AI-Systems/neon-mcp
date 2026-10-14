@@ -29,7 +29,7 @@ describe('D-4 self Neon direct/pooler deployment admission',()=>{
   for(const env of [
    {...safeEnv,NEON_MCP_SELF_ENDPOINT_HOST:'host-other.example.invalid'},
    {...safeEnv,NEON_MCP_SELF_ENDPOINT_HOST:'host-fake.example.invalid.evil.test'},
-   {...safeEnv,DATABASE_URL:'postgresql://owner@host-other-pooler.example.invalid/neondb'},
+   {...safeEnv,DATABASE_URL:'postgresql://owner@host-fake-other-pooler.example.invalid/neondb'},
    {...safeEnv,DATABASE_URL:'https://host-fake.example.invalid/neondb'},
    {...safeEnv,DATABASE_URL:'not-a-uri'},
    {...safeEnv,NEON_MCP_SELF_ORG_ID:null},
