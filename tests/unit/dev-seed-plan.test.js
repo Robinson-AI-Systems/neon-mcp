@@ -59,7 +59,7 @@ describe('V-2 audited relational synthetic seed planning',()=>{
  });
  it('refuses malformed payloads and all raw or excessive seed input',()=>{
   for(const bad of [{scenario:'foreign'},{scenario:'saas',rowsPerTable:0},
-   {scenario:'saas',rowsPerTable:21},{scenario:'rental',seed:'bad;DROP'},
+   {scenario:'saas',rowsPerTable:101},{scenario:'rental',seed:'bad;DROP'},
    {scenario:'blog',seed:'bad@example.com'}])
    expect(()=>compileDemoSeed({...bad,requestKey:key})).toThrow();
   expect(()=>compileDemoSeed({scenario:'saas',requestKey:'not-valid'})).toThrow();
