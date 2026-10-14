@@ -59,3 +59,25 @@ it('marks only recorded objects cleaned and completes only when no objects remai
  expect((await db.getDevRun({orgId:org,projectId:proj,runId:'run-first'})).status)
   .toBe('cleaned');
 });
+
+
+it('keyset pages and age/state filters retain exact PostgreSQL scope',async()=>{
+ const first=await db.listDevRuns({orgId:org,projectId:proj,limit:1});
+ expect(first).toHaveLength(2); // one lookahead to prove another page exists
+ expect(first[0].id).not.toBe(first[1].id);
+ expect(first[0].created_at_cursor).toMatch(/^[0-9]{4}-/);
+ const second=await db.listDevRuns({orgId:org,projectId:proj,limit:1,
+  cursorAt:first[0].created_at_cursor,cursorId:first[0].id});
+ expect(second.map(x=>x.id)).toEqual([first[1].id]);
+ expect(await db.listDevRuns({orgId:org,projectId:other,limit:1,
+  cursorAt:first[0].created_at_cursor,cursorId:first[0].id})).toEqual([]);
+ expect((await db.listDevRuns({orgId:org,projectId:proj,status:'cleaned'}))
+  .map(x=>x.id)).toContain('run-first');
+ await rawQuery("UPDATE dev_runs SET created_at=now()-INTERVAL '8 days' WHERE id=$1",['run-second']);
+ expect((await db.listDevRuns({orgId:org,projectId:proj,olderThanDays:7}))
+  .map(x=>x.id)).toEqual(['run-second']);
+ await expect(db.listDevRuns({orgId:org,projectId:proj,status:'invalid'}))
+  .rejects.toThrow('Invalid');
+ await expect(db.listDevRuns({orgId:org,projectId:proj,
+  cursorAt:'2026-10-14T00:00:00Z'})).rejects.toThrow('Invalid');
+});
