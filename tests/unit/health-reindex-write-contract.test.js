@@ -12,7 +12,7 @@ const first={index_oid:'123',index_name:'people_code_idx',table_name:'people',
  valid_index:true,ready_index:true,unique_index:false,primary_index:false,
  constraint_index:false,index_bytes:'8192',scans:'0',method:'btree',
  custom_expression:false,key_count:1,attribute_count:1,columns:['code']};
-function fixture(opts={},door='direct',scope='index'){
+function fixture(opts={},door='direct'){
  const f=makeContractFixture(opts);let index={...first},server;
  const tool='neon_health_reindex';
  f.ctx.connection={neonOrg:'org-fake',profile:'full',mode:'preview'};
@@ -66,7 +66,7 @@ describe('D-9 guarded concurrent development reindex',()=>{
  for(const scope of ['index','table'])for(const door of ['direct','delegated','https'])
   it('nine write-contract cases '+scope+' via '+door,async()=>{
    const opened=[],input={...base,scope,...(scope==='index'?{indexName:first.index_name}:{})};
-   try{await runWriteContract(opts=>{const f=fixture(opts,door,scope);opened.push(f);return f;},
+   try{await runWriteContract(opts=>{const f=fixture(opts,door);opened.push(f);return f;},
     {input,nonBillable:true,productionAllowed:false});}
    finally{for(const f of opened)await f.close();}
   });

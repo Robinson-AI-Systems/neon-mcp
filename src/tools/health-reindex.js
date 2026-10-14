@@ -26,7 +26,7 @@ function validIndex(i){
 function stable(i){
  // REINDEX CONCURRENTLY may replace OIDs, sizes and usage counters. Those
  // fields are diagnostic evidence, never part of the logical identity.
- const {index_oid,index_bytes,scans,...shape}=i;
+ const {index_oid:_index_oid,index_bytes:_index_bytes,scans:_scans,...shape}=i;
  return shape;
 }
 function signature(snapshot){

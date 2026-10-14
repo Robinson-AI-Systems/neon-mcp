@@ -1,7 +1,8 @@
 import {beforeAll,afterAll,it,expect} from 'vitest';
 import pg from 'pg';
 import {requireLocalDatabaseUrl} from './local-url.js';
-import {createReindexHandlers,INDEX_INVENTORY_SQL} from '../../src/tools/health-reindex.js';
+import {createReindexHandlers} from '../../src/tools/health-reindex.js';
+import {INDEX_INVENTORY_SQL} from '../../src/tools/schema-index-write.js';
 import {runReviewedReindexMutation} from '../../src/neon/sql-run.js';
 import {makeContractFixture} from '../../test/helpers/write-contract.js';
 let admin,client,name;
