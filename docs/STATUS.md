@@ -125,13 +125,13 @@ open obligations, original fixture ownership, approvals and deployment provenanc
   {
     "id": "NEON-V2-SCENARIOS",
     "priority": 4,
-    "requiredRevision": "4b8db57c587fdde4936469b52bac6a150d69f8e3",
+    "requiredRevision": "6842ab5779aa6ecf582ac20ccd0360d5e4fa23fe",
     "task": "After checked release, verify genuine custom Neon MCP read-only scenario discovery and bounded seeded previews for four synthetic demos, with malformed-input denial",
     "procedure": "docs/pr-cards/V-2.md",
     "gates": "No DB/SQL mutation, no real customer data or money; V-1 acceptance remains separate",
     "dependsOn": [],
     "status": "PENDING",
-    "lastEvidence": "Source-only V-2 deterministic scenario preview implementation in PR #165; no deployed custom MCP read or neon_dev_seed application acceptance; do not mark PASSED."
+    "lastEvidence": "PR #165 reviewed implementation registered through commit 6842ab5779aa6ecf582ac20ccd0360d5e4fa23fe; source-only scenario preview; no deployed custom MCP read or neon_dev_seed application acceptance; do not mark PASSED."
   }
 ]
 ```
