@@ -154,9 +154,9 @@ The SQL guard (`docs/designs/BATCH-B.md` B-3) classifies every statement with th
 | `neon_sql_query` | Read-only SQL (SELECT, SHOW, EXPLAIN without ANALYZE) inside a READ ONLY transaction, row cap and time limit; production reads allowed by setting (IN-09) | — | B Op | R | D-5 (built #126; live SQL unverified) |
 | `neon_sql_execute` | One writing statement. Non-production: preview, confirm when destructive. Production: production guard, exact affected rows previewed on a throwaway branch, applied in a transaction that rolls back if the count differs, restore point recorded | C* Pr D | B Op | E | D-5 |
 | `neon_sql_execute_transaction` | Several statements in one all-or-nothing transaction, same rules as `neon_sql_execute` (strictest statement decides) | C* Pr D | B Op | E | D-5 |
-| `neon_sql_explain` | Query plan; ANALYZE only for read-only statements (writes are analyzed on a throwaway branch by `neon_sql_preview_change`) | — | B Op | R | D-5 |
+| `neon_sql_explain` | Query plan; ANALYZE only for read-only statements (writes are analyzed on a throwaway branch by `neon_sql_preview_change`) | — | B Op | R | D-5 (built #127; runtime proof pending) |
 | `neon_sql_preview_change` | Run SQL on a throwaway copy of the target branch: affected rows, schema diff, timing, errors; the copy is deleted afterwards | P | B Op | E | D-5 |
-| `neon_sql_list_activity` | Running queries, waits and locks, oldest first | — | Op | R | D-5 |
+| `neon_sql_list_activity` | Running queries, waits and locks, oldest first | — | Op | R | D-5 (built #127; runtime proof pending) |
 | `neon_sql_stop_query` | Cancel a running query, or end its session (production: confirm) | C Pr | Op | E | D-5 |
 | `neon_sql_list_slow_queries` | Slowest and most frequent queries from `pg_stat_statements` (offers to enable the extension when missing) | — | B Op | R | D-5 |
 
@@ -358,7 +358,7 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #126 (source capability listing, deployment acceptance separate):** `read_only` 32; `everyday` 40; `full` 67. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
+**Implemented registry at #126 (source capability listing, deployment acceptance separate):** `read_only` 34; `everyday` 42; `full` 69. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
 
 ## Totals
 
