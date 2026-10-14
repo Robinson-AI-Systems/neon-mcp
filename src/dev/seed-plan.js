@@ -31,7 +31,7 @@ export function compileDemoSeed({scenario,seed='demo',rowsPerTable=3,requestKey}
     !safeName.test(requestKey))throw Error('Bounded synthetic seed and stable audit key required');
  const tables=generateDemoRows({scenario,seed,rowsPerTable});
  if(tables.length!==5)throw Error('Exact five-table demonstration required');
- const schema='rmcp_demo_'+createHash('sha256').update(requestKey).digest('hex').slice(0,24);
+ const schema='rmcp_demo_'+createHash('sha256').update([requestKey,scenario,seed,rowsPerTable].join('|')).digest('hex').slice(0,24);
  const statements=['CREATE SCHEMA '+part(schema)],params=[[]],expectedAffectedRows=[0];
  const seen=new Set(),details=[];
  for(const t of tables){
