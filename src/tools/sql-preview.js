@@ -4,6 +4,7 @@ import {defineWrite} from '../core/write.js';
 import {verifyConnectionTarget} from './connections.js';
 import {createProjectWriteContext} from '../neon/project-write-context.js';
 import {classifySql} from '../neon/sql-guard.js';
+import {parse} from 'libpg-query';
 import {createSqlExactPreview} from '../neon/sql-preview.js';
 import {createSqlLayer} from '../neon/sql.js';
 import {createKeyVault} from '../neon/keys.js';
@@ -23,8 +24,27 @@ function paramsFor(a){
   throw Error('Supply safe positional parameters for each SQL change');
  return params;
 }
+
+const previewableRoots=new Set(['InsertStmt','UpdateStmt','DeleteStmt','MergeStmt',
+ 'CreateStmt','AlterTableStmt','DropStmt','IndexStmt','ViewStmt',
+ 'CreateFunctionStmt','CreateSchemaStmt','CreateSeqStmt','AlterSeqStmt',
+ 'CreateTrigStmt','CreatePolicyStmt','AlterPolicyStmt','CreateEnumStmt',
+ 'AlterEnumStmt','RenameStmt','CommentStmt','CreatePublicationStmt',
+ 'CreateTableAsStmt','CompositeTypeStmt','GrantStmt']);
+export async function checkedPreviewStatements(statements){
+ for(const sql of statements){
+  let ast;
+  try{ast=await parse(sql)}catch{throw Error('SQL preview statement is not valid PostgreSQL');}
+  if(ast?.stmts?.length!==1||
+     !previewableRoots.has(Object.keys(ast.stmts[0]?.stmt??{})[0]))
+   throw Error('Procedural or unrecognized SQL is not safe for isolated change preview');
+ }
+}
 async function verifiedPlan(a,c,verifyTarget=verifyConnectionTarget){
+ if(c?.connection?.profile!=='full')
+  throw Error('SQL preview requires full owner authorization');
  const params=paramsFor(a);
+ await checkedPreviewStatements(a.statements);
  const sqlClasses=await Promise.all(a.statements.map(classifySql));
  if(sqlClasses.some(x=>!['write','ddl','destructive'].includes(x.kind)||
     x.unknownNode===true))

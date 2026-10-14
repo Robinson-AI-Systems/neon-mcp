@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {createSqlPreviewHandlers} from '../../src/tools/sql-preview.js';
+import {createSqlPreviewHandlers,checkedPreviewStatements} from '../../src/tools/sql-preview.js';
 const target={projectId:'proj-fake-target',branchId:'br-fake-child',
  endpointId:'ep-fake-child',databaseName:'neondb',roleName:'owner'};
 const args={...target,statements:['UPDATE invoices SET paid=true WHERE id=$1'],
@@ -31,6 +31,13 @@ function fixture({allowed=true,profile='full',production=true,createResult=null,
 }
 const json=resp=>JSON.parse(resp.content[0].text);
 describe('D-5 guarded isolated exact SQL preview',()=>{
+ it('rejects unbounded procedural and server-wide SQL even when classified destructive',async()=>{
+  for(const stmt of ['CALL mutate()', 'DO $$ BEGIN NULL; END $$;',
+    'DROP OWNED BY someone', 'SELECT unsafe_fn()']){
+   await expect(checkedPreviewStatements([stmt])).rejects.toThrow();
+  }
+ });
+
  it('advertises full owner, spend and destructive write contract',()=>{
   const f=fixture(),tool=f.tools[0];
   expect(tool).toMatchObject({name:'neon_sql_preview_change',writes:true,
