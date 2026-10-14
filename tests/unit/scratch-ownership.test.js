@@ -5,9 +5,9 @@ import {makeNeonClient} from '../../src/neon/client.js';
 import {IDS,project} from '../../test/helpers/neon-fixtures.js';
 
 const env={VERCEL_ENV:'production',DATABASE_URL:
- 'postgresql://fake:FAKE_PASS@ep-self-fake.us-east-2.aws.neon.tech/owner',
+ 'postgresql://user:FAKE@localhost/owner',
  NEON_MCP_SELF_ORG_ID:IDS.org,NEON_MCP_SELF_PROJECT_ID:'proj-fake-self',
- NEON_MCP_SELF_ENDPOINT_HOST:'ep-self-fake.us-east-2.aws.neon.tech'};
+ NEON_MCP_SELF_ENDPOINT_HOST:'localhost'};
 function fixture({protectedProject=false,badProject=false,keyKind='project'}={}){
  const fake=makeFakeNeon(),writes=[];
  const client=makeNeonClient({key:'napi_FAKE_SCRATCH_KEY',orgId:IDS.org,
