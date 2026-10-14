@@ -46,6 +46,17 @@ open obligations, original fixture ownership, approvals and deployment provenanc
     "dependsOn": [],
     "status": "PENDING",
     "lastEvidence": "Implementation branch source pending required CI and merge; no deployed custom acceptance. Revision pinned to implementation commit."
+  },
+  {
+    "id": "NEON-D6-VACUUM",
+    "priority": 3,
+    "requiredRevision": "9dc65e891fa749da0ab8dca4dc131e248c2f1448",
+    "task": "Owner-authenticated custom development VACUUM ANALYZE on a disposable regular PostgreSQL table; independent relation readback, protected/production denials, fixture cleanup",
+    "procedure": "docs/pr-cards/D-6.md",
+    "gates": "Full-owner B-1 confirmation, exact scratch direct target, production OFF, self/app/protected exclusions and zero autonomous spending",
+    "dependsOn": [],
+    "status": "PENDING",
+    "lastEvidence": "Source implementation and disposable PostgreSQL tests proposed in PR #158; exact-head CI and genuine deployed custom-owner SQL acceptance not yet complete."
   }
 ]
 ```

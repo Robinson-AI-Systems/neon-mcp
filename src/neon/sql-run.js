@@ -370,3 +370,36 @@ export async function runReviewedReindexMutation({ctx,target,schema,table,index,
    return {issued:true};
   });
 }
+
+
+// D-6 development-only VACUUM (ANALYZE): no transaction, no automatic replay.
+export function buildReviewedVacuumDDL({schema,table}={}){
+ if(typeof schema!=='string'||schema.startsWith('pg_')||
+    schema==='information_schema'||
+    !/^[A-Za-z_][A-Za-z0-9_-]{0,62}$/.test(schema)||
+    !/^[A-Za-z_][A-Za-z0-9_-]{0,62}$/.test(table))
+  throw Error('Exact non-system regular-table identifier required');
+ return 'VACUUM (ANALYZE) '+quoteIdent(schema)+'.'+quoteIdent(table);
+}
+export async function runReviewedVacuumMutation({ctx,target,schema,table,sqlLayer}={}){
+ if(!ctx?.db||!ctx.connection?.neonOrg||!target?.projectId||!target.branchId||
+    !target.endpointId||!target.expectedEndpointHost||!target.database||
+    !target.role||target.pooled!==false)
+  throw Error('Exact direct development VACUUM target required');
+ const timeout=await ctx.db.getSqlMaintenanceTimeoutMs?.();
+ if(!Number.isSafeInteger(timeout)||timeout<15000||timeout>3600000)
+  throw Error('Stored maintenance timeout unavailable');
+ const statement=buildReviewedVacuumDDL({schema,table});
+ const ast=await parse(statement);
+ if(ast?.stmts?.length!==1||!ast.stmts[0]?.stmt?.VacuumStmt)
+  throw Error('Unreviewed vacuum statement');
+ const layer=sqlLayer??createSqlLayer({db:ctx.db,
+  vault:createKeyVault({db:ctx.db,env:ctx.env}),env:ctx.env});
+ return layer({neonOrg:ctx.connection.neonOrg,projectScope:ctx.connection.projectScope??null},
+  target,async client=>{
+   await client.query('SET lock_timeout = 5000');
+   await client.query('SET statement_timeout = '+timeout);
+   await client.query(statement);
+   return {issued:true};
+  });
+}
