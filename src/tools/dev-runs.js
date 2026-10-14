@@ -350,7 +350,7 @@ function decodeRunCursor(raw,scope,filters){
     data.v!==1||data.org!==scope.orgId||data.project!==scope.projectId||
     data.status!==filters.status||data.older!==filters.olderThanDays||
     typeof data.at!=='string'||data.at.length>40||
-    !/^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d{1,6})?Z$/.test(data.at)||
+    !/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,6})?Z$/.test(data.at)||
     Number.isNaN(Date.parse(data.at))||!RUN.test(data.id||'')||
     Buffer.from(JSON.stringify(data)).toString('base64url')!==raw)
   throw Error('Run-page cursor does not match the enrolled scope and filters');
