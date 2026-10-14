@@ -1,3 +1,5 @@
+**D-4 owner-approved retirement (IN-16):** Canonical role deletion is registered under full-owner B-1 gates with one-use durable exact preview and explicit interruption acknowledgement. No claim of idle pooled-client absence. Legacy nondisruptive proof remains unavailable; source/CI/deployed/provider acceptance are separate. Earlier unregistered notes below describe historical checkpoints.
+
 **D-4 private role-deletion inventory (#85):** Before opening any role-dependency SQL, provider endpoint IDs, branch database names and role names must each be unique; repeated identities make the full inventory untrusted. `neon_role_delete` is still NOT registered; pooled-client safety remains unverified.
 
 **D-4 private role deletion preflight (#83):** The unregistered `neon_role_delete` dependency inspector now verifies each compute remains `read_write` on its independent exact-endpoint reread, not just initial inventory. A changed compute type aborts before any SQL. Role deletion is still NOT registered: idle pooled-client absence remains unverified.
@@ -136,7 +138,7 @@ D-2/D-3 post-merge security review #62: expiring protected branches are refused 
 | `neon_role_create` | New login role; its password only on the one-time page | P S | B Op | E | D-4 (built #68, verified secret handoff #88) |
 | `neon_role_create_read_only` | Scoped current SELECT and owner-specific future defaults through fixed audited B-3 SQL, one-time password; production DDL gated | C A S | B Ow | F | D-4 (built #72, hardened #75, handoff ordering #86) |
 | `neon_role_retirement_review` | Verified databases and computes relevant to retiring a role; pooled-client clearance remains unknown | — | Ow | F | D-4 (built #129) |
-| `neon_role_delete` | Gated: private global PostgreSQL dependency inventory cannot establish absence of idle PgBouncer clients; no public delete until independent pooler proof | C D Pr | Op | F | D-4 (pending) |
+| `neon_role_delete` | Confirmed retirement after a one-use owner/connection/identity-bound preview, named membership losses and explicit unknown-pooled-client interruption acknowledgement; ownership/references/visible sessions refuse | C D A Pr | Ow | F | D-4 (implemented; provider acceptance pending) |
 | `neon_role_reset_password` | New password for a role; old one stops working; new one only on the one-time page; preview warns dependent apps | C Pr S | Op | E | D-4 (built #69, verified reset handoff #88) |
 
 ## Connections (`neon_connection_*`) — 2
@@ -359,7 +361,7 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #126 (source capability listing, deployment acceptance separate):** `read_only` 35; `everyday` 43; `full` 72. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
+**Implemented registry at #126 (source capability listing, deployment acceptance separate):** `read_only` 35; `everyday` 43; `full` 73. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
 
 ## Totals
 

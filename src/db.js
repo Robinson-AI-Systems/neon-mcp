@@ -364,6 +364,38 @@ export function createDb(sql = productionSql()) {
       await sql`UPDATE rate_limits SET count = GREATEST(0, count - ${increaseCents})
         WHERE key = ${'spend_daily:' + orgId} AND window_start = date_trunc('day', now())`;
     },
+    /** D-4 one-use retirement consent: exact owner, connection, role and snapshot. */
+    async recordRoleRetirementPreview({orgId,connectionId,target,tokenHash,identityHash,summary,production=false}) {
+      if(!orgId||!connectionId||!target?.projectId||!target?.branchId||
+        typeof target.roleName!=='string'||!target.roleName||
+        !/^[a-f0-9]{64}$/.test(tokenHash||'')||!/^[a-f0-9]{64}$/.test(identityHash||'')||
+        typeof summary!=='string'||!summary||summary.length>1024)
+        throw new TypeError('Invalid role retirement preview');
+      const name=target.projectId+'/'+target.branchId+'/'+target.roleName;
+      const rows=await sql`INSERT INTO change_log
+        (neon_org,project_id,branch_id,connection,mode,tool,target,summary,
+         dry_run,production,confirmed,sql_preview_hash,sql_scope_hash,
+         sql_expected_rows,sql_preview_expires_at)
+        VALUES (${orgId},${target.projectId},${target.branchId},${connectionId},
+          'preview','neon_role_delete',${name},${summary},TRUE,${production},'preview',
+          ${tokenHash},${identityHash},'[]'::jsonb,now()+interval '10 minutes') RETURNING id`;
+      return rows[0]?.id;
+    },
+    async consumeRoleRetirementPreview({orgId,connectionId,target,tokenHash,identityHash}) {
+      if(!orgId||!connectionId||!target?.projectId||!target?.branchId||
+        typeof target.roleName!=='string'||!target.roleName||
+        !/^[a-f0-9]{64}$/.test(tokenHash||'')||!/^[a-f0-9]{64}$/.test(identityHash||''))
+        throw new TypeError('Invalid role retirement claim');
+      const name=target.projectId+'/'+target.branchId+'/'+target.roleName;
+      const rows=await sql`UPDATE change_log SET sql_preview_used_at=now()
+        WHERE neon_org=${orgId} AND connection=${connectionId}
+          AND project_id=${target.projectId} AND branch_id=${target.branchId}
+          AND tool='neon_role_delete' AND target=${name} AND dry_run=TRUE
+          AND sql_preview_hash=${tokenHash} AND sql_scope_hash=${identityHash}
+          AND sql_preview_used_at IS NULL AND sql_preview_expires_at>now()
+        RETURNING id`;
+      return rows[0]||null;
+    },
     /** B-3c: record an exact SQL preview only after its child branch is verified deleted. */
     async recordSqlPreview({ orgId, target, tokenHash, identityHash,
       expectedRows, schemaHash = null, production = false }) {
@@ -415,6 +447,7 @@ export function createDb(sql = productionSql()) {
         WHERE neon_org = ${orgId} AND project_id = ${target.projectId}
           AND branch_id = ${target.branchId} AND sql_preview_hash = ${tokenHash}
           AND sql_scope_hash = ${identityHash} AND dry_run = TRUE
+          AND tool = 'neon_sql_execute'
           AND sql_preview_used_at IS NULL AND sql_preview_expires_at > now()
           AND (sql_estimate = FALSE OR ${acceptEstimate === true} = TRUE)
         RETURNING sql_expected_rows, sql_schema_hash, production, sql_estimate`;

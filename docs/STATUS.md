@@ -1,3 +1,34 @@
+## D-4 confirmed retirement implementation — owner-approved IN-16
+
+Canonical neon_role_delete is registered for full owners under B-1 guards. A
+10-minute one-use durable consent reference binds the owner, connection, mode,
+exact project/branch/role, revision, PostgreSQL OID, computes and named membership
+snapshot. Dry-run preserves pooled and external-consumer visibility UNKNOWN.
+Confirmation requires the exact role name and explicit connection-interruption
+acknowledgement; a fresh complete dependency probe and atomic consent claim precede
+DELETE. Ownership, object references, visible sessions, internal/elevated roles,
+incomplete evidence and identity drift refuse. Production/protected/self-resource
+and profile gates remain. Known application-owned projects remain refused by this
+initial path even with outsideApp; actual migration verification is still required
+before such retirement is eligible. No object/database deletion, session termination,
+credential rotation, compute restart, idle wakeup or spending is implied.
+
+GET 404 plus a complete unique role listing verifies absence after operation wait.
+Provider/transport uncertainty remains pending; no automatic replay. Named role
+memberships are previewed as the inherent losses from removal, not disguised as
+proof of idle-client absence. Existing direct monitoring works despite the deprecated
+pooler-enabled flag; actual pooled URIs remain refused by the exact-host SQL boundary.
+Consent uses existing change-log preview hash/scope/expiry/claim columns with an
+explicit neon_role_delete discriminator. SQL execution cannot consume these rows.
+Unit fake-provider tests cover all service doors; disposable-Postgres tests cover
+one-use/cross-connection/expiry/concurrent/cross-tool claims. Source/CI, checked
+deployment, live isolated provider deletion and pooled-client behavior are separate.
+D-4 stays IN_PROGRESS for those real acceptance and application migration conditions.
+
+Recurring Git branch cleanup is independently VERIFIED: #133/#134 checks passed,
+#134 main cleanup run succeeded, and remote heads contain main/live/archive only.
+This infrastructure success is not custom Neon or GitHub provider acceptance.
+
 ## Approved D-4 retirement and recurring branch cleanup — October 13, 2026
 
 Owner approved D-4-RETIREMENT-AMENDMENT.md (IN-16); implement the confirmed

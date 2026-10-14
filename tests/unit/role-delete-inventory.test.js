@@ -39,7 +39,7 @@ function setup({blocked=false,pooler=false,unknown=false,sessions=0,
       checkProduction:async()=>({allowed:!blocked,production:false})}};
   const inspectEndpoint=async(a,c,t,endpoint)=>{
     inspected.push(endpoint.id);
-    return unknown?{verified:false}:{...cleared,clear:sessions===0,
+    return unknown?{verified:false}:{...cleared,roleOid:181,memberships:[],clear:sessions===0,
       totals:{...cleared.totals,activeSessions:sessions}};
   };
   return {fake,ctx,inspected,inspectEndpoint};
@@ -91,4 +91,13 @@ describe('D-4 complete scoped role-deletion compute inventory',()=>{
       f.fake.assertClean();
     }
   });
+});
+
+it('approved retirement can inspect direct PostgreSQL despite an enabled provider pooler',async()=>{
+ const f=setup({pooler:true});
+ const result=await inspectRoleDeleteReadiness(choice,f.ctx,{retirement:true,inspectEndpoint:f.inspectEndpoint});
+ expect(result).toMatchObject({verified:true,poolerClientsVerified:false,clear:false,
+  computes:[{roleOid:181,memberships:[]}]});
+ expect(f.inspected).toEqual([IDS.devEndpoint]);
+ f.fake.assertClean();
 });

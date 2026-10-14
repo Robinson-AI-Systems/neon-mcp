@@ -91,6 +91,13 @@ Tools: `neon_compute_*` (10). Extra tests: hand-computed dollar previews; produc
 preview warns that connection strings using the host stop working.
 
 ### D-4 — Databases, roles, connections (M, medium effort)
+
+Owner amendment IN-16 (2026-10-13): D-4-RETIREMENT-AMENDMENT.md governs explicit
+confirmed retirement without falsely claiming idle pooled clients absent. Full
+owner and existing guards, exact one-use preview and interruption acknowledgement
+are mandatory. Known application-owned roles require independently verified
+migration; source and live/provider acceptance remain separate.
+
 Tools: `neon_database_*` (5), `neon_role_*` (6), `neon_connection_*` (2). Extra tests: no password or URI in any result (key-scan);
 `neon_role_create_read_only` grants SELECT on chosen schemas and default privileges for future tables (real Postgres);
 `neon_role_reset_password` preview lists the profile's places that use the role.

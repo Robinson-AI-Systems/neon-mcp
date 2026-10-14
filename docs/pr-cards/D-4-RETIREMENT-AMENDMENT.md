@@ -1,8 +1,8 @@
 # D-4: confirmed role retirement — approved owner decision
 
-Status: APPROVED 2026-10-13 (owner: "I approve the change."). Implementation
-and real acceptance remain pending. This document does not register a deletion tool,
-change existing safety guards, authorize provider writes, or complete D-4.
+Status: APPROVED 2026-10-13 (owner: "I approve the change."). Source implementation is now present;
+checked deployment and real acceptance remain pending. Design approval alone does not authorize provider writes or complete D-4.
+The canonical operation is registered by the separately tested implementation.
 Owner requested independent resolution of the stalled role-deletion decision.
 Baseline: main after #130. #129 already implements read-only retirement review;
 do not repeatedly implement preparation instead of completing the capability.
@@ -105,3 +105,8 @@ acceptance meet the amended contract. D-5 approval IN-15 remains independent.
 - https://api-docs.neon.tech/reference/deleteprojectbranchrole
 - https://neon.com/docs/connect/connection-pooling
 - https://www.postgresql.org/docs/current/sql-droprole.html
+
+Initial implementation scope: known application-owned resources still refuse, including
+outsideApp overrides, until independently verified migration evidence is available.
+This is a real usable operation for eligible unused roles; it is not a claim that
+application retirement or actual idle-pool/provider acceptance has been completed.

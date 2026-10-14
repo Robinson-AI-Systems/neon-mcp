@@ -68,6 +68,13 @@ export async function inspectRoleDeletionDependencies(query, role) {
     const memberships = await rows(query,
       'SELECT count(*)::int AS amount FROM pg_auth_members WHERE roleid=$1::oid OR member=$1::oid',
       [oid]);
+    const memberDetails = await rows(query,
+      'SELECT r.rolname AS granted_role, m.rolname AS member_role, a.admin_option FROM pg_auth_members a JOIN pg_roles r ON r.oid=a.roleid JOIN pg_roles m ON m.oid=a.member WHERE a.roleid=$1::oid OR a.member=$1::oid ORDER BY r.rolname,m.rolname,a.grantor LIMIT 101',
+      [oid]);
+    if(memberDetails.length>100||memberDetails.length!==count(memberships[0]?.amount)||
+      memberDetails.some(x=>!roleName(x.granted_role)||!roleName(x.member_role)||
+        typeof x.admin_option!=='boolean'))
+      throw Error('Named membership inventory is incomplete');
     const activity = await rows(query,
       'SELECT count(*)::int AS sessions FROM pg_stat_activity WHERE usename=$1 AND pid<>pg_backend_pid()',
       [role]);
@@ -91,7 +98,7 @@ export async function inspectRoleDeletionDependencies(query, role) {
     const totals={objectReferences:refs,databaseOwnerships:databaseOwners.length,
       roleMemberships:Number(memberships[0].amount),
       activeSessions:Number(activity[0].sessions)};
-    return {verified:true,role,clear:Object.values(totals).every(n=>n===0),
+    return {verified:true,role,roleOid:Number(oid),memberships:memberDetails,clear:Object.values(totals).every(n=>n===0),
       readOnlyTransactionVerified:true,sessionSamples:2,
       totals,referenceTypes:references.map(x=>({
         databaseOid:x.database_oid,catalog:x.object_catalog,

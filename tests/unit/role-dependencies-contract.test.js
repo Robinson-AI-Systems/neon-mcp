@@ -17,6 +17,7 @@ function fixture({override={},sessionCounts=[0,0]}={}){
       {read_only:true,...override.readOnly}]};
     if(sql.includes('FROM pg_shdepend'))return {rows:override.references??[]};
     if(sql.includes('FROM pg_database'))return {rows:override.databaseOwners??[]};
+    if(sql.includes('FROM pg_auth_members a JOIN'))return {rows:override.memberDetails??[]};
     if(sql.includes('FROM pg_auth_members'))return {rows:[
       {amount:0,...override.membership}]};
     if(sql.includes('FROM pg_stat_activity'))return {rows:[
