@@ -43,12 +43,13 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 **Key:** tools marked `org key` need the organization API key (IN-04); all others work with a project-scoped key.
 
 
-## Server about itself (`neon_*`) — 18
+## Server about itself (`neon_*`) — 19
 
 | Tool | What it does | Flags | Aud | Profile | Card |
 | --- | --- | --- | --- | --- | --- |
 | `neon_whoami` | Organization, key kinds held (last 4 only), connection mode (preview/production), profile, listing, API description date, price-table date, today's Neon API budget | — | B Ow Op | R | A-5 (built #14) |
 | `neon_list_accounts` | Organizations this server holds keys for, key kinds and projects covered, whether production access is enabled | — | Ow Op | R | A-5 |
+| `neon_write_guard_readiness` | Full-owner, read-only B-1 protected/app/production gate diagnostic for an exact independently verified project and branch; does not grant approval or mutate Neon | — | B Ow | F | V-1 (acceptance diagnostic, source PR pending) |
 | `neon_check_key_access` | Re-probe every stored key: what each can reach (projects, org actions), which tools are blocked and which key kind would fix it | — | Ow | R | B-8 (built #36) |
 | `neon_list_connections` | Claude connections and passes: organization, mode, profile, listing, rate limit, last used | — | Ow | R | B-8 (built #34) |
 | `neon_revoke_connection` | Switch a connection or pass off at once | C | Ow | F | B-8 (built #35) |
@@ -361,15 +362,15 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #160 (source tooling only; deployed acceptance separate):** `read_only` 48; `everyday` 56; `full` 94. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
+**Implemented registry at #160 (source tooling only; deployed acceptance separate):** `read_only` 48; `everyday` 56; `full` 95. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
 
 ## Totals
 
-**173 hand-built tools plus 4 universal `neon_api_*` tools = 177**, plus guided settings for every dashboard-only setting.
-By section: server 18, projects 11, operations 2, branches 13, computes 10, databases and roles 11, connections 2, SQL 8,
+**174 hand-built tools plus 4 universal `neon_api_*` tools = 178**, plus guided settings for every dashboard-only setting.
+By section: server 19, projects 11, operations 2, branches 13, computes 10, databases and roles 11, connections 2, SQL 8,
 schema 13, health 4, snapshots 7, project security 7, owner and administration 23, backend services 17, developer tools
 12, project profiles 6, workflows 9, universal 4. By profile column: `read_only` 79 tools, `everyday` 120 (79 + 41),
-`full` 177 (B-6 prints the exact numbers from the registry; a mismatch with this file fails `check-budgets`). In compact mode (`docs/designs/BATCH-C.md`) an agent loads about 20 tools up
+`full` 178 (B-6 prints the exact numbers from the registry; a mismatch with this file fails `check-budgets`). In compact mode (`docs/designs/BATCH-C.md`) an agent loads about 20 tools up
 front and reaches the rest through `neon_search_tools` / `neon_call`.
 
 Count check (run from the repo root; prints each section and the total):
