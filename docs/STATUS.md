@@ -1,3 +1,20 @@
+## October 14 — V-2 synthetic scenario seed application (source under CI review)
+
+Four deterministic demo schemas can now be planned as 11 bounded SQL statements:
+isolated schema, five foreign-key/unique constrained tables, five parameterized
+data inserts (1–20 rows/table). A new full-owner `neon_dev_seed` tool
+verifies the exact run-owned expiring non-production branch and independent
+project/endpoint/database/role before B-1 confirm and B-3 SQL transaction.
+Bounded actual row counts, independently observed cell-by-cell readback,
+stable request keys and fail-closed unknown outcomes are preserved.
+No application override, arbitrary SQL, live customer data, automatic cleanup,
+new provider resources, uncontrolled spending or production enablement.
+
+Unit and disposable-PG coverage has been authored but needs exact-head CI;
+this is **not** released custom-service or provider write acceptance. V-2 auto
+and public CSV/JSON input are still unfinished, and existing V-1 and D-series
+acceptance/owner actions remain queued. `V-2` stays IN_PROGRESS.
+
 ## October 14 — V-1 scoped run inventory pages (unmerged source)
 
 Recorded development runs now have filter-bound cursor pages, age and
