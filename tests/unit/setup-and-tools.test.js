@@ -214,7 +214,7 @@ describe('MCP read-only boundary and known-key project scope',()=>{
       'neon_connection_get_info','neon_connection_show_once','neon_sql_query','neon_sql_explain','neon_sql_list_activity','neon_sql_list_slow_queries','neon_sql_stop_query',
       'neon_snapshot_list','neon_snapshot_delete','neon_snapshot_update','neon_snapshot_create','neon_snapshot_restore','neon_snapshot_set_schedule','neon_security_list_jwks','neon_security_review',
       'neon_security_set_public_access','neon_security_set_ip_allow',
-      'neon_security_set_jwks',
+      'neon_security_set_jwks','neon_security_set_audit_log_level',
       'neon_search_tools','neon_call','neon_batch','neon_describe_tool']);
     const connection={neonOrg:'org-fake-one',projectScope:'proj-fake-one',
       mode:'preview',profile:'read_only',listing:'catalog'};
