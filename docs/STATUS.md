@@ -1,3 +1,23 @@
+## October 14 — V-2 single-table public CSV/JSON import (unreleased source)
+
+The guarded `neon_dev_seed` path now supports a public HTTPS `sourceUrl`
+as an exclusive alternative to the four synthetic scenario modes. Intended
+outcome: an isolated owned `rmcp_import_*` schema with one typed table and
+up to 900 checked CSV/JSON rows on the exact run-owned expiring dev branch.
+Source enforces a 10 MB cap, TLS-verified hostname with DNS-pinned public
+IPv4, no credentials/custom ports/redirects/compression, 10-second timeout,
+fatal UTF-8, bounded headers/rows/cells and synthetic-contact/sensitive-field
+refusals. A second fetch must exactly match the preview SHA-256 before the
+existing B-1/B-3 transaction and independent every-cell readback; no source
+data is returned or stored in durable audit logs.
+
+Unit/fake transport and actual disposable PostgreSQL checks are authored,
+not claimed CI green, merged, released or accepted by real custom Neon MCP.
+Owner-approved external fixture certification and cleanup remain mandatory.
+V-2 `auto` into pre-existing schemas, including real FK/check/unique
+reconciliation, remains IN_PROGRESS. No production permission or spending
+limit was changed.
+
 ## October 14 — V-2 natural-language mapping and full-size relational seed (unreleased source)
 
 Read-only scenario previews and owner-confirmed scenario seeding accept reviewed
