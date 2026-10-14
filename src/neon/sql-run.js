@@ -300,3 +300,37 @@ export async function runReviewedExtensionMutation({
   }
  });
 }
+
+// Purpose-specific concurrent index DDL; never arbitrary caller SQL.
+export function buildReviewedIndexDDL({schema,table,index,columns,remove=false}={}){
+ if(typeof remove!=='boolean'||typeof schema!=='string'||schema.startsWith('pg_')||
+  schema==='information_schema')throw Error('Non-system index scope required');
+ const qualified=quoteIdent(schema)+'.'+quoteIdent(index);
+ if(remove)return 'DROP INDEX CONCURRENTLY '+qualified+' RESTRICT';
+ if(!Array.isArray(columns)||columns.length<1||columns.length>3||
+  new Set(columns).size!==columns.length)throw Error('Select distinct index columns');
+ return 'CREATE INDEX CONCURRENTLY '+quoteIdent(index)+' ON '+quoteIdent(schema)+'.'+
+  quoteIdent(table)+' USING btree ('+columns.map(quoteIdent).join(', ')+')';
+}
+export async function runReviewedIndexMutation({ctx,target,schema,table,index,
+ columns,remove=false,sqlLayer}={}){
+ if(!ctx?.db||!ctx.connection?.neonOrg||!target?.projectId||!target.branchId||
+  !target.endpointId||!target.expectedEndpointHost||!target.database||
+  !target.role||target.pooled!==false)throw Error('Verified direct index target required');
+ const statement=buildReviewedIndexDDL({schema,table,index,columns,remove});
+ const parsed=await parse(statement),stmt=parsed?.stmts?.[0]?.stmt;
+ if(parsed?.stmts?.length!==1||!remove&&!stmt?.IndexStmt?.concurrent||
+  remove&&(stmt?.DropStmt?.removeType!=='OBJECT_INDEX'||
+   stmt.DropStmt.concurrent!==true||stmt.DropStmt.behavior!=='DROP_RESTRICT'))
+  throw Error('Unreviewed index statement');
+ const layer=sqlLayer??createSqlLayer({db:ctx.db,
+  vault:createKeyVault({db:ctx.db,env:ctx.env}),env:ctx.env});
+ return layer({neonOrg:ctx.connection.neonOrg,projectScope:ctx.connection.projectScope??null},target,
+  async client=>{
+   // CONCURRENTLY cannot run in BEGIN. The scoped layer closes this session,
+   // including these bounded settings, on every outcome. Never retry DDL.
+   await client.query('SET lock_timeout = 5000');
+   await client.query('SET statement_timeout = 15000');
+   await client.query(statement);return {issued:true};
+  });
+}
