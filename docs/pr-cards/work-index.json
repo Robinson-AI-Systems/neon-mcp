@@ -15,7 +15,7 @@
     "E",
     "X"
   ],
-  "process": "Just-in-time cards from approved designs; each card runs the drift protocol and updates this index as if merged. Session execution and queued deployed acceptance follow docs/SESSION-START.md.",
+  "process": "Just-in-time cards from approved designs; each card runs the drift protocol and updates this index as if merged. Session execution and queued deployed acceptance follow docs/SESSION-START.md. Owner-approved execution: combine adjacent small roadmap slices into cohesive PRs; retire five-PR session quotas and multiple-of-five boundaries. See docs/SESSION-START.md.",
   "cards": [
     {
       "id": "A-1",
