@@ -185,7 +185,7 @@ The SQL guard (`docs/designs/BATCH-B.md` B-3) classifies every statement with th
 
 | Tool | What it does | Flags | Aud | Profile | Card |
 | --- | --- | --- | --- | --- | --- |
-| `neon_health_check` | Database health in one call (any of 15 checks): sizes, cache hit rate, connections, locks, long-running queries, bloat, autovacuum, unused/duplicate indexes, transaction-ID age, replication | — | Op | R | D-6 |
+| `neon_health_check` | Database health in one call (any of 15 checks): sizes, cache hit rate, connections, locks, long-running queries, bloat, autovacuum, unused/duplicate indexes, transaction-ID age, replication | — | Op | R | D-6 (built #145; hosted acceptance pending) |
 | `neon_health_suggest_indexes` | Index suggestions from scan statistics and slow queries, each with the exact CREATE INDEX statement | — | B Op | R | D-6 |
 | `neon_health_vacuum_analyze` | VACUUM (ANALYZE) a table or database (production: confirm; load warning) | C* Pr | Op | E | D-6 |
 | `neon_health_reindex` | Rebuild a bloated or invalid index, or all indexes of a table, `CONCURRENTLY` by default (preview shows sizes before and the bloat estimate; production: confirm; never a whole database or system catalogs) | C* Pr | Op | E | D-9 |
@@ -361,7 +361,7 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #144 (source capability listing, deployment acceptance separate):** `read_only` 41; `everyday` 49; `full` 79. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
+**Implemented registry at #145 (source capability listing, deployment acceptance separate):** `read_only` 42; `everyday` 50; `full` 80. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
 
 ## Totals
 

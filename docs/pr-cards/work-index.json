@@ -588,9 +588,10 @@
       "ownerInputs": [],
       "pr": [
         143,
-        144
+        144,
+        145
       ],
-      "note": "Four of the planned D-6 schema inspection reads implemented with provider-bound SQL, bounded catalog metadata and genuine disposable Postgres tests; external custom SQL acceptance requires checked deployment, remaining schema/health tools pending. #144 full cross-schema name search and 8-kind object inventory; fixed SQL and real PostgreSQL fixtures, live custom read pending."
+      "note": "Four of the planned D-6 schema inspection reads implemented with provider-bound SQL, bounded catalog metadata and genuine disposable Postgres tests; external custom SQL acceptance requires checked deployment, remaining schema/health tools pending. #144 full cross-schema name search and 8-kind object inventory; fixed SQL and real PostgreSQL fixtures, live custom read pending. #145 adds selected fifteen PostgreSQL health read checks with per-check observed/incomplete/unavailable evidence, real disposable PG tests; live custom acceptance pending."
     },
     {
       "id": "D-7",

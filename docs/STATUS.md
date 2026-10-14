@@ -1,3 +1,22 @@
+## D-6 15-check PostgreSQL health diagnostics — PR #145
+
+Implemented registered owner/operator `neon_health_check`, offering
+15 individually selected fixed catalog/statistics reads and five quick
+defaults: database size, cache hit, current connections, transaction-ID
+age and invalid indexes. Other checks cover locks, wait events,
+long-running sessions without query text, dead tuples, autovacuum,
+index scan indicators, candidate duplicate indexes, replication slots,
+user-table sizes and sequential/index scan counts. Uses independently
+verified exact project/branch/compute/database/role and direct host,
+B-3 read-only SQL, stored maxRows, owner production-read switch and
+protected/self-resource refusal. Each result states observed,
+incomplete or unavailable; aggregate allObserved never labels partial
+data as healthy. Checks are sequential to avoid waking parallel
+compute sessions. Disposable PostgreSQL 17 and fake provider tests
+validate query guards, real size/connection/catalog reads and no
+data changes. No live provider SQL or production setting was changed.
+Live custom connector acceptance is pending checked daily release.
+
 ## D-6 searchable schema catalog — PR #144
 
 Two additional approved read-only schema tools provide cross-schema
