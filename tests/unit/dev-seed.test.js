@@ -93,7 +93,7 @@ describe('V-2 end-to-end guarded developer demo seed',()=>{
   expect(full.parse(await full.call({...input,confirm:true})).done).toBe(false);
   expect(full.invokes).toBe(0);
   const invalid=fixture();
-  expect(invalid.parse(await invalid.call({...input,rowsPerTable:21,confirm:true})).done).toBe(false);
+  expect(invalid.parse(await invalid.call({...input,rowsPerTable:101,confirm:true})).done).toBe(false);
   expect(invalid.invokes).toBe(0);
  });
  it('leaves an uncertain readback pending without claiming success or retrying',async()=>{

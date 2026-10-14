@@ -19,7 +19,9 @@ describe('V-2 audited relational synthetic seed planning',()=>{
     for(const parent of t.dependsOn)
      expect(p.statements[i+1]).toContain('REFERENCES "'+p.schema+'"."'+parent+'"');
     expect(p.statements[i+6]).toContain('INSERT INTO "'+p.schema+'"."'+t.name+'"');
-    expect(p.params[i+6]).toHaveLength(20*t.columns.length);
+    expect(p.params[i+6]).toHaveLength(1);
+    expect(JSON.parse(p.params[i+6][0])).toHaveLength(20);
+    expect(p.statements[i+6]).toContain('jsonb_array_elements($1::jsonb)');
     for(const row of t.rows){
      expect(row.id).toBeGreaterThanOrEqual(1);
      for(const value of Object.values(row))
@@ -33,6 +35,21 @@ describe('V-2 audited relational synthetic seed planning',()=>{
    }
   }
  });
+ it('keeps 100 rows/table within 16 guarded SQL statements and 8KB bound parameters',async()=>{
+  for(const scenario of SCENARIO_NAMES){
+   const p=compileDemoSeed({scenario,requestKey:key,rowsPerTable:100,seed:'large'});
+   expect(p.totalRows).toBe(500);
+   expect(p.statements).toHaveLength(16);
+   expect(p.params).toHaveLength(16);
+   expect(p.expectedAffectedRows).toEqual([...Array(6).fill(0),...Array(10).fill(50)]);
+   for(let i=6;i<16;i++){
+    expect(p.params[i]).toHaveLength(1);
+    expect(p.params[i][0].length).toBeLessThanOrEqual(8192);
+    expect(JSON.parse(p.params[i][0])).toHaveLength(50);
+    expect((await classifySql(p.statements[i])).kind).toBe('write');
+   }
+  }
+ });
  it('binds an idempotency key to the exact scenario, seed and count',()=>{
   const x={scenario:'rental',requestKey:key,seed:'fixed',rowsPerTable:8};
   expect(compileDemoSeed(x)).toEqual(compileDemoSeed(x));
@@ -42,7 +59,7 @@ describe('V-2 audited relational synthetic seed planning',()=>{
  });
  it('refuses malformed payloads and all raw or excessive seed input',()=>{
   for(const bad of [{scenario:'foreign'},{scenario:'saas',rowsPerTable:0},
-   {scenario:'saas',rowsPerTable:21},{scenario:'rental',seed:'bad;DROP'},
+   {scenario:'saas',rowsPerTable:101},{scenario:'rental',seed:'bad;DROP'},
    {scenario:'blog',seed:'bad@example.com'}])
    expect(()=>compileDemoSeed({...bad,requestKey:key})).toThrow();
   expect(()=>compileDemoSeed({scenario:'saas',requestKey:'not-valid'})).toThrow();

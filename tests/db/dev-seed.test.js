@@ -33,6 +33,25 @@ it('creates all four fully constrained synthetic relational datasets in disposab
   }
  }
 });
+
+it('persists the full 500-row blog demo with exact bounded JSONB batches and FKs',async()=>{
+ const p=compileDemoSeed({scenario:'blog',requestKey:key,rowsPerTable:100,seed:'large'});
+ created.push(p.schema);
+ expect(p.statements).toHaveLength(16);
+ await rawQuery('BEGIN');
+ try{
+  for(let i=0;i<p.statements.length;i++)
+   await rawQuery(p.statements[i],p.params[i]);
+  await rawQuery('COMMIT');
+ }catch(e){await rawQuery('ROLLBACK');throw e;}
+ expect(await verifyDemoSeed({plan:p,query:async(sql,params)=>
+  ({rows:await rawQuery(sql,params)})})).toBe(true);
+ const tables=await rawQuery('SELECT table_name FROM information_schema.tables WHERE table_schema=$1',
+  [p.schema]);
+ expect(tables).toHaveLength(5);
+ const tags=await rawQuery('SELECT count(*)::int AS n FROM "'+p.schema+'"."post_tags"');
+ expect(tags).toEqual([{n:100}]);
+});
 it('rejects duplicate unique emails and invalid foreign keys in the real database',async()=>{
  const p=compileDemoSeed({scenario:'rental',requestKey:key,rowsPerTable:8,seed:'pgtest'});
  const email=p.tables.find(x=>x.name==='customers').rows[0].email;
