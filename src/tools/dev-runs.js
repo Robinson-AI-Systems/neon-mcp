@@ -130,7 +130,7 @@ const create=defineWrite({name:'neon_dev_branch_create',
   const fresh=await verifiedProject(a,c);
   const branches=await allBranches(fresh.client,fresh.projectId);
   const parent=branches.find(x=>x.id===before.parent.id);
-  if(!parent||branches.some(x=>x.name===before.branchName)||
+  if(!parent||branches.length!==before.count||branches.some(x=>x.name===before.branchName)||
      parent.project_id!==fresh.projectId||
      JSON.stringify({id:parent.id,protected:parent.protected,default:parent.default})!==
      JSON.stringify({id:before.parent.id,protected:before.parent.protected,default:before.parent.default}))
@@ -260,6 +260,14 @@ const cleanup=defineWrite({name:'neon_dev_cleanup',destructive:true,
    if(object.cleaned===true)continue;
    let current=await allBranches(now.client,now.projectId);
    if(current.some(b=>b.id===object.object_id)){
+    const exact=await exactBranch(now.client,now.projectId,object.object_id);
+    const classification=await classifyTarget(c,{projectId:now.projectId,
+     branchId:object.object_id});
+    if(exact.default===true||exact.protected===true||
+       !classification.allowed||classification.production||
+       await c.guards.checkProtected({projectId:now.projectId,branchId:object.object_id},c)!==true||
+       await c.guards.checkApp({projectId:now.projectId,branchId:object.object_id},c,a)!==true)
+     throw Error('Branch became protected, production, shared or app-owned; refusing deletion');
     if(current.some(b=>b.parent_id===object.object_id))
      throw Error('Existing child prevents branch cleanup');
     const nestedKey='rmcp_'+createHash('sha256').update(key+'/'+object.object_id)

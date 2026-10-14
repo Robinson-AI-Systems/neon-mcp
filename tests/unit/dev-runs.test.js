@@ -67,6 +67,7 @@ function make({allowed=true,production=false,withOwned=false,badProof=false}={})
   fake.when('listProjectBranches').resolves(list([mainBranch(),devBranch({name:'testdev'})]))
    .resolves(list([mainBranch(),devBranch({name:'testdev'})]))
    .resolves(list([mainBranch(),devBranch({name:'testdev'})]))
+   .resolves(list([mainBranch(),devBranch({name:'testdev'})]))
    .resolves(list([mainBranch()]))
    .resolves(list([mainBranch()]));
   fake.when('getProjectBranch').resolves({...responses.getProjectBranch('dev'),
@@ -113,7 +114,7 @@ describe('V-1 recorded development lifecycle',()=>{
     autoscaling_limit_max_cu:1,suspend_timeout_seconds:300}]});
   expect(f.rows).toHaveLength(1);
   const again=f.parse(await f.handlers.neon_dev_branch_create({...args,confirm:true}));
-  expect(again.done).toBe(false); // Existing name refuses before another POST.
+  expect(again.done).toBe(true); // B-1 returns the existing durable confirmation, never a second POST.
   expect(f.fake.calls.filter(c=>c.method==='POST')).toHaveLength(1);
   f.fake.assertClean();
  });

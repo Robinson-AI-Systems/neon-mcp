@@ -278,9 +278,9 @@ only recorded objects. Every tool refuses production targets (B-2) before readin
 
 | Tool | What it does | Flags | Aud | Profile | Card |
 | --- | --- | --- | --- | --- | --- |
-| `neon_dev_branch_create` | Create an audited, expiring branch with run metadata, stored safe compute, provider-backed price and exact readback | P Dev | B | E | V-1 built #160 |
+| `neon_dev_branch_create` | Create an audited, expiring branch with run metadata, stored safe compute, provider-backed price and exact readback | C $ Dev | B | F | V-1 built #160 |
 | `neon_dev_list_runs` | Read scoped recorded run ownership and remaining cleanup with no provider secrets | — | B | R | V-1 built #160 |
-| `neon_dev_cleanup` | Confirm child-first, recorded-only branch soft deletion with exact protected/production refusals | C Dev | B | E | V-1 built #160 |
+| `neon_dev_cleanup` | Confirm child-first, recorded-only branch soft deletion with exact protected/production refusals | C D Dev | B | F | V-1 built #160 |
 | `neon_dev_list_scenarios` | Seed scenarios available, with what each creates | — | B | R | V-2 |
 | `neon_dev_seed` | Fill a dev branch with realistic data from a named scenario, a plain description mapped to scenarios, or rows from a public CSV/JSON URL; preview lists every table and row count | P Dev | B | E | V-2 |
 | `neon_dev_reset_branch` | Reset a dev branch to its parent's latest state (no production confirm needed; refuses production) | P Dev | B | E | V-3 |
