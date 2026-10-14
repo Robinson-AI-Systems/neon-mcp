@@ -14,7 +14,7 @@ const externalProjectWrites=new Set(['neon_project_create','neon_project_rename'
  'neon_database_create','neon_database_update','neon_database_delete',
  'neon_role_create','neon_role_create_read_only',
  'neon_role_delete','neon_role_reset_password','neon_connection_show_once',
- 'neon_sql_stop_query','neon_schema_enable_extension','neon_schema_disable_extension','neon_schema_create_index','neon_schema_drop_index','neon_health_reindex','neon_health_vacuum_analyze','neon_dev_branch_create','neon_dev_cleanup']);
+ 'neon_sql_stop_query','neon_schema_enable_extension','neon_schema_disable_extension','neon_schema_create_index','neon_schema_drop_index','neon_health_reindex','neon_health_vacuum_analyze','neon_dev_branch_create','neon_dev_cleanup','neon_dev_seed']);
 export function isToolAllowed(tool, connection, {productionDeployment=false}={}) {
   if(!tool || !profiles.has(connection?.profile) ||
       !Array.isArray(tool.profiles) || !tool.profiles.includes(connection.profile))return false;

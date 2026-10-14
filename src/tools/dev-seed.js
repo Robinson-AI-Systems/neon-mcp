@@ -1,0 +1,137 @@
+// V-2: owner-confirmed deterministic seed into an already owned, expiring dev branch.
+// Service-owned SQL only: no caller SQL, arbitrary tables, production or auto retries.
+import {createHash} from 'node:crypto';
+import {defineWrite} from '../core/write.js';
+import {createProjectWriteContext} from '../neon/project-write-context.js';
+import {verifyConnectionTarget} from './connections.js';
+import {classifyTarget} from '../neon/production.js';
+import {classifySql} from '../neon/sql-guard.js';
+import {createSqlAdmissions} from '../neon/sql-admission.js';
+import {applyGuardedSql} from '../neon/sql-apply.js';
+import {createSqlLayer} from '../neon/sql.js';
+import {createKeyVault} from '../neon/keys.js';
+import {compileDemoSeed,verifyDemoSeed} from '../dev/seed-plan.js';
+
+const id={type:'string',pattern:'^[a-z0-9-]{1,60}$'};
+const run={type:'string',pattern:'^[a-z0-9-]{4,64}$'};
+const name={type:'string',pattern:'^[A-Za-z_][A-Za-z0-9_-]{0,62}$'};
+const RUN=/^[a-z0-9-]{4,64}$/;
+const schema={
+ type:'object',additionalProperties:false,
+ properties:{projectId:id,branchId:id,runId:run,endpointId:id,
+  databaseName:name,roleName:name,
+  scenario:{type:'string',enum:['saas','store','rental','blog']},
+  seed:{type:'string',pattern:'^[A-Za-z0-9_-]{1,80}$'},
+  rowsPerTable:{type:'integer',minimum:1,maximum:20},
+  dryRun:{type:'boolean'},confirm:{type:'boolean'},
+  requestKey:{type:'string',minLength:8,maxLength:128}},
+ required:['projectId','branchId','runId','endpointId','databaseName','roleName','scenario']
+};
+async function targetFor(a,c,verifyTarget){
+ if(c?.connection?.profile!=='full'||!RUN.test(a.runId||'')||
+    typeof c.db?.getDevRun!=='function'||
+    typeof c.db?.listDevRunObjects!=='function'||
+    typeof c.getBranch!=='function')
+  throw Error('Full owner and recorded developer run required');
+ const v=await verifyTarget(a,c);
+ if(v.pid!==a.projectId||v.bid!==a.branchId||
+    v.endpointId!==a.endpointId||v.database!==a.databaseName||
+    v.role!==a.roleName||typeof v.endpoint?.host!=='string')
+  throw Error('Exact project, branch and direct PostgreSQL identity unavailable');
+ const orgId=c.connection.neonOrg;
+ const owned=await c.db.getDevRun({orgId,projectId:v.pid,runId:a.runId});
+ const objects=await c.db.listDevRunObjects({
+  orgId,projectId:v.pid,runId:a.runId});
+ if(owned?.id!==a.runId||owned.status!=='active'||
+    !Array.isArray(objects)||objects.length<1||objects.length>100||
+    objects.some(x=>x.run_id!==a.runId)||
+    objects.filter(x=>x.object_type==='branch'&&x.object_id===v.bid&&x.cleaned!==true).length!==1)
+  throw Error('Exact active recorded run branch not owned by this connection scope');
+ const branch=await c.getBranch({projectId:v.pid,branchId:v.bid});
+ const recorded=objects.find(x=>x.object_type==='branch'&&x.object_id===v.bid);
+ const expiry=Date.parse(branch?.expires_at||''),recordedExpiry=Date.parse(recorded?.expires_at||'');
+ if(branch?.id!==v.bid||branch.project_id!==v.pid||
+    branch.default===true||branch.protected===true||
+    !Number.isFinite(expiry)||expiry<Date.now()+300000||
+    expiry!==recordedExpiry)
+  throw Error('Selected owned development branch is not safely expiring');
+ const target={projectId:v.pid,branchId:v.bid,endpointId:v.endpointId,
+  expectedEndpointHost:v.endpoint.host,database:v.database,role:v.role,pooled:false};
+ const cls=await classifyTarget(c,target);
+ if(cls.allowed!==true||cls.production===true)
+  throw Error('Synthetic seeding strictly refuses production or shared branches');
+ return {target,expiry};
+}
+export function createDemoSeedHandlers({
+ contextFor=createProjectWriteContext,verifyTarget=verifyConnectionTarget,
+ runner=applyGuardedSql,admissionsFor=c=>createSqlAdmissions({db:c.db}),
+ sqlFactory=c=>createSqlLayer({db:c.db,
+  vault:createKeyVault({db:c.db,env:c.env}),env:c.env})
+}={}){
+ const definition=defineWrite({name:'neon_dev_seed',productionEffect:'none',
+  plan:async(a,c)=>{
+   const state=await targetFor(a,c,verifyTarget);
+   const key=c.writeKey('neon_dev_seed',a);
+   const seedPlan=compileDemoSeed({
+    scenario:a.scenario,seed:a.seed??'demo',rowsPerTable:a.rowsPerTable??3,
+    requestKey:key});
+   return {projectId:state.target.projectId,branchId:state.target.branchId,
+    target:'dev-seed:'+state.target.projectId+'/'+state.target.branchId+
+     '/'+state.target.database+'/'+seedPlan.schema,
+    before:{...state,seedPlan,requestKey:key},
+    summary:'Create isolated '+seedPlan.schema+' with '+seedPlan.totalRows+
+     ' fabricated '+a.scenario+' rows in five foreign-key ordered tables on run '+
+     a.runId+'. No customer data, existing-schema changes, provider provisioning'+
+     ' or production writes. Review the bounded SQL and confirm once.'};
+  },
+  apply:async(a,c,{before,requestKey})=>{
+   const state=await targetFor(a,c,verifyTarget);
+   if(requestKey!==before.requestKey||
+      JSON.stringify(state)!==JSON.stringify({target:before.target,expiry:before.expiry}))
+    throw Error('Run, scope or target changed after preview');
+   const plan=compileDemoSeed({
+    scenario:a.scenario,seed:a.seed??'demo',rowsPerTable:a.rowsPerTable??3,
+    requestKey});
+   if(plan.schema!==before.seedPlan.schema)
+    throw Error('Seed identity changed since preview');
+   const sqlLayer=sqlFactory(c);
+   const inner='rmcp_devseed_'+createHash('sha256')
+    .update(requestKey).digest('hex').slice(0,40);
+   const sqlSpendAdmission=admissionsFor(c).sqlSpendAdmission;
+   const result=await runner({
+    ctx:{...c,checkApp:async target=>
+      c.guards.checkApp(target,c,{...a,outsideApp:false}),sqlSpendAdmission},
+    target:state.target,statements:plan.statements,params:plan.params,
+    requestKey:inner,confirm:true,expectedAffectedRows:plan.expectedAffectedRows,
+    sqlLayer,verifyReadBack:async()=>{
+     const observation=await sqlLayer({
+      neonOrg:c.connection.neonOrg,
+      projectScope:c.connection.projectScope??null
+     },state.target,async client=>verifyDemoSeed({
+      plan,query:async(sql,params)=>{
+       const cls=await classifySql(sql);
+       if(cls.kind!=='read'||cls.unknownNode===true)
+        throw Error('Internal seed readback is not an AST-verified read');
+       return client.query(sql,params);
+      }
+     }));
+     return observation===true;
+    }
+   });
+   c.devSeedResult=result;
+   return {confirmed:result?.done===true&&result?.confirmed===true?true:
+    result?.confirmed==='pending'?'pending':false};
+  },
+  readAfter:async(_a,c)=>c.devSeedResult,
+  verify:async(_before,after)=>after?.done===true&&after?.confirmed===true
+ });
+ const tool={...definition.tool,inputSchema:schema,
+  area:'developer',audience:['builder','owner'],profiles:['full'],
+  description:'Confirm synthetic SaaS, store, rental or blog schema/data on an expiring run-owned dev branch; verify every seeded row.'};
+ return {tools:[tool],handlers:{
+  neon_dev_seed:async(a,raw)=>definition.handler(a,await contextFor(raw))
+ }};
+}
+const built=createDemoSeedHandlers();
+export const tools=built.tools;
+export const handlers=built.handlers;
