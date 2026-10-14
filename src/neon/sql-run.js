@@ -93,3 +93,60 @@ export async function runGuardedRoleDependencyProbe(a,c,t,ep,db,monitor){
    ownerName:monitor},c,{...t,endpointHost:ep.host},
   query=>inspectRoleDeletionDependencies(query,a.roleName),{purpose:'probe'});
 }
+
+
+// D-5 public SQL entry point: the sole reviewed bridge for caller-supplied SQL.
+// PostgreSQL enforces LIMIT before the driver materializes rows; the B-3 AST,
+// protected-resource and owner-stored read policies remain mandatory.
+import {parse} from 'libpg-query';
+import {runAuthorizedSqlRead} from './sql-read.js';
+
+const MAX_PUBLIC_ROWS=201;
+const MAX_PUBLIC_COLUMNS=16;
+const MAX_PUBLIC_CELL=128;
+function compactCell(value){
+ if(value===null || typeof value==='boolean' ||
+    typeof value==='number'&&Number.isFinite(value))return value;
+ let result;
+ try{result=typeof value==='string'?value:JSON.stringify(value);}
+ catch{return '[unavailable]';}
+ if(typeof result!=='string')return '[unavailable]';
+ return result.length>MAX_PUBLIC_CELL?result.slice(0,MAX_PUBLIC_CELL)+'…':result;
+}
+function compactPublicResult(result){
+ if(result?.done!==true||!Array.isArray(result.rows))return result;
+ let truncatedCells=false,truncatedColumns=false;
+ const rows=result.rows.map(row=>{
+  if(!row||typeof row!=='object'||Array.isArray(row))return {};
+  const entries=Object.entries(row);
+  if(entries.length>MAX_PUBLIC_COLUMNS)truncatedColumns=true;
+  return Object.fromEntries(entries.slice(0,MAX_PUBLIC_COLUMNS).map(([key,value])=>{
+   const compact=compactCell(value);
+   if(typeof value==='string'&&compact!==value ||
+      value!==null&&typeof value==='object')truncatedCells=true;
+   return [key.slice(0,63),compact];
+  }));
+ });
+ return {...result,rows,columnsCapped:truncatedColumns,cellsCapped:truncatedCells};
+}
+export async function runPublicSqlQuery({ctx,target,text,params=[],sqlLayer}={}){
+ // Other SQL statement types have separate reviewed tools; no SHOW or EXPLAIN
+ // can be wrapped here. The AST guard still runs again inside B-3.
+ let parsed;
+ try{parsed=await parse(text);}catch{return {done:false,code:'not_read_only',
+  message:'Provide one valid SELECT query.'};}
+ if(!Array.isArray(parsed?.stmts)||parsed.stmts.length!==1||
+    !parsed.stmts[0]?.stmt?.SelectStmt)
+  return {done:false,code:'not_read_only',message:'Use one SELECT query.'};
+ const statement=text.trim().replace(/;\s*$/,'');
+ const layer=sqlLayer??createSqlLayer({db:ctx?.db,
+  vault:createKeyVault({db:ctx?.db,env:ctx?.env}),env:ctx?.env});
+ const boundedLayer=(scope,options,callback)=>layer(scope,options,client=>
+  callback({query:(query,values=[])=>{
+   if(query!==text)return client.query(query,values);
+   // Original query is independently proven to contain exactly one SELECT.
+   const limited='SELECT * FROM ('+statement+') AS rmcp_bounded_query LIMIT $'+(values.length+1);
+   return client.query(limited,[...values,MAX_PUBLIC_ROWS]);
+  }}));
+ return compactPublicResult(await runAuthorizedSqlRead({ctx,target,text,params,sqlLayer:boundedLayer}));
+}
