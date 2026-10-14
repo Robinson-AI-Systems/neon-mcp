@@ -1,3 +1,15 @@
+## October 14 — owner-approved outcome-sized development workflow
+
+The owner retired five-PR session quotas and multiple-of-five PR boundaries.
+Related approved roadmap slices are implemented together as a coherent,
+tested capability (roughly 500–800 production lines plus tests when sensible,
+not a mandatory quota). Chat sessions checkpoint each completed PR with exact
+head, evidence and next action before context exhaustion. The read-only
+session:status utility reports latest PR informationally rather than a target.
+No provider acceptance, permission, production activation, spending, deployment,
+release or safety gate changed. This is workflow source only; external
+acceptance remains independently pending.
+
 ## October 14 V-1 follow-up: exact owner scratch classification (source pending CI)
 
 A guarded application-ownership admission could not establish that the enrolled isolated scratch project was unrelated to real applications. IN-06 authorized the scratch fixture already; it did NOT license guessing or bypassing the B-1 app guard. The newly implemented **owner setup** route supports a separate typed, passphrase-checked certificate tied to exact selected-project API verification, independent self/protected-resource checks and durable per-project audit/revocation. The B-1 server DB returns evidence only while a current verified project key exists; unclassified projects still require genuine provider app/integration evidence or fail closed. The setup page never activates production, creates a branch, grants spending, or disables any guard.
