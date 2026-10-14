@@ -33,7 +33,7 @@ export const tools=[
 ];
 const SLOW_SQL='SELECT queryid,calls,rows,round(total_exec_time::numeric,2) AS total_ms,'+
  ' round(mean_exec_time::numeric,2) AS mean_ms,shared_blks_hit,shared_blks_read'+
- ' FROM pg_catalog.pg_stat_statements WHERE dbid = (SELECT oid FROM pg_catalog.pg_database'+
+ ' FROM pg_stat_statements WHERE dbid = (SELECT oid FROM pg_catalog.pg_database'+
  ' WHERE datname=current_database()) ORDER BY total_exec_time DESC, queryid LIMIT 200';
 const ACTIVITY_SQL='SELECT pid,datname,usename,state,wait_event_type,wait_event,'+
  ' EXTRACT(EPOCH FROM (now()-query_start))::int AS query_age_seconds'+
