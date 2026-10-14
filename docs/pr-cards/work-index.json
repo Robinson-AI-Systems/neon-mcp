@@ -722,14 +722,18 @@
         "V-1"
       ],
       "card": "docs/pr-cards/V-2.md",
-      "status": "PLANNED",
+      "status": "IN_PROGRESS",
       "migration": "none",
       "budget": 500,
       "units": [
         "V-2"
       ],
-      "readiness": "WRITE_CARD_AT_START",
-      "ownerInputs": []
+      "readiness": "READ_ONLY_SCENARIO_PREVIEW",
+      "ownerInputs": [],
+      "pr": [
+        165
+      ],
+      "note": "V-2 source in PR #165 implements all four fully synthetic deterministic five-table scenario manifests, FK-ordering and bounded read-only discovery/sample preview. No SQL execution, seed writes, external file import or real provider acceptance is claimed; these remain for a subsequent substantive V-2 seed-apply outcome. V-1 provider write/cleanup acceptance stays in pending release queue."
     },
     {
       "id": "V-3",
