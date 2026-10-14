@@ -8,7 +8,7 @@ import { validatePricing } from './neon/pricing.js';
 export const SCHEMA_TABLES = Object.freeze([
   'neon_orgs', 'neon_keys', 'oauth_clients', 'oauth_codes', 'oauth_tokens',
   'login_attempts', 'rate_limits', 'change_log', 'one_time_secrets',
-  'secret_requests', 'settings', 'result_store', 'dev_runs', 'dev_run_objects'
+  'secret_requests', 'settings', 'result_store', 'dev_runs', 'dev_run_objects', 'scratch_attestations'
 ]);
 
 // Keep this list in step with the code and token tables: refresh must preserve all fields.
@@ -544,6 +544,55 @@ export function createDb(sql = productionSql()) {
       const rows = await sql`SELECT value FROM settings WHERE key = 'sql.read_policy'`;
       return rows.length ? rows[0].value : null;
     },
+
+    /** Only a passphrase-verified, owner-certified isolated project has evidence.
+     * Missing or revoked evidence is UNKNOWN, never proof of app absence. */
+    async getProjectAppOwnership({orgId,projectId}) {
+      if(!/^[a-z0-9-]{1,60}$/.test(orgId||'')||
+         !/^[a-z0-9-]{1,60}$/.test(projectId||''))return null;
+      const rows=await sql`SELECT a.project_name FROM scratch_attestations a
+        WHERE a.neon_org=${orgId} AND a.project_id=${projectId}
+          AND a.revoked_at IS NULL
+          AND EXISTS (SELECT 1 FROM neon_keys k WHERE k.org_id=a.neon_org
+            AND k.kind='project' AND k.project_id=a.project_id
+            AND k.revoked_at IS NULL AND k.reach->>'verified'='true')
+        LIMIT 1`;
+      return rows.length===1 ? {verified:true,appOwned:false,
+        evidence:'explicit_owner_scratch_attestation'} : null;
+    },
+    /** Called only by authenticated owner setup after exact provider verification. */
+    async saveScratchAttestation({orgId,projectId,projectName}) {
+      if(!/^[a-z0-9-]{1,60}$/.test(orgId||'')||
+         !/^[a-z0-9-]{1,60}$/.test(projectId||'')||
+         typeof projectName!=='string'||!projectName||projectName.length>256)
+        throw TypeError('Exact owner scratch project required');
+      const rows=await sql`INSERT INTO scratch_attestations
+        (neon_org,project_id,project_name,attested_at,revoked_at)
+        SELECT ${orgId},${projectId},${projectName},now(),NULL
+        WHERE EXISTS (SELECT 1 FROM neon_orgs o WHERE o.id=${orgId})
+          AND EXISTS (SELECT 1 FROM neon_keys k WHERE k.org_id=${orgId}
+            AND k.project_id=${projectId} AND k.kind='project'
+            AND k.revoked_at IS NULL AND k.reach->>'verified'='true')
+        ON CONFLICT (neon_org,project_id) DO UPDATE
+          SET project_name=EXCLUDED.project_name,attested_at=now(),
+            revoked_at=NULL
+        RETURNING project_id`;
+      return rows.length===1&&rows[0].project_id===projectId;
+    },
+    async revokeScratchAttestation({orgId,projectId}) {
+      if(!/^[a-z0-9-]{1,60}$/.test(orgId||'')||
+         !/^[a-z0-9-]{1,60}$/.test(projectId||''))return false;
+      const rows=await sql`UPDATE scratch_attestations SET revoked_at=now()
+        WHERE neon_org=${orgId} AND project_id=${projectId}
+          AND revoked_at IS NULL RETURNING project_id`;
+      return rows.length===1;
+    },
+    async listScratchAttestations(orgId) {
+      if(!/^[a-z0-9-]{1,60}$/.test(orgId||''))return [];
+      return sql`SELECT project_id,project_name,attested_at
+        FROM scratch_attestations WHERE neon_org=${orgId}
+          AND revoked_at IS NULL ORDER BY project_id LIMIT 100`;
+    },
     /** Owner-managed list only; callers of a write guard must also supply verified self identity. */
     async getProtectedResources() {
       const rows = await sql`SELECT value FROM settings WHERE key = 'protected_resources'`;
@@ -770,6 +819,11 @@ export function createDb(sql = productionSql()) {
         updated_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_by TEXT
       )`;
 
+      await sql`CREATE TABLE IF NOT EXISTS scratch_attestations (
+        neon_org TEXT NOT NULL,project_id TEXT NOT NULL,project_name TEXT NOT NULL,
+        attested_at TIMESTAMPTZ NOT NULL DEFAULT now(),revoked_at TIMESTAMPTZ,
+        PRIMARY KEY (neon_org,project_id)
+      )`;
       await sql`CREATE TABLE IF NOT EXISTS dev_runs (
         id TEXT PRIMARY KEY,neon_org TEXT NOT NULL,project_id TEXT NOT NULL,
         connection TEXT,description TEXT,status TEXT NOT NULL DEFAULT 'active',

@@ -1,3 +1,9 @@
+## October 14 V-1 follow-up: exact owner scratch classification (source pending CI)
+
+A guarded application-ownership admission could not establish that the enrolled isolated scratch project was unrelated to real applications. IN-06 authorized the scratch fixture already; it did NOT license guessing or bypassing the B-1 app guard. The newly implemented **owner setup** route supports a separate typed, passphrase-checked certificate tied to exact selected-project API verification, independent self/protected-resource checks and durable per-project audit/revocation. The B-1 server DB returns evidence only while a current verified project key exists; unclassified projects still require genuine provider app/integration evidence or fail closed. The setup page never activates production, creates a branch, grants spending, or disables any guard.
+
+This is **source only until exact-head CI, merge, normal checked release and owner action have independent evidence**. No owner certification was made here; no fixtures were created or cleaned. After READY release, use the certified isolated scratch to repeat the original D-4/V-1 dry-run, explicit approved fixture writes, independent readback and cleanup, under ordinary B-1 and dollar controls. The live acceptance queue remains PENDING.
+
 ## October 14 release catch-up: actual owner custom-service acceptance (non-mutating)
 
 Independently verified GitHub `main` and `live` at `71fc6416b34f71c8f2b3318d266246ecceb03542`, and Vercel production deployment `dpl_GEeYpKbdgjDPU5TpSBf8F2JWrg3c` READY with that exact source and canonical alias. Authenticated custom Neon MCP enrolled-project discovery and isolated scratch baseline branch/role readbacks succeeded; V-1 owned-run read returned no runs. Fixed B-3 custom direct SQL read returned one complete empty public schema; custom migration-history read returned complete with no sources. These are genuine limited read observations, not acceptance of pending D-4/D-6/D-9/V-1 mutation scenarios.
@@ -38,7 +44,7 @@ open obligations, original fixture ownership, approvals and deployment provenanc
     "gates": "Existing IN-06 isolated scratch enrollment and operation-specific guards",
     "dependsOn": [],
     "status": "PENDING",
-    "lastEvidence": "2026-10-14: main/live production Vercel READY exact 71fc6416; authenticated custom scratch project/branch/role readbacks passed. Nonmutating ordinary branch create dryRun returned refused_by_guard: application ownership refused. No role deletion, fixture creation, one-use consent or cleanup occurred; continue original IN-06/IN-16 exact tests when gates independently permit."
+    "lastEvidence": "2026-10-14: main/live production Vercel READY exact 71fc6416; authenticated custom scratch project/branch/role readbacks passed. Nonmutating ordinary branch create dryRun returned refused_by_guard: application ownership refused. No role deletion, fixture creation, one-use consent or cleanup occurred; continue original IN-06/IN-16 exact tests when gates independently permit. October 14 follow-up source changes propose a passphrase-only scoped owner certification of isolated non-app scratch; still unmerged/unreleased, no certificate issued or write/readback acceptance performed; preserve existing original fixture approval."
   },
   {
     "id": "NEON-D6",
@@ -82,7 +88,7 @@ open obligations, original fixture ownership, approvals and deployment provenanc
     "gates": "Checked release containing PR #160; separately approved isolated scratch; full owner and independent protected/app/production guards; no unattended spending",
     "dependsOn": [],
     "status": "PENDING",
-    "lastEvidence": "2026-10-14: production READY exact 71fc6416. Authenticated custom neon_dev_list_runs returned empty; full scratch provider inventory includes only baseline, no run-owned branches. neon_dev_branch_create dryRun refused_by_guard before mutation. App ownership guard needs trustworthy source evidence; no spend or cleanup performed; maintain PENDING."
+    "lastEvidence": "2026-10-14: production READY exact 71fc6416. Authenticated custom neon_dev_list_runs returned empty; full scratch provider inventory includes only baseline, no run-owned branches. neon_dev_branch_create dryRun refused_by_guard before mutation. App ownership guard needs trustworthy source evidence; no spend or cleanup performed; maintain PENDING. October 14 follow-up source changes propose a passphrase-only scoped owner certification of isolated non-app scratch; still unmerged/unreleased, no certificate issued or write/readback acceptance performed; preserve existing original fixture approval."
   }
 ]
 ```
