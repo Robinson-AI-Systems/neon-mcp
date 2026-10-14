@@ -14,3 +14,8 @@ No dependency install or secret access on the privileged cleanup runner.
 Validation: namespace/SHA/exact-head tests and wrong-repository/API denial tests;
 required check/unit/db/ci and release-policy; verify actual merged cleanup run.
 Owner approval IN-16 is recorded concurrently without claiming D-4 implemented.
+
+Push-to-main recovery: scan all ai/* refs on trusted main pushes as well as the
+exact merged head on closed PRs. This catches the first installation and missed
+merge events without requiring a manual dispatch or wider connector grant. Both
+paths retain complete open-head/base protection, exact ancestry and deletion lease.

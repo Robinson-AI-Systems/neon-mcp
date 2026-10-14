@@ -3,6 +3,8 @@
 name: Prune merged AI branches
 
 on:
+  push:
+    branches: [main]
   pull_request:
     types: [closed]
 
@@ -18,8 +20,9 @@ jobs:
   prune:
     if: >-
       github.repository == 'Robinson-AI-Systems/neon-mcp' &&
-      github.event.pull_request.merged == true &&
-      github.event.pull_request.head.repo.full_name == github.repository
+      (github.event_name == 'push' ||
+       (github.event.pull_request.merged == true &&
+        github.event.pull_request.head.repo.full_name == github.repository))
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -35,4 +38,4 @@ jobs:
         run: node scripts/prune-merged-branches.mjs --apply
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          MERGED_HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+          MERGED_HEAD_BRANCH: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || '' }}
