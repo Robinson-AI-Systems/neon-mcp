@@ -502,7 +502,7 @@ export function createDb(sql = productionSql()) {
          (cursorAt===null)!==(cursorId===null)||
          cursorAt!==null&&(
           typeof cursorAt!=='string'||cursorAt.length>40||
-          !/^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d{1,6})?Z$/.test(cursorAt)||
+          !/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,6})?Z$/.test(cursorAt)||
           Number.isNaN(Date.parse(cursorAt))||
           !/^[a-z0-9-]{4,64}$/.test(cursorId||'')))
         throw Error('Invalid scoped run pagination or filters');
