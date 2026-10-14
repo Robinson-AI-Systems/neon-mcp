@@ -154,24 +154,38 @@ export async function runPublicSqlQuery({ctx,target,text,params=[],sqlLayer}={})
 
 export async function runPublicSqlExplain({ctx,target,text,params=[],analyze=false,sqlLayer}={}){
  if(typeof text!=='string'||text.length>20000||typeof analyze!=='boolean')
-  return {done:false,code:'not_read_only',message:'A SELECT statement is required.'};
+  return {done:false,code:'not_read_only',message:'One supported SQL statement is required.'};
  let ast;
  try{ast=await parse(text);}catch{
-  return {done:false,code:'not_read_only',message:'A valid SELECT is required.'};
+  return {done:false,code:'not_read_only',message:'Provide one valid SQL statement.'};
  }
- if(ast?.stmts?.length!==1||!ast.stmts[0]?.stmt?.SelectStmt)
-  return {done:false,code:'not_read_only',message:'Only SELECT plans are supported.'};
+ if(ast?.stmts?.length!==1)
+  return {done:false,code:'not_read_only',message:'Provide exactly one SQL statement.'};
+ const root=ast.stmts[0]?.stmt;
+ const isRead=Boolean(root?.SelectStmt);
+ const isDml=Boolean(root?.InsertStmt||root?.UpdateStmt||root?.DeleteStmt||root?.MergeStmt);
+ if(!isRead&&!isDml)
+  return {done:false,code:'not_read_only',message:'Only SELECT and non-executing DML plans are supported.'};
  const selected=await classifySql(text);
- if(selected.kind!=='read')
-  return {done:false,code:'not_read_only',message:'This plan is not read-only.'};
- const plan='EXPLAIN (FORMAT TEXT, ANALYZE '+(analyze?'TRUE':'FALSE')+') '+
+ if(selected.kind==='refused'||selected.unknownNode===true||
+    isRead&&selected.kind!=='read'||
+    isDml&&!['write','destructive'].includes(selected.kind))
+  return {done:false,code:'not_read_only',message:'The SQL statement cannot be planned safely.'};
+ if(isDml&&analyze)
+  return {done:false,code:'analyze_write_refused',
+   message:'ANALYZE can execute writes. Use a plain EXPLAIN or isolated change preview.'};
+ // Root statement and AST safety have been checked before the constant prefix.
+ // PostgreSQL runs it in BEGIN READ ONLY; ANALYZE is always FALSE for DML.
+ const plan='EXPLAIN (FORMAT TEXT, ANALYZE '+(isRead&&analyze?'TRUE':'FALSE')+') '+
   text.trim().replace(/;\s*$/,'');
  const layer=sqlLayer??createSqlLayer({db:ctx?.db,
   vault:createKeyVault({db:ctx?.db,env:ctx?.env}),env:ctx?.env});
- const result=await runAuthorizedSqlRead({ctx,target,text:plan,params,sqlLayer:layer});
- return {...compactPublicResult(result),analyzed:result?.done===true?analyze:false};
+ const result=await runAuthorizedSqlRead({ctx,target,text:plan,params,
+  sqlLayer:layer,nonExecutingDmlPlan:isDml});
+ return {...compactPublicResult(result),
+  analyzed:result?.done===true?isRead&&analyze:false,
+  nonExecutingWritePlan:result?.done===true&&isDml};
 }
-
 
 // D-5: fixed SQL for a single guarded query cancellation. Never terminate a
 // backend, expose SQL text, or accept a caller-provided statement or target DB.

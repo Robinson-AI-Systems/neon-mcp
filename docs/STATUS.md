@@ -1,3 +1,16 @@
+## D-5 safe DML EXPLAIN — PR #137 implementation and CI pending
+
+The existing SQL explain tool now supports approved non-executing EXPLAIN of
+UPDATE/DELETE/INSERT/MERGE. Strict AST classification and fixed
+`EXPLAIN (FORMAT TEXT, ANALYZE FALSE)` are enforced both in public
+dispatch and the private B-3 SQL read admission; BEGIN READ ONLY plus owner
+protected/production SQL-read settings and direct scoped credentials remain.
+`ANALYZE:true` is rejected for all writes before any connection. Fake SQL
+tests prove no DML is sent unwrapped or executed and protected/disabled reads
+never open SQL. Real custom-service SQL acceptance remains gated on a checked
+release with exact-host self identity and a verified safe test target. No
+production writes, billable changes, preview/snapshot or deployment approval.
+
 ## D-8 opt-in verified RLS catalog inspection — PR #136, acceptance pending
 
 An opt-in `rlsTarget` on `neon_security_review` uses an exact provider-verified

@@ -1,6 +1,7 @@
 // B-3b: explicitly authorized, bounded SQL reads. Deliberately unregistered until D-5.
 // All trust decisions happen before obtaining credentials or opening a SQL connection.
 import { classifySql } from './sql-guard.js';
+import { parse } from 'libpg-query';
 import { classifyTarget } from './production.js';
 import { checkProtectedTarget } from '../core/protected-resources.js';
 import { formatSqlError } from './errors.js';
@@ -19,7 +20,21 @@ function safeValues(values) {
  * production classification, protected resources or branch identity.
  * Context: { connection, db, selfProject, getBranch, getProfile }.
  */
-export async function runAuthorizedSqlRead({ ctx, target, text, params = [], sqlLayer } = {}) {
+// A trusted EXPLAIN may describe DML, but only with a constant
+// ANALYZE FALSE prefix and a single AST-verified DML root. Read-only
+// transaction admission is retained; no caller-issued DML runs directly.
+async function isNonExecutingDmlPlan(text){
+ const prefix='EXPLAIN (FORMAT TEXT, ANALYZE FALSE) ';
+ if(!text.startsWith(prefix))return false;
+ try{
+  const parsed=await parse(text);
+  if(parsed?.stmts?.length!==1)return false;
+  const root=parsed.stmts[0]?.stmt?.ExplainStmt?.query;
+  return Boolean(root&&(root.UpdateStmt||root.DeleteStmt||root.InsertStmt||root.MergeStmt));
+ }catch{return false;}
+}
+export async function runAuthorizedSqlRead({ ctx, target, text, params = [],
+ sqlLayer,nonExecutingDmlPlan=false } = {}) {
   const conn = ctx?.connection;
   const orgId = conn?.neonOrg ?? conn?.neon_org;
   const scope = conn?.projectScope ?? conn?.project_scope;
@@ -32,8 +47,14 @@ export async function runAuthorizedSqlRead({ ctx, target, text, params = [], sql
       typeof text !== 'string' || text.length > 20000 ||
       !safeValues(params)) return refused('not_authorized', 'SQL read requires a valid scoped connection and safe parameters.');
   const classification = await classifySql(text);
-  if (classification.kind !== 'read')
-    return refused('not_read_only', classification.reason || 'Only read-only SQL is allowed in the query tool.');
+  // This opt-in is private to the validated EXPLAIN bridge, never a public
+  // query parameter. It cannot authorize arbitrary writes or EXPLAIN ANALYZE.
+  const planOnly=nonExecutingDmlPlan===true &&
+   ['write','destructive'].includes(classification.kind) &&
+   classification.unknownNode!==true &&
+   await isNonExecutingDmlPlan(text);
+  if (classification.kind !== 'read' && !planOnly)
+    return refused('not_read_only', classification.reason || 'Only safe read-only SQL and non-executing DML plans are supported.');
   // Even reads must refuse this server's own database and other owner-protected resources.
   if (await checkProtectedTarget(target, ctx) !== true)
     return refused('protected_resource', 'SQL is unavailable on a protected resource.');
