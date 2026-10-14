@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {attestIsolatedScratch,revokeIsolatedScratch,SCRATCH_PHRASE} from '../../src/core/scratch-ownership.js';
+import {attestIsolatedScratch,revokeIsolatedScratch,SCRATCH_PHRASE} from '../../src/neon/scratch-ownership.js';
 import {makeFakeNeon} from '../../test/helpers/fake-neon.js';
 import {makeNeonClient} from '../../src/neon/client.js';
 import {IDS,project} from '../../test/helpers/neon-fixtures.js';
