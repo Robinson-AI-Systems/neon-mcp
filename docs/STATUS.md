@@ -1,3 +1,16 @@
+## D-6 guarded structural PostgreSQL DDL inspection — PR #147
+
+`neon_schema_get_ddl` now constructs explicitly non-executable CREATE TABLE
+structural sketches from verified catalog columns and key constraints, for
+one regular table or up to twenty in a chosen schema. Every section requires
+complete fixed bounded SQL reads, exact direct five-resource connection and
+existing B-3 protected/production read admission. Absent or malformed catalogs
+fail closed. The response explicitly lists missing defaults, checks, secondary
+indexes, generated expressions, triggers, grants, RLS and partition semantics;
+it is not falsely marketed as a restorable backup or ready migration. Real
+PostgreSQL and fake-provider tests cover quotation, key metadata and no data
+changes. Custom deployed SQL proof remains separate; no manual live promotion.
+
 ## D-6 verified generated TypeScript and Zod row schemas — PR #146
 
 The registered `neon_schema_generate_types` tool reads a verified
