@@ -14,8 +14,7 @@ export const VACUUM_STATS_SQL=
  ' pg_catalog.pg_total_relation_size(c.oid)::bigint AS total_bytes,'+
  ' s.n_dead_tup::bigint AS estimated_dead_rows,'+
  ' s.vacuum_count::bigint AS manual_vacuum_count,'+
- ' s.analyze_count::bigint AS manual_analyze_count,'+
- ' s.last_vacuum,s.last_analyze'+
+ ' s.analyze_count::bigint AS manual_analyze_count'+
  ' FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n'+
  ' ON n.oid=c.relnamespace JOIN pg_catalog.pg_stat_user_tables s ON s.relid=c.oid'+
  " WHERE n.nspname=$1 AND c.relname=$2 AND c.relkind='r' LIMIT 201";

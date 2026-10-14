@@ -43,6 +43,12 @@ it('audits a genuine disposable PostgreSQL VACUUM ANALYZE and preserves rows',as
   .toEqual([{id:1,code:'a'},{id:2,code:'b'}]);
  const stats=(await client.query(VACUUM_STATS_SQL,['public','people'])).rows;
  expect(stats).toHaveLength(1);expect(stats[0].relation_kind).toBe('r');
+ // The actual public SQL bridge caps Date/object cells. Every returned
+ // field must remain a scalar before and after real PostgreSQL VACUUM.
+ expect(Object.values(stats[0]).every(v=>v===null||
+  ['string','boolean','number'].includes(typeof v))).toBe(true);
+ expect(Object.keys(stats[0])).not.toContain('last_vacuum');
+ expect(Object.keys(stats[0])).not.toContain('last_analyze');
  expect(stats[0].manual_vacuum_count).toMatch(/^\d+$/);
  const denied=parsed(await h.neon_health_vacuum_analyze({...args,
   schemaName:'pg_catalog',confirm:true},ctx));

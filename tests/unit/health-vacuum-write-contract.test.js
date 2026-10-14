@@ -8,7 +8,7 @@ const args={projectId:'proj-fake',branchId:'br-fake',endpointId:'ep-fake',
  databaseName:'neondb',roleName:'owner',schemaName:'public',tableName:'people'};
 const row={relation_oid:'123',table_name:'people',relation_kind:'r',rls_enabled:false,
  total_bytes:'16384',estimated_dead_rows:'3',manual_vacuum_count:'0',
- manual_analyze_count:'0',last_vacuum:null,last_analyze:null};
+ manual_analyze_count:'0'};
 function make(opts={},door='direct'){
  const f=makeContractFixture(opts),name='neon_health_vacuum_analyze';
  let current={...row},server;
