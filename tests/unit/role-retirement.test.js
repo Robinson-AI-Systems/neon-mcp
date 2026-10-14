@@ -1,7 +1,7 @@
 import {describe,it,expect} from 'vitest';
 import {makeFakeNeon} from '../../test/helpers/fake-neon.js';
 import {makeNeonClient} from '../../src/neon/client.js';
-import {IDS,project,database,role,devEndpoint,responses,devBranch}
+import {IDS,project,database,role,devEndpoint,devBranch}
  from '../../test/helpers/neon-fixtures.js';
 import {tools,createRoleRetirementHandlers} from '../../src/tools/role-retirement.js';
 
