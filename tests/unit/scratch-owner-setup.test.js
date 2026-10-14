@@ -9,9 +9,9 @@ import {IDS,project} from '../../test/helpers/neon-fixtures.js';
 const origin='https://owner.example.test';
 const env={PUBLIC_BASE_URL:origin,ADMIN_PASSPHRASE:'FAKE_STRONG_PASS',
  VERCEL_ENV:'production',
- DATABASE_URL:'postgresql://fake:FAKE_PASS@ep-self-fake.us-east-2.aws.neon.tech/owner',
+ DATABASE_URL:'postgresql://user:FAKE@localhost/owner',
  NEON_MCP_SELF_ORG_ID:IDS.org,NEON_MCP_SELF_PROJECT_ID:'proj-fake-self',
- NEON_MCP_SELF_ENDPOINT_HOST:'ep-self-fake.us-east-2.aws.neon.tech'};
+ NEON_MCP_SELF_ENDPOINT_HOST:'localhost'};
 function req(method,p={},headers={origin}){
  return {method,headers,body:method==='POST'?p:undefined,
  query:method==='GET'?p:undefined,socket:{remoteAddress:'192.0.2.61'}};
