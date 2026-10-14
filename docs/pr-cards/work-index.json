@@ -711,7 +711,7 @@
       "pr": [
         160
       ],
-      "note": "V-1 source: create expiring project-key-scoped run-owned dev branches, list runs, cleanup recorded branches with B-1/B-4 and fresh guard/provider/DB proof. Custom hosted acceptance and optional aged-run sweep remain open. October 14 exact-source READY custom read checks confirmed empty scratch run ledger; both dev and standard branch preview were B-1 refused, ordinary preview specifically due to unavailable app-ownership evidence. Owner-only read diagnostic source is being validated; no write/cleanup acceptance claimed."
+      "note": "V-1 source: create expiring project-key-scoped run-owned dev branches, list runs, cleanup recorded branches with B-1/B-4 and fresh guard/provider/DB proof. Custom hosted acceptance and optional aged-run sweep remain open. October 14 exact-source READY custom read checks confirmed empty scratch run ledger; both dev and standard branch preview were B-1 refused, ordinary preview specifically due to unavailable app-ownership evidence. Owner-only read diagnostic source is being validated; no write/cleanup acceptance claimed. Owner setup for explicit certified non-app scratch ownership is source in progress; a persisted revocable declaration is only valid with a still-verified selected-project key. It does not waive normal B-1 spending, protected, production, audit or confirmation gates. Genuine custom create/cleanup remains PENDING until checked release, owner certification and isolated acceptance."
     },
     {
       "id": "V-2",
