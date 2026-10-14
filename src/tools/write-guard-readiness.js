@@ -22,7 +22,7 @@ export function createWriteGuardReadinessHandlers({contextFor=createProjectWrite
   const c=await contextFor(raw);
   if(c.connection?.profile!=='full')throw Error('Owner profile required');
   const s=projectScope(c,a.projectId);
-  if(!s.projectId||s.projectId!==a.projectId||!a.branchId||!id.pattern)
+  if(!s.projectId||s.projectId!==a.projectId||!a.branchId)
    throw Error('Exact scoped project and branch required');
   if(!/^[a-z0-9-]{1,60}$/.test(a.branchId))
    throw Error('Invalid branch ID');
