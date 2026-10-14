@@ -1,7 +1,8 @@
 import {describe,it,expect} from 'vitest';
 import {createServer} from 'node:http';
 import {createMcpHandler,dispatchReadOnlyTool} from '../../src/core/mcp-server.js';
-import {createReindexHandlers,INDEX_INVENTORY_SQL} from '../../src/tools/health-reindex.js';
+import {createReindexHandlers} from '../../src/tools/health-reindex.js';
+import {INDEX_INVENTORY_SQL} from '../../src/tools/schema-index-write.js';
 import {TABLES_SQL} from '../../src/tools/schema-reads.js';
 import {handlers as metaHandlers,tools as metaTools} from '../../src/tools/meta.js';
 import {runWriteContract,makeContractFixture} from '../../test/helpers/write-contract.js';
