@@ -1,3 +1,7 @@
+## October 14 bounded V-2 read-only scenario preview — source PR #165
+
+When V-1 hosted branch-write acceptance remains queued for the next release, continue eligible independent code instead of treating release cadence as a project-wide blocker. PR #165 adds four concrete synthetic five-table scenarios, deterministic full bounded rows and a read-only preview tool with FK ordering, no SQL, no provider connection and no secrets. V-2 actual guarded `neon_dev_seed`, auto mode, safe file import, idempotent database writes and provider acceptance are **NOT** implemented by this slice. Maintain V-1 and earlier D-4/D-6/D-9 queues as PENDING. The new V-2 read-only custom-host release check is also PENDING until a checked deployment independently proves it.
+
 ## October 14 V-1 follow-up: exact owner scratch classification (source pending CI)
 
 A guarded application-ownership admission could not establish that the enrolled isolated scratch project was unrelated to real applications. IN-06 authorized the scratch fixture already; it did NOT license guessing or bypassing the B-1 app guard. The newly implemented **owner setup** route supports a separate typed, passphrase-checked certificate tied to exact selected-project API verification, independent self/protected-resource checks and durable per-project audit/revocation. The B-1 server DB returns evidence only while a current verified project key exists; unclassified projects still require genuine provider app/integration evidence or fail closed. The setup page never activates production, creates a branch, grants spending, or disables any guard.
@@ -89,6 +93,17 @@ open obligations, original fixture ownership, approvals and deployment provenanc
     "dependsOn": [],
     "status": "PENDING",
     "lastEvidence": "2026-10-14: production READY exact 71fc6416. Authenticated custom neon_dev_list_runs returned empty; full scratch provider inventory includes only baseline, no run-owned branches. neon_dev_branch_create dryRun refused_by_guard before mutation. App ownership guard needs trustworthy source evidence; no spend or cleanup performed; maintain PENDING. October 14 follow-up source changes propose a passphrase-only scoped owner certification of isolated non-app scratch; still unmerged/unreleased, no certificate issued or write/readback acceptance performed; preserve existing original fixture approval."
+  },
+  {
+    "id": "NEON-V2-SCENARIOS",
+    "priority": 4,
+    "requiredRevision": "4b8db57c587fdde4936469b52bac6a150d69f8e3",
+    "task": "After checked release, prove custom Neon MCP read-only scenario discovery returns four synthetic scenarios, bounded deterministic samples, and rejects malformed seeds/row limits; no SQL or provider writes",
+    "procedure": "docs/pr-cards/V-2.md",
+    "gates": "V-2 read-only source only. No app/production mutation or spending. V-1 scratch acceptance remains independent and pending.",
+    "dependsOn": [],
+    "status": "PENDING",
+    "lastEvidence": "2026-10-14: source module, exact registry and synthetic fixture tests added in PR #165; not yet independently merged, released or custom-host validated. This is NOT neon_dev_seed write acceptance."
   }
 ]
 ```
