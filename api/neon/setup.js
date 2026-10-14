@@ -9,7 +9,7 @@ import { configuredSelfResource } from '../../src/core/self-resource.js';
 import { mergeWithSelf,validateProtectedResources } from '../../src/core/protected-resources.js';
 import { activationEligible } from '../../src/core/owner-activation.js';
 import { issueReadOnlyRtcPass } from '../../src/core/rtc-passes.js';
-import {attestIsolatedScratch,revokeIsolatedScratch,SCRATCH_PHRASE} from '../../src/core/scratch-ownership.js';
+import {attestIsolatedScratch,revokeIsolatedScratch,SCRATCH_PHRASE} from '../../src/neon/scratch-ownership.js';
 
 const styles=`
     :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
