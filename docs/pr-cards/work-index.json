@@ -561,9 +561,10 @@
         127,
         128,
         130,
-        137
+        137,
+        139
       ],
-      "note": "IN-15 owner-approved independent D-5; existing D-4 scoped verified connection prerequisites still required. #126 registers guarded read-only SQL; seven other D-5 tools remain. D-4 role deletion remains blocked, unregistered; no pooled-client-absence proof or real SQL acceptance implied. #127 adds safe SQL EXPLAIN (ANALYZE only verified read-only SELECT) and fixed current-database session/wait inventory; live acceptance open. #128 exposes safe scoped pg_stat_statements aggregates without SQL bodies or automatic extension installation; real provider proof remains open. #130 publishes B-1 owner-audited query cancellation on one bound backend PID with independent end-state readback; no cross-database cancel, session termination, or live provider write acceptance. #137 extends safe read-only planning to UPDATE/DELETE/INSERT/MERGE with fixed nonexecuting EXPLAIN; ANALYZE writes forbidden; live SQL test after checked release still required."
+      "note": "IN-15 owner-approved independent D-5; existing D-4 scoped verified connection prerequisites still required. #126 registers guarded read-only SQL; seven other D-5 tools remain. D-4 role deletion remains blocked, unregistered; no pooled-client-absence proof or real SQL acceptance implied. #127 adds safe SQL EXPLAIN (ANALYZE only verified read-only SELECT) and fixed current-database session/wait inventory; live acceptance open. #128 exposes safe scoped pg_stat_statements aggregates without SQL bodies or automatic extension installation; real provider proof remains open. #130 publishes B-1 owner-audited query cancellation on one bound backend PID with independent end-state readback; no cross-database cancel, session termination, or live provider write acceptance. #137 extends safe read-only planning to UPDATE/DELETE/INSERT/MERGE with fixed nonexecuting EXPLAIN; ANALYZE writes forbidden; live SQL test after checked release still required. #139 public owner-guarded exact SQL rehearsal on disposable child uses existing B-3/B-4 safety, confirmed cleanup and scoped token; no paid live preview executed."
     },
     {
       "id": "D-6",

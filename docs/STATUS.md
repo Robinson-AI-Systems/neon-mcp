@@ -1,3 +1,16 @@
+## D-5 isolated exact SQL preview — PR #139, source/CI not live-accepted
+
+The existing B-3 disposable child branch preview is now registered as
+`neon_sql_preview_change`: exact five-part provider identity, 1–20 classified
+SQL changes, full-table acknowledgement, B-1 owner/audit/confirmation,
+B-4 atomic one-cent admission reserve, preflight and rebind, SQL row counts
+and optional schema comparison, verified child deletion, durably scoped one-use
+token. A one-cent reserve is not an independently verified Neon charge cap;
+owner separately approves metered spend and no live branch was created.
+The parent remains unmodified and any unclear cleanup cannot issue a token.
+Unit/fake-provider and check workflows required before merge; production
+writes OFF; this source-level milestone is not real connector acceptance.
+
 ## D-8 guarded audit-level reduction — PR #138
 
 Registered the existing approved `neon_security_set_audit_log_level` tool
