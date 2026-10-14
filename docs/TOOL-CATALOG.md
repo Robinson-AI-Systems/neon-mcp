@@ -282,7 +282,7 @@ only recorded objects. Every tool refuses production targets (B-2) before readin
 | `neon_dev_branch_create` | Create an audited, expiring branch with run metadata, stored safe compute, provider-backed price and exact readback | C $ Dev | B | F | V-1 built #160 |
 | `neon_dev_list_runs` | Read scoped recorded run ownership and remaining cleanup with no provider secrets | — | B | R | V-1 built #160 |
 | `neon_dev_cleanup` | Confirm child-first, recorded-only branch soft deletion with exact protected/production refusals | C D Dev | B | F | V-1 built #160 |
-| `neon_dev_list_scenarios` | Seed scenarios available, with what each creates | — | B | R | V-2 |
+| `neon_dev_list_scenarios` | Preview bounded synthetic demo tables and FK-ordered sample rows without executing SQL | — | B | R | V-2 read preview built #165 |
 | `neon_dev_seed` | Fill a dev branch with realistic data from a named scenario, a plain description mapped to scenarios, or rows from a public CSV/JSON URL; preview lists every table and row count | P Dev | B | E | V-2 |
 | `neon_dev_reset_branch` | Reset a dev branch to its parent's latest state (no production confirm needed; refuses production) | P Dev | B | E | V-3 |
 | `neon_dev_checkpoint` | Record a named checkpoint (LSN) on a dev branch before a test | P Dev | B | E | V-3 |
@@ -362,7 +362,7 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #160 (source tooling only; deployed acceptance separate):** `read_only` 48; `everyday` 56; `full` 95. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
+**Implemented registry at #160 (source tooling only; deployed acceptance separate):** `read_only` 49; `everyday` 57; `full` 96. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
 
 ## Totals
 
