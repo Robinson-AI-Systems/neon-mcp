@@ -187,7 +187,7 @@ The SQL guard (`docs/designs/BATCH-B.md` B-3) classifies every statement with th
 | --- | --- | --- | --- | --- | --- |
 | `neon_health_check` | Database health in one call (any of 15 checks): sizes, cache hit rate, connections, locks, long-running queries, bloat, autovacuum, unused/duplicate indexes, transaction-ID age, replication | — | Op | R | D-6 (built #145; hosted acceptance pending) |
 | `neon_health_suggest_indexes` | Review-only candidate on explicitly selected columns from verified PostgreSQL scan/index stats; no SQL execution or query text | — | B Op | R | D-6 (built #148; live SQL acceptance pending) |
-| `neon_health_vacuum_analyze` | VACUUM (ANALYZE) a table or database (production: confirm; load warning) | C* Pr | Op | E | D-6 |
+| `neon_health_vacuum_analyze` | Confirm a guarded non-FULL VACUUM (ANALYZE) on one verified regular development table, stored 10-minute maintenance ceiling, independent table readback and durable no-retry audit | C Pr | Op | E | D-6 built #158 |
 | `neon_health_reindex` | Owner-confirmed INDEX/TABLE REINDEX CONCURRENTLY on verified regular development tables; stored 10-minute maintenance timeout owner-tightenable, exclusion indexes refused, recovery readback only; production gated | C Pr | Op | E | D-9 built #157 |
 
 ## Snapshots (`neon_snapshot_*`) — 7
@@ -361,7 +361,7 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #157 (source capability listing, deployment acceptance separate):** `read_only` 47; `everyday` 55; `full` 90. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
+**Implemented registry at #157 (source capability listing, deployment acceptance separate):** `read_only` 47; `everyday` 55; `full` 91. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
 
 ## Totals
 
