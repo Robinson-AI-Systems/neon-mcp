@@ -63,6 +63,10 @@ export function createReindexHandlers({contextFor=createProjectWriteContext,
      new Set(inventory.rows.map(x=>x.index_name)).size!==inventory.rows.length)
    throw Error('Complete regular-table/index inventory is required');
   const all=inventory.rows.filter(x=>x.table_name===a.tableName);
+  // A previous unconfirmed CONCURRENTLY attempt may have left transient
+  // artifacts. Do not begin a new maintenance operation around them.
+  if(!allowInvalid&&all.some(x=>/_cc(new|old)\d*$/.test(x.index_name)))
+   throw Error('Inspect previous concurrent-index artifacts before new DDL');
   const selection=a.scope==='index'?all.filter(x=>x.index_name===a.indexName||
     includeRecovery&&(!x.valid_index||!x.ready_index||/_cc(new|old)\d*$/.test(x.index_name))):all;
   if(!selection.length||a.scope==='index'&&!includeRecovery&&selection.length!==1||

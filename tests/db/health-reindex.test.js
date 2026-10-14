@@ -24,6 +24,7 @@ it('rebuilds INDEX and TABLE concurrently with independently read catalogs and p
  const f=makeContractFixture(),c=f.ctx;
  c.connection={neonOrg:'org-fake',profile:'full',mode:'preview'};
  c.getBranch=async()=>({id:base.branchId});
+ c.writeKey=(_name,args)=>'rmcp_reindex_pg_'+args.scope+'_test';
  c.db.getSqlMaintenanceTimeoutMs=async()=>600000;
  const handlers=createReindexHandlers({contextFor:async()=>c,
   verifyTarget:async x=>({pid:x.projectId,bid:x.branchId,endpointId:x.endpointId,

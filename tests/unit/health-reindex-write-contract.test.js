@@ -13,7 +13,8 @@ const first={index_oid:'123',index_name:'people_code_idx',table_name:'people',
  constraint_index:false,exclusion_index:false,index_bytes:'8192',scans:'0',method:'btree',
  custom_expression:false,key_count:1,attribute_count:1,columns:['code']};
 function fixture(opts={},door='direct'){
- const f=makeContractFixture(opts);let index={...first},server;
+ const f=makeContractFixture(opts);let index={...first},artifacts=[],server;
+ f.ctx.guards.checkSpend=async()=>opts.spendCents!==2600;
  const tool='neon_health_reindex';
  f.ctx.connection={neonOrg:'org-fake',profile:'full',mode:'preview'};
  f.ctx.getBranch=async()=>({id:base.branchId,default:opts.production===true});
@@ -22,11 +23,16 @@ function fixture(opts={},door='direct'){
    database:a.databaseName,role:a.roleName,endpoint:{host:'direct.fake'}}),
   query:async({text})=>{
    const rows=text===TABLES_SQL?[{table_name:'people',relation_kind:'r'}]:
-    text===INDEX_INVENTORY_SQL?[index]:[];
+    text===INDEX_INVENTORY_SQL?[index,...artifacts]:[];
    return {done:true,truncated:false,rowCount:rows.length,rows};
   },
   mutate:async()=>{f.calls.push('ddl');
-   if(opts.throwOnWrite){if(opts.leaveInvalid)index={...index,valid_index:false};throw Error('uncertain');}
+   if(opts.throwOnWrite){
+    if(opts.leaveInvalid)index={...index,valid_index:false};
+    if(opts.leaveArtifact)artifacts=[{...first,index_oid:'456',index_name:'people_code_idx_ccnew',
+      valid_index:false,ready_index:false}];
+    throw Error('uncertain');
+   }
    if(opts.verify!==false)index={...index,index_oid:'456',index_bytes:'16384',scans:'1'};
    else index={...index,index_oid:'456',method:'hash'};
    return {issued:true};}});
@@ -60,7 +66,7 @@ function fixture(opts={},door='direct'){
   const parsed=JSON.parse(line?line.slice(6):body);return parsed.result??parsed;
  }
  return {...f,handler:invoke,
-  setIndex:x=>{index=x;},
+  setIndex:x=>{index=x;},setArtifacts:x=>{artifacts=x;},
   close:async()=>{if(server)await new Promise(resolve=>server.close(resolve));}};
 }
 describe('D-9 guarded concurrent development reindex',()=>{
@@ -92,6 +98,23 @@ it('refuses production/protected targets immediately before DDL',async()=>{
   const f=fixture();f.ctx.getBranch=async()=>({id:base.branchId,protected:true});
   const result=f.parse(await f.handler({...base,scope:'table',confirm:true}));
   expect(result.confirmed).toBe('pending');expect(f.calls).toHaveLength(0);
+ });
+ it('refuses a pre-existing invalid concurrent-build artifact before DDL',async()=>{
+  const f=fixture();
+  f.setArtifacts([{...first,index_oid:'456',index_name:'people_code_idx_ccnew',
+   valid_index:false,ready_index:false}]);
+  const args={...base,scope:'index',indexName:first.index_name,confirm:true};
+  expect(f.parse(await f.handler(args)).done).toBe(false);
+  expect(f.calls).toHaveLength(0);
+ });
+ it('reports newly-created _ccnew artifacts after an ambiguous write without replay',async()=>{
+  const f=fixture({throwOnWrite:true,leaveArtifact:true});
+  const args={...base,scope:'index',indexName:first.index_name,confirm:true};
+  const output=f.parse(await f.handler(args));
+  expect(output.confirmed).toBe('pending');
+  expect(output.observationOnly).toBe(true);
+  expect(output.observed.indexes.some(x=>x.name==='people_code_idx_ccnew'&&x.valid===false)).toBe(true);
+  expect(f.calls).toHaveLength(1);
  });
  it('never retries uncertain DDL and labels readback as observation-only',async()=>{
   const f=fixture({throwOnWrite:true,leaveInvalid:true});
