@@ -666,14 +666,15 @@
         "D-8"
       ],
       "card": "docs/pr-cards/D-9.md",
-      "status": "PLANNED",
+      "status": "IN_PROGRESS",
       "migration": "none",
       "budget": 350,
       "units": [
         "D-9"
       ],
-      "readiness": "WRITE_CARD_AT_START",
-      "ownerInputs": []
+      "readiness": "READY",
+      "ownerInputs": [],
+      "note": "Real PostgreSQL migration history read tooling implemented in current implementation PR, with independently verified exact B-3 SQL policy, bounded catalogs and comprehensive provider-compatible fixtures. Provider-connected acceptance remains pending checked deployment; data compare and reindex remain open."
     },
     {
       "id": "V-1",

@@ -1,3 +1,18 @@
+## D-9 verified application migration history — implementation PR in progress
+
+Registered `neon_schema_list_migrations` with safe bounded read-only
+metadata from PostgreSQL's five recognized migration tracking tables:
+Prisma, Drizzle, Knex, Flyway and golang-migrate. Discovery and all history
+reads use exact direct five-resource connection, B-3 read admission and
+protected/production constraints; only recognized status/name/time fields
+are fetched, never migration logs, source SQL or application records.
+Prisma failed/rolled-back entries and Flyway failures remain visible; missing
+expected names are reported only for comparable name-based systems (not
+Drizzle hashes or golang-migrate numeric versions). All catalogs and histories
+must be complete; partial, unknown and overlong data fail closed. Fake
+provider and disposable PG fixtures test readback and no data mutation.
+This is code/CI proof only; custom deployed acceptance remains pending.
+
 ## D-6 guarded structural PostgreSQL DDL inspection — PR #147
 
 `neon_schema_get_ddl` now constructs explicitly non-executable CREATE TABLE
