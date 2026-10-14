@@ -57,6 +57,17 @@ open obligations, original fixture ownership, approvals and deployment provenanc
     "dependsOn": [],
     "status": "PENDING",
     "lastEvidence": "Source implementation and disposable PostgreSQL tests proposed in PR #158; exact-head CI and genuine deployed custom-owner SQL acceptance not yet complete."
+  },
+  {
+    "id": "NEON-V1-RUNS",
+    "priority": 4,
+    "requiredRevision": "4da1abb402d9f9b757ccbf623ab736e1c7ab62e2",
+    "task": "Validate custom isolated dev run branch expiry/annotation/compute, B-4 source-confirmed owner spending gate, durable run read, exact cleanup and foreign-run/production denials",
+    "procedure": "docs/pr-cards/V-1.md",
+    "gates": "Checked release containing PR #160; separately approved isolated scratch; full owner and independent protected/app/production guards; no unattended spending",
+    "dependsOn": [],
+    "status": "PENDING",
+    "lastEvidence": "PR #160 code and local/CI evidence only; Code was implemented at 4da1abb; hosted acceptance remains unavailable until a normal checked release."
   }
 ]
 ```

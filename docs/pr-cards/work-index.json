@@ -698,7 +698,7 @@
         "D-6"
       ],
       "card": "docs/pr-cards/V-1.md",
-      "status": "PLANNED",
+      "status": "IN_PROGRESS",
       "migration": "dev_runs",
       "budget": 450,
       "units": [
@@ -707,7 +707,11 @@
       "readiness": "WRITE_CARD_AT_START",
       "ownerInputs": [
         "IN-12"
-      ]
+      ],
+      "pr": [
+        160
+      ],
+      "note": "V-1 source: create expiring project-key-scoped run-owned dev branches, list runs, cleanup recorded branches with B-1/B-4 and fresh guard/provider/DB proof. Custom hosted acceptance and optional aged-run sweep remain open."
     },
     {
       "id": "V-2",

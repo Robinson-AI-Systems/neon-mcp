@@ -8,7 +8,7 @@ import { validatePricing } from './neon/pricing.js';
 export const SCHEMA_TABLES = Object.freeze([
   'neon_orgs', 'neon_keys', 'oauth_clients', 'oauth_codes', 'oauth_tokens',
   'login_attempts', 'rate_limits', 'change_log', 'one_time_secrets',
-  'secret_requests', 'settings', 'result_store'
+  'secret_requests', 'settings', 'result_store', 'dev_runs', 'dev_run_objects'
 ]);
 
 // Keep this list in step with the code and token tables: refresh must preserve all fields.
@@ -474,6 +474,71 @@ export function createDb(sql = productionSql()) {
       const rows = await sql`SELECT value FROM settings WHERE key = 'sql.maintenance_timeout_ms'`;
       return rows.length ? rows[0].value : null;
     },
+    /** V-1: scope every run/object query by both enrolled organization and project. */
+    async getDevSettings() {
+      const rows=await sql`SELECT value FROM settings WHERE key = 'dev'`;
+      return rows.length===1?rows[0].value:null;
+    },
+    async reserveDevRun({id,orgId,projectId,connectionId=null}) {
+      const inserted=await sql`INSERT INTO dev_runs
+        (id,neon_org,project_id,connection,description,status)
+        VALUES (${id},${orgId},${projectId},${connectionId},'Neon developer branch','active')
+        ON CONFLICT (id) DO NOTHING RETURNING id,neon_org,project_id,connection,status`;
+      if(inserted.length===1)return inserted[0];
+      const prior=await sql`SELECT id,neon_org,project_id,connection,status
+        FROM dev_runs WHERE id=${id} AND neon_org=${orgId} AND project_id=${projectId}`;
+      return prior.length===1&&prior[0].connection===connectionId&&
+        prior[0].status==='active'?prior[0]:null;
+    },
+    async listDevRuns({orgId,projectId,limit=50}) {
+      if(!Number.isSafeInteger(limit)||limit<1||limit>50)throw Error('Invalid run list limit');
+      return sql`SELECT r.id,r.project_id,r.status,r.created_at,r.cleaned_at,
+        (SELECT count(*)::int FROM dev_run_objects o WHERE o.run_id=r.id) AS objects,
+        (SELECT count(*)::int FROM dev_run_objects o
+         WHERE o.run_id=r.id AND o.cleaned=FALSE) AS remaining
+        FROM dev_runs r WHERE r.neon_org=${orgId} AND r.project_id=${projectId}
+        ORDER BY r.created_at DESC,r.id DESC LIMIT ${limit}`;
+    },
+    async getDevRun({orgId,projectId,runId}) {
+      const rows=await sql`SELECT id,project_id,status,created_at,connection
+        FROM dev_runs WHERE neon_org=${orgId} AND project_id=${projectId}
+        AND id=${runId}`;
+      return rows.length===1?rows[0]:null;
+    },
+    async listDevRunObjects({orgId,projectId,runId}) {
+      return sql`SELECT o.run_id,o.object_type,o.object_id,o.parent_id,
+        o.expires_at,o.cleaned,o.cleaned_note
+        FROM dev_run_objects o JOIN dev_runs r ON r.id=o.run_id
+        WHERE r.neon_org=${orgId} AND r.project_id=${projectId} AND r.id=${runId}
+        ORDER BY o.created_at ASC,o.object_id ASC LIMIT 101`;
+    },
+    async recordDevRunBranch({orgId,projectId,runId,branchId,parentId,expiresAt}) {
+      const rows=await sql`INSERT INTO dev_run_objects
+        (run_id,object_type,object_id,parent_id,expires_at)
+        SELECT r.id,'branch',${branchId},${parentId},${expiresAt}
+        FROM dev_runs r WHERE r.id=${runId} AND r.neon_org=${orgId}
+          AND r.project_id=${projectId} AND r.status='active'
+        ON CONFLICT (run_id,object_type,object_id) DO NOTHING RETURNING object_id`;
+      return rows.length===1;
+    },
+    async markDevRunBranchCleaned({orgId,projectId,runId,branchId,note}) {
+      const rows=await sql`UPDATE dev_run_objects SET cleaned=TRUE,
+        cleaned_note=${note}
+        WHERE run_id=${runId} AND object_type='branch'
+          AND object_id=${branchId} AND cleaned=FALSE
+          AND EXISTS (SELECT 1 FROM dev_runs r WHERE r.id=${runId}
+            AND r.neon_org=${orgId} AND r.project_id=${projectId})
+        RETURNING object_id`;
+      return rows.length===1;
+    },
+    async finishDevRun({orgId,projectId,runId}) {
+      const rows=await sql`UPDATE dev_runs r SET status='cleaned',cleaned_at=now()
+        WHERE r.id=${runId} AND r.neon_org=${orgId}
+        AND r.project_id=${projectId} AND NOT EXISTS (
+          SELECT 1 FROM dev_run_objects o WHERE o.run_id=r.id AND o.cleaned=FALSE)
+        RETURNING id`;
+      return rows.length===1;
+    },
     /** Database-backed IN-09 defaults; never rely on an untrusted caller's SQL policy. */
     async getSqlReadPolicy() {
       const rows = await sql`SELECT value FROM settings WHERE key = 'sql.read_policy'`;
@@ -704,6 +769,29 @@ export function createDb(sql = productionSql()) {
         key TEXT PRIMARY KEY, value JSONB NOT NULL,
         updated_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_by TEXT
       )`;
+
+      await sql`CREATE TABLE IF NOT EXISTS dev_runs (
+        id TEXT PRIMARY KEY,neon_org TEXT NOT NULL,project_id TEXT NOT NULL,
+        connection TEXT,description TEXT,status TEXT NOT NULL DEFAULT 'active',
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),cleaned_at TIMESTAMPTZ,
+        CONSTRAINT dev_runs_status CHECK (status IN ('active','cleaned'))
+      )`;
+      await sql`CREATE INDEX IF NOT EXISTS dev_runs_scope
+        ON dev_runs (neon_org,project_id,created_at DESC)`;
+      await sql`CREATE TABLE IF NOT EXISTS dev_run_objects (
+        run_id TEXT NOT NULL REFERENCES dev_runs(id),object_type TEXT NOT NULL,
+        object_id TEXT NOT NULL,parent_id TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),expires_at TIMESTAMPTZ,
+        cleaned BOOLEAN NOT NULL DEFAULT FALSE,cleaned_note TEXT,
+        PRIMARY KEY (run_id,object_type,object_id),
+        CONSTRAINT dev_object_type CHECK (object_type='branch')
+      )`;
+      await sql`CREATE UNIQUE INDEX IF NOT EXISTS dev_branch_sole_owner
+        ON dev_run_objects (object_type,object_id)`;
+      await sql`INSERT INTO settings (key,value,updated_by)
+        VALUES ('dev',
+          '{"ttl_hours":24,"compute":{"min_cu":0.25,"max_cu":1,"suspend_seconds":300}}'::jsonb,
+          'system_default_V-1') ON CONFLICT (key) DO NOTHING`;
 
       await sql`CREATE TABLE IF NOT EXISTS result_store (
         handle TEXT PRIMARY KEY, connection TEXT NOT NULL,
