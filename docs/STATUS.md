@@ -191,13 +191,13 @@ open obligations, original fixture ownership, approvals and deployment provenanc
   {
     "id": "NEON-V2-DEMO-SEED",
     "priority": 4,
-    "requiredRevision": "44661ab59075f9a26f14de98c9035e534021e7ac",
-    "task": "On checked released custom Neon full-owner TEST connection, prove four synthetic scenario seed previews, nonproduction run-owned branch confirmation, exact rows, idempotent retry, foreign/protected/production refusals and recorded fixture cleanup",
+    "requiredRevision": "0ace89cb6d3d515790af01b263d40b9179e98c6a",
+    "task": "On checked released custom full-owner TEST connection, verify named and plain-described four synthetic demo previews, exact 500-row bounded guarded seed, ambiguity refusals, one-use idempotency, full row readback and foreign/protected/production denials with fixture cleanup",
     "procedure": "docs/pr-cards/V-2.md",
     "gates": "Owner scratch certification, genuine B-1/B-3 spend/SQL guard, explicit one-time confirmation, no production, no app data, independently owned scratch fixtures only",
     "dependsOn": [],
     "status": "PENDING",
-    "lastEvidence": "2026-10-14: source scenario seed implementation and fake/throwaway PostgreSQL tests authored, but not yet CI-merged, checked released or genuinely custom-host accepted. Retain separate V-1 acceptance and scratch owner certification."
+    "lastEvidence": "2026-10-14: #169 scenario seed source/CI/merge proven; subsequent source adds deterministic description disambiguation and ≤16-statement 500-row JSONB batch apply, with unit/disposable-PG tests authored. Full-size exact-head CI, merge, release, owner scratch certification and live custom TEST acceptance remain unproven. Preserve V-1 and D-series queues."
   }
 ]
 ```
