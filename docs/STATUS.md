@@ -1,3 +1,19 @@
+## D-6 searchable schema catalog — PR #144
+
+Two additional approved read-only schema tools provide cross-schema
+table/column name search and an eight-kind object inventory: views,
+materialized views, function signatures, enums, sequences, triggers,
+RLS policies and database-wide publications. Every query is an AST-safe
+reviewed pg_catalog SELECT with bound caller text and the existing
+exact five-part provider identity, unpooled direct endpoint, protected
+resource policy, 15-second B-3 read limit, production-read switch and
+owner maxRows. Incomplete catalogs do not count as fully enumerated.
+PostgreSQL 17 disposable tests create actual view/type/function/sequence/
+policy artifacts and verify hostile SQL-like search strings remain
+values, not statements. No table records, source body, policy predicates,
+Neon writes or paid resource actions were performed. Live custom SQL
+acceptance remains pending a checked normal release.
+
 ## D-6 schema inventory and table inspector (PR #143, CI and real acceptance separate)
 
 Implemented the first four approved schema tools: schemas, tables with
