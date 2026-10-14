@@ -45,12 +45,26 @@ function validateCreateOptions(a){
  }else if(a.minCu!==undefined||a.maxCu!==undefined)
   throw Error('Compute CU bounds require an explicit compute type');
 }
+// Attest account plan from Neon's live, project-key-readable GetProject owner.
+// Never trust a caller-provided plan or unknown subscription family.
+export function attestedProjectPlan(project,orgId){
+ const mapping={launch:'Launch',launch_v3:'Launch',scale:'Scale',scale_v3:'Scale'};
+ if(project?.org_id!==orgId||project?.owner_id!==orgId||
+    !ID.test(project?.id||'')||
+    !Number.isSafeInteger(project?.owner?.branches_limit)||
+    project.owner.branches_limit<1||project.owner.branches_limit>100000||
+    !Object.hasOwn(mapping,project.owner.subscription_type))
+  return null;
+ return {verified:true,name:mapping[project.owner.subscription_type],
+  subscriptionType:project.owner.subscription_type,
+  branchLimit:project.owner.branches_limit,projectId:project.id,orgId};
+}
 async function clientFor(a,c){
  const pid=projectId(a,c),client=await c.clientFor(pid);
  const data=await projectRead(client,'getProject',{path:{project_id:pid}});
  if(data?.project?.id!==pid||data.project.org_id!==c.connection.neonOrg)
   throw Error('Unverified project identity');
- return {pid,client};
+ return {pid,client,project:data.project};
 }
 async function branches(client,pid,includeDeleted=false){
  const result=await projectRead(client,'listProjectBranches',{
@@ -78,9 +92,18 @@ async function apply(a,c,op,body,key){
 }
 const create=defineWrite({name:'neon_branch_create',
  spend:async(_a,c,before)=>{
-  const plan=typeof c.db.getVerifiedNeonPlan==='function'
-   ?await c.db.getVerifiedNeonPlan(c.connection.neonOrg):await c.planFor?.();
-  if(plan?.verified!==true||!['Launch','Scale'].includes(plan.name))
+  const observed=before.planAttestation;
+  let durable=null;
+  try{
+   durable=typeof c.db.getVerifiedNeonPlan==='function'
+    ?await c.db.getVerifiedNeonPlan(c.connection.neonOrg):
+    !observed?await c.planFor?.():null;
+  }catch{if(!observed)return null;}
+  if(observed&&durable?.verified===true&&durable.name!==observed.name)
+   return null;
+  const plan=observed??durable;
+  if(plan?.verified!==true||!['Launch','Scale'].includes(plan.name)||
+     observed&&before.count>=observed.branchLimit)
    return null;
   const guard=createSpendGuard({db:c.db});
   const branch=await guard.price({kind:'branch',plan:plan.name,
@@ -98,13 +121,14 @@ const create=defineWrite({name:'neon_branch_create',
      (a.schemaOnly!==undefined&&typeof a.schemaOnly!=='boolean'))
    throw Error('Explicit parent and valid branch name required');
   validateCreateOptions(a);
-  const {pid,client}=await clientFor(a,c);
+  const {pid,client,project}=await clientFor(a,c);
   const list=await branches(client,pid);
   const parent=list.find(b=>b.id===a.parentBranchId);
   if(!parent||list.some(b=>b.name===a.name))
    throw Error('Parent missing or branch name already in use');
   return {target:'branch:'+parent.id,projectId:pid,branchId:parent.id,
    before:{parent,count:list.length,name:a.name,
+    planAttestation:attestedProjectPlan(project,c.connection.neonOrg),
     compute:a.computeType?{type:a.computeType,minCu:a.minCu,maxCu:a.maxCu}:null},
    summary:'Create branch '+a.name+' from verified parent '+parent.id+
     (a.schemaOnly===true?' (schema only)':' (parent data)')+

@@ -210,3 +210,47 @@ describe('D-2 verified branch create, delete, recover',()=>{
   fake.assertClean();
  });
 });
+
+
+describe('D-2 project-scoped verified Neon plan admission',()=>{
+ it('accepts only exact project+org owner and priced enum versions',async()=>{
+  const {attestedProjectPlan}=await import('../../src/tools/branch-lifecycle.js');
+  const base=project({owner_id:IDS.org,owner:{email:'test@example.test',name:'Test',
+   subscription_type:'launch_v3',branches_limit:5000}});
+  expect(attestedProjectPlan(base,IDS.org)).toMatchObject({
+   verified:true,name:'Launch',projectId:IDS.project,orgId:IDS.org});
+  const mk=(overrides)=>project({...base,...overrides});
+  for(const p of [mk({org_id:'org-foreign'}),mk({owner_id:'org-foreign'}),
+   mk({owner:{...base.owner,subscription_type:'direct_sales'}}),
+   mk({owner:{...base.owner,subscription_type:'UNKNOWN'}}),
+   mk({owner:{...base.owner,subscription_type:'free_v3'}}),
+   mk({owner:{...base.owner,branches_limit:0}})])
+   expect(attestedProjectPlan(p,IDS.org)).toBeNull();
+ });
+ it('prices from a fresh scoped provider GET when no organization key is enrolled',async()=>{
+  const {fake,handlers,events}=makeBranchLifecycleFixture({plan:null});
+  fake.when('getProject').resolves({project:project({
+   owner_id:IDS.org,owner:{email:'test@example.test',name:'Test',
+    subscription_type:'launch_v3',branches_limit:5000}})});
+  fake.when('listProjectBranches').resolves(list([mainBranch()]));
+  const result=json(await handlers.neon_branch_create({
+    name:'run-owned-fixture',parentBranchId:IDS.main,dryRun:true},{}));
+  expect(result.needsConfirmation).toBe(true);
+  expect(result.spendMonthCents).toBe(0);
+  expect(events.some(x=>x.kind==='preview')).toBe(true);
+  expect(fake.calls.every(x=>x.method==='GET')).toBe(true);
+  fake.assertClean();
+ });
+ it('refuses a conflicting cached organization subscription before POST',async()=>{
+  const {fake,handlers}=makeBranchLifecycleFixture({plan:'Scale'});
+  fake.when('getProject').resolves({project:project({
+   owner_id:IDS.org,owner:{email:'test@example.test',name:'Test',
+    subscription_type:'launch_v3',branches_limit:5000}})});
+  fake.when('listProjectBranches').resolves(list([mainBranch()]));
+  const result=json(await handlers.neon_branch_create({
+    name:'run-owned-fixture',parentBranchId:IDS.main,confirm:true},{}));
+  expect(result.done).toBe(false);
+  expect(fake.calls.every(x=>x.method==='GET')).toBe(true);
+  fake.assertClean();
+ });
+});

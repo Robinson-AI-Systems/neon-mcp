@@ -471,9 +471,10 @@
         54,
         55,
         57,
-        58
+        58,
+        141
       ],
-      "note": "All 12 tools plus provider-approved history comparison and advanced branch create verified by exact-head and post-merge CI through #58; protected/production/spend gates retained. Live scratch X-3 separate."
+      "note": "All 12 tools plus provider-approved history comparison and advanced branch create verified by exact-head and post-merge CI through #58; protected/production/spend gates retained. Live scratch X-3 separate. #141 live provider owner subscription attestation for project-key B-4 branch creation with pricing/no-org-key test; external scratch acceptance pending."
     },
     {
       "id": "D-3",

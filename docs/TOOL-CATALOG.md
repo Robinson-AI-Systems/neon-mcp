@@ -95,7 +95,7 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 | --- | --- | --- | --- | --- | --- |
 | `neon_branch_list` | Branches with default/protected/expiring marks, parent, size, compute state, last reset, annotations; count vs the plan's included branches | — | B Op | R | D-2 (built #51, plan/count refinements pending) |
 | `neon_branch_get` | One branch with its computes, databases, roles, storage and restore status | — | B Op | R | D-2 (built #51, status refinements pending) |
-| `neon_branch_create` | Create from verified parent, with schema-only option and B-4 branch-cost approval; optional compute, expiry and point-in-time source variants supported | C* $ | B Op | E | D-2 (built #54, advanced create variants #58) |
+()=>`| \`neon_branch_create\` | Create from verified parent with B-4 pricing using current project-key-readable provider subscription evidence or a verified stored plan, denying plan conflicts; optional compute, expiry and point-in-time variants |` C* $ | B Op | E | D-2 (built #54, advanced create variants #58) |
 | `neon_branch_rename` | Rename a branch (confirm on production: integrations and apps may look it up by name) | C* Pr | Op | E | D-2 (built #52) |
 | `neon_branch_set_protected` | Protect or unprotect with audited confirmation and production guard | C* Pr | Ow | F | D-2 (built #52) |
 | `neon_branch_set_expiration` | Set, change or remove expiry (max 30 days; refuses default, protected or parent) | P | B Op | E | D-2 (built #53) |
