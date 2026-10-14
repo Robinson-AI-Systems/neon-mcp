@@ -1,3 +1,18 @@
+## #141 — live plan attestation enables project-scoped scratch pricing
+
+The custom project's enrollment is complete, but its branch-creation dry-run
+failed account-plan verification even though the owner approved run-owned D-4
+fixtures. Neon's pinned `getProject.owner` schema includes exact
+subscription_type and branches_limit, and real scratch provider read verified
+Launch V3. This PR lets B-4 price from authenticated owner/org/project bound
+live `launch(_v3)` or `scale(_v3)` evidence without requiring an additional
+organization key. Conflicting verified durable plan, unknown pricing family,
+missing owner identity, limits, or policy still fail closed. Spend caps,
+pricing source/date, owner confirmation, branch and compute protection and
+production gates are unchanged. No real branch, role or paid compute created.
+Actual scratch acceptance awaits a checked deployment and independently
+approved metered resource price if applicable.
+
 ## IN-06 owner authorization and custom acceptance reconciliation (2026-10-13 Denver)
 
 Permanent PR #138 comments confirm owner-approved dedicated `neon-mcp-scratch`,
