@@ -421,34 +421,3 @@ export function createDevRunHandlers({contextFor=createProjectWriteContext}={}){
  };
 }
 export const handlers=createDevRunHandlers();
-}},{area:'developer'}),
- {...cleanup.tool,description:'Confirm deletion of only recorded, non-production run branches; verify absence and preserve other branches.',
-  inputSchema:cleanupSchema,profiles:['full'],area:'developer',audience:['builder','operator']}];
-export function createDevRunHandlers({contextFor=createProjectWriteContext}={}){
- return {
-  async neon_dev_branch_create(a,raw){return create.handler(a,await contextFor(raw));},
-  async neon_dev_list_runs(a,raw){
-   const c=await contextFor(raw),s=scope(a,c);
-   const runs=await c.db.listDevRuns?.({orgId:s.orgId,projectId:s.projectId,
-    limit:a.limit??50});
-   if(!Array.isArray(runs)||runs.length>50)
-    throw Error('Complete scoped developer run inventory unavailable');
-   const details=[];
-   for(const r of runs){
-    const objects=await c.db.listDevRunObjects?.({orgId:s.orgId,
-     projectId:s.projectId,runId:r.id});
-    if(!Array.isArray(objects)||objects.length>100||
-       objects.some(o=>o.run_id!==r.id||o.object_type!=='branch'))
-     throw Error('Complete persisted run objects required');
-    details.push({runId:r.id,status:r.status,createdAt:r.created_at,
-     cleanedAt:r.cleaned_at,objects:objects.map(o=>({
-      type:o.object_type,id:o.object_id,parentId:o.parent_id,
-      expiresAt:o.expires_at,cleaned:o.cleaned,cleanedNote:o.cleaned_note
-     })),remaining:r.remaining});
-   }
-   return readText({projectId:s.projectId,runs:details});
-  },
-  async neon_dev_cleanup(a,raw){return cleanup.handler(a,await contextFor(raw));}
- };
-}
-export const handlers=createDevRunHandlers();
