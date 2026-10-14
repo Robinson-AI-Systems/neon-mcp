@@ -250,3 +250,55 @@ export async function observeScopedQueryCancellation({
     row.query_start!==signature.queryStart||row.state!=='active'};
   });
 }
+
+
+// D-6 purpose-specific development-only extension DDL. Public SQL execution
+// deliberately rejects CreateExtensionStmt / AlterExtensionStmt; this private
+// boundary accepts only server-constructed statements from a small vetted set.
+const approvedExtensions=new Set(['citext','pg_trgm','unaccent','hstore',
+  'btree_gin','btree_gist']);
+export const safeExtensionNames=Object.freeze([...approvedExtensions]);
+export function quoteIdent(value){
+ if(typeof value!=='string'||!/^[A-Za-z_][A-Za-z0-9_]{0,62}$/.test(value))
+  throw Error('Invalid PostgreSQL identifier');
+ return '"'+value+'"';
+}
+export function buildReviewedExtensionDDL(name,update=false){
+ if(!approvedExtensions.has(name)||typeof update!=='boolean')
+  throw Error('Extension is not in the audited low-risk development allowlist');
+ return update?'ALTER EXTENSION '+quoteIdent(name)+' UPDATE':
+  'CREATE EXTENSION '+quoteIdent(name)+' WITH SCHEMA "public"';
+}
+export async function runReviewedExtensionMutation({
+ ctx,target,name,update=false,sqlLayer}={}){
+ if(!ctx?.db||!ctx.connection?.neonOrg||!target?.projectId||
+  !target?.branchId||!target?.endpointId||!target?.expectedEndpointHost||
+  !target?.database||!target?.role||target.pooled!==false)
+  throw Error('Verified direct development SQL identity required');
+ const statement=buildReviewedExtensionDDL(name,update);
+ const parsed=await parse(statement);
+ const stmt=parsed?.stmts?.[0]?.stmt;
+ if(parsed?.stmts?.length!==1||
+  !update&&!stmt?.CreateExtensionStmt||
+  update&&!stmt?.AlterExtensionStmt)
+  throw Error('Unreviewed extension statement AST');
+ const withSql=sqlLayer??createSqlLayer({db:ctx.db,
+  vault:createKeyVault({db:ctx.db,env:ctx.env}),env:ctx.env});
+ return withSql({neonOrg:ctx.connection.neonOrg,
+  projectScope:ctx.connection.projectScope??null},target,async client=>{
+  // A driver/network failure during COMMIT is deliberately ambiguous: B-1
+  // leaves the durable request pending. It must never automatically replay.
+  let began=false,committing=false;
+  try{
+   await client.query('BEGIN');began=true;
+   await client.query('SET LOCAL lock_timeout = 5000');
+   await client.query('SET LOCAL statement_timeout = 15000');
+   await client.query(statement);
+   committing=true;await client.query('COMMIT');began=false;
+   return {issued:true};
+  }catch{
+   if(began&&!committing){try{await client.query('ROLLBACK');}catch{}}
+   throw Error('Extension operation is not confirmed; independently inspect before retry');
+  }
+ });
+}
