@@ -534,9 +534,10 @@
         83,
         85,
         86,
-        88
+        88,
+        129
       ],
-      "note": "D-4 scoped reads #65, guarded database lifecycle #67, role create/reset #68–#69, connection metadata/one-time delivery #70, transactional read-only grants #71–#72, role dependency probes #73–#74, SQL/contract security corrections #75. #76 strengthens PostgreSQL dependency evidence: strict integer/OID/reference validation, verified READ ONLY transaction and stable two-sample activity. Public role delete deliberately unregistered: independent idle PgBouncer client proof unavailable; no live scratch or production acceptance. Do not advance D-5 or claim pooled-client clearance. #83 closes a private compute-reread race: require type=read_write at second independent GET, not just initial inventory; type changes abort before SQL. Pooled-client proof and public deletion remain blocked. #85 hardens private deletion proof by refusing duplicate compute IDs, database names and role names before SQL; no role delete publication, pooled-client clearance or live acceptance. #86 only encrypts/delivers a read-only role password after successful grant evidence; grant or delivery uncertainty remains pending with no automatic retry. Pooled clients unverified. #88 defers ordinary role create/reset password handoffs until operations and provider role/revision readback; uncertain results PENDING, no secret handoff."
+      "note": "D-4 scoped reads #65, guarded database lifecycle #67, role create/reset #68–#69, connection metadata/one-time delivery #70, transactional read-only grants #71–#72, role dependency probes #73–#74, SQL/contract security corrections #75. #76 strengthens PostgreSQL dependency evidence: strict integer/OID/reference validation, verified READ ONLY transaction and stable two-sample activity. Public role delete deliberately unregistered: independent idle PgBouncer client proof unavailable; no live scratch or production acceptance. Do not advance D-5 or claim pooled-client clearance. #83 closes a private compute-reread race: require type=read_write at second independent GET, not just initial inventory; type changes abort before SQL. Pooled-client proof and public deletion remain blocked. #85 hardens private deletion proof by refusing duplicate compute IDs, database names and role names before SQL; no role delete publication, pooled-client clearance or live acceptance. #86 only encrypts/delivers a read-only role password after successful grant evidence; grant or delivery uncertainty remains pending with no automatic retry. Pooled clients unverified. #88 defers ordinary role create/reset password handoffs until operations and provider role/revision readback; uncertain results PENDING, no secret handoff. #129 adds owner-only provider-verified role retirement impact inventory, with safeToDelete false, without claiming pooler client visibility, registering role deletion, or modifying credentials."
     },
     {
       "id": "D-5",
@@ -544,17 +545,24 @@
       "batch": "D",
       "design": "docs/designs/BATCH-D.md",
       "dependencies": [
-        "D-4"
+        "D-3"
       ],
       "card": "docs/pr-cards/D-5.md",
-      "status": "PLANNED",
+      "status": "IN_PROGRESS",
       "migration": "none",
       "budget": 400,
       "units": [
         "D-5"
       ],
-      "readiness": "WRITE_CARD_AT_START",
-      "ownerInputs": []
+      "readiness": "READY",
+      "ownerInputs": [],
+      "pr": [
+        126,
+        127,
+        128,
+        130
+      ],
+      "note": "IN-15 owner-approved independent D-5; existing D-4 scoped verified connection prerequisites still required. #126 registers guarded read-only SQL; seven other D-5 tools remain. D-4 role deletion remains blocked, unregistered; no pooled-client-absence proof or real SQL acceptance implied. #127 adds safe SQL EXPLAIN (ANALYZE only verified read-only SELECT) and fixed current-database session/wait inventory; live acceptance open. #128 exposes safe scoped pg_stat_statements aggregates without SQL bodies or automatic extension installation; real provider proof remains open. #130 publishes B-1 owner-audited query cancellation on one bound backend PID with independent end-state readback; no cross-database cancel, session termination, or live provider write acceptance."
     },
     {
       "id": "D-6",

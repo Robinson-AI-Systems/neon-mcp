@@ -93,3 +93,146 @@ export async function runGuardedRoleDependencyProbe(a,c,t,ep,db,monitor){
    ownerName:monitor},c,{...t,endpointHost:ep.host},
   query=>inspectRoleDeletionDependencies(query,a.roleName),{purpose:'probe'});
 }
+
+
+// D-5 public SQL entry point: the sole reviewed bridge for caller-supplied SQL.
+// PostgreSQL enforces LIMIT before the driver materializes rows; the B-3 AST,
+// protected-resource and owner-stored read policies remain mandatory.
+import {parse} from 'libpg-query';
+import {runAuthorizedSqlRead} from './sql-read.js';
+
+const MAX_PUBLIC_ROWS=201;
+const MAX_PUBLIC_COLUMNS=16;
+const MAX_PUBLIC_CELL=128;
+function compactCell(value){
+ if(value===null || typeof value==='boolean' ||
+    typeof value==='number'&&Number.isFinite(value))return value;
+ let result;
+ try{result=typeof value==='string'?value:JSON.stringify(value);}
+ catch{return '[unavailable]';}
+ if(typeof result!=='string')return '[unavailable]';
+ return result.length>MAX_PUBLIC_CELL?result.slice(0,MAX_PUBLIC_CELL)+'…':result;
+}
+function compactPublicResult(result){
+ if(result?.done!==true||!Array.isArray(result.rows))return result;
+ let truncatedCells=false,truncatedColumns=false;
+ const rows=result.rows.map(row=>{
+  if(!row||typeof row!=='object'||Array.isArray(row))return {};
+  const entries=Object.entries(row);
+  if(entries.length>MAX_PUBLIC_COLUMNS)truncatedColumns=true;
+  return Object.fromEntries(entries.slice(0,MAX_PUBLIC_COLUMNS).map(([key,value])=>{
+   const compact=compactCell(value);
+   if(typeof value==='string'&&compact!==value ||
+      value!==null&&typeof value==='object')truncatedCells=true;
+   return [key.slice(0,63),compact];
+  }));
+ });
+ return {...result,rows,columnsCapped:truncatedColumns,cellsCapped:truncatedCells};
+}
+export async function runPublicSqlQuery({ctx,target,text,params=[],sqlLayer}={}){
+ // Other SQL statement types have separate reviewed tools; no SHOW or EXPLAIN
+ // can be wrapped here. The AST guard still runs again inside B-3.
+ let parsed;
+ try{parsed=await parse(text);}catch{return {done:false,code:'not_read_only',
+  message:'Provide one valid SELECT query.'};}
+ if(!Array.isArray(parsed?.stmts)||parsed.stmts.length!==1||
+    !parsed.stmts[0]?.stmt?.SelectStmt)
+  return {done:false,code:'not_read_only',message:'Use one SELECT query.'};
+ const statement=text.trim().replace(/;\s*$/,'');
+ const layer=sqlLayer??createSqlLayer({db:ctx?.db,
+  vault:createKeyVault({db:ctx?.db,env:ctx?.env}),env:ctx?.env});
+ const boundedLayer=(scope,options,callback)=>layer(scope,options,client=>
+  callback({query:(query,values=[])=>{
+   if(query!==text)return client.query(query,values);
+   // Original query is independently proven to contain exactly one SELECT.
+   const limited='SELECT * FROM ('+statement+') AS rmcp_bounded_query LIMIT $'+(values.length+1);
+   return client.query(limited,[...values,MAX_PUBLIC_ROWS]);
+  }}));
+ return compactPublicResult(await runAuthorizedSqlRead({ctx,target,text,params,sqlLayer:boundedLayer}));
+}
+
+
+export async function runPublicSqlExplain({ctx,target,text,params=[],analyze=false,sqlLayer}={}){
+ if(typeof text!=='string'||text.length>20000||typeof analyze!=='boolean')
+  return {done:false,code:'not_read_only',message:'A SELECT statement is required.'};
+ let ast;
+ try{ast=await parse(text);}catch{
+  return {done:false,code:'not_read_only',message:'A valid SELECT is required.'};
+ }
+ if(ast?.stmts?.length!==1||!ast.stmts[0]?.stmt?.SelectStmt)
+  return {done:false,code:'not_read_only',message:'Only SELECT plans are supported.'};
+ const selected=await classifySql(text);
+ if(selected.kind!=='read')
+  return {done:false,code:'not_read_only',message:'This plan is not read-only.'};
+ const plan='EXPLAIN (FORMAT TEXT, ANALYZE '+(analyze?'TRUE':'FALSE')+') '+
+  text.trim().replace(/;\s*$/,'');
+ const layer=sqlLayer??createSqlLayer({db:ctx?.db,
+  vault:createKeyVault({db:ctx?.db,env:ctx?.env}),env:ctx?.env});
+ const result=await runAuthorizedSqlRead({ctx,target,text:plan,params,sqlLayer:layer});
+ return {...compactPublicResult(result),analyzed:result?.done===true?analyze:false};
+}
+
+
+// D-5: fixed SQL for a single guarded query cancellation. Never terminate a
+// backend, expose SQL text, or accept a caller-provided statement or target DB.
+const ACTIVE_SESSION_SQL='SELECT pid,datname,usename,backend_type,state,'+
+ ' EXTRACT(EPOCH FROM backend_start)::text AS backend_start,EXTRACT(EPOCH FROM query_start)::text AS query_start'+
+ ' FROM pg_catalog.pg_stat_activity WHERE pid=$1 AND datname=current_database()'+
+ " AND usename=current_user AND backend_type='client backend'"+
+ ' AND pid<>pg_backend_pid()';
+const SIGNAL_CANCEL_SQL='SELECT pg_cancel_backend(pid) AS cancelled'+
+ ' FROM pg_catalog.pg_stat_activity WHERE pid=$1 AND datname=current_database()'+
+ " AND usename=current_user AND backend_type='client backend' AND state='active'"+
+ ' AND EXTRACT(EPOCH FROM backend_start)::text=$2 AND EXTRACT(EPOCH FROM query_start)::text=$3 AND pid<>pg_backend_pid()';
+const validPid=value=>Number.isSafeInteger(value)&&value>=1&&value<=2147483647;
+const validSignature=row=>validPid(row?.pid)&&row.state==='active'&&
+ typeof row.backend_start==='string'&&row.backend_start.length>0&&
+ typeof row.query_start==='string'&&row.query_start.length>0;
+const targetOptions=t=>({projectId:t.projectId,branchId:t.branchId,
+ database:t.database,role:t.role,endpointId:t.endpointId,
+ expectedEndpointHost:t.expectedEndpointHost,pooled:false});
+function scopedSql(ctx,sqlLayer){
+ if(typeof sqlLayer==='function')return sqlLayer;
+ return createSqlLayer({db:ctx.db,
+  vault:createKeyVault({db:ctx.db,env:ctx.env}),env:ctx.env});
+}
+export async function requestScopedQueryCancellation({ctx,target,pid,sqlLayer}={}){
+ if(!validPid(pid)||!ctx?.connection?.neonOrg||!target?.projectId||
+    !target?.branchId||!target?.database||!target?.role||
+    !target?.endpointId||!target?.expectedEndpointHost)
+  throw Error('An exact scoped session and direct connection are required');
+ const layer=scopedSql(ctx,sqlLayer);
+ return layer({neonOrg:ctx.connection.neonOrg,projectScope:ctx.connection.projectScope??null},
+  targetOptions(target),async client=>{
+   const pre=await client.query(ACTIVE_SESSION_SQL,[pid]);
+   if(!Array.isArray(pre?.rows)||pre.rows.length!==1||
+      !validSignature(pre.rows[0])||pre.rows[0].pid!==pid)
+    return {requested:false};
+   const snapshot=pre.rows[0];
+   const reply=await client.query(SIGNAL_CANCEL_SQL,
+    [pid,snapshot.backend_start,snapshot.query_start]);
+   if(!Array.isArray(reply?.rows)||reply.rows.length!==1||
+      reply.rows[0]?.cancelled!==true)
+    return {requested:false};
+   return {requested:true,signature:{
+    pid,backendStart:snapshot.backend_start,queryStart:snapshot.query_start}};
+  });
+}
+export async function observeScopedQueryCancellation({
+ ctx,target,pid,signature,sqlLayer
+}={}){
+ if(!validPid(pid)||signature?.pid!==pid||
+    typeof signature.backendStart!=='string'||
+    typeof signature.queryStart!=='string'||!target?.expectedEndpointHost)
+  throw Error('A verified cancellation attempt is required');
+ const layer=scopedSql(ctx,sqlLayer);
+ return layer({neonOrg:ctx.connection.neonOrg,projectScope:ctx.connection.projectScope??null},
+  targetOptions(target),async client=>{
+   const found=await client.query(ACTIVE_SESSION_SQL,[pid]);
+   if(!Array.isArray(found?.rows)||found.rows.length>1)
+    throw Error('Session readback was incomplete');
+   const row=found.rows[0];
+   return {finished:!row||row.backend_start!==signature.backendStart||
+    row.query_start!==signature.queryStart||row.state!=='active'};
+  });
+}

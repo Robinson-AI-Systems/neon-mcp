@@ -16,8 +16,8 @@ describe('tool registry', () => {
       'neon_database_create','neon_database_update','neon_database_delete',
       'neon_role_create',
       'neon_role_reset_password',
-      'neon_role_create_read_only',
-      'neon_connection_get_info','neon_connection_show_once',
+      'neon_role_create_read_only','neon_role_retirement_review',
+      'neon_connection_get_info','neon_connection_show_once','neon_sql_query','neon_sql_explain','neon_sql_list_activity','neon_sql_list_slow_queries','neon_sql_stop_query',
       'neon_snapshot_list','neon_snapshot_delete','neon_snapshot_update','neon_snapshot_create','neon_snapshot_restore','neon_snapshot_set_schedule','neon_security_list_jwks','neon_security_review',
       'neon_security_set_public_access','neon_security_set_ip_allow',
       'neon_security_set_jwks',
@@ -27,7 +27,7 @@ describe('tool registry', () => {
         expect(tool.profiles).toEqual(['neon_project_rename','neon_branch_rename','neon_branch_set_expiration','neon_branch_create',
          'neon_compute_start','neon_compute_suspend','neon_compute_restart','neon_compute_update_settings'].includes(tool.name)?['everyday','full']:['full']);
         expect(tool.writeContract).toBe('defineWrite-v1');
-      } else expect(tool.profiles).toContain(tool.name==='neon_check_key_access'?'full':'read_only');
+      } else expect(tool.profiles).toContain(['neon_check_key_access','neon_role_retirement_review'].includes(tool.name)?'full':'read_only');
       expect(typeof registry.handlers[tool.name]).toBe('function');
     }
   });

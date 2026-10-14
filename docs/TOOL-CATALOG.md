@@ -135,6 +135,7 @@ D-2/D-3 post-merge security review #62: expiring protected branches are refused 
 | `neon_role_get` | Exact role metadata; privileges shown as unverified until separately authorized SQL | — | Op | R | D-4 (built #65) |
 | `neon_role_create` | New login role; its password only on the one-time page | P S | B Op | E | D-4 (built #68, verified secret handoff #88) |
 | `neon_role_create_read_only` | Scoped current SELECT and owner-specific future defaults through fixed audited B-3 SQL, one-time password; production DDL gated | C A S | B Ow | F | D-4 (built #72, hardened #75, handoff ordering #86) |
+| `neon_role_retirement_review` | Verified databases and computes relevant to retiring a role; pooled-client clearance remains unknown | — | Ow | F | D-4 (built #129) |
 | `neon_role_delete` | Gated: private global PostgreSQL dependency inventory cannot establish absence of idle PgBouncer clients; no public delete until independent pooler proof | C D Pr | Op | F | D-4 (pending) |
 | `neon_role_reset_password` | New password for a role; old one stops working; new one only on the one-time page; preview warns dependent apps | C Pr S | Op | E | D-4 (built #69, verified reset handoff #88) |
 
@@ -151,13 +152,13 @@ The SQL guard (`docs/designs/BATCH-B.md` B-3) classifies every statement with th
 
 | Tool | What it does | Flags | Aud | Profile | Card |
 | --- | --- | --- | --- | --- | --- |
-| `neon_sql_query` | Read-only SQL (SELECT, SHOW, EXPLAIN without ANALYZE) inside a READ ONLY transaction, row cap and time limit; production reads allowed by setting (IN-09) | — | B Op | R | D-5 |
+| `neon_sql_query` | Read-only SQL (SELECT, SHOW, EXPLAIN without ANALYZE) inside a READ ONLY transaction, row cap and time limit; production reads allowed by setting (IN-09) | — | B Op | R | D-5 (built #126; live SQL unverified) |
 | `neon_sql_execute` | One writing statement. Non-production: preview, confirm when destructive. Production: production guard, exact affected rows previewed on a throwaway branch, applied in a transaction that rolls back if the count differs, restore point recorded | C* Pr D | B Op | E | D-5 |
 | `neon_sql_execute_transaction` | Several statements in one all-or-nothing transaction, same rules as `neon_sql_execute` (strictest statement decides) | C* Pr D | B Op | E | D-5 |
-| `neon_sql_explain` | Query plan; ANALYZE only for read-only statements (writes are analyzed on a throwaway branch by `neon_sql_preview_change`) | — | B Op | R | D-5 |
+| `neon_sql_explain` | Query plan; ANALYZE only for read-only statements (writes are analyzed on a throwaway branch by `neon_sql_preview_change`) | — | B Op | R | D-5 (built #127; runtime proof pending) |
 | `neon_sql_preview_change` | Run SQL on a throwaway copy of the target branch: affected rows, schema diff, timing, errors; the copy is deleted afterwards | P | B Op | E | D-5 |
-| `neon_sql_list_activity` | Running queries, waits and locks, oldest first | — | Op | R | D-5 |
-| `neon_sql_stop_query` | Cancel a running query, or end its session (production: confirm) | C Pr | Op | E | D-5 |
+| `neon_sql_list_activity` | Running queries, waits and locks, oldest first | — | Op | R | D-5 (built #127; runtime proof pending) |
+| `neon_sql_stop_query` | Cancel one verified active query on its exact database with owner confirmation and readback; backend termination is deliberately not offered | C Pr D | Op | F | D-5 (built #130; live cancellation unverified) |
 | `neon_sql_list_slow_queries` | Slowest and most frequent queries from `pg_stat_statements` (offers to enable the extension when missing) | — | B Op | R | D-5 |
 
 ## Schema (`neon_schema_*`) — 13
@@ -358,7 +359,7 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #90 (production-deployment capability listing):** `read_only` 31; `everyday` 39; `full` 66. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
+**Implemented registry at #126 (source capability listing, deployment acceptance separate):** `read_only` 35; `everyday` 43; `full` 72. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
 
 ## Totals
 
