@@ -158,7 +158,7 @@ The SQL guard (`docs/designs/BATCH-B.md` B-3) classifies every statement with th
 | `neon_sql_explain` | Query plan; ANALYZE only for read-only statements (writes are analyzed on a throwaway branch by `neon_sql_preview_change`) | — | B Op | R | D-5 (built #127; runtime proof pending) |
 | `neon_sql_preview_change` | Run SQL on a throwaway copy of the target branch: affected rows, schema diff, timing, errors; the copy is deleted afterwards | P | B Op | E | D-5 |
 | `neon_sql_list_activity` | Running queries, waits and locks, oldest first | — | Op | R | D-5 (built #127; runtime proof pending) |
-| `neon_sql_stop_query` | Cancel a running query, or end its session (production: confirm) | C Pr | Op | E | D-5 |
+| `neon_sql_stop_query` | Cancel one verified active query on its exact database with owner confirmation and readback; backend termination is deliberately not offered | C Pr D | Op | F | D-5 (built #130; live cancellation unverified) |
 | `neon_sql_list_slow_queries` | Slowest and most frequent queries from `pg_stat_statements` (offers to enable the extension when missing) | — | B Op | R | D-5 |
 
 ## Schema (`neon_schema_*`) — 13
@@ -359,7 +359,7 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #126 (source capability listing, deployment acceptance separate):** `read_only` 35; `everyday` 43; `full` 71. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
+**Implemented registry at #126 (source capability listing, deployment acceptance separate):** `read_only` 35; `everyday` 43; `full` 72. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
 
 ## Totals
 
