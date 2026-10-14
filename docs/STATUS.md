@@ -1,3 +1,11 @@
+## D-9 review correction — PR #149
+
+Review findings addressed: central bounded PostgreSQL identifier quoting,
+repeated Prisma migration attempts preserved, failed/rolled-back attempts
+excluded from applied-name matching, and explicit recovery guidance for failed
+Prisma migrations. New tests distinguish repeated attempts from applied status.
+Review resolution, exact-head CI and live custom acceptance remain separate.
+
 ## D-9 verified application migration history — PR #149
 
 Registered `neon_schema_list_migrations` with safe bounded read-only

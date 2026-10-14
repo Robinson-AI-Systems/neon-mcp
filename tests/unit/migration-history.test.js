@@ -1,5 +1,6 @@
 import {describe,it,expect} from 'vitest';
 import {classifySql} from '../../src/neon/sql-guard.js';
+import {quoteIdent} from '../../src/neon/sql-ident.js';
 import {tools,MIGRATION_CATALOG_SQL,migrationSelect,MIGRATION_KINDS,
  createMigrationHistoryHandlers} from '../../src/tools/migration-history.js';
 const args={projectId:'proj-fake',branchId:'br-fake',endpointId:'ep-fake',
@@ -39,7 +40,8 @@ describe('D-9 migration history inspection',()=>{
   const f=fixture(),out=json(await f.h(args,{}));
   expect(out).toMatchObject({done:true,complete:true,sourceCount:1,anyFailed:true});
   expect(out.sources[0].migrations.map(x=>x.status)).toEqual(['applied','failed']);
-  expect(out.sources[0].missingExpected).toEqual([]);
+  expect(out.sources[0].missingExpected).toEqual(['20261002_users']);
+  expect(out.sources[0].recoveryGuidance).toContain('prisma migrate resolve');
   expect(f.calls).toHaveLength(2);
   expect(f.calls[0].params).toEqual(['app']);
   expect(f.calls.every(x=>x.target.expectedEndpointHost==='verified.invalid'&&
@@ -55,6 +57,25 @@ describe('D-9 migration history inspection',()=>{
    name:'4',status:'applied',observed_at:'1690000000000'}]}).h(args,{}));
   expect(d.sources[0].missingExpected).toBe(null);
   expect(d.sources[0].expectedNamesComparable).toBe(false);
+ });
+ it('preserves repeat Prisma recovery attempts without treating a rollback as applied',async()=>{
+  const rows=[
+   {name:'20261002_users',status:'failed',observed_at:'2026-10-02'},
+   {name:'20261002_users',status:'rolled_back',observed_at:'2026-10-03'},
+   {name:'20261001_initial',status:'applied',observed_at:'2026-10-01'}];
+  const out=json(await fixture({rows}).h(args,{}));
+  expect(out).toMatchObject({done:true,complete:true,anyFailed:true});
+  expect(out.sources[0].migrations).toHaveLength(3);
+  expect(out.sources[0].missingExpected).toEqual(['20261002_users']);
+  const retried=json(await fixture({rows:[...rows,
+   {name:'20261002_users',status:'applied',observed_at:'2026-10-04'}]}).h(args,{}));
+  expect(retried.sources[0].missingExpected).toEqual([]);
+ });
+ it('quotes catalog identifiers through the shared bounded helper',()=>{
+  expect(quoteIdent('odd"name')).toBe('"odd""name"');
+  expect(()=>quoteIdent('newline\\n')).not.toThrow();
+  expect(()=>quoteIdent('newline\n')).toThrow();
+  expect(()=>quoteIdent('x'.repeat(64))).toThrow();
  });
  it('refuses incomplete history, unrecognized columns and forged identity',async()=>{
   expect(json(await fixture({incomplete:true}).h(args,{})).done).toBe(false);

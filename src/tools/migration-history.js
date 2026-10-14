@@ -4,9 +4,9 @@ import {defineReadTool,readId,readText} from './read-descriptors.js';
 import {verifyConnectionTarget} from './connections.js';
 import {createProjectWriteContext} from '../neon/project-write-context.js';
 import {runPublicSqlQuery} from '../neon/sql-run.js';
+import {quoteIdent} from '../neon/sql-ident.js';
 const ident={type:'string',pattern:'^[A-Za-z_][A-Za-z0-9_-]{0,62}$'};
 const valid=s=>typeof s==='string'&&new RegExp(ident.pattern).test(s);
-const q=s=>'"'+s.replaceAll('"','""')+'"';
 const required=['projectId','branchId','endpointId','databaseName','roleName'];
 const base=defineReadTool('neon_schema_list_migrations',
  'Read Prisma, Drizzle, Knex, Flyway or golang-migrate history and missing expected names without applying migrations.',
@@ -58,8 +58,8 @@ export function migrationSelect(schema,table){
  if(!valid(schema)||schema.startsWith('pg_')||
     !Object.hasOwn(MIGRATION_KINDS,table))throw Error('Unsupported migration source');
  const item=MIGRATION_KINDS[table];
- return 'SELECT '+item.select+' FROM '+q(schema)+'.'+q(table)+
-  ' ORDER BY '+q(item.order)+' DESC LIMIT 201';
+ return 'SELECT '+item.select+' FROM '+quoteIdent(schema)+'.'+quoteIdent(table)+
+  ' ORDER BY '+quoteIdent(item.order)+' DESC LIMIT 201';
 }
 const complete=r=>r?.done===true&&r.truncated===false&&
  r.cellsCapped!==true&&r.columnsCapped!==true&&
@@ -108,22 +108,24 @@ export function createMigrationHistoryHandlers({verifyTarget=verifyConnectionTar
    if(!complete(evidence))
     return readText({done:false,complete:false,code:'migration_history_incomplete'});
    const migrations=[];
-   const names=new Set();
+   const applied=new Set();
    for(const row of evidence.rows){
     if(typeof row?.name!=='string'||row.name.length<1||row.name.length>128||
        !['applied','failed','rolled_back'].includes(row.status)||
        row.observed_at!==null&&typeof row.observed_at!=='string')
      return readText({done:false,complete:false,code:'migration_row_invalid'});
-    if(names.has(row.name))
-     return readText({done:false,complete:false,code:'duplicate_migration_name'});
-    names.add(row.name);
+    // Prisma can record multiple attempts of the same migration name.
+    // Failed or rolled-back attempts must not falsely imply it was applied.
+    if(row.status==='applied')applied.add(row.name);
     migrations.push({name:row.name,status:row.status,
      observedAt:row.observed_at});
    }
    output.push({schemaName:source.schemaName,kind:d.kind,
     observedCount:migrations.length,migrations,
-    missingExpected:d.comparable?(a.expected??[]).filter(x=>!names.has(x)):null,
-    expectedNamesComparable:d.comparable});
+    missingExpected:d.comparable?(a.expected??[]).filter(x=>!applied.has(x)):null,
+    expectedNamesComparable:d.comparable,
+    ...(d.kind==='prisma'&&migrations.some(x=>x.status==='failed')?{
+     recoveryGuidance:'Failed Prisma migration: deployments may stop until resolved. Inspect the failure and use the application-owned prisma migrate resolve workflow; this tool never alters migration state.'}:{})});
   }
   if(JSON.stringify(output).length>24000)
    return readText({done:false,complete:false,code:'migration_output_too_large'});
