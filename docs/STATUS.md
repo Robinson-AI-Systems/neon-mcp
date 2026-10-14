@@ -1,3 +1,20 @@
+## D-6 ordinary concurrent index lifecycle — PR #155
+
+Implemented confirmed development CREATE/DROP INDEX CONCURRENTLY with exact
+verified direct target, complete table/column/index catalogs, ordinary B-tree
+scope, constraint/unique/expression/partial-index refusal, fresh production,
+protected and app ownership checks, bounded session timeouts and durable audit.
+Index bytes/scans are observed preview evidence; changing counters do not alter
+resource identity. Independent readback verifies columns/validity/readiness or
+absence. Uncertain operations remain pending with optional observation-only
+recovery evidence; no automatic retry or invalid-index deletion. Tests cover
+both writes through all service doors and actual PG concurrent lifecycle.
+
+Session checkpoint source: #151–#155, including inherited release recovery
+#152. Final exact-head CI and post-merge main checks must be verified before
+claiming the aligned batch complete. Deployment remains separately at #148
+until a normal checked release; production OFF and autonomous spending $0.
+
 ## #154 PostgreSQL dependency correction
 
 Actual PG17 exposed fifteen hstore implementation dependencies after fixture
@@ -39,6 +56,8 @@ activation implied. Continue eligible D-6 schema maintenance while releases wait
 | D-6 extension workflow | merged #151 | Custom full-owner write preview, scoped install/update, catalog readback, protection/production denials and fixture cleanup | Local/CI tracked separately; no hosted mutation performed |
 | D-6 schema/type/health and D-9 history | merged #149 or newer | Verify exact direct scratch SQL target; bounded read acceptance for types, DDL sketches, health/index advice and migration history | Source tests only; protected/self-resource and read gates remain |
 | D-6 extension removal | merged #154 | Custom dependency preview, refusal with dependent fixture, authorized RESTRICT removal, independent absence and cleanup | Source/CI separate; same full-owner, protected, production and $0 gates |
+| D-6 index lifecycle | merged #155 | Custom previews, authorized isolated concurrent create/drop, independent validity/absence, protected/production refusals and cleanup | Source/CI distinct; ordinary development B-tree only; no automatic invalid-index cleanup |
+| D-9 branch comparison | merged #153 | Custom two-target read-only count/fingerprint comparison, incomplete/identity refusals and unchanged fixture readback | Source/CI distinct; no raw values; point-in-time provisioning still gated |
 | Daily release recovery | merged #152 | Inspect future scheduled event, once-per-Denver-day marker, exact-main checks and live/READY alias readback | #152 source merged; October 14 receipt already exists at #148, so later same-day backups must skip |
 
 This is planned release-dependent acceptance; continue eligible implementation.
@@ -668,9 +687,14 @@ expiry indexes exist in code and are verified by isolated-Postgres tests. No liv
 
 ## Next
 
-- **Next: B-3 — SQL guard and preview/apply safety.** IN-09 (200-row production read-only SQL) and IN-10 ($25/change, $50/day) approved 2026-10-11, not yet applied. B-3 runner/preview/apply and B-4 spending guard remain to implement. No real-account activation.
-- **Answered 2026-10-10 (Chris):** IN-00 — plan approved ("I approve the plans"); IN-01 — **no automated review** ("I don't want the automated review at this time"); the repository stays public as Chris created it; the implementer self-reviews every diff.
-- **Queue:** A → B → C → D → V → O → P → W → U → R → E → X (`MASTER-ROADMAP.md`).
+- Reconcile actual main, open PRs/reviews and deployment with this release-follow-up queue.
+- Highest remaining approved D-6/D-9 source workflows: health vacuum/analyze and
+  concurrent index/table reindex. Advanced/production extension/index modes and
+  point-in-time data-comparison provisioning remain separately guarded scope.
+- Run every newly eligible queued custom acceptance immediately after the deployed
+  revision reaches its minimum source; release timing is planned, not a batch blocker.
+- Continue substantial cohesive implementation under the authoritative work index;
+  maintain the release queue, five-merge cadence and PR-number multiple-of-five boundary.
 
 ## Environment
 

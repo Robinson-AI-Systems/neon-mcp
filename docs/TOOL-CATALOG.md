@@ -176,8 +176,8 @@ The SQL guard (`docs/designs/BATCH-B.md` B-3) classifies every statement with th
 | `neon_schema_list_extensions` | Installed and available extensions with versions | — | B Op | R | D-6 (built #143; live SQL acceptance pending) |
 | `neon_schema_enable_extension` | Owner-confirmed development-only install/update for six audited PostgreSQL extensions; production and provider acceptance pending | C* Pr | B Op | F | D-6 (built #151; acceptance pending) |
 | `neon_schema_disable_extension` | Remove an extension (preview lists dependent objects) | C D Pr | Op | F | D-6 (built #154; custom acceptance pending) |
-| `neon_schema_create_index` | Create an index, CONCURRENTLY by default (production: confirm) | C* Pr | B Op | E | D-6 |
-| `neon_schema_drop_index` | Drop an index (preview shows its recent use) | C D Pr | Op | F | D-6 |
+| `neon_schema_create_index` | Create an index, CONCURRENTLY by default (production: confirm) | C* Pr | B Op | E | D-6 (built #155; development-only, live acceptance pending) |
+| `neon_schema_drop_index` | Drop an index (preview shows its recent use) | C D Pr | Op | F | D-6 (built #155; development-only, live acceptance pending) |
 | `neon_schema_generate_types` | TypeScript types (or Zod schemas) generated from the tables | — | B | R | D-6 (built #146, real PostgreSQL metadata test; live acceptance pending) |
 | `neon_schema_list_migrations` | The app's migration history read from its own table (Prisma `_prisma_migrations`, Drizzle, Knex, Flyway, golang-migrate detected): applied, failed or rolled back, with dates; given the repo's migration names, also which are not applied yet. Read-only — applying stays with the app or `neon_workflow_safe_migration` | — | B Op | R | D-9 |
 
@@ -361,7 +361,7 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #154 (source capability listing, deployment acceptance separate):** `read_only` 47; `everyday` 55; `full` 87. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
+**Implemented registry at #155 (source capability listing, deployment acceptance separate):** `read_only` 47; `everyday` 55; `full` 89. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
 
 ## Totals
 
