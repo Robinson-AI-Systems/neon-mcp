@@ -1,3 +1,5 @@
+**Owner-approved D-4 update (IN-16):** Confirmed role retirement is now implemented with exact one-use consent, dependency checks and explicit unknown-pooled-client interruption acknowledgement. Known application migration evidence and actual checked-deployment/provider/idle-pool acceptance remain OPEN; do not treat historical unregistered notes below as a current implementation blocker. D-5 remains independently approved.
+
 # MASTER ROADMAP — the one handoff
 
 ## Gateway dependency correction — 2026-10-12

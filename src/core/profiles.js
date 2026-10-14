@@ -13,7 +13,7 @@ const externalProjectWrites=new Set(['neon_project_create','neon_project_rename'
  'neon_compute_delete','neon_compute_update_settings',
  'neon_database_create','neon_database_update','neon_database_delete',
  'neon_role_create','neon_role_create_read_only',
- 'neon_role_reset_password','neon_connection_show_once',
+ 'neon_role_delete','neon_role_reset_password','neon_connection_show_once',
  'neon_sql_stop_query']);
 export function isToolAllowed(tool, connection, {productionDeployment=false}={}) {
   if(!tool || !profiles.has(connection?.profile) ||
