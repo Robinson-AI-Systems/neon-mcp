@@ -139,3 +139,7 @@ routing and grant mapping; this service owns provider credentials, canonical too
 Core adoption is optional and separately gated; do not require K-3 for RTC/Hub acceptance or reduce standalone
 capability for common code. Existing source/fake/deployed/real evidence and every owner/CI/release gate remain.
 This explicit docs/planning request permits this focused documentation PR; routine cadence remains unchanged.
+
+## 2026-10-13 — Owner-approved D-5 independence (IN-15)
+
+The owner approved implementing D-5 without completing D-4 public role deletion. D-3 is the completed index prerequisite; D-4 provider-verified connection selection remains mandatory in every SQL tool. D-4 deletion remains unregistered pending independently reliable pooled-client safety evidence. Approval does not enable production changes, real fixture mutations or spending. See the D-5 implementation card.

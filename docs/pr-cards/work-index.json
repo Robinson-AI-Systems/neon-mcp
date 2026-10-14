@@ -544,17 +544,21 @@
       "batch": "D",
       "design": "docs/designs/BATCH-D.md",
       "dependencies": [
-        "D-4"
+        "D-3"
       ],
       "card": "docs/pr-cards/D-5.md",
-      "status": "PLANNED",
+      "status": "IN_PROGRESS",
       "migration": "none",
       "budget": 400,
       "units": [
         "D-5"
       ],
-      "readiness": "WRITE_CARD_AT_START",
-      "ownerInputs": []
+      "readiness": "READY",
+      "ownerInputs": [],
+      "pr": [
+        126
+      ],
+      "note": "IN-15 owner-approved independent D-5; existing D-4 scoped verified connection prerequisites still required. #126 registers guarded read-only SQL; seven other D-5 tools remain. D-4 role deletion remains blocked, unregistered; no pooled-client-absence proof or real SQL acceptance implied."
     },
     {
       "id": "D-6",
