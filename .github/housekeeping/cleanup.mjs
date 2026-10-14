@@ -33,7 +33,14 @@ export async function run(){
  if(process.env.GITHUB_EVENT_NAME!=='push'||process.env.GITHUB_REF!=='refs/heads/main'||!process.env.GITHUB_TOKEN||Date.now()>Date.parse('2026-10-16T00:00:00Z'))throw Error('Outside authorized one-time maintenance context');
  git(['fetch','--quiet','--no-tags','--prune','origin','+refs/heads/*:refs/remotes/origin/*']);
  const main=git(['rev-parse','refs/remotes/origin/main']);let remote=remoteHeads();
- const own='ai/codex/git-housekeeping-20261013';const ownSha=remote.get(own);if(ownSha&&ancestor(ownSha,main))plan.branches.push({name:own,sha:ownSha,disposition:'merged'});
+ // Preserve and prune this maintenance PR only once its exact tip is in main.
+ // Any active PR or moved head is still retained by selectCandidates.
+ for(const own of ['ai/codex/git-housekeeping-20261013',
+   'ai/gpt6/housekeeping-final-merged-branches']){
+  const ownSha=remote.get(own);
+  if(ownSha&&ancestor(ownSha,main)&&!plan.branches.some(b=>b.name===own))
+   plan.branches.push({name:own,sha:ownSha,disposition:'merged'});
+ }
  const initial=selectCandidates(plan,remote,await activeBranches(repo));
  git(['config','user.name','github-actions[bot]']);git(['config','user.email','41898282+github-actions[bot]@users.noreply.github.com']);
  const oldArchive=remote.get(plan.archive);if(oldArchive&&!plan.branches.every(b=>ancestor(b.sha,oldArchive)||ancestor(b.sha,main)||initial.retained.includes(b)))throw Error('Existing archive does not preserve pinned history');
