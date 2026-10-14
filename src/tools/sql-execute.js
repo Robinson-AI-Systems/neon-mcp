@@ -100,6 +100,7 @@ export function createSqlExecuteHandlers({
  contextFor=createProjectWriteContext,
  verifyTarget=verifyConnectionTarget,
  runner=applyGuardedSql,
+ admissionsFor=c=>createSqlAdmissions({db:c.db}),
  queryRunner=runPublicSqlQuery,
  sqlFactory=c=>createSqlLayer({db:c.db,
   vault:createKeyVault({db:c.db,env:c.env}),env:c.env})
@@ -125,7 +126,7 @@ export function createSqlExecuteHandlers({
     if(JSON.stringify(current.target)!==JSON.stringify(before.target))
      throw Error('Scoped SQL compute identity changed after confirmation');
     const sqlLayer=sqlFactory(c);
-    const admissions=createSqlAdmissions({db:c.db});
+    const admissions=admissionsFor(c);
     const checkApp=async(target)=>
      c.guards.checkApp({target:'sql:'+target.projectId+'/'+target.branchId+
        '/'+target.database,projectId:target.projectId,

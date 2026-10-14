@@ -116,7 +116,8 @@ describe('B-3d private guarded production SQL apply', () => {
     const f = make({ branchProduction: false, mode: 'preview' });
     expect((await applyGuardedSql(f.args)).code).toBe('unexpected_preview');
     expect(sqlEvents(f)).toEqual([]);
-    expect(await applyGuardedSql({ ...f.args, previewToken: undefined }))
+    expect(await applyGuardedSql({ ...f.args, previewToken: undefined,
+      expectedAffectedRows: [2] }))
       .toMatchObject({ done: true, production: false, restorePointRecorded: false });
     expect(sqlEvents(f)).not.toContain('SELECT pg_current_wal_lsn() AS restore_lsn');
   });

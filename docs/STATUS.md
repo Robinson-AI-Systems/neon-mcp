@@ -1,3 +1,23 @@
+## IN-06 owner authorization and custom acceptance reconciliation (2026-10-13 Denver)
+
+Permanent PR #138 comments confirm owner-approved dedicated `neon-mcp-scratch`,
+its separate default scratch-baseline database/role, and subsequent secure
+project-scoped key enrollment. Live custom `neon_whoami` verified seven
+enrolled keys, full-owner preview profile, production OFF; complete
+`neon_project_list` independently resolved scratch. Custom `neon_branch_list`
+found only the default scratch-baseline, with `neon_role_list` showing only
+scratch_owner. No run-owned child branch or target role exists yet; **no actual
+role deletion or cleanup has occurred**. Attempted custom
+`neon_branch_create` dry-run failed `Could not read account details; check
+server setup`: a project-scoped key cannot currently verify plan-cost
+prerequisites, so a billable write is denied before execution. This is a
+narrow plan-verification/spending gate, not revoked fixture authorization.
+Do not modify baseline; never bypass cost guard or imply idle pooled clients
+were observed. Investigate provider contract/selected-key plan source and
+continue independent eligible PR implementation. D-4 custom acceptance stays
+open until approved nondefault branch is present, actual role fixture
+tested and both independent role/readback and branch cleanup verified.
+
 ## D-5 guarded SQL execute and atomic batch — PR #140
 
 `neon_sql_execute` and `neon_sql_execute_transaction` now expose the

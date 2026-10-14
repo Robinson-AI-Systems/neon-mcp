@@ -33,11 +33,12 @@ function fixture({owner=true,allowed=true,mode='production',
   }
   return outcome;
  };
- const verifyTarget=async a=>({pid:target.projectId,bid:target.branchId,
+ const verifyTarget=async _a=>({pid:target.projectId,bid:target.branchId,
   endpointId:target.endpointId,database:target.databaseName,role:target.roleName,
   endpoint:{host:'fixed.neon.tech'}});
  const impl=createSqlExecuteHandlers({contextFor:async()=>c,verifyTarget,
-  runner,queryRunner:async()=>observed,sqlFactory:()=>()=>{}});
+  runner,admissionsFor:()=>({sqlSpendAdmission:async()=>true}),
+  queryRunner:async()=>observed,sqlFactory:()=>()=>{}});
  return {c,actions,impl,execute:impl.handlers.neon_sql_execute,
   transaction:impl.handlers.neon_sql_execute_transaction};
 }
