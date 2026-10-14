@@ -4,7 +4,7 @@ import {makeNeonClient} from '../../src/neon/client.js';
 import {IDS,project,devEndpoint,database,role,responses,devBranch}
  from '../../test/helpers/neon-fixtures.js';
 import {verifyConnectionTarget} from '../../src/tools/connections.js';
-import {runPublicSqlQuery} from '../../src/neon/sql-run.js';
+import {runPublicSqlQuery,runPublicSqlExplain} from '../../src/neon/sql-run.js';
 import {tools,createSqlQueryHandlers} from '../../src/tools/sql.js';
 
 const args={projectId:IDS.project,branchId:IDS.dev,endpointId:IDS.devEndpoint,
@@ -32,6 +32,7 @@ function setup({policy={productionReads:true,maxRows:20},protectedItem=false,
   opens.push(target);
   return callback({query:async(sql,params=[])=>{
    queries.push({sql,params});
+   if(sql.startsWith('EXPLAIN'))return {rows:[{'QUERY PLAN':'Seq Scan on fake_table'}],rowCount:1};
    if(sql.startsWith('SELECT')){
     const rows=huge?Array.from({length:300},(_,i)=>({answer:'x'.repeat(600),id:i})):[{answer:7}];
     return {rows:rows.slice(0,params.at(-1)),rowCount:rows.length};
@@ -42,13 +43,14 @@ function setup({policy={productionReads:true,maxRows:20},protectedItem=false,
  const handlers=createSqlQueryHandlers({
   verifyTarget:(a,c)=>verifyConnectionTarget(a,c,async()=>({client})),
   contextFor:async()=>trusted,
-  runQuery:options=>runPublicSqlQuery({...options,sqlLayer:withSql})
+  runQuery:options=>runPublicSqlQuery({...options,sqlLayer:withSql}),
+  runExplain:options=>runPublicSqlExplain({...options,sqlLayer:withSql})
  });
  return {fake,queries,opens,handlers,ctx};
 }
 describe('D-5 owner-approved SQL query',()=>{
  it('registers a read-only SQL tool without role-deletion authority',()=>{
-  expect(tools).toHaveLength(1);
+  expect(tools.map(t=>t.name)).toEqual(['neon_sql_query','neon_sql_explain','neon_sql_list_activity']);
   expect(tools[0]).toMatchObject({name:'neon_sql_query',writes:false,area:'sql'});
   expect(tools[0].profiles).toContain('read_only');
   expect(tools[0].inputSchema.additionalProperties).toBe(false);
@@ -78,6 +80,33 @@ describe('D-5 owner-approved SQL query',()=>{
   expect(result.rows).toHaveLength(200);
   expect(result.rows[0].answer.length).toBeLessThanOrEqual(129);
   expect(f.queries[3].params.at(-1)).toBe(201);
+  f.fake.assertClean();
+ });
+ it('explains a SELECT without running it by default, and ANALYZE only when explicit',async()=>{
+  const f=setup();
+  const planned=body(await f.handlers.neon_sql_explain(args,f.ctx));
+  expect(planned).toMatchObject({done:true,analyzed:false});
+  expect(f.queries.some(x=>x.sql.startsWith('EXPLAIN (FORMAT TEXT, ANALYZE FALSE) SELECT'))).toBe(true);
+  const analyzed=body(await f.handlers.neon_sql_explain({...args,analyze:true},f.ctx));
+  expect(analyzed).toMatchObject({done:true,analyzed:true});
+  expect(f.queries.some(x=>x.sql.startsWith('EXPLAIN (FORMAT TEXT, ANALYZE TRUE) SELECT'))).toBe(true);
+  const previous=f.opens.length;
+  for(const query of ['DELETE FROM invoices','EXPLAIN ANALYZE DELETE FROM invoices',
+   'WITH t AS (DELETE FROM invoices RETURNING *) SELECT * FROM t']){
+   expect(body(await f.handlers.neon_sql_explain({...args,query,analyze:true},f.ctx)).done)
+    .toBe(false);
+  }
+  expect(f.opens).toHaveLength(previous);
+  f.fake.assertClean();
+ });
+ it('offers fixed same-database activity metadata without exposing query text',async()=>{
+  const f=setup();
+  const result=body(await f.handlers.neon_sql_list_activity(args,f.ctx));
+  expect(result.done).toBe(true);
+  expect(f.queries[3].sql).toContain('pg_catalog.pg_stat_activity');
+  expect(f.queries[3].sql).toContain('current_database()');
+  expect(f.queries[3].sql).not.toContain('pg_terminate_backend');
+  expect(JSON.stringify(result)).not.toContain('SELECT $1::int AS answer');
   f.fake.assertClean();
  });
  it('refuses write SQL and unsafe plans before opening a connection',async()=>{
