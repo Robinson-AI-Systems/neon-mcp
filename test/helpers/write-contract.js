@@ -45,7 +45,7 @@ export function makeContractFixture({ production = false, spendCents = null,
   });
   return {tool,handler,ctx,log,calls,parse};
 }
-export async function runWriteContract(make = makeContractFixture, {input = {}, expectedSpendCents = 100, nonBillable = false} = {}) {
+export async function runWriteContract(make = makeContractFixture, {input = {}, expectedSpendCents = 100, nonBillable = false, productionAllowed = true} = {}) {
   const f=make();
   expect(f.tool.writes).toBe(true);
   expect(f.tool.writeContract).toBe('defineWrite-v1');
@@ -68,7 +68,9 @@ export async function runWriteContract(make = makeContractFixture, {input = {}, 
   expect(prod.parse(await prod.handler({...input,confirm:true},prod.ctx)).code).toBe('refused_by_guard'); // 5
   expect(prod.calls).toHaveLength(0);
   prod.ctx.connection.mode='production';
-  expect(prod.parse(await prod.handler({...input,confirm:true},prod.ctx)).confirmed).toBe(true);
+  const enabled=prod.parse(await prod.handler({...input,confirm:true},prod.ctx));
+  if(productionAllowed)expect(enabled.confirmed).toBe(true);
+  else {expect(enabled.done).toBe(false);expect(prod.calls).toHaveLength(0);}
   const blocked=make({blocked:true});
   expect(blocked.parse(await blocked.handler({...input,confirm:true},blocked.ctx)).code).toBe('refused_by_guard'); // 6
   expect(blocked.calls).toHaveLength(0);

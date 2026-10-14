@@ -13,7 +13,7 @@ export const COMPACT_TOKEN_BUDGET=5000;
 export const SCHEMA_TOKEN_BUDGET=1500;
 export const estimateTokens=value=>countTokens(JSON.stringify(value??{}));
 
-export function checkBudgets(tools){
+export function checkBudgets(tools,{catalogTools=tools}={}){
  const failures=[];
  for(const t of tools){
   const length=(t.description||'').length;
@@ -23,16 +23,18 @@ export function checkBudgets(tools){
   if(tokens>=SCHEMA_TOKEN_BUDGET)failures.push(t.name+': schema '+tokens+' >= '+SCHEMA_TOKEN_BUDGET);
  }
  // Legacy standalone catalog check: existing synthetic test fixtures are also subject to exact BPE.
- const tokens=estimateTokens(tools);
+ const tokens=estimateTokens(catalogTools);
  if(tokens>CATALOG_TOKEN_BUDGET)failures.push('catalog ~'+tokens+' tokens > '+CATALOG_TOKEN_BUDGET);
  return failures;
 }
 export function evaluateRegistryBudgets(source=registry,catalog=null) {
- const failures=checkBudgets(source.tools);
+ const failures=[];
  const connection={profile:'everyday',listing:'compact',mode:'preview',neonOrg:'org-fixture'};
  const env={VERCEL_ENV:'production'};
  const compact=estimateTokens(listVisibleToolMetadata({registry:source,connection,env}));
- const everyday=estimateTokens(listVisibleToolMetadata({registry:source,connection:{...connection,listing:'catalog'},env}));
+ const catalogTools=listVisibleToolMetadata({registry:source,connection:{...connection,listing:'catalog'},env});
+ const everyday=estimateTokens(catalogTools);
+ failures.push(...checkBudgets(source.tools,{catalogTools}));
  if(compact>=COMPACT_TOKEN_BUDGET)failures.push('compact listing '+compact+' >= '+COMPACT_TOKEN_BUDGET);
  if(everyday>=CATALOG_TOKEN_BUDGET)failures.push('everyday catalog '+everyday+' >= '+CATALOG_TOKEN_BUDGET);
  const counts=profileToolCounts(source.tools,{productionDeployment:true});

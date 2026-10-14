@@ -32,7 +32,7 @@ function fixture({foreign=false,duplicates=false,changed=false,pooled=true,
  const ctx={connection:{neonOrg:IDS.org,projectScope:IDS.project,
   profile,mode:'preview'},db:{}};
  const handlers=createRoleRetirementHandlers({getClient:async()=>({client})});
- return {fake,ctx,handlers};
+ return {fake,ctx,handlers,client};
 }
 describe('D-4 verified owner role retirement planning',()=>{
  it('registers a safe owner-only read and never enables role deletion',()=>{
@@ -78,5 +78,47 @@ describe('D-4 verified owner role retirement planning',()=>{
   await expect(g.handlers.neon_role_retirement_review({
    ...args,projectId:'proj-foreign'},g.ctx)).rejects.toThrow();
   expect(g.fake.calls).toHaveLength(0);
+ });
+});
+
+
+describe('D-4 owner opt-in live PostgreSQL dependency read',()=>{
+ it('declares strict paired monitor target without adding a write tool',()=>{
+  const properties=tools[0].inputSchema.properties;
+  expect(properties.monitorDatabase).toBeDefined();
+  expect(properties.monitorRole).toBeDefined();
+  expect(tools[0].writes).toBe(false);
+ });
+ it('refuses partial monitor and same subject role before any project GET',async()=>{
+  for(const extra of [
+   {monitorRole:'neondb_owner'},
+   {monitorDatabase:'neondb'},
+   {monitorRole:args.roleName,monitorDatabase:'neondb'}
+  ]){
+   const f=fixture();
+   await expect(f.handlers.neon_role_retirement_review({...args,...extra},f.ctx))
+    .rejects.toThrow(/separate monitoring/);
+   expect(f.fake.calls).toHaveLength(0);
+  }
+ });
+ it('observes only verified bound per-compute counters while pooled clients remain unknown',async()=>{
+  const f=fixture({owned:false,pooled:false});
+  const report={verified:true,projectId:IDS.project,branchId:IDS.dev,
+   roleName:args.roleName,monitorRole:'neondb_owner',monitorDatabase:'neondb',
+   poolerClientsVerified:false,postgresDependenciesClear:true,
+   computes:[{endpointId:IDS.devEndpoint}],
+   totals:{objectReferences:0,databaseOwnerships:0,roleMemberships:0,activeSessions:0}};
+  const handlers=createRoleRetirementHandlers({
+   getClient:async()=>({client:f.client}),
+   contextFor:async c=>c,inspectDependencies:async()=>report});
+  // A single identity provider read path must remain exactly GET-only.
+  const output=read(await handlers.neon_role_retirement_review({...args,
+   monitorRole:'neondb_owner',monitorDatabase:'neondb'},f.ctx));
+  expect(output).toMatchObject({safeToDelete:false,roleDeleteRegistered:false,
+   idlePooledClients:'notObservable',
+   postgresDependencies:{state:'observed',dependenciesClear:true,
+    poolerClientsVerified:false,counts:{activeSessions:0}}});
+  expect(f.fake.calls.every(x=>x.method==='GET')).toBe(true);
+  f.fake.assertClean();
  });
 });

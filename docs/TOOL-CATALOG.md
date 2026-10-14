@@ -1,3 +1,5 @@
+**D-4 owner-approved retirement (IN-16):** Canonical role deletion is registered under full-owner B-1 gates with one-use durable exact preview and explicit interruption acknowledgement. No claim of idle pooled-client absence. Legacy nondisruptive proof remains unavailable; source/CI/deployed/provider acceptance are separate. Earlier unregistered notes below describe historical checkpoints.
+
 **D-4 private role-deletion inventory (#85):** Before opening any role-dependency SQL, provider endpoint IDs, branch database names and role names must each be unique; repeated identities make the full inventory untrusted. `neon_role_delete` is still NOT registered; pooled-client safety remains unverified.
 
 **D-4 private role deletion preflight (#83):** The unregistered `neon_role_delete` dependency inspector now verifies each compute remains `read_write` on its independent exact-endpoint reread, not just initial inventory. A changed compute type aborts before any SQL. Role deletion is still NOT registered: idle pooled-client absence remains unverified.
@@ -93,7 +95,7 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 | --- | --- | --- | --- | --- | --- |
 | `neon_branch_list` | Branches with default/protected/expiring marks, parent, size, compute state, last reset, annotations; count vs the plan's included branches | — | B Op | R | D-2 (built #51, plan/count refinements pending) |
 | `neon_branch_get` | One branch with its computes, databases, roles, storage and restore status | — | B Op | R | D-2 (built #51, status refinements pending) |
-| `neon_branch_create` | Create from verified parent, with schema-only option and B-4 branch-cost approval; optional compute, expiry and point-in-time source variants supported | C* $ | B Op | E | D-2 (built #54, advanced create variants #58) |
+| `neon_branch_create` | Create from verified parent with B-4 pricing using current project-key-readable provider subscription evidence or a verified stored plan, denying plan conflicts; optional compute, expiry and point-in-time variants | C* $ | B Op | E | D-2 (built #54, variants #58; scoped-plan #141) |
 | `neon_branch_rename` | Rename a branch (confirm on production: integrations and apps may look it up by name) | C* Pr | Op | E | D-2 (built #52) |
 | `neon_branch_set_protected` | Protect or unprotect with audited confirmation and production guard | C* Pr | Ow | F | D-2 (built #52) |
 | `neon_branch_set_expiration` | Set, change or remove expiry (max 30 days; refuses default, protected or parent) | P | B Op | E | D-2 (built #53) |
@@ -103,7 +105,7 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 | `neon_branch_reset_from_parent` | Reset from verified parent; always preserve prior state under a uniquely named new branch and apply guarded spend limits | C D Pr $ | B Op | F | D-2 (built #55) |
 | `neon_branch_restore` | Restore verified source/head/LSN/UTC timestamp; always preserve prior state and verify both branches | C D Pr $ | Op | F | D-2 (built #55) |
 | `neon_branch_compare_schema` | Compare verified branches for one database at HEAD, LSN or past UTC time independently on each side | — | B Op | R | D-2 (built #52, historical variants #57) |
-| `neon_branch_compare_data` | Row differences for chosen tables between two branches (or a branch and a point in time): counts, then added / removed / changed rows by primary key, capped with a handle; tables without a primary key compare by count and checksum only | — | B Op | R | D-9 |
+| `neon_branch_compare_data` | Row differences for chosen tables between two branches (or a branch and a point in time): counts, then added / removed / changed rows by primary key, capped with a handle; tables without a primary key compare by count and checksum only | — | B Op | R | D-9 (built #153; live acceptance pending) |
 
 ## Computes (`neon_compute_*`) — 10
 
@@ -135,8 +137,8 @@ D-2/D-3 post-merge security review #62: expiring protected branches are refused 
 | `neon_role_get` | Exact role metadata; privileges shown as unverified until separately authorized SQL | — | Op | R | D-4 (built #65) |
 | `neon_role_create` | New login role; its password only on the one-time page | P S | B Op | E | D-4 (built #68, verified secret handoff #88) |
 | `neon_role_create_read_only` | Scoped current SELECT and owner-specific future defaults through fixed audited B-3 SQL, one-time password; production DDL gated | C A S | B Ow | F | D-4 (built #72, hardened #75, handoff ordering #86) |
-| `neon_role_retirement_review` | Verified databases and computes relevant to retiring a role; pooled-client clearance remains unknown | — | Ow | F | D-4 (built #129) |
-| `neon_role_delete` | Gated: private global PostgreSQL dependency inventory cannot establish absence of idle PgBouncer clients; no public delete until independent pooler proof | C D Pr | Op | F | D-4 (pending) |
+| `neon_role_retirement_review` | Verified databases and computes relevant to retiring a role; pooled-client clearance remains unknown | — | Ow | F | D-4 (provider inventory #128; optional PostgreSQL dependencies #142) |
+| `neon_role_delete` | Confirmed retirement after a one-use owner/connection/identity-bound preview, named membership losses and explicit unknown-pooled-client interruption acknowledgement; ownership/references/visible sessions refuse | C D A Pr | Ow | F | D-4 (implemented; provider acceptance pending) |
 | `neon_role_reset_password` | New password for a role; old one stops working; new one only on the one-time page; preview warns dependent apps | C Pr S | Op | E | D-4 (built #69, verified reset handoff #88) |
 
 ## Connections (`neon_connection_*`) — 2
@@ -153,10 +155,10 @@ The SQL guard (`docs/designs/BATCH-B.md` B-3) classifies every statement with th
 | Tool | What it does | Flags | Aud | Profile | Card |
 | --- | --- | --- | --- | --- | --- |
 | `neon_sql_query` | Read-only SQL (SELECT, SHOW, EXPLAIN without ANALYZE) inside a READ ONLY transaction, row cap and time limit; production reads allowed by setting (IN-09) | — | B Op | R | D-5 (built #126; live SQL unverified) |
-| `neon_sql_execute` | One writing statement. Non-production: preview, confirm when destructive. Production: production guard, exact affected rows previewed on a throwaway branch, applied in a transaction that rolls back if the count differs, restore point recorded | C* Pr D | B Op | E | D-5 |
-| `neon_sql_execute_transaction` | Several statements in one all-or-nothing transaction, same rules as `neon_sql_execute` (strictest statement decides) | C* Pr D | B Op | E | D-5 |
-| `neon_sql_explain` | Query plan; ANALYZE only for read-only statements (writes are analyzed on a throwaway branch by `neon_sql_preview_change`) | — | B Op | R | D-5 (built #127; runtime proof pending) |
-| `neon_sql_preview_change` | Run SQL on a throwaway copy of the target branch: affected rows, schema diff, timing, errors; the copy is deleted afterwards | P | B Op | E | D-5 |
+| `neon_sql_execute` | Owner-confirmed audited single SQL change; exact five-part provider target, required affected-row bounds and independent readback SELECT; development mismatch rolls back; production additionally needs consumed exact child-preview token and WAL restore LSN | C D Pr A | Ow | F | D-5 (built #140; live pending) |
+| `neon_sql_execute_transaction` | Owner-confirmed 1–20 statement atomic SQL batch with individual affected-row bounds, shared independent postcondition, B-3 rollback on mismatch and B-1/production token protections | C D Pr A | Ow | F | D-5 (built #140; live pending) |
+| `neon_sql_explain` | Query plan for SELECT or DML. SELECT alone permits ANALYZE; UPDATE/DELETE/INSERT/MERGE always use non-executing EXPLAIN ANALYZE FALSE in a READ ONLY transaction, never execute writes | — | B Op | R | D-5 (built #127; guarded DML explain #137; runtime proof pending) |
+| `neon_sql_preview_change` | Owner-confirmed B-1/B-4 guarded disposable branch rehearsal: exact changed-row counts, optional schema comparison, verified child deletion, durable one-use preview token; no parent changes, metered usage remains explicitly approved | C D $ | Ow | F | D-5 (built #139; live not accepted) |
 | `neon_sql_list_activity` | Running queries, waits and locks, oldest first | — | Op | R | D-5 (built #127; runtime proof pending) |
 | `neon_sql_stop_query` | Cancel one verified active query on its exact database with owner confirmation and readback; backend termination is deliberately not offered | C Pr D | Op | F | D-5 (built #130; live cancellation unverified) |
 | `neon_sql_list_slow_queries` | Slowest and most frequent queries from `pg_stat_statements` (offers to enable the extension when missing) | — | B Op | R | D-5 |
@@ -165,28 +167,28 @@ The SQL guard (`docs/designs/BATCH-B.md` B-3) classifies every statement with th
 
 | Tool | What it does | Flags | Aud | Profile | Card |
 | --- | --- | --- | --- | --- | --- |
-| `neon_schema_list_schemas` | Schemas in a database (system schemas hidden) | — | B Op | R | D-6 |
-| `neon_schema_list_tables` | Tables with row estimates and sizes | — | B Op | R | D-6 |
-| `neon_schema_describe_table` | Columns, types, defaults, indexes, constraints, foreign keys, triggers, RLS policies for one table | — | B Op | R | D-6 |
-| `neon_schema_get_ddl` | The schema as SQL (one table or a whole database) | — | B | R | D-6 |
-| `neon_schema_search` | Find tables and columns by name | — | B Op | R | D-6 |
-| `neon_schema_list_objects` | Views, materialized views, functions, enums, sequences, triggers, policies or publications (by kind) | — | B Op | R | D-6 |
-| `neon_schema_list_extensions` | Installed and available extensions with versions | — | B Op | R | D-6 |
-| `neon_schema_enable_extension` | Install an extension, or update an installed one to a newer version with `update: true` (production: confirm) | C* Pr | B Op | E | D-6 |
-| `neon_schema_disable_extension` | Remove an extension (preview lists dependent objects) | C D Pr | Op | F | D-6 |
-| `neon_schema_create_index` | Create an index, CONCURRENTLY by default (production: confirm) | C* Pr | B Op | E | D-6 |
-| `neon_schema_drop_index` | Drop an index (preview shows its recent use) | C D Pr | Op | F | D-6 |
-| `neon_schema_generate_types` | TypeScript types (or Zod schemas) generated from the tables | — | B | R | D-6 |
+| `neon_schema_list_schemas` | Schemas in a database (system schemas hidden) | — | B Op | R | D-6 (built #143; live SQL acceptance pending) |
+| `neon_schema_list_tables` | Tables with row estimates and sizes | — | B Op | R | D-6 (built #143; live SQL acceptance pending) |
+| `neon_schema_describe_table` | Columns, types, defaults, indexes, constraints, foreign keys, triggers, RLS policies for one table | — | B Op | R | D-6 (built #143; live SQL acceptance pending) |
+| `neon_schema_get_ddl` | Verified bounded structural DDL sketches (explicitly not executable migrations/full backups) | — | B | R | D-6 (built #147; live SQL acceptance pending) |
+| `neon_schema_search` | Find tables and columns by name | — | B Op | R | D-6 (built #144; custom service acceptance pending) |
+| `neon_schema_list_objects` | Views, materialized views, functions, enums, sequences, triggers, policies or publications (by kind) | — | B Op | R | D-6 (built #144; custom service acceptance pending) |
+| `neon_schema_list_extensions` | Installed and available extensions with versions | — | B Op | R | D-6 (built #143; live SQL acceptance pending) |
+| `neon_schema_enable_extension` | Owner-confirmed development-only install/update for six audited PostgreSQL extensions; production and provider acceptance pending | C* Pr | B Op | F | D-6 (built #151; acceptance pending) |
+| `neon_schema_disable_extension` | Remove an extension (preview lists dependent objects) | C D Pr | Op | F | D-6 (built #154; custom acceptance pending) |
+| `neon_schema_create_index` | Create an index, CONCURRENTLY by default (production: confirm) | C* Pr | B Op | E | D-6 (built #155; development-only, live acceptance pending) |
+| `neon_schema_drop_index` | Drop an index (preview shows its recent use) | C D Pr | Op | F | D-6 (built #155; development-only, live acceptance pending) |
+| `neon_schema_generate_types` | TypeScript types (or Zod schemas) generated from the tables | — | B | R | D-6 (built #146, real PostgreSQL metadata test; live acceptance pending) |
 | `neon_schema_list_migrations` | The app's migration history read from its own table (Prisma `_prisma_migrations`, Drizzle, Knex, Flyway, golang-migrate detected): applied, failed or rolled back, with dates; given the repo's migration names, also which are not applied yet. Read-only — applying stays with the app or `neon_workflow_safe_migration` | — | B Op | R | D-9 |
 
 ## Health (`neon_health_*`) — 4
 
 | Tool | What it does | Flags | Aud | Profile | Card |
 | --- | --- | --- | --- | --- | --- |
-| `neon_health_check` | Database health in one call (any of 15 checks): sizes, cache hit rate, connections, locks, long-running queries, bloat, autovacuum, unused/duplicate indexes, transaction-ID age, replication | — | Op | R | D-6 |
-| `neon_health_suggest_indexes` | Index suggestions from scan statistics and slow queries, each with the exact CREATE INDEX statement | — | B Op | R | D-6 |
-| `neon_health_vacuum_analyze` | VACUUM (ANALYZE) a table or database (production: confirm; load warning) | C* Pr | Op | E | D-6 |
-| `neon_health_reindex` | Rebuild a bloated or invalid index, or all indexes of a table, `CONCURRENTLY` by default (preview shows sizes before and the bloat estimate; production: confirm; never a whole database or system catalogs) | C* Pr | Op | E | D-9 |
+| `neon_health_check` | Database health in one call (any of 15 checks): sizes, cache hit rate, connections, locks, long-running queries, bloat, autovacuum, unused/duplicate indexes, transaction-ID age, replication | — | Op | R | D-6 (built #145; hosted acceptance pending) |
+| `neon_health_suggest_indexes` | Review-only candidate on explicitly selected columns from verified PostgreSQL scan/index stats; no SQL execution or query text | — | B Op | R | D-6 (built #148; live SQL acceptance pending) |
+| `neon_health_vacuum_analyze` | Confirm a guarded non-FULL VACUUM (ANALYZE) on one verified regular development table, stored 10-minute maintenance ceiling, independent table readback and durable no-retry audit | C Pr | Op | E | D-6 built #158 |
+| `neon_health_reindex` | Owner-confirmed INDEX/TABLE REINDEX CONCURRENTLY on verified regular development tables; stored 10-minute maintenance timeout owner-tightenable, exclusion indexes refused, recovery readback only; production gated | C Pr | Op | E | D-9 built #157 |
 
 ## Snapshots (`neon_snapshot_*`) — 7
 
@@ -204,13 +206,13 @@ The SQL guard (`docs/designs/BATCH-B.md` B-3) classifies every statement with th
 
 | Tool | What it does | Flags | Aud | Profile | Card |
 | --- | --- | --- | --- | --- | --- |
-| `neon_security_review` | Verified network/JWKS/branch, audit level, bounded compute-replication and configured issuer per-branch/role exposure; actual JWT, RLS, clients, log delivery and costs not evaluated | — | Ow Op | R | D-8 (built #90; impact #96; issuer map #104; policy validation #114) |
+| `neon_security_review` | Verified network/JWKS/branch, audit, computes and configured issuer exposure; optional verified branch/endpoint/database/role adds bounded PostgreSQL RLS and policy-count aggregates, not policy effectiveness. Actual JWT, clients, log delivery and costs remain unverified | — | Ow Op | R | D-8 (built #90; impact #96; issuer map #104; policy validation #114; RLS #136) |
 | `neon_security_set_ip_allow` | Guarded Scale-plan add/remove/replace with live entitlement, unknown provider field refusal, network-block effectiveness warning, stale access-state proof and verified readback | C Pr A | Ow | F | D-8 (built #92; live plan #95; network safety #105) |
 | `neon_security_set_logical_replication` | Turn on logical replication (cannot be turned off; restarts computes) | C D Pr | Ow | F | D-8 |
 | `neon_security_set_public_access` | Guarded preview/confirm of public internet/VPC access with verified current flags and exact readback; refuses both-path lockout | C Pr | Ow | F | D-8 (built offline #91) |
 | `neon_security_list_jwks` | Project-verified trusted JWKS issuers, refusing foreign/duplicate entries, invalid audience or duplicate roles, and redacting credential-bearing URLs | — | B Ow | R | D-8 (built #89) |
 | `neon_security_set_jwks` | Guarded branch-scoped issuer add (explicit JWT audience/no auto roles) or exact trust revocation, independently rechecks complete child branch identity/protection before POST and after trust creation (#119) | C Pr A | B Ow | F | D-8 (built offline #93; race fix #94) |
-| `neon_security_set_audit_log_level` | Postgres audit logging level for the project | C Pr | Ow | F | D-8 |
+| `neon_security_set_audit_log_level` | Full-owner audited reduction only (full→extended/base, extended→base), rejects unknown/current/stale audit state, prevents concurrent other-policy changes, independently verifies exact level; increases and unknown billable impact remain gated | C Pr | Ow | F | D-8 (built offline #138) |
 
 ## Owner and administration (Batch O) — 23
 
@@ -276,9 +278,9 @@ only recorded objects. Every tool refuses production targets (B-2) before readin
 
 | Tool | What it does | Flags | Aud | Profile | Card |
 | --- | --- | --- | --- | --- | --- |
-| `neon_dev_branch_create` | Throwaway branch for a feature or test run: from a parent (data or schema-only), small compute, expiry (default 24 h), recorded in a run; connection info without password | P Dev | B | E | V-1 |
-| `neon_dev_list_runs` | Runs and what each created, with expiry and cleanup state | — | B | R | V-1 |
-| `neon_dev_cleanup` | Delete exactly what a run created (branches first-child-first, then databases/roles on kept branches); per-object report | C Dev | B | E | V-1 |
+| `neon_dev_branch_create` | Create an audited, expiring branch with run metadata, stored safe compute, provider-backed price and exact readback | C $ Dev | B | F | V-1 built #160 |
+| `neon_dev_list_runs` | Read scoped recorded run ownership and remaining cleanup with no provider secrets | — | B | R | V-1 built #160 |
+| `neon_dev_cleanup` | Confirm child-first, recorded-only branch soft deletion with exact protected/production refusals | C D Dev | B | F | V-1 built #160 |
 | `neon_dev_list_scenarios` | Seed scenarios available, with what each creates | — | B | R | V-2 |
 | `neon_dev_seed` | Fill a dev branch with realistic data from a named scenario, a plain description mapped to scenarios, or rows from a public CSV/JSON URL; preview lists every table and row count | P Dev | B | E | V-2 |
 | `neon_dev_reset_branch` | Reset a dev branch to its parent's latest state (no production confirm needed; refuses production) | P Dev | B | E | V-3 |
@@ -359,7 +361,7 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #126 (source capability listing, deployment acceptance separate):** `read_only` 35; `everyday` 43; `full` 72. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
+**Implemented registry at #160 (source tooling only; deployed acceptance separate):** `read_only` 48; `everyday` 56; `full` 94. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
 
 ## Totals
 

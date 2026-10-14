@@ -99,6 +99,7 @@ export async function runGuardedRoleDependencyProbe(a,c,t,ep,db,monitor){
 // PostgreSQL enforces LIMIT before the driver materializes rows; the B-3 AST,
 // protected-resource and owner-stored read policies remain mandatory.
 import {parse} from 'libpg-query';
+import {quoteIdent} from './sql-ident.js';
 import {runAuthorizedSqlRead} from './sql-read.js';
 
 const MAX_PUBLIC_ROWS=201;
@@ -154,24 +155,38 @@ export async function runPublicSqlQuery({ctx,target,text,params=[],sqlLayer}={})
 
 export async function runPublicSqlExplain({ctx,target,text,params=[],analyze=false,sqlLayer}={}){
  if(typeof text!=='string'||text.length>20000||typeof analyze!=='boolean')
-  return {done:false,code:'not_read_only',message:'A SELECT statement is required.'};
+  return {done:false,code:'not_read_only',message:'One supported SQL statement is required.'};
  let ast;
  try{ast=await parse(text);}catch{
-  return {done:false,code:'not_read_only',message:'A valid SELECT is required.'};
+  return {done:false,code:'not_read_only',message:'Provide one valid SQL statement.'};
  }
- if(ast?.stmts?.length!==1||!ast.stmts[0]?.stmt?.SelectStmt)
-  return {done:false,code:'not_read_only',message:'Only SELECT plans are supported.'};
+ if(ast?.stmts?.length!==1)
+  return {done:false,code:'not_read_only',message:'Provide exactly one SQL statement.'};
+ const root=ast.stmts[0]?.stmt;
+ const isRead=Boolean(root?.SelectStmt);
+ const isDml=Boolean(root?.InsertStmt||root?.UpdateStmt||root?.DeleteStmt||root?.MergeStmt);
+ if(!isRead&&!isDml)
+  return {done:false,code:'not_read_only',message:'Only SELECT and non-executing DML plans are supported.'};
  const selected=await classifySql(text);
- if(selected.kind!=='read')
-  return {done:false,code:'not_read_only',message:'This plan is not read-only.'};
- const plan='EXPLAIN (FORMAT TEXT, ANALYZE '+(analyze?'TRUE':'FALSE')+') '+
+ if(selected.kind==='refused'||selected.unknownNode===true||
+    isRead&&selected.kind!=='read'||
+    isDml&&!['write','destructive'].includes(selected.kind))
+  return {done:false,code:'not_read_only',message:'The SQL statement cannot be planned safely.'};
+ if(isDml&&analyze)
+  return {done:false,code:'analyze_write_refused',
+   message:'ANALYZE can execute writes. Use a plain EXPLAIN or isolated change preview.'};
+ // Root statement and AST safety have been checked before the constant prefix.
+ // PostgreSQL runs it in BEGIN READ ONLY; ANALYZE is always FALSE for DML.
+ const plan='EXPLAIN (FORMAT TEXT, ANALYZE '+(isRead&&analyze?'TRUE':'FALSE')+') '+
   text.trim().replace(/;\s*$/,'');
  const layer=sqlLayer??createSqlLayer({db:ctx?.db,
   vault:createKeyVault({db:ctx?.db,env:ctx?.env}),env:ctx?.env});
- const result=await runAuthorizedSqlRead({ctx,target,text:plan,params,sqlLayer:layer});
- return {...compactPublicResult(result),analyzed:result?.done===true?analyze:false};
+ const result=await runAuthorizedSqlRead({ctx,target,text:plan,params,
+  sqlLayer:layer,nonExecutingDmlPlan:isDml});
+ return {...compactPublicResult(result),
+  analyzed:result?.done===true?isRead&&analyze:false,
+  nonExecutingWritePlan:result?.done===true&&isDml};
 }
-
 
 // D-5: fixed SQL for a single guarded query cancellation. Never terminate a
 // backend, expose SQL text, or accept a caller-provided statement or target DB.
@@ -234,5 +249,157 @@ export async function observeScopedQueryCancellation({
    const row=found.rows[0];
    return {finished:!row||row.backend_start!==signature.backendStart||
     row.query_start!==signature.queryStart||row.state!=='active'};
+  });
+}
+
+
+// D-6 purpose-specific development-only extension DDL. Public SQL execution
+// deliberately rejects CreateExtensionStmt / AlterExtensionStmt; this private
+// boundary accepts only server-constructed statements from a small vetted set.
+const approvedExtensions=new Set(['citext','pg_trgm','unaccent','hstore',
+  'btree_gin','btree_gist']);
+export const safeExtensionNames=Object.freeze([...approvedExtensions]);
+export function buildReviewedExtensionDDL(name,update=false,remove=false){
+ if(!approvedExtensions.has(name)||typeof update!=='boolean'||typeof remove!=='boolean'||remove&&update)
+  throw Error('Extension is not in the audited low-risk development allowlist');
+ if(remove)return 'DROP EXTENSION '+quoteIdent(name)+' RESTRICT';
+ return update?'ALTER EXTENSION '+quoteIdent(name)+' UPDATE':
+  'CREATE EXTENSION '+quoteIdent(name)+' WITH SCHEMA "public"';
+}
+export async function runReviewedExtensionMutation({
+ ctx,target,name,update=false,remove=false,sqlLayer}={}){
+ if(!ctx?.db||!ctx.connection?.neonOrg||!target?.projectId||
+  !target?.branchId||!target?.endpointId||!target?.expectedEndpointHost||
+  !target?.database||!target?.role||target.pooled!==false)
+  throw Error('Verified direct development SQL identity required');
+ const statement=buildReviewedExtensionDDL(name,update,remove);
+ const parsed=await parse(statement);
+ const stmt=parsed?.stmts?.[0]?.stmt;
+ if(parsed?.stmts?.length!==1||
+  !remove&&!update&&!stmt?.CreateExtensionStmt||
+  update&&!stmt?.AlterExtensionStmt||
+  remove&&(stmt?.DropStmt?.removeType!=='OBJECT_EXTENSION'||stmt.DropStmt.behavior!=='DROP_RESTRICT'))
+  throw Error('Unreviewed extension statement AST');
+ const withSql=sqlLayer??createSqlLayer({db:ctx.db,
+  vault:createKeyVault({db:ctx.db,env:ctx.env}),env:ctx.env});
+ return withSql({neonOrg:ctx.connection.neonOrg,
+  projectScope:ctx.connection.projectScope??null},target,async client=>{
+  // A driver/network failure during COMMIT is deliberately ambiguous: B-1
+  // leaves the durable request pending. It must never automatically replay.
+  let began=false,committing=false;
+  try{
+   await client.query('BEGIN');began=true;
+   await client.query('SET LOCAL lock_timeout = 5000');
+   await client.query('SET LOCAL statement_timeout = 15000');
+   await client.query(statement);
+   committing=true;await client.query('COMMIT');began=false;
+   return {issued:true};
+  }catch{
+   if(began&&!committing){try{await client.query('ROLLBACK');}catch{}}
+   throw Error('Extension operation is not confirmed; independently inspect before retry');
+  }
+ });
+}
+
+// Purpose-specific concurrent index DDL; never arbitrary caller SQL.
+export function buildReviewedIndexDDL({schema,table,index,columns,remove=false}={}){
+ if(typeof remove!=='boolean'||typeof schema!=='string'||schema.startsWith('pg_')||
+  schema==='information_schema')throw Error('Non-system index scope required');
+ const qualified=quoteIdent(schema)+'.'+quoteIdent(index);
+ if(remove)return 'DROP INDEX CONCURRENTLY '+qualified+' RESTRICT';
+ if(!Array.isArray(columns)||columns.length<1||columns.length>3||
+  new Set(columns).size!==columns.length)throw Error('Select distinct index columns');
+ return 'CREATE INDEX CONCURRENTLY '+quoteIdent(index)+' ON '+quoteIdent(schema)+'.'+
+  quoteIdent(table)+' USING btree ('+columns.map(quoteIdent).join(', ')+')';
+}
+export async function runReviewedIndexMutation({ctx,target,schema,table,index,
+ columns,remove=false,sqlLayer}={}){
+ if(!ctx?.db||!ctx.connection?.neonOrg||!target?.projectId||!target.branchId||
+  !target.endpointId||!target.expectedEndpointHost||!target.database||
+  !target.role||target.pooled!==false)throw Error('Verified direct index target required');
+ const statement=buildReviewedIndexDDL({schema,table,index,columns,remove});
+ const parsed=await parse(statement),stmt=parsed?.stmts?.[0]?.stmt;
+ if(parsed?.stmts?.length!==1||!remove&&!stmt?.IndexStmt?.concurrent||
+  remove&&(stmt?.DropStmt?.removeType!=='OBJECT_INDEX'||
+   stmt.DropStmt.concurrent!==true||stmt.DropStmt.behavior!=='DROP_RESTRICT'))
+  throw Error('Unreviewed index statement');
+ const layer=sqlLayer??createSqlLayer({db:ctx.db,
+  vault:createKeyVault({db:ctx.db,env:ctx.env}),env:ctx.env});
+ return layer({neonOrg:ctx.connection.neonOrg,projectScope:ctx.connection.projectScope??null},target,
+  async client=>{
+   // CONCURRENTLY cannot run in BEGIN. The scoped layer closes this session,
+   // including these bounded settings, on every outcome. Never retry DDL.
+   await client.query('SET lock_timeout = 5000');
+   await client.query('SET statement_timeout = 15000');
+   await client.query(statement);return {issued:true};
+  });
+}
+
+
+// D-9: REINDEX only the exact reviewed INDEX or regular TABLE, outside BEGIN.
+export function buildReviewedReindexDDL({schema,table,index,scope='index'}={}){
+ if(!['index','table'].includes(scope)||typeof schema!=='string'||
+    schema.startsWith('pg_')||schema==='information_schema')
+  throw Error('Reviewed non-system reindex scope required');
+ const name=scope==='index'?index:table;
+ return 'REINDEX '+(scope==='index'?'INDEX':'TABLE')+' CONCURRENTLY '+
+  quoteIdent(schema)+'.'+quoteIdent(name);
+}
+export async function runReviewedReindexMutation({ctx,target,schema,table,index,
+ scope='index',sqlLayer}={}){
+ if(!ctx?.db||!ctx.connection?.neonOrg||!target?.projectId||!target.branchId||
+    !target.endpointId||!target.expectedEndpointHost||!target.database||
+    !target.role||target.pooled!==false)
+  throw Error('Verified direct reindex target required');
+ const timeout=await ctx.db.getSqlMaintenanceTimeoutMs?.();
+ if(!Number.isSafeInteger(timeout)||timeout<15000||timeout>3600000)
+  throw Error('Verified stored maintenance timeout is unavailable');
+ const statement=buildReviewedReindexDDL({schema,table,index,scope});
+ const ast=await parse(statement);
+ if(ast?.stmts?.length!==1||!ast.stmts[0]?.stmt?.ReindexStmt)
+  throw Error('Unreviewed reindex statement');
+ const layer=sqlLayer??createSqlLayer({db:ctx.db,
+  vault:createKeyVault({db:ctx.db,env:ctx.env}),env:ctx.env});
+ return layer({neonOrg:ctx.connection.neonOrg,projectScope:ctx.connection.projectScope??null},
+  target,async client=>{
+   // Concurrent reindex must not run inside a transaction; a network error
+   // is ambiguous, so B-1 leaves the request pending rather than replaying.
+   await client.query('SET lock_timeout = 5000');
+   await client.query('SET statement_timeout = '+timeout);
+   await client.query(statement);
+   return {issued:true};
+  });
+}
+
+
+// D-6 development-only VACUUM (ANALYZE): no transaction, no automatic replay.
+export function buildReviewedVacuumDDL({schema,table}={}){
+ if(typeof schema!=='string'||schema.startsWith('pg_')||
+    schema==='information_schema'||
+    !/^[A-Za-z_][A-Za-z0-9_-]{0,62}$/.test(schema)||
+    !/^[A-Za-z_][A-Za-z0-9_-]{0,62}$/.test(table))
+  throw Error('Exact non-system regular-table identifier required');
+ return 'VACUUM (ANALYZE) '+quoteIdent(schema)+'.'+quoteIdent(table);
+}
+export async function runReviewedVacuumMutation({ctx,target,schema,table,sqlLayer}={}){
+ if(!ctx?.db||!ctx.connection?.neonOrg||!target?.projectId||!target.branchId||
+    !target.endpointId||!target.expectedEndpointHost||!target.database||
+    !target.role||target.pooled!==false)
+  throw Error('Exact direct development VACUUM target required');
+ const timeout=await ctx.db.getSqlMaintenanceTimeoutMs?.();
+ if(!Number.isSafeInteger(timeout)||timeout<15000||timeout>3600000)
+  throw Error('Stored maintenance timeout unavailable');
+ const statement=buildReviewedVacuumDDL({schema,table});
+ const ast=await parse(statement);
+ if(ast?.stmts?.length!==1||!ast.stmts[0]?.stmt?.VacuumStmt)
+  throw Error('Unreviewed vacuum statement');
+ const layer=sqlLayer??createSqlLayer({db:ctx.db,
+  vault:createKeyVault({db:ctx.db,env:ctx.env}),env:ctx.env});
+ return layer({neonOrg:ctx.connection.neonOrg,projectScope:ctx.connection.projectScope??null},
+  target,async client=>{
+   await client.query('SET lock_timeout = 5000');
+   await client.query('SET statement_timeout = '+timeout);
+   await client.query(statement);
+   return {issued:true};
   });
 }

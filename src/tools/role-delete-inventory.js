@@ -51,11 +51,12 @@ async function defaultSqlInspect(a,c,t,ep,db,monitor){
   return runGuardedRoleDependencyProbe(a,c,t,ep,db,monitor);
 }
 export async function inspectRoleDeleteReadiness(a,c,{
-  inspectEndpoint=defaultSqlInspect
+  inspectEndpoint=defaultSqlInspect,retirement=false
 }={}){
   if(!roleName(a?.roleName))throw Error('A valid role is required for deletion');
   const scope=await authorize(a,c);
   const t=await existingRole(a,c);
+  if(retirement&&t.role.protected!==false)throw Error('Role protection unverified');
   if(t.pid!==scope.projectId)throw Error('Verified role project is outside owner scope');
   const [allEndpoints,allDatabases,allRoles]=await Promise.all([
     projectRead(t.client,'listProjectEndpoints',{path:{project_id:t.pid}}),
@@ -70,9 +71,9 @@ export async function inspectRoleDeleteReadiness(a,c,{
     x=>x.branch_id===t.bid&&roleName(x.name),x=>x.name);
   const active=endpoints.filter(e=>e.branch_id===t.bid);
   if(!active.length||active.length>16||
-      active.some(e=>e.pooler_enabled!==false||e.disabled!==false||
+      active.some(e=>(!retirement&&e.pooler_enabled!==false)||e.disabled!==false||
         e.current_state!=='active'||!host(e.host)||
-        e.type!=='read_write'))
+        (retirement?!['read_write','read_only'].includes(e.type):e.type!=='read_write')))
     throw Error('Each dependent compute must be active, direct, unpooled and independently verifiable; no compute is started automatically');
   const monitorDb=databases.find(d=>d.name===a.monitorDatabase&&
     d.owner_name===a.monitorRole&&known.some(r=>r.name===a.monitorRole));
@@ -95,9 +96,9 @@ export async function inspectRoleDeleteReadiness(a,c,{
       path:{project_id:t.pid,endpoint_id:ep.id}});
     if(exact?.endpoint?.id!==ep.id||exact.endpoint.project_id!==t.pid||
         exact.endpoint.branch_id!==t.bid||exact.endpoint.host!==ep.host||
-        exact.endpoint.pooler_enabled!==false||
+        (!retirement&&exact.endpoint.pooler_enabled!==false)||
         exact.endpoint.current_state!=='active'||
-        exact.endpoint.type!=='read_write'||
+        (retirement?exact.endpoint.type!==ep.type:exact.endpoint.type!=='read_write')||
         exact.endpoint.disabled!==false)
       throw Error('Dependent compute identity or state changed during the inspection');
     const result=await inspectEndpoint(a,c,t,ep,monitorDb,a.monitorRole);
@@ -108,7 +109,12 @@ export async function inspectRoleDeleteReadiness(a,c,{
           'roleMemberships','activeSessions'].some(k=>
           !Number.isSafeInteger(result.totals[k])||result.totals[k]<0))
       throw Error('Complete role ownership and active sessions were not verified');
-    findings.push({endpointId:ep.id,clear:result.clear,totals:result.totals});
+        if(retirement&&(!Number.isSafeInteger(result.roleOid)||result.roleOid<1||
+      !Array.isArray(result.memberships)||result.memberships.length!==result.totals.roleMemberships))
+      throw Error('Retirement requires exact role OID and complete named memberships');
+    findings.push({endpointId:ep.id,host:ep.host,type:ep.type,
+      clear:result.clear,totals:result.totals,
+      ...(retirement?{roleOid:result.roleOid,memberships:result.memberships}: {})});
   }
   const total={objectReferences:0,databaseOwnerships:0,roleMemberships:0,
     activeSessions:0};
@@ -121,7 +127,7 @@ export async function inspectRoleDeleteReadiness(a,c,{
   // PgBouncer clients; PostgreSQL pg_stat_activity cannot see them all.
   // Do not claim deletion safe before independent pooled-client evidence.
   return {verified:true,projectId:t.pid,branchId:t.bid,roleName:a.roleName,
-    monitorDatabase:a.monitorDatabase,monitorRole:a.monitorRole,
+    monitorDatabase:a.monitorDatabase,monitorRole:a.monitorRole,roleRevision:t.role.updated_at??null,
     computeIds:findings.map(f=>f.endpointId),computes:findings,
     totals:total,postgresDependenciesClear:findings.length===active.length &&
       findings.every(f=>f.clear===true)&&Object.values(total).every(x=>x===0),

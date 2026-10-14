@@ -2,13 +2,17 @@
 import {projectScope,projectClient,projectRead} from './project-context.js';
 import {defineReadTool,readId,readText} from './read-descriptors.js';
 import {roleSchema,roleName} from './role-write-shared.js';
+import {inspectRoleDeleteReadiness} from './role-delete-inventory.js';
+import {createProjectWriteContext} from '../neon/project-write-context.js';
 
 const id=x=>typeof x==='string'&&/^[a-z0-9-]{1,60}$/.test(x);
 const name=x=>typeof x==='string'&&/^[A-Za-z_][A-Za-z0-9_-]{0,62}$/.test(x);
 const required=['branchId','roleName'];
 const spec=defineReadTool('neon_role_retirement_review',
- 'Map verified Neon databases and computes affected by retiring a role; deletion remains unavailable.',
- {projectId:readId,branchId:readId,roleName:roleSchema},
+ 'Inspect retirement dependencies; pooler clearance unknown.',
+ {projectId:readId,branchId:readId,roleName:roleSchema,
+  monitorDatabase:{type:'string',pattern:'^[A-Za-z_][A-Za-z0-9_-]{0,62}$'},
+  monitorRole:roleSchema},
  {area:'roles',audience:['owner']});
 export const tools=[{...spec,profiles:['full'],
  inputSchema:{...spec.inputSchema,required}}];
@@ -22,11 +26,17 @@ function complete(data,key,limit,valid,identity){
   throw Error('Duplicated role retirement identity');
  return rows;
 }
-export function createRoleRetirementHandlers({getClient=projectClient}={}){
+export function createRoleRetirementHandlers({getClient=projectClient,
+ contextFor=createProjectWriteContext,
+ inspectDependencies=inspectRoleDeleteReadiness}={}){
  return {
   async neon_role_retirement_review(a,c){
    if(c?.connection?.profile!=='full'||!id(a?.branchId)||!roleName(a?.roleName))
     throw Error('Owner and exact role identity required');
+   const withMonitor=a.monitorRole!==undefined||a.monitorDatabase!==undefined;
+   if(withMonitor&&(!name(a.monitorDatabase)||!roleName(a.monitorRole)||
+      a.monitorRole===a.roleName))
+    throw Error('Use an exact separate monitoring database and role together');
    const scoped=projectScope(c,a.projectId??null),pid=scoped.projectId,bid=a.branchId;
    if(!pid)throw Error('An enrolled project is required');
    const supplied=await getClient(c,pid);
@@ -72,12 +82,49 @@ export function createRoleRetirementHandlers({getClient=projectClient}={}){
       idlePooledClients:'notObservable'});
    }
    const owned=dbRows.filter(d=>d.owner_name===a.roleName).map(d=>d.name);
+   let postgresDependencies='notEvaluated';
+   if(withMonitor){
+    // No SQL against the default/protected branch. A live, second-stage
+    // dependency read uses the identical B-2/B-3 and application gates
+    // as the destructive operation, but never sends a mutation.
+    if(b.branch.default===true||b.branch.protected===true){
+     postgresDependencies={state:'unavailable',reason:'protected_or_default_branch'};
+    }else{
+     try{
+      const ctx=await contextFor(c);
+      const report=await inspectDependencies({...a,
+       projectId:pid,branchId:bid,outsideApp:false},ctx,{retirement:true});
+      const matches=report?.verified===true&&report.projectId===pid&&
+       report.branchId===bid&&report.roleName===a.roleName&&
+       report.monitorDatabase===a.monitorDatabase&&
+       report.monitorRole===a.monitorRole&&report.poolerClientsVerified===false&&
+       typeof report.postgresDependenciesClear==='boolean'&&
+       Array.isArray(report.computes)&&
+       report.computes.length===detail.length&&
+       report.computes.every(row=>detail.some(x=>x.id===row.endpointId))&&
+       report.totals&&['objectReferences','databaseOwnerships',
+        'roleMemberships','activeSessions'].every(k=>
+         Number.isSafeInteger(report.totals[k])&&report.totals[k]>=0);
+      if(matches){
+       postgresDependencies={state:'observed',
+        dependenciesClear:report.postgresDependenciesClear,
+        counts:{...report.totals},
+        computeCount:report.computes.length,
+        method:'fixed_pg_catalog_and_complete_compute_sessions',
+        poolerClientsVerified:false};
+      }else postgresDependencies={state:'unavailable',
+       reason:'dependency_identity_unverified'};
+     }catch{
+      postgresDependencies={state:'unavailable',reason:'sql_or_guard_unavailable'};
+     }
+    }
+   }
    return readText({projectId:pid,branchId:bid,roleName:a.roleName,
     source:{name:b.branch.name,default:b.branch.default,
       protected:b.branch.protected},
     databasesInBranch:dbRows.length,ownedDatabases:owned,
     computes:detail,computeCount:detail.length,
-    postgresDependencies:'notEvaluated',
+    postgresDependencies,
     externalConsumers:'notVerified',
     idlePooledClients:'notObservable',
     safeToDelete:false,roleDeleteRegistered:false,

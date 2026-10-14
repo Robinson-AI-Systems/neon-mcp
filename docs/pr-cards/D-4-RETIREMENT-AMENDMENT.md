@@ -1,7 +1,8 @@
-# D-4: confirmed role retirement — proposed owner decision
+# D-4: confirmed role retirement — approved owner decision
 
-Status: PROPOSED / NOT APPROVED. This document does not register a deletion tool,
-change existing safety guards, authorize provider writes, or complete D-4.
+Status: APPROVED 2026-10-13 (owner: "I approve the change."). Source implementation is now present;
+checked deployment and real acceptance remain pending. Design approval alone does not authorize provider writes or complete D-4.
+The canonical operation is registered by the separately tested implementation.
 Owner requested independent resolution of the stalled role-deletion decision.
 Baseline: main after #130. #129 already implements read-only retirement review;
 do not repeatedly implement preparation instead of completing the capability.
@@ -30,7 +31,7 @@ contract that blocks new admissions, drains existing clients on all computes and
 returns independently verifiable completion. Do not make this the only possible
 way to implement a supported explicitly destructive administration operation.
 
-## Narrow amendment to approve
+## Approved narrow amendment
 
 The current implementation/card absolute absence-of-pooled-clients condition stays required for any
 operation advertised as nondisruptive. Add a separate confirmed-retirement path
@@ -75,7 +76,7 @@ or generic safeToDelete to true merely because the owner accepted this risk.
    maintenance consent. A maintenance window may be immediate for a disposable
    fixture; it is not an automatic scheduling or blanket production authorization.
 
-## Concrete implementation and acceptance after approval
+## Concrete implementation and acceptance
 
 Reuse #129's provider inventory and src/tools/role-delete-inventory.js; add the
 confirmed retirement tool under the original canonical role-deletion capability.
@@ -104,3 +105,8 @@ acceptance meet the amended contract. D-5 approval IN-15 remains independent.
 - https://api-docs.neon.tech/reference/deleteprojectbranchrole
 - https://neon.com/docs/connect/connection-pooling
 - https://www.postgresql.org/docs/current/sql-droprole.html
+
+Initial implementation scope: known application-owned resources still refuse, including
+outsideApp overrides, until independently verified migration evidence is available.
+This is a real usable operation for eligible unused roles; it is not a claim that
+application retirement or actual idle-pool/provider acceptance has been completed.

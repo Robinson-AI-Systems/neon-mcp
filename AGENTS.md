@@ -1,4 +1,34 @@
 # AGENTS.md — the rules. Read this first, every session.
+
+## Original Toolkit is reference-only — owner clarification 2026-10-14
+
+`Robinson-AI-Systems/robinsons-toolkit-mcp` is the historical capability reference,
+not an active implementation/deployment target. The standalone custom MCP servers
+and optional `robinsons-toolkit-hub` replace it. Do not maintain/rebuild the original,
+resume its recovery PRs, synchronize implementations back to it, or require a bridge.
+Preserve its code/history for coverage and behavioral research. When the owner chooses a new provider MCP, its implementing agent inventories the
+relevant legacy tool names, families, workflows and intended behavior, reconciles them
+with current provider contracts, and tracks coverage in THAT project's cards/index.
+The Hub stays provider-agnostic: discover/connect/authorize/route/read results for
+new contract-compatible MCP servers without provider-specific handlers or a fixed
+family list. Future services and legacy catalog parity are not Hub completion gates.
+Do not copy provider capabilities into the Hub or start speculative server projects.
+Mapped/planned is not implemented or accepted. Service autonomy and all existing
+provider/security/owner gates remain binding.
+
+
+## Efficient release-aware execution — owner instruction 2026-10-14
+
+[SESSION-START](docs/SESSION-START.md) is the consolidated session procedure;
+`npm run session:status` prints the read-only release acceptance queue and PR boundary.
+Its workflow/cadence/merge-versus-live-proof rules supersede older conflicting procedural
+wording below, but never override explicit safety or pre-merge owner/card gates.
+Use substantial cohesive outcomes; numeric production-line targets are advisory rather
+than artificial hard caps. Full mandatory checks run before publication, with focused
+checks during development. Product acceptance stays open until real evidence passes.
+The owner explicitly authorized this cross-repository guidance/tooling optimization;
+routine implementation sessions still prohibit filler/documentation-only PRs.
+
 ## Mobile and tool-unavailable connection recovery
 
 Before treating absent private-plugin tools as an acceptance blocker, follow
@@ -82,8 +112,7 @@ test recipes and remaining-work guidance. Open only the relevant section; this i
     is the current task — fix it before any new card.
 12. **Problems are not blockers.** Red CI, lint, failing tests, wrong parameters, conflicts and unclear code are yours to
     fix; stop only for a hard limit or an owner decision the current step needs (SESSION-START §6).
-13. **Thin slices, then a recovery point.** Run each slice's tests and lint before writing the next (≤ ~150 lines between
-    runs); end every turn right after a push whose resume note names the exact next action.
+13. **Thin slices, then a recovery point.** Run each slice's tests and lint before writing the next (at meaningful seams); end every turn right after a push whose resume note names the exact next action.
 14. **GitHub REST fallback when local execution is unavailable (owner directive, 2026-10-11).** Do not stall because
     this chat workspace lacks a usable checkout, terminal or local PostgreSQL. Use authenticated GitHub REST API
     operations (through `gh api` where available, otherwise the GitHub connector's REST-backed actions) for repository
@@ -164,82 +193,6 @@ and timeouts, dev-branch expiry and size, wait limits, pass lifetime, rate limit
 with a sensible starting value, explained in plain words in the tool description or setup page. Money is shown in dollars
 and cents; stored in integer cents (unit rates in integer micro-dollars).
 
-## Outcome-first development and continuation (owner directive, 2026-10-12)
-
-**Five substantial PRs is a normal session boundary, never a target that excuses incomplete work.**
-At the start of every session, verify current `main`, owned/concurrent PRs, exact-head checks,
-unresolved reviews and the latest permanent PR handoff. Follow `docs/SESSION-START.md`
-§1a to choose the **highest-priority approved eligible capability**, state the real user/
-developer outcome, and list its unmet acceptance conditions. Repair demonstrated CI,
-security, correctness or review failures before opening unrelated work. Group coherent
-implementation around that outcome; do not manufacture hardening tasks or broaden
-permission to achieve an arbitrary PR count. If a genuine external requirement prevents completing the expected batch after all
-authorized remedies and independent approved work are examined, pause for owner action;
-do not end the unfinished session or issue a continuation prompt. Existing PR-size, owner and deployment rules still govern.
-
-**A blocker for one capability is not a project-wide blocker (owner correction, 2026-10-12).**
-Before calling any operation or acceptance blocked, reproduce/investigate its root cause,
-check current code, configuration, provider/API contract, pinned dependencies,
-stale docs, CI/reviews and *already-answered* owner inputs, then implement the authorized
-fix with real tests. Missing evidence means a concrete evidence-acquisition task,
-not permission to speculate or stop. Distinguish fixable defects from genuinely
-unavailable third-party permissions, credentials, owner decisions or independent
-safety evidence. Keep every unsafe operation fail-closed and its acceptance OPEN,
-without weakening protection to manufacture success. A blocker must specify the
-attempted remedy, precise missing evidence, owner action if genuinely required,
-and a testable re-entry trigger. Review the entire approved work index and
-dependency graph for independent eligible implementation immediately; continue the
-highest-priority capability rather than ending a session or dumping a continuation
-prompt. Reopen deferred work automatically as soon as its condition is met.
-A pause requires documented evidence of the precise unavailable external requirement
-and the attempted remedies, with qualifying merges completed and remaining. Five substantial merges are a normal
-boundary; count already-merged work in the active session, never redo it or pad
-another PR to hit a number. Preserve code, automation, CI, reviews, owner gates,
-hosting/spending and scheduled release boundaries throughout.
-
-**Blockers are tracked, never silently skipped.** Record each deferred capability in
-`docs/STATUS.md`, reflect status/dependencies in `docs/pr-cards/work-index.json` and
-the active card, and include: the *specific blocker*, required external evidence/owner
-decision, dependencies, exact re-eligibility trigger and next safe action. Re-check at
-session start and immediately after relevant owner input, merge, environment/contract
-change or acceptance evidence. Promote resolved items back into the eligible queue,
-reconciling answers already recorded in `docs/OWNER-INPUTS.md`; do not re-request them.
-If an approved dependency prevents useful independent work, propose the narrowest
-dated plan amendment for owner review, **do not treat a proposal as approval**.
-
-**Four distinct evidence levels:** (1) code implemented, (2) meaningful automated
-unit/fake-provider/disposable-Postgres tests, (3) deployed behavior on a reviewed exact
-commit and environment, (4) required real owner-authorized integration/negative tests.
-Track them independently. Green CI, a reference runner, an environment configuration
-or a fake provider never proves level (3) or (4). Mark a milestone complete only when
-its actual card/design acceptance is satisfied, and leave externally blocked evidence
-clearly OPEN while advancing separately approved dependencies.
-
-At batch close, update the existing status/index/cards and leave a permanent handoff
-on the last merged PR: verified `main` SHA and checks, achieved capability, four-level
-acceptance, actionable blockers, next eligible action and a **compact paste-ready
-continuation prompt**. That prompt tells the next agent to verify actual current state,
-read these authoritative instructions/hand-off rather than copying every rule,
-re-check blockers, dynamically align the next substantive batch to a PR-number multiple of five,
-and regenerate the same handoff/prompt format. PR count is secondary to real progress.
-
-## Dynamic PR alignment and owner-assistance pause (owner directive, 2026-10-13)
-
-Normal cadence is five substantial reviewed merges. At session start inspect the latest
-assigned repository PR number, including concurrent work. If it ends in 0 or 5, plan five;
-otherwise plan the number needed to reach the next multiple of five. Recalculate whenever
-concurrent numbering changes. The final PR number must end in 0 or 5. Never pad, weaken
-checks or manufacture work to satisfy numbering.
-
-Before a blocked-batch pause, investigate the cause, implement authorized remedies and
-inspect all approved independent work and dependencies. If a genuine external requirement
-still prevents finishing, tell Chris the exact blocker, attempted remedies, secure owner
-action needed, and qualifying merges completed/remaining. Do not request raw secrets.
-Pause the same session without an incomplete-session handoff or continuation prompt.
-After owner intervention reverify state and finish that same aligned batch. If the action
-is unavailable, explain safe alternatives and ask for a decision. Every future completed-
-batch continuation prompt must carry both dynamic alignment and this pause/resume rule.
-
 ## How work is organized
 
 - **Approved designs, just-in-time cards.** Implement only approved scope (`docs/designs/BATCH-*.md`, `docs/PLAN.md`).
@@ -249,7 +202,7 @@ batch continuation prompt must carry both dynamic alignment and this pause/resum
   reviewed.
 - **Drift and reconciliation** (`docs/implementation-contracts/DRIFT-PROTOCOL.md`): checklist A before each PR, B inside
   each PR written as if it had already merged, C when a batch finishes.
-- **PR size:** prefer cohesive 450–800 production lines where justified; hard stop ~800 lines, at most one migration, one risk area. Smaller complete work units are valid.
+- **PR size:** prefer cohesive 450–800 production lines where justified; advisory size estimate, at most one migration, one risk area. Smaller complete work units are valid.
   (PLAYBOOK Step 3a).
 - **Model:** whichever model Chris selected does the work. Sol 5.6 is the routine implementer: light effort for an
   already-tested pattern (a new read tool), medium for the safety layer, guards, SQL, keys, passes, or anything

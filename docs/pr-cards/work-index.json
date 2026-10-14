@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-10-13",
+  "updated": "2026-10-14",
   "order": [
     "A",
     "B",
@@ -15,7 +15,7 @@
     "E",
     "X"
   ],
-  "process": "Just-in-time cards from approved designs; each card runs the drift protocol and updates this index as if merged.",
+  "process": "Just-in-time cards from approved designs; each card runs the drift protocol and updates this index as if merged. Session execution and queued deployed acceptance follow docs/SESSION-START.md.",
   "cards": [
     {
       "id": "A-1",
@@ -471,9 +471,10 @@
         54,
         55,
         57,
-        58
+        58,
+        141
       ],
-      "note": "All 12 tools plus provider-approved history comparison and advanced branch create verified by exact-head and post-merge CI through #58; protected/production/spend gates retained. Live scratch X-3 separate."
+      "note": "All 12 tools plus provider-approved history comparison and advanced branch create verified by exact-head and post-merge CI through #58; protected/production/spend gates retained. Live scratch X-3 separate. #141 live provider owner subscription attestation for project-key B-4 branch creation with pricing/no-org-key test; external scratch acceptance pending."
     },
     {
       "id": "D-3",
@@ -535,9 +536,11 @@
         85,
         86,
         88,
-        129
+        129,
+        142,
+        150
       ],
-      "note": "D-4 scoped reads #65, guarded database lifecycle #67, role create/reset #68–#69, connection metadata/one-time delivery #70, transactional read-only grants #71–#72, role dependency probes #73–#74, SQL/contract security corrections #75. #76 strengthens PostgreSQL dependency evidence: strict integer/OID/reference validation, verified READ ONLY transaction and stable two-sample activity. Public role delete deliberately unregistered: independent idle PgBouncer client proof unavailable; no live scratch or production acceptance. Do not advance D-5 or claim pooled-client clearance. #83 closes a private compute-reread race: require type=read_write at second independent GET, not just initial inventory; type changes abort before SQL. Pooled-client proof and public deletion remain blocked. #85 hardens private deletion proof by refusing duplicate compute IDs, database names and role names before SQL; no role delete publication, pooled-client clearance or live acceptance. #86 only encrypts/delivers a read-only role password after successful grant evidence; grant or delivery uncertainty remains pending with no automatic retry. Pooled clients unverified. #88 defers ordinary role create/reset password handoffs until operations and provider role/revision readback; uncertain results PENDING, no secret handoff. #129 adds owner-only provider-verified role retirement impact inventory, with safeToDelete false, without claiming pooler client visibility, registering role deletion, or modifying credentials."
+      "note": "IN-16 approves confirmed retirement (D-4-RETIREMENT-AMENDMENT.md). Canonical role delete now implements exact one-use owner/connection/role/OID/revision preview, dependency checks and explicit unknown-pooled-client interruption consent. Known app-owned migration evidence and real checked-deployment/provider/idle-pool acceptance remain open. Do not infer pooler absence or widen production/protected/spend gates. D-5 approval remains independent. #142 opt-in guarded PostgreSQL dependency evidence for read-only role retirement review; never infer pooled client absence or deletion eligibility. #150 addresses checked-release D-4 self host direct/pooler admission with strict shared canonicalization and owner-only safe diagnostic codes; live custom write preview and actual role retirement remain open."
     },
     {
       "id": "D-5",
@@ -560,9 +563,12 @@
         126,
         127,
         128,
-        130
+        130,
+        137,
+        139,
+        140
       ],
-      "note": "IN-15 owner-approved independent D-5; existing D-4 scoped verified connection prerequisites still required. #126 registers guarded read-only SQL; seven other D-5 tools remain. D-4 role deletion remains blocked, unregistered; no pooled-client-absence proof or real SQL acceptance implied. #127 adds safe SQL EXPLAIN (ANALYZE only verified read-only SELECT) and fixed current-database session/wait inventory; live acceptance open. #128 exposes safe scoped pg_stat_statements aggregates without SQL bodies or automatic extension installation; real provider proof remains open. #130 publishes B-1 owner-audited query cancellation on one bound backend PID with independent end-state readback; no cross-database cancel, session termination, or live provider write acceptance."
+      "note": "IN-15 owner-approved independent D-5; existing D-4 scoped verified connection prerequisites still required. #126 registers guarded read-only SQL; seven other D-5 tools remain. D-4 role deletion remains blocked, unregistered; no pooled-client-absence proof or real SQL acceptance implied. #127 adds safe SQL EXPLAIN (ANALYZE only verified read-only SELECT) and fixed current-database session/wait inventory; live acceptance open. #128 exposes safe scoped pg_stat_statements aggregates without SQL bodies or automatic extension installation; real provider proof remains open. #130 publishes B-1 owner-audited query cancellation on one bound backend PID with independent end-state readback; no cross-database cancel, session termination, or live provider write acceptance. #137 extends safe read-only planning to UPDATE/DELETE/INSERT/MERGE with fixed nonexecuting EXPLAIN; ANALYZE writes forbidden; live SQL test after checked release still required. #139 public owner-guarded exact SQL rehearsal on disposable child uses existing B-3/B-4 safety, confirmed cleanup and scoped token; no paid live preview executed. #140 owner-only confirmed SQL single and atomic multi-change with B-3 audit, development expected-row rollback, mandatory read-only independent postcondition, production exact preview token and WAL; CI and real acceptance separated."
     },
     {
       "id": "D-6",
@@ -573,14 +579,27 @@
         "D-5"
       ],
       "card": "docs/pr-cards/D-6.md",
-      "status": "PLANNED",
+      "status": "IN_PROGRESS",
       "migration": "none",
       "budget": 500,
       "units": [
         "D-6"
       ],
-      "readiness": "WRITE_CARD_AT_START",
-      "ownerInputs": []
+      "readiness": "READY",
+      "ownerInputs": [],
+      "pr": [
+        143,
+        144,
+        145,
+        146,
+        147,
+        148,
+        151,
+        154,
+        155,
+        158
+      ],
+      "note": "Four of the planned D-6 schema inspection reads implemented with provider-bound SQL, bounded catalog metadata and genuine disposable Postgres tests; external custom SQL acceptance requires checked deployment, remaining schema/health tools pending. #144 full cross-schema name search and 8-kind object inventory; fixed SQL and real PostgreSQL fixtures, live custom read pending. #145 adds selected fifteen PostgreSQL health read checks with per-check observed/incomplete/unavailable evidence, real disposable PG tests; live custom acceptance pending. #146 bounded generated TypeScript/Zod row types from fully observed catalog metadata; exact B-3 direct target with safe JSON scalars and real Postgres proof; hosted read pending. #147 adds clearly non-executable structural DDL from fully verified PostgreSQL table/key metadata with real PG tests; never claim complete restorable DDL. #148 adds guarded read-only stats/leading-index review-only CREATE INDEX candidates for caller-chosen columns; exact-head CI and live service remain distinct. #151 adds owner-confirmed guarded six-extension development-only install/upgrade; production, extension deletion and provider acceptance pending. #154 development-only dependency-reviewed RESTRICT extension removal; production/provider acceptance and index maintenance open. #155 development ordinary concurrent index create/drop, source/CI and live acceptance separated; advanced/production modes and vacuum remain open. #158 D-6 guarded non-FULL table VACUUM ANALYZE; custom owner acceptance queued."
     },
     {
       "id": "D-7",
@@ -638,9 +657,11 @@
         96,
         104,
         105,
-        114
+        114,
+        136,
+        138
       ],
-      "note": "Independent D-1 dependency satisfied. #89 read-only, project/org-verified JWKS inventory with duplicate/foreign denial and URL-query credential redaction; no mutations, no external acceptance; six more security tools remain. #90 adds observed-only, project/org-verified security posture: branch protection, configured network/IP/replication and trust counts; missing/unsupported RLS/login/advisor checks are explicitly unknown/not evaluated. Tests offline; real hosted acceptance and five B-1 security mutations remain OPEN. Recheck external blockers at session start; do not count PRs as acceptance. #91 adds owner-only B-1 guarded public/VPC network flags with verified before/after and lockout refusal; fake-provider CI, no live acceptance. Four guarded D-8 mutations remain. #92 implements verified-existing-Scale IP allow add/remove/replace, exact bounded preview and provider readback; three D-8 writes remain. No live acceptance. #93 adds full-owner guarded JWT issuer trust add/revoke on verified child branch with safe pinned API SDK fallbacks, exact readback. Audit level and irreversible replication remain; no live acceptance. #94 closes a JWKS authorization TOCTOU gap by rechecking exact branch default/protected/project identity immediately before POST, with adversarial regressions; provider atomic isolation and live acceptance remain unverified. #95 makes current authenticated provider organization planFor the runtime source of Scale entitlement; stale stored plan snapshots cannot override a provider downgrade/failure, with positive and adversarial tests. Live effectiveness still open. #96 makes provider-backed audit level and bounded compute replication-impact inventory visible via GET-only security review; reports existing 730h max-CU scenario but no unsupported cost/connection assurance. Root-cause-first blocker workflow codified in AGENTS and SESSION-START. Irreversible and logging writes remain gated by external evidence and explicit owner permissions. #104 reports scoped configured JWKS issuer branch/role exposure, missing/unspecified source branches and protected/default assignments without claiming real authentication/SQL role effectiveness. #105 prevents accidental erasure of future provider allowlist fields and refuses concurrent public/VPC access-flag drift, with exact readback and effectiveness warnings; real network tests gated. #114 hardens read-only security posture against malformed/extended IP allowances, missing branch scope and invalid/duplicated issuer role/audience metadata; real security effectiveness remains unverified."
+      "note": "Independent D-1 dependency satisfied. #89 read-only, project/org-verified JWKS inventory with duplicate/foreign denial and URL-query credential redaction; no mutations, no external acceptance; six more security tools remain. #90 adds observed-only, project/org-verified security posture: branch protection, configured network/IP/replication and trust counts; missing/unsupported RLS/login/advisor checks are explicitly unknown/not evaluated. Tests offline; real hosted acceptance and five B-1 security mutations remain OPEN. Recheck external blockers at session start; do not count PRs as acceptance. #91 adds owner-only B-1 guarded public/VPC network flags with verified before/after and lockout refusal; fake-provider CI, no live acceptance. Four guarded D-8 mutations remain. #92 implements verified-existing-Scale IP allow add/remove/replace, exact bounded preview and provider readback; three D-8 writes remain. No live acceptance. #93 adds full-owner guarded JWT issuer trust add/revoke on verified child branch with safe pinned API SDK fallbacks, exact readback. Audit level and irreversible replication remain; no live acceptance. #94 closes a JWKS authorization TOCTOU gap by rechecking exact branch default/protected/project identity immediately before POST, with adversarial regressions; provider atomic isolation and live acceptance remain unverified. #95 makes current authenticated provider organization planFor the runtime source of Scale entitlement; stale stored plan snapshots cannot override a provider downgrade/failure, with positive and adversarial tests. Live effectiveness still open. #96 makes provider-backed audit level and bounded compute replication-impact inventory visible via GET-only security review; reports existing 730h max-CU scenario but no unsupported cost/connection assurance. Root-cause-first blocker workflow codified in AGENTS and SESSION-START. Irreversible and logging writes remain gated by external evidence and explicit owner permissions. #104 reports scoped configured JWKS issuer branch/role exposure, missing/unspecified source branches and protected/default assignments without claiming real authentication/SQL role effectiveness. #105 prevents accidental erasure of future provider allowlist fields and refuses concurrent public/VPC access-flag drift, with exact readback and effectiveness warnings; real network tests gated. #114 hardens read-only security posture against malformed/extended IP allowances, missing branch scope and invalid/duplicated issuer role/audience metadata; real security effectiveness remains unverified. Optional verified direct database RLS read-only posture is implemented: per-schema aggregate catalog coverage, strict incomplete/unknown distinction; hosted SQL acceptance blocked until checked deployment applies independently sourced self-database identities. No policy-effectiveness claim. #138 owner-confirmed verified lowering of audit logging (no increases) is registered and fake-provider tested; live effects/costed increases still gated."
     },
     {
       "id": "D-9",
@@ -651,14 +672,20 @@
         "D-8"
       ],
       "card": "docs/pr-cards/D-9.md",
-      "status": "PLANNED",
+      "status": "IN_PROGRESS",
       "migration": "none",
       "budget": 350,
       "units": [
         "D-9"
       ],
-      "readiness": "WRITE_CARD_AT_START",
-      "ownerInputs": []
+      "readiness": "READY",
+      "ownerInputs": [],
+      "pr": [
+        149,
+        153,
+        157
+      ],
+      "note": "PR #149 delivers read-only migration history with exact B-3 direct identity and real PostgreSQL tests; custom deployed acceptance pending. Data compare and reindex remain open. #153 bounded count/fingerprint branch comparison; point-in-time and concurrent reindex remain open. #157 D-9 guarded INDEX/TABLE concurrent development reindex, real provider acceptance queued."
     },
     {
       "id": "V-1",
@@ -671,7 +698,7 @@
         "D-6"
       ],
       "card": "docs/pr-cards/V-1.md",
-      "status": "PLANNED",
+      "status": "IN_PROGRESS",
       "migration": "dev_runs",
       "budget": 450,
       "units": [
@@ -680,7 +707,11 @@
       "readiness": "WRITE_CARD_AT_START",
       "ownerInputs": [
         "IN-12"
-      ]
+      ],
+      "pr": [
+        160
+      ],
+      "note": "V-1 source: create expiring project-key-scoped run-owned dev branches, list runs, cleanup recorded branches with B-1/B-4 and fresh guard/provider/DB proof. Custom hosted acceptance and optional aged-run sweep remain open."
     },
     {
       "id": "V-2",

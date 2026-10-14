@@ -1,3 +1,495 @@
+## October 14 release acceptance ancestry repair
+
+Repinned pending acceptance to independently verified merged implementation commits
+from the corresponding reviewed PRs after squash merges removed the original source
+pins from main ancestry. All existing procedures, gates, dependencies and PENDING
+states remain intact. This makes an applicable release eligible for verification;
+it is neither deployed proof nor a provider acceptance pass. Every updated pin is
+an ancestor of independently observed current main.
+
+### Workflow maintenance handoff — owner publication approved
+
+New offline session utility: eight behavioral tests passed, including actual Git ancestry, partial releases, unknown/failed deployments, rollback, dependency gating, invalid queues, PR alignment and bounded output. All repository queues validate. Existing source/status evidence is preserved; no provider acceptance or release was performed. Owner explicitly approved publication on October 14; publish the reviewed maintenance branch, require exact-head CI/reviews, and merge only when those gates pass. No extra production release is authorized by this approval. Full broad application suites on the shared runner were interrupted after resource/time-limit failures; do not claim them passed. Existing exact-head remote CI/review gates must pass before any main merge.
+
+## Release acceptance queue — workflow optimization 2026-10-14
+
+Owner-authorized guidance/tooling maintenance: consolidated session procedure, focused
+checks between meaningful edits, substantial capability grouping, and read-only queued
+acceptance/PR-boundary report. This records source/tooling work, not a live/provider pass.
+The queue below seeds existing outstanding obligations; reconcile exact scenarios and
+already-proven evidence from the unchanged cards/ledger before running. Keep all prior
+open obligations, original fixture ownership, approvals and deployment provenance.
+
+<!-- release-acceptance:start -->
+```json
+[
+  {
+    "id": "NEON-D4",
+    "priority": 1,
+    "requiredRevision": "b7d95d51e8ebad0491165f3160fd0e49401e7da7",
+    "task": "Complete authorized D-4 scratch acceptance, independent readbacks and exact fixture cleanup",
+    "procedure": "docs/pr-cards/D-4.md",
+    "gates": "Existing IN-06 isolated scratch enrollment and operation-specific guards",
+    "dependsOn": [],
+    "status": "PENDING",
+    "lastEvidence": "Existing ledger/card remains authoritative; current live/provider acceptance must be reconciled at session start. Seed revision conservatively includes reviewed current main."
+  },
+  {
+    "id": "NEON-D6",
+    "priority": 2,
+    "requiredRevision": "b7d95d51e8ebad0491165f3160fd0e49401e7da7",
+    "task": "Verify deployed D-6 concurrent-index preview/apply/recovery/refusals using authorized scratch fixtures",
+    "procedure": "docs/pr-cards/D-6.md",
+    "gates": "Non-production direct connection, ownership and exact cleanup; no production SQL",
+    "dependsOn": [],
+    "status": "PENDING",
+    "lastEvidence": "Existing ledger/card remains authoritative; current live/provider acceptance must be reconciled at session start. Seed revision conservatively includes reviewed current main."
+  },
+  {
+    "id": "NEON-D9-REINDEX",
+    "priority": 3,
+    "requiredRevision": "6cd2a26a870c2041918bff0c30e31d2a7ecc983f",
+    "task": "Run authenticated custom development INDEX/TABLE REINDEX CONCURRENTLY, independent valid/ready readback, scope denials and exact fixture recovery",
+    "procedure": "docs/pr-cards/D-9.md",
+    "gates": "Original approved scratch isolation, direct exact PostgreSQL target, full-owner B-1 confirmation, production OFF and zero autonomous spending",
+    "dependsOn": [],
+    "status": "PENDING",
+    "lastEvidence": "Implementation branch source pending required CI and merge; no deployed custom acceptance. Revision pinned to implementation commit."
+  },
+  {
+    "id": "NEON-D6-VACUUM",
+    "priority": 3,
+    "requiredRevision": "aa97d4ea342f5c926cadb9ba323321974fb6928d",
+    "task": "Owner-authenticated custom development VACUUM ANALYZE on a disposable regular PostgreSQL table; independent relation readback, protected/production denials, fixture cleanup",
+    "procedure": "docs/pr-cards/D-6.md",
+    "gates": "Full-owner B-1 confirmation, exact scratch direct target, production OFF, self/app/protected exclusions and zero autonomous spending",
+    "dependsOn": [],
+    "status": "PENDING",
+    "lastEvidence": "Source implementation and disposable PostgreSQL tests proposed in PR #158; exact-head CI and genuine deployed custom-owner SQL acceptance not yet complete."
+  },
+  {
+    "id": "NEON-V1-RUNS",
+    "priority": 4,
+    "requiredRevision": "9da7d741276084da46850ee1e247678add153a16",
+    "task": "Validate custom isolated dev run branch expiry/annotation/compute, B-4 source-confirmed owner spending gate, durable run read, exact cleanup and foreign-run/production denials",
+    "procedure": "docs/pr-cards/V-1.md",
+    "gates": "Checked release containing PR #160; separately approved isolated scratch; full owner and independent protected/app/production guards; no unattended spending",
+    "dependsOn": [],
+    "status": "PENDING",
+    "lastEvidence": "PR #160 code and local/CI evidence only; Code was implemented at 4da1abb; hosted acceptance remains unavailable until a normal checked release."
+  }
+]
+```
+<!-- release-acceptance:end -->
+
+## D-6 ordinary concurrent index lifecycle — PR #155
+
+Implemented confirmed development CREATE/DROP INDEX CONCURRENTLY with exact
+verified direct target, complete table/column/index catalogs, ordinary B-tree
+scope, constraint/unique/expression/partial-index refusal, fresh production,
+protected and app ownership checks, bounded session timeouts and durable audit.
+Index bytes/scans are observed preview evidence; changing counters do not alter
+resource identity. Independent readback verifies columns/validity/readiness or
+absence. Uncertain operations remain pending with optional observation-only
+recovery evidence; no automatic retry or invalid-index deletion. Tests cover
+both writes through all service doors and actual PG concurrent lifecycle.
+
+Session checkpoint source: #151–#155, including inherited release recovery
+#152. Final exact-head CI and post-merge main checks must be verified before
+claiming the aligned batch complete. Deployment remains separately at #148
+until a normal checked release; production OFF and autonomous spending $0.
+
+## #154 PostgreSQL dependency correction
+
+Actual PG17 exposed fifteen hstore implementation dependencies after fixture
+removal: the initial direct-member query incorrectly treated automatically/
+internally owned extension objects as external consumers. Fixed catalog traversal
+now follows INTERNAL/AUTO ownership transitively, excludes that owned closure,
+and still blocks NORMAL consumers and explicit AUTO_EXTENSION routines. Real
+fixture covers scalar and array hstore columns, preserved records, dependency
+refusal and an empty owned-only dependency view before RESTRICT removal.
+No CASCADE, production access or consumer-absence inference introduced.
+
+## D-6 dependency-reviewed development extension removal — PR #154
+
+Added full-owner B-1 confirmation/audit, exact target revalidation, observed
+external dependency preview and AST-pinned DROP EXTENSION RESTRICT. Only the
+six audited extensions, no CASCADE, production or application-owned target.
+Rechecks current classification/protection/app ownership before issuing DDL;
+PostgreSQL independently refuses remaining dependencies. Ambiguous results
+remain pending and are never blindly retried. Unit tests include every door;
+disposable PG proves actual dependent-column refusal with preserved records,
+then successful removal and independent catalog absence. Hosted acceptance
+is queued for a normal release containing #154, with fixtures and cleanup.
+
+## D-9 bounded branch data comparison — PR #153
+
+Implemented read-only counts and MD5 fingerprint comparison with two independently
+verified direct targets, matching catalogs, bounded pagination, explicit row/schema
+limits and post-read drift checks. Returns change counts, never row/key values or
+fingerprints. Non-atomic observations and checksum limitations are explicit.
+Local/CI and hosted acceptance remain separate. After #153 is READY, run custom
+scratch comparisons and denial/readback checks; no provisioning or production
+activation implied. Continue eligible D-6 schema maintenance while releases wait.
+
+## Release follow-up queue — October 14 session
+
+| Capability | Minimum source | Run as soon as that revision is READY | Last evidence / gates |
+| --- | --- | --- | --- |
+| D-4 scratch retirement | merged #150 | Verify deployed SHA and custom identity; branch-create dryRun; resume approved isolated fixture/consent/refusal/delete cycle, independent role absence, fresh authentication denial and cleanup | READY #148 only; original scratch baseline preserved; existing IN-06/IN-16 approvals, production OFF, spending $0 |
+| D-6 extension workflow | merged #151 | Custom full-owner write preview, scoped install/update, catalog readback, protection/production denials and fixture cleanup | Local/CI tracked separately; no hosted mutation performed |
+| D-6 schema/type/health and D-9 history | merged #149 or newer | Verify exact direct scratch SQL target; bounded read acceptance for types, DDL sketches, health/index advice and migration history | Source tests only; protected/self-resource and read gates remain |
+| D-6 extension removal | merged #154 | Custom dependency preview, refusal with dependent fixture, authorized RESTRICT removal, independent absence and cleanup | Source/CI separate; same full-owner, protected, production and $0 gates |
+| D-6 index lifecycle | merged #155 | Custom previews, authorized isolated concurrent create/drop, independent validity/absence, protected/production refusals and cleanup | Source/CI distinct; ordinary development B-tree only; no automatic invalid-index cleanup |
+| D-9 branch comparison | merged #153 | Custom two-target read-only count/fingerprint comparison, incomplete/identity refusals and unchanged fixture readback | Source/CI distinct; no raw values; point-in-time provisioning still gated |
+| Daily release recovery | merged #152 | Inspect future scheduled event, once-per-Denver-day marker, exact-main checks and live/READY alias readback | #152 source merged; October 14 receipt already exists at #148, so later same-day backups must skip |
+
+This is planned release-dependent acceptance; continue eligible implementation.
+Update rows after every observed release and acceptance run. No manual release implied.
+
+## D-6 development extension workflow — PR #151
+
+Owner-confirmed install/upgrade of six audited extensions, durable B-1 audit,
+exact direct SQL identity and independent version readback. Rechecks provider
+classification, protected resources and application ownership immediately before
+DDL. Disposable PostgreSQL installation, update, rollback and all three transport
+write contracts verify source behavior; custom hosted acceptance awaits the normal
+checked release. Preserves #150 D-4 correction and #152 release repair.
+Production OFF; autonomous spending $0.
+
+<!-- Current repair also records no-change daily receipts: backups cannot publish later same-day development after a successful no-op. -->
+## October 14 owner-requested daily release recovery repair — current
+
+Owner request on October 14: investigate and repair missed daily releases across the MCP repositories and Appliance Desk, including the quoted owner-run checked recovery. This supersedes the prior scheduled-only/no-new-trigger restriction for missed-event recovery only. Primary 00:01 Denver remains; retries are 00:17, 01:17 and 05:37 Denver plus 12:43 UTC. Explicit recovery defaults OFF and requires both the original actor and the triggering actor to be christcr2012, main, true recovery input and elapsed midnight. Every path retains successful exact-main CI, ancestry, atomic once-per-Denver-day receipt and independent readback. No production-provider activation, spending, force push or preview build is authorized.
+
+Local release safety tests pass. Merge requires exact-head application CI and review resolution. Source repair is separate from observed schedule execution and Vercel READY/alias proof; inspect actual daily run and receipt, do not equate main/live drift after a release with failure. These infrastructure PRs do not replace the existing substantive implementation batch.
+
+## #150 — D-4 checked-release self-endpoint alias recovery (source/CI; live pending)
+
+October 14 checked daily main-to-live promotion reached merged #148 and Vercel
+production READY at that exact source revision. The saved Production
+`NEON_MCP_SELF_ORG_ID`, `NEON_MCP_SELF_PROJECT_ID` and
+`NEON_MCP_SELF_ENDPOINT_HOST` now predate the READY deployment.
+Authenticated custom scratch project/branch reads succeeded; however a
+non-mutating `neon_branch_create` preview on the approved run-owned,
+nondefault 0.25-CU scratch candidate **still failed** with the previous
+generic account-details error before any spend or provider mutation.
+No branch or role was created, no consent issued and no deletion accepted.
+
+A concrete potential root cause in the deployed implementation is that
+`configuredSelfResource` compared a saved direct endpoint host literally
+against `DATABASE_URL`, while the guarded SQL self-database protection
+already treats Neon's exact `-pooler` alias as the same endpoint. #150
+centralizes strict canonicalization for these two safety boundaries, refuses
+invalid/lookalike hosts and missing/mismatched identity, and returns only
+fixed configuration-reason codes to authenticated full owners; no secrets
+or internal hosts. Unit tests prove direct/pooler compatibility and all
+self-protection refusals. This is a hypothesis pending a future checked
+scheduled deployment and fresh custom-service preview, NOT confirmed repair.
+If still refused, use the safe code to reconcile protected Vercel Production
+settings without exposing credentials. D-4 destructive owner-approved X-3
+tests and independent denial/readback/cleanup remain open. Production writes
+OFF, autonomous spending $0, existing approval preserved, no unscheduled deploy.
+
+## D-9 review correction — PR #149
+
+Review findings addressed: central bounded PostgreSQL identifier quoting,
+repeated Prisma migration attempts preserved, failed/rolled-back attempts
+excluded from applied-name matching, and explicit recovery guidance for failed
+Prisma migrations. New tests distinguish repeated attempts from applied status.
+Review resolution, exact-head CI and live custom acceptance remain separate.
+
+## D-9 verified application migration history — PR #149
+
+Registered `neon_schema_list_migrations` with safe bounded read-only
+metadata from PostgreSQL's five recognized migration tracking tables:
+Prisma, Drizzle, Knex, Flyway and golang-migrate. Discovery and all history
+reads use exact direct five-resource connection, B-3 read admission and
+protected/production constraints; only recognized status/name/time fields
+are fetched, never migration logs, source SQL or application records.
+Prisma failed/rolled-back entries and Flyway failures remain visible; missing
+expected names are reported only for comparable name-based systems (not
+Drizzle hashes or golang-migrate numeric versions). All catalogs and histories
+must be complete; partial, unknown and overlong data fail closed. Fake
+provider and disposable PG fixtures test readback and no data mutation.
+This is code/CI proof only; custom deployed acceptance remains pending.
+
+## D-6 evidence-backed non-executing index advice — PR #148
+
+Registered `neon_health_suggest_indexes` to evaluate explicitly selected one-to-three
+table columns against verified, bounded PostgreSQL table scan statistics and
+actual leading-index metadata. A complete exact project/branch/endpoint/
+database/role and unpooled host is required before two fixed B-3 SELECTs.
+Only a cumulative high-sequential-scan observation with no existing leading
+index can produce a review-only `CREATE INDEX CONCURRENTLY IF NOT EXISTS`
+candidate. Invalid schema/table/columns, missing or incomplete catalogs,
+unknown counts, identity mismatch and system schemas fail closed. Does not
+inspect query text, application rows, values or issue DDL. The caller must
+independently examine actual query predicates, selectivity, maintenance costs
+and existing composite indexes before a separately gated write. Unit/fake
+provider and disposable PostgreSQL 17 tests added; exact-head CI and custom
+live SQL acceptance must be verified separately. No autonomous spending or
+production writes enabled.
+
+## D-6 guarded structural PostgreSQL DDL inspection — PR #147
+
+`neon_schema_get_ddl` now constructs explicitly non-executable CREATE TABLE
+structural sketches from verified catalog columns and key constraints, for
+one regular table or up to twenty in a chosen schema. Every section requires
+complete fixed bounded SQL reads, exact direct five-resource connection and
+existing B-3 protected/production read admission. Absent or malformed catalogs
+fail closed. The response explicitly lists missing defaults, checks, secondary
+indexes, generated expressions, triggers, grants, RLS and partition semantics;
+it is not falsely marketed as a restorable backup or ready migration. Real
+PostgreSQL and fake-provider tests cover quotation, key metadata and no data
+changes. Custom deployed SQL proof remains separate; no manual live promotion.
+
+## D-6 verified generated TypeScript and Zod row schemas — PR #146
+
+The registered `neon_schema_generate_types` tool reads a verified
+non-system schema through existing fixed B-3 catalog SELECTs and
+returns copyable TypeScript row interfaces or Zod object validators
+for up to twenty tables. Selection and every column are independently
+read; absent tables, truncated inventories, malformed or duplicate
+columns, colliding export names and oversized output fail closed.
+No application row values, database defaults or migration SQL are
+fetched or copied. Type mappings reflect JSON-facing values:
+numeric/bigint/date-time as strings; JSON, domain/enum and bytea
+uncertainties use `unknown` rather than fabricated precision.
+Column and model names are escaped/validated, never injected as SQL.
+Fake-provider tests verify exact project/branch/compute/database/role
+and unpooled host, syntax/nullable semantics and adverse catalogs.
+Disposable PostgreSQL 17 tests generate type declarations and Zod
+validators from a real table without changing records.
+Production writes and spending remain OFF; custom hosted SQL/type
+acceptance still awaits the checked normal release.
+
+## D-6 15-check PostgreSQL health diagnostics — PR #145
+
+Implemented registered owner/operator `neon_health_check`, offering
+15 individually selected fixed catalog/statistics reads and five quick
+defaults: database size, cache hit, current connections, transaction-ID
+age and invalid indexes. Other checks cover locks, wait events,
+long-running sessions without query text, dead tuples, autovacuum,
+index scan indicators, candidate duplicate indexes, replication slots,
+user-table sizes and sequential/index scan counts. Uses independently
+verified exact project/branch/compute/database/role and direct host,
+B-3 read-only SQL, stored maxRows, owner production-read switch and
+protected/self-resource refusal. Each result states observed,
+incomplete or unavailable; aggregate allObserved never labels partial
+data as healthy. Checks are sequential to avoid waking parallel
+compute sessions. Disposable PostgreSQL 17 and fake provider tests
+validate query guards, real size/connection/catalog reads and no
+data changes. No live provider SQL or production setting was changed.
+Live custom connector acceptance is pending checked daily release.
+
+## D-6 searchable schema catalog — PR #144
+
+Two additional approved read-only schema tools provide cross-schema
+table/column name search and an eight-kind object inventory: views,
+materialized views, function signatures, enums, sequences, triggers,
+RLS policies and database-wide publications. Every query is an AST-safe
+reviewed pg_catalog SELECT with bound caller text and the existing
+exact five-part provider identity, unpooled direct endpoint, protected
+resource policy, 15-second B-3 read limit, production-read switch and
+owner maxRows. Incomplete catalogs do not count as fully enumerated.
+PostgreSQL 17 disposable tests create actual view/type/function/sequence/
+policy artifacts and verify hostile SQL-like search strings remain
+values, not statements. No table records, source body, policy predicates,
+Neon writes or paid resource actions were performed. Live custom SQL
+acceptance remains pending a checked normal release.
+
+## D-6 schema inventory and table inspector (PR #143, CI and real acceptance separate)
+
+Implemented the first four approved schema tools: schemas, tables with
+physical size/row estimates and RLS flags, table column/index/constraint/
+RLS-policy metadata, and installed/available extensions. Every query is
+fixed catalog SQL with positional identifier binding, AST-proven
+read-only B-3 execution, five provider identity checks and direct host
+verification. PostgreSQL 17 fixture tests cover real table/index/RLS and
+identifier injection; unit tests cover truncation, fixed SQL and denied
+foreign endpoints. No application row data, policy expressions or default
+secrets are read. Live SQL is not claimed until checked deployment and
+custom-service readback. D-6 remaining work is tracked on its work card.
+
+## #142 — owner opt-in real PostgreSQL role dependency evidence
+
+The existing role retirement review now accepts a paired exact monitor
+database/role, and—only for nondefault, unprotected branch selection—uses
+the same fixed PostgreSQL dependency inventory, B-2/B-3 resource/app/
+production read guard and provider identity checks as the delete preview.
+Only identity-correlated aggregate ownership, membership and active session
+counts from complete computes are exposed. Missing access or drift reports
+`unavailable`, never zero. Despite clean PostgreSQL counters, hidden
+managed-pool clients and external application credentials remain unknown,
+so `safeToDelete:false` and no implicit deletion authorization remain.
+No provider SQL mutation, compute wake-up or fixture creation occurred.
+Check exact-head automated and real scratch acceptance separately.
+
+## #141 — live plan attestation enables project-scoped scratch pricing
+
+The custom project's enrollment is complete, but its branch-creation dry-run
+failed account-plan verification even though the owner approved run-owned D-4
+fixtures. Neon's pinned `getProject.owner` schema includes exact
+subscription_type and branches_limit, and real scratch provider read verified
+Launch V3. This PR lets B-4 price from authenticated owner/org/project bound
+live `launch(_v3)` or `scale(_v3)` evidence without requiring an additional
+organization key. Conflicting verified durable plan, unknown pricing family,
+missing owner identity, limits, or policy still fail closed. Spend caps,
+pricing source/date, owner confirmation, branch and compute protection and
+production gates are unchanged. No real branch, role or paid compute created.
+Actual scratch acceptance awaits a checked deployment and independently
+approved metered resource price if applicable.
+
+## IN-06 owner authorization and custom acceptance reconciliation (2026-10-13 Denver)
+
+Permanent PR #138 comments confirm owner-approved dedicated `neon-mcp-scratch`,
+its separate default scratch-baseline database/role, and subsequent secure
+project-scoped key enrollment. Live custom `neon_whoami` verified seven
+enrolled keys, full-owner preview profile, production OFF; complete
+`neon_project_list` independently resolved scratch. Custom `neon_branch_list`
+found only the default scratch-baseline, with `neon_role_list` showing only
+scratch_owner. No run-owned child branch or target role exists yet; **no actual
+role deletion or cleanup has occurred**. Attempted custom
+`neon_branch_create` dry-run failed `Could not read account details; check
+server setup`: a project-scoped key cannot currently verify plan-cost
+prerequisites, so a billable write is denied before execution. This is a
+narrow plan-verification/spending gate, not revoked fixture authorization.
+Do not modify baseline; never bypass cost guard or imply idle pooled clients
+were observed. Investigate provider contract/selected-key plan source and
+continue independent eligible PR implementation. D-4 custom acceptance stays
+open until approved nondefault branch is present, actual role fixture
+tested and both independent role/readback and branch cleanup verified.
+
+## D-5 guarded SQL execute and atomic batch — PR #140
+
+`neon_sql_execute` and `neon_sql_execute_transaction` now expose the
+private B-3 transactional apply path under B-1 full-owner destructive
+confirmation/audit. Every statement has a checked PostgreSQL AST root
+and bounded expected affected rows. A separate exact provider-verified
+read-only SELECT assertion must pass after the transaction. The core
+runner passes verified endpoint/host to the direct driver and rolls
+back development mismatches before COMMIT; production requires owner
+activation, one-use exact isolated preview token, durable WAL restore
+point, spend admission and confirmation. Failed/ambiguous COMMIT or
+postcondition is pending, never blindly replayed. No actual database
+write, autonomous spend or manual release was performed; live acceptance
+requires a separately authorized isolated scratch fixture and checked
+production deployment. All automated tests must pass before merge.
+
+## D-5 isolated exact SQL preview — PR #139, source/CI not live-accepted
+
+The existing B-3 disposable child branch preview is now registered as
+`neon_sql_preview_change`: exact five-part provider identity, 1–20 classified
+SQL changes, full-table acknowledgement, B-1 owner/audit/confirmation,
+B-4 atomic one-cent admission reserve, preflight and rebind, SQL row counts
+and optional schema comparison, verified child deletion, durably scoped one-use
+token. A one-cent reserve is not an independently verified Neon charge cap;
+owner separately approves metered spend and no live branch was created.
+The parent remains unmodified and any unclear cleanup cannot issue a token.
+Unit/fake-provider and check workflows required before merge; production
+writes OFF; this source-level milestone is not real connector acceptance.
+
+## D-8 guarded audit-level reduction — PR #138
+
+Registered the existing approved `neon_security_set_audit_log_level` tool
+for owner-confirmed decreases of observed Neon project audit verbosity.
+The pinned `updateProject` schema supports `settings.audit_log_level`
+(base, extended, full). No increase, unknown current state, unverified
+project/org, changed non-audit security settings, failed independent
+provider readback or absent B-1 production/app approval can confirm the
+operation. The preview warns that reduced audit detail may impair security
+investigations/compliance; no price upgrade, production activation, spend
+reservation or real provider mutation was invoked during development.
+Provider-contract fake-Neon and write lifecycle tests validate POST/PATCH
+and refusal conditions; CI required. Real effect and audit delivery remain
+unverified until separately authorized owner acceptance.
+
+## D-5 safe DML EXPLAIN — PR #137 implementation and CI pending
+
+The existing SQL explain tool now supports approved non-executing EXPLAIN of
+UPDATE/DELETE/INSERT/MERGE. Strict AST classification and fixed
+`EXPLAIN (FORMAT TEXT, ANALYZE FALSE)` are enforced both in public
+dispatch and the private B-3 SQL read admission; BEGIN READ ONLY plus owner
+protected/production SQL-read settings and direct scoped credentials remain.
+`ANALYZE:true` is rejected for all writes before any connection. Fake SQL
+tests prove no DML is sent unwrapped or executed and protected/disabled reads
+never open SQL. Real custom-service SQL acceptance remains gated on a checked
+release with exact-host self identity and a verified safe test target. No
+production writes, billable changes, preview/snapshot or deployment approval.
+
+## D-8 opt-in verified RLS catalog inspection — PR #136, acceptance pending
+
+An opt-in `rlsTarget` on `neon_security_review` uses an exact provider-verified
+branch/compute/database/role and B-3 read-only SQL policy to count per-schema
+PostgreSQL tables, enabled/forced RLS flags and tables with policies, without
+reading any application rows or table names. Absent target keeps metadata-only
+behavior. Missing permissions, identity, SQL policy, truncated catalogs and
+invalid counts remain explicitly unavailable/incomplete, never a false
+security-pass statement. JWT/auth, role effectiveness and network efficacy
+remain unverified; this is an approved D-8 partial security-review capability,
+not completed real acceptance. Test at checked deployment after CI.
+
+2026-10-13 hosted read acceptance investigation: custom project/branch and
+connection-metadata reads passed, but custom `neon_sql_query` and optional
+connection testing failed before SQL because Vercel production lacked the
+mandatory self-database identity triplet. Those three encrypted production-only
+variables have now been created using the independently inspected dedicated
+Neon MCP project, organization and direct endpoint. Their exact-host match
+against the stored DATABASE_URL remains unverified because its secret was not
+exposed. A checked scheduled deployment is required before retesting; do not
+claim fixed SQL or loosen the self-protection guard. No live provider write,
+destructive test, production enablement, paid capacity or manual release occurred.
+Scratch X-3 still requires an isolated owner-approved project and key.
+
+## D-4 confirmed retirement implementation — owner-approved IN-16
+
+Canonical neon_role_delete is registered for full owners under B-1 guards. A
+10-minute one-use durable consent reference binds the owner, connection, mode,
+exact project/branch/role, revision, PostgreSQL OID, computes and named membership
+snapshot. Dry-run preserves pooled and external-consumer visibility UNKNOWN.
+Confirmation requires the exact role name and explicit connection-interruption
+acknowledgement; a fresh complete dependency probe and atomic consent claim precede
+DELETE. Ownership, object references, visible sessions, internal/elevated roles,
+incomplete evidence and identity drift refuse. Production/protected/self-resource
+and profile gates remain. Known application-owned projects remain refused by this
+initial path even with outsideApp; actual migration verification is still required
+before such retirement is eligible. No object/database deletion, session termination,
+credential rotation, compute restart, idle wakeup or spending is implied.
+
+GET 404 plus a complete unique role listing verifies absence after operation wait.
+Provider/transport uncertainty remains pending; no automatic replay. Named role
+memberships are previewed as the inherent losses from removal, not disguised as
+proof of idle-client absence. Existing direct monitoring works despite the deprecated
+pooler-enabled flag; actual pooled URIs remain refused by the exact-host SQL boundary.
+Consent uses existing change-log preview hash/scope/expiry/claim columns with an
+explicit neon_role_delete discriminator. SQL execution cannot consume these rows.
+Unit fake-provider tests cover all service doors; disposable-Postgres tests cover
+one-use/cross-connection/expiry/concurrent/cross-tool claims. Source/CI, checked
+deployment, live isolated provider deletion and pooled-client behavior are separate.
+D-4 stays IN_PROGRESS for those real acceptance and application migration conditions.
+
+Recurring Git branch cleanup is independently VERIFIED: #133/#134 checks passed,
+#134 main cleanup run succeeded, and remote heads contain main/live/archive only.
+This infrastructure success is not custom Neon or GitHub provider acceptance.
+
+## Approved D-4 retirement and recurring branch cleanup — October 13, 2026
+
+Owner approved D-4-RETIREMENT-AMENDMENT.md (IN-16); implement the confirmed
+retirement path without claiming idle pooled clients absent or changing production
+or protected-resource gates. #131 was merged as a proposal; approval is now recorded.
+D-4 source implementation and real acceptance remain open.
+
+The reported branch-cleanup credential mismatch is not a remaining repository
+blocker: #132 completed one-time cleanup through repository-scoped Actions and
+remote inventory contains only main, live and the intentional archive. Added a
+permanent merged-PR cleanup workflow using the same repository's short-lived
+Actions token. It deletes only the exact merged ai/* head after complete open-PR
+reads, ancestry proof and an exact-tip deletion lease; preserves main/live/archive,
+open work, divergent commits and foreign/fork branches. No custom provider grant
+is widened, no PAT installed, and no Vercel build or live promotion is triggered.
+Reconcile cleanup success through its independent Actions result and remote refs.
+
 **2026-10-13 merged-branch housekeeping follow-through (PR #132):** The owner-authorized, exact-head pinned `git-housekeeping.yml` workflow is being used to preserve and prune seven merged branches from #125–#131 and the housekeeping PR's own branch. `.github/housekeeping/plan.json` adds their observed remote tips; cleanup never targets `main`, `live`, or the historical archive, checks open PRs and stale SHA leases, archives every candidate and reads the remote back. PR source/CI passing does not prove cleanup; only the main-push `preserve-and-prune` job and actual post-run branch listing can close this operation. This does not promote live or authorize any production/provider write.
 
 **D-5 single-query cancellation — PR #130:** Owner-confirmed `neon_sql_stop_query` uses the existing B-1 permission, production and audit rules, requires provider-verified direct database identity, refuses idle computes, and independently verifies the original query ended. It never ends a session or enables D-4 role deletion. Fake-provider/SQL tests are separate from checked deployment and owner-approved scratch acceptance. See `pr-cards/D-5.md`.
@@ -279,9 +771,14 @@ expiry indexes exist in code and are verified by isolated-Postgres tests. No liv
 
 ## Next
 
-- **Next: B-3 — SQL guard and preview/apply safety.** IN-09 (200-row production read-only SQL) and IN-10 ($25/change, $50/day) approved 2026-10-11, not yet applied. B-3 runner/preview/apply and B-4 spending guard remain to implement. No real-account activation.
-- **Answered 2026-10-10 (Chris):** IN-00 — plan approved ("I approve the plans"); IN-01 — **no automated review** ("I don't want the automated review at this time"); the repository stays public as Chris created it; the implementer self-reviews every diff.
-- **Queue:** A → B → C → D → V → O → P → W → U → R → E → X (`MASTER-ROADMAP.md`).
+- Reconcile actual main, open PRs/reviews and deployment with this release-follow-up queue.
+- Highest remaining approved D-6/D-9 source workflows: health vacuum/analyze and
+  concurrent index/table reindex. Advanced/production extension/index modes and
+  point-in-time data-comparison provisioning remain separately guarded scope.
+- Run every newly eligible queued custom acceptance immediately after the deployed
+  revision reaches its minimum source; release timing is planned, not a batch blocker.
+- Continue substantial cohesive implementation under the authoritative work index;
+  maintain the release queue, five-merge cadence and PR-number multiple-of-five boundary.
 
 ## Environment
 
