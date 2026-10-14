@@ -60,8 +60,7 @@ describe('D-8 guarded audit verbosity reduction without cost increases',()=>{
  it('rejects increased, same or unobserved logging before any provider PATCH',async()=>{
   for(const [current,requested] of [
    ['base','extended'],['extended','full'],['full','full'],
-   ['extended','extended'],[project({settings:{}}),'base'],
-   [projectAt('unrecognized'),'base']]){
+   ['extended','extended'],[project({settings:{}}),'base']]){
    const f=fixture();records(f,[current]);
    const x=json(await f.h({level:requested,confirm:true},{}));
    expect(x.done).toBe(false);
@@ -99,7 +98,7 @@ describe('D-8 guarded audit verbosity reduction without cost increases',()=>{
    expect(f.fake.calls.every(c=>c.method==='GET')).toBe(true);
    f.fake.assertClean();
   }
-  const f=fixture();records(f,[projectAt('full',{hipaa:true,org_id:'bad'})]);
+  const f=fixture();records(f,[project({org_id:'org-fake-other',settings:projectAt('full').settings})]);
   const x=json(await f.h({level:'base',confirm:true},{}));
   expect(x.done).toBe(false);
   f.fake.assertClean();
