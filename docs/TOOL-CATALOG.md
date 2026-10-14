@@ -135,6 +135,7 @@ D-2/D-3 post-merge security review #62: expiring protected branches are refused 
 | `neon_role_get` | Exact role metadata; privileges shown as unverified until separately authorized SQL | — | Op | R | D-4 (built #65) |
 | `neon_role_create` | New login role; its password only on the one-time page | P S | B Op | E | D-4 (built #68, verified secret handoff #88) |
 | `neon_role_create_read_only` | Scoped current SELECT and owner-specific future defaults through fixed audited B-3 SQL, one-time password; production DDL gated | C A S | B Ow | F | D-4 (built #72, hardened #75, handoff ordering #86) |
+| `neon_role_retirement_review` | Verified databases and computes relevant to retiring a role; pooled-client clearance remains unknown | — | Ow | F | D-4 (built #129) |
 | `neon_role_delete` | Gated: private global PostgreSQL dependency inventory cannot establish absence of idle PgBouncer clients; no public delete until independent pooler proof | C D Pr | Op | F | D-4 (pending) |
 | `neon_role_reset_password` | New password for a role; old one stops working; new one only on the one-time page; preview warns dependent apps | C Pr S | Op | E | D-4 (built #69, verified reset handoff #88) |
 
