@@ -6,7 +6,7 @@ const safeId = value => typeof value === 'string' &&
 
 export class SelfResourceConfigurationError extends Error {
   constructor(code) {
-    super('Server self-resource verification unavailable');
+    super('Cannot verify this server’s own Neon project; check owner configuration');
     this.name = 'SelfResourceConfigurationError';
     this.code = code;
   }
