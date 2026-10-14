@@ -1,3 +1,13 @@
+## D-9 bounded branch data comparison — PR #153
+
+Implemented read-only counts and MD5 fingerprint comparison with two independently
+verified direct targets, matching catalogs, bounded pagination, explicit row/schema
+limits and post-read drift checks. Returns change counts, never row/key values or
+fingerprints. Non-atomic observations and checksum limitations are explicit.
+Local/CI and hosted acceptance remain separate. After #153 is READY, run custom
+scratch comparisons and denial/readback checks; no provisioning or production
+activation implied. Continue eligible D-6 schema maintenance while releases wait.
+
 ## Release follow-up queue — October 14 session
 
 | Capability | Minimum source | Run as soon as that revision is READY | Last evidence / gates |
