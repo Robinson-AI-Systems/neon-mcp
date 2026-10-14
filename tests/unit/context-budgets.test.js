@@ -17,7 +17,7 @@ describe('C-2 exact BPE budgets and catalog parity',()=>{
  });
  it('rejects a schema exceeding 1500 tokens and huge listings',()=>{
   const big={...read,inputSchema:{type:'object',properties:{
-   payload:{type:'string',description:Array.from({length:3000},(_,i)=>'field-'+i).join(',')}
+   payload:{type:'string',description:Array.from({length:6000},(_,i)=>'field-'+i).join(',')}
   }}};
   expect(checkBudgets([big]).join(' ')).toMatch(/schema.*>= 1500/);
   const repeated=Array.from({length:2000},(_,i)=>({...read,name:'neon_read_'+i}));
@@ -32,6 +32,17 @@ describe('C-2 exact BPE budgets and catalog parity',()=>{
   expect(evaluateRegistryBudgets(registry,mismatched).failures.join(' '))
    .toContain('count '+(report.counts.read_only+1)+' != '+report.counts.read_only);
   expect(evaluateRegistryBudgets(registry,'outdated catalog').failures.join(' ')).toMatch(/missing implemented profile totals/);
+ });
+ it('budgets the approved everyday wire catalog while validating full-only schemas',()=>{
+  const fullOnly=Array.from({length:600},(_,i)=>({...read,name:'neon_owner_'+i,
+   profiles:['full'],inputSchema:{type:'object',properties:{value:{type:'string'}}}}));
+  const source={tools:fullOnly,handlers:{}};
+  expect(estimateTokens(fullOnly)).toBeGreaterThan(20000);
+  expect(evaluateRegistryBudgets(source).failures).toEqual([]);
+  const everyday=fullOnly.map(t=>({...t,profiles:['everyday']}));
+  expect(evaluateRegistryBudgets({tools:everyday}).failures.join(' ')).toMatch(/everyday catalog/);
+  fullOnly[0]={...fullOnly[0],description:'x'.repeat(161)};
+  expect(evaluateRegistryBudgets(source).failures.join(' ')).toMatch(/161 > 160/);
  });
  it('routes 100 realistic records into same-connection secret-free handle within 8 KB',async()=>{
   const result=await verifyDefaultFixture();

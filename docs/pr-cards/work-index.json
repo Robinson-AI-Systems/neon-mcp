@@ -678,9 +678,10 @@
       "readiness": "READY",
       "ownerInputs": [],
       "pr": [
-        149
+        149,
+        153
       ],
-      "note": "PR #149 delivers read-only migration history with exact B-3 direct identity and real PostgreSQL tests; custom deployed acceptance pending. Data compare and reindex remain open."
+      "note": "PR #149 delivers read-only migration history with exact B-3 direct identity and real PostgreSQL tests; custom deployed acceptance pending. Data compare and reindex remain open. #153 bounded count/fingerprint branch comparison; point-in-time and concurrent reindex remain open."
     },
     {
       "id": "V-1",
