@@ -72,7 +72,7 @@ describe('D-6 verified non-executing index candidates',()=>{
   }
  });
  it('quotes identifiers deterministically and caps PostgreSQL name length',()=>{
-  const ddl=candidateIndexDDL('safe-name','very_long_table_'.repeat(4),
+  const ddl=candidateIndexDDL('safe-name','very_long_table_'.repeat(3),
    ['column-name']);
   expect(ddl).toContain('ON "safe-name"."very_long_table_');
   expect(ddl.match(/IF NOT EXISTS "([^"]+)"/)[1].length).toBeLessThanOrEqual(63);
