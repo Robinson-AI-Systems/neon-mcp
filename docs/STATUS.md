@@ -1,3 +1,19 @@
+## D-6 guarded extension management — PR #150
+
+`neon_schema_enable_extension` provides owner-confirmed development-only
+installation or upgrade for six audited built-in PostgreSQL extensions.
+All B-1 protected/application/production and durable confirmation checks,
+exact five-resource direct-host identity, B-3 bounded catalog validation,
+server-constructed AST-pinned SQL and independent post-write catalog readback
+remain required. Live acceptance and extension deletion/production paths
+are still outstanding; zero autonomous spending and production writes OFF.
+
+The checked October 14 scheduled release ran around 05:12 Denver, much later
+than its correct 00:01 schedule. It created the October 14 atomic release
+marker, fast-forwarded live to `8ab1d149e9dad5966b907370889d3279af58207e`,
+and Vercel subsequently reached READY. No unapproved manual release or
+additional recurring trigger was introduced; GitHub schedules are best effort.
+
 ## D-9 review correction — PR #149
 
 Review findings addressed: central bounded PostgreSQL identifier quoting,

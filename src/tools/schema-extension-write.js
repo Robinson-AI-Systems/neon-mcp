@@ -69,7 +69,7 @@ export function createExtensionWriteHandlers({
     throw Error('Extension or target changed after owner preview');
    const result=await mutate({ctx:c,target:fresh.target,
     name:a.extensionName,update:a.update});
-   return {confirmed:result?.issued===true?'pending':'pending'};
+   return {confirmed:result?.issued===true?true:'pending'};
   },
   readAfter:async(a,c)=>observe(a,c),
   verify:async(before,after)=>JSON.stringify(before.target)===
