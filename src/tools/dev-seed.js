@@ -110,15 +110,32 @@ export function createDemoSeedHandlers({
   },
   apply:async(a,c,{before,requestKey})=>{
    const state=await targetFor(a,c,verifyTarget);
-   const chosen=chooseDemoScenario(a);
    if(requestKey!==before.requestKey||
       JSON.stringify(state)!==JSON.stringify({target:before.target,expiry:before.expiry}))
     throw Error('Run, scope or target changed after preview');
-   const plan=compileDemoSeed({
-    scenario:chosen.scenario,seed:a.seed??'demo',rowsPerTable:a.rowsPerTable??3,
-    requestKey});
-   if(plan.schema!==before.seedPlan.schema)
-    throw Error('Seed identity changed since preview');
+   let plan,verifyPlan;
+   if(before.mode==='public'){
+    if(a.sourceUrl===undefined||a.scenario!==undefined||
+       a.description!==undefined||a.seed!==undefined||
+       a.rowsPerTable!==undefined)
+     throw Error('Import source input changed since preview');
+    const source=await fetchSource(a.sourceUrl);
+    plan=compilePublicImport({source,requestKey});
+    if(plan.schema!==before.importPlan.schema||
+       plan.sourceHash!==before.importPlan.sourceHash||
+       plan.totalRows!==before.importPlan.totalRows)
+     throw Error('Public file changed after owner preview; no SQL was sent');
+    verifyPlan=verifyPublicImport;
+   }else{
+    if(a.sourceUrl!==undefined)throw Error('Expected a synthetic seed source');
+    const chosen=chooseDemoScenario(a);
+    plan=compileDemoSeed({
+     scenario:chosen.scenario,seed:a.seed??'demo',rowsPerTable:a.rowsPerTable??3,
+     requestKey});
+    if(plan.schema!==before.seedPlan.schema)
+     throw Error('Seed identity changed since preview');
+    verifyPlan=verifyDemoSeed;
+   }
    const sqlLayer=sqlFactory(c);
    const inner='rmcp_devseed_'+createHash('sha256')
     .update(requestKey).digest('hex').slice(0,40);
@@ -132,7 +149,7 @@ export function createDemoSeedHandlers({
      const observation=await sqlLayer({
       neonOrg:c.connection.neonOrg,
       projectScope:c.connection.projectScope??null
-     },state.target,async client=>verifyDemoSeed({
+     },state.target,async client=>verifyPlan({
       plan,query:async(sql,params)=>{
        const cls=await classifySql(sql);
        if(cls.kind!=='read'||cls.unknownNode===true)
@@ -152,7 +169,7 @@ export function createDemoSeedHandlers({
  });
  const tool={...definition.tool,inputSchema:schema,
   area:'developer',audience:['builder','owner'],profiles:['full'],
-  description:'Confirm a bounded 1–100 row/table synthetic demo from a name or exact description on a run-owned dev branch; verify every row.'};
+  description:'Seed synthetic demonstrations or import vetted public CSV/JSON into a new dev-only table with audited exact readback.'};
  return {tools:[tool],handlers:{
   neon_dev_seed:async(a,raw)=>definition.handler(a,await contextFor(raw))
  }};
