@@ -11,13 +11,16 @@ export const EXTENSION_STATUS_SQL='SELECT e.oid::text AS extension_oid,'+
  ' e.extversion AS installed_version FROM pg_catalog.pg_extension e'+
  ' WHERE e.extname=$1 LIMIT 2';
 export const EXTENSION_DEPENDENCIES_SQL=
- 'WITH members AS (SELECT d.classid,d.objid FROM pg_catalog.pg_depend d'+
+ 'WITH RECURSIVE members AS (SELECT d.classid,d.objid,d.objsubid FROM pg_catalog.pg_depend d'+
  ' JOIN pg_catalog.pg_extension e ON d.refclassid=\'pg_catalog.pg_extension\'::regclass'+
- " AND d.refobjid=e.oid WHERE e.extname=$1 AND d.deptype='e'),"+
+ " AND d.refobjid=e.oid WHERE e.extname=$1 AND d.deptype='e' UNION"+
+ ' SELECT d.classid,d.objid,d.objsubid FROM pg_catalog.pg_depend d JOIN members m'+
+ ' ON d.refclassid=m.classid AND d.refobjid=m.objid'+
+ " AND (m.objsubid=0 OR d.refobjsubid=m.objsubid) WHERE d.deptype IN ('i','a')),"+
  ' dependencies AS (SELECT DISTINCT d.classid,d.objid,d.objsubid'+
  ' FROM pg_catalog.pg_depend d JOIN members m ON d.refclassid=m.classid AND d.refobjid=m.objid'+
  " WHERE d.deptype='n' AND NOT EXISTS(SELECT 1 FROM members own"+
- ' WHERE own.classid=d.classid AND own.objid=d.objid) UNION'+
+ ' WHERE own.classid=d.classid AND own.objid=d.objid AND (own.objsubid=0 OR own.objsubid=d.objsubid)) UNION'+
  ' SELECT d.classid,d.objid,d.objsubid FROM pg_catalog.pg_depend d'+
  ' JOIN pg_catalog.pg_extension e ON d.refclassid=\'pg_catalog.pg_extension\'::regclass'+
  " AND d.refobjid=e.oid WHERE e.extname=$1 AND d.deptype='x')"+

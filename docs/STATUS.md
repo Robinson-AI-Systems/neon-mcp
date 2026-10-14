@@ -1,3 +1,14 @@
+## #154 PostgreSQL dependency correction
+
+Actual PG17 exposed fifteen hstore implementation dependencies after fixture
+removal: the initial direct-member query incorrectly treated automatically/
+internally owned extension objects as external consumers. Fixed catalog traversal
+now follows INTERNAL/AUTO ownership transitively, excludes that owned closure,
+and still blocks NORMAL consumers and explicit AUTO_EXTENSION routines. Real
+fixture covers scalar and array hstore columns, preserved records, dependency
+refusal and an empty owned-only dependency view before RESTRICT removal.
+No CASCADE, production access or consumer-absence inference introduced.
+
 ## D-6 dependency-reviewed development extension removal — PR #154
 
 Added full-owner B-1 confirmation/audit, exact target revalidation, observed

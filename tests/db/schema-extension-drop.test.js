@@ -16,15 +16,19 @@ const run=()=>runReviewedExtensionMutation({ctx:{db:{},connection:{neonOrg:'org-
  database:'neondb',role:'owner',pooled:false},name:'hstore',remove:true,
  sqlLayer:async(_scope,_target,fn)=>fn(client)});
 it('previews a real type dependency; RESTRICT refuses removal without dropping records',async()=>{
- await client.query('CREATE TABLE sample (id integer PRIMARY KEY, payload hstore)');
- await client.query("INSERT INTO sample VALUES (1,'a=>b')");
+ await client.query('CREATE TABLE sample (id integer PRIMARY KEY, payload hstore, multiple hstore[])');
+ await client.query("INSERT INTO sample VALUES (1,'a=>b',ARRAY['a=>b'::hstore])");
  const deps=(await client.query(EXTENSION_DEPENDENCIES_SQL,['hstore'])).rows;
  expect(deps.some(x=>x.dependent_object.includes('sample'))).toBe(true);
  await expect(run()).rejects.toThrow(/not confirmed/);
  expect((await client.query('SELECT count(*)::int AS n FROM sample')).rows[0].n).toBe(1);
  expect((await client.query(EXTENSION_STATUS_SQL,['hstore'])).rows).toHaveLength(1);
  await client.query('DROP TABLE sample');
- expect((await client.query(EXTENSION_DEPENDENCIES_SQL,['hstore'])).rows).toHaveLength(0);
+ await client.query('CREATE FUNCTION extension_consumer() RETURNS integer LANGUAGE sql AS \'SELECT 1\'');
+ await client.query('ALTER FUNCTION extension_consumer() DEPENDS ON EXTENSION hstore');
+ expect((await client.query(EXTENSION_DEPENDENCIES_SQL,['hstore'])).rows.some(x=>x.dependent_object.includes('extension_consumer'))).toBe(true);
+ await client.query('DROP FUNCTION extension_consumer()');
+ expect((await client.query(EXTENSION_DEPENDENCIES_SQL,['hstore'])).rows).toEqual([]);
  expect(await run()).toEqual({issued:true});
  expect((await client.query(EXTENSION_STATUS_SQL,['hstore'])).rows).toHaveLength(0);
 });
