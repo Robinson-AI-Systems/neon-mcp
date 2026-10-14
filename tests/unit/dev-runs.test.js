@@ -69,8 +69,8 @@ function make({allowed=true,production=false,withOwned=false,badProof=false,
    fake.when('createProjectBranch').rejects(503,{code:'',message:'Ambiguous response'});
   }else if(paginate){
    fake.when('listProjectBranches')
-    .resolves({...list([]),pagination:{cursor:'next-page'}})
-    .resolves(list([mainBranch()]));
+    .resolves({...list([mainBranch()]),pagination:{cursor:'next-page'}})
+    .resolves(list([]));
    fake.when('createProjectBranch').resolves({
     ...responses.createProjectBranch(),branch:devBranch({name:'testdev',
      protected:false,expires_at:e}),operations:[]});
