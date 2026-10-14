@@ -211,7 +211,7 @@ describe('MCP read-only boundary and known-key project scope',()=>{
       'neon_role_create',
       'neon_role_reset_password',
       'neon_role_create_read_only','neon_role_delete','neon_role_retirement_review',
-      'neon_connection_get_info','neon_connection_show_once','neon_sql_query','neon_sql_explain','neon_sql_list_activity','neon_sql_list_slow_queries','neon_sql_stop_query','neon_sql_preview_change','neon_sql_execute','neon_sql_execute_transaction','neon_schema_list_schemas','neon_schema_list_tables','neon_schema_describe_table','neon_schema_list_extensions','neon_schema_search','neon_schema_list_objects','neon_health_check','neon_schema_generate_types',
+      'neon_connection_get_info','neon_connection_show_once','neon_sql_query','neon_sql_explain','neon_sql_list_activity','neon_sql_list_slow_queries','neon_sql_stop_query','neon_sql_preview_change','neon_sql_execute','neon_sql_execute_transaction','neon_schema_list_schemas','neon_schema_list_tables','neon_schema_describe_table','neon_schema_list_extensions','neon_schema_search','neon_schema_list_objects','neon_health_check','neon_schema_generate_types','neon_schema_get_ddl',
       'neon_snapshot_list','neon_snapshot_delete','neon_snapshot_update','neon_snapshot_create','neon_snapshot_restore','neon_snapshot_set_schedule','neon_security_list_jwks','neon_security_review',
       'neon_security_set_public_access','neon_security_set_ip_allow',
       'neon_security_set_jwks','neon_security_set_audit_log_level',
