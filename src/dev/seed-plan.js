@@ -8,7 +8,7 @@ const unique=new Set(['email','slug','sku','serial']);
 const integer=c=>c==='id'||c==='quantity'||c.endsWith('_id')||c.endsWith('_cents');
 const date=c=>c.endsWith('_on');
 const safeName=/^rmcp_[a-z0-9_]{5,128}$/;
-const bound=n=>Number.isSafeInteger(n)&&n>=1&&n<=20;
+const bound=n=>Number.isSafeInteger(n)&&n>=1&&n<=100;
 const part=n=>quoteIdent(n);
 const tableName=(schema,table)=>part(schema)+'.'+part(table);
 function parentKey(table){
@@ -49,16 +49,25 @@ export function compileDemoSeed({scenario,seed='demo',rowsPerTable=3,requestKey}
  }
  for(const t of details){
   const keys=t.columns;
-  const values=t.rows.flatMap(row=>keys.map(key=>row[key]));
-  if(values.length<1||values.length>100||
-     t.rows.some(row=>JSON.stringify(Object.keys(row))!==JSON.stringify(keys)))
-   throw Error('Synthetic rows exceed parameter or column contract');
-  const tuples=t.rows.map((row,i)=>
-   '('+keys.map((_,j)=>'$'+(i*keys.length+j+1)).join(',')+')');
-  statements.push('INSERT INTO '+tableName(schema,t.name)+' ('+
-   keys.map(part).join(',')+') VALUES '+tuples.join(','));
-  params.push(values);
-  expectedAffectedRows.push(t.rows.length);
+  if(t.rows.some(row=>JSON.stringify(Object.keys(row))!==JSON.stringify(keys)))
+   throw Error('Synthetic row columns are inconsistent');
+  // Pack reviewed synthetic columns into a parameterized JSONB array; no string
+  // values enter SQL syntax. Fifty rows per statement bound each JSON parameter
+  // below B-3's 8,192-character ceiling and fit 100 rows into 16 SQL statements.
+  for(let at=0;at<t.rows.length;at+=50){
+   const chunk=t.rows.slice(at,at+50);
+   const payload=JSON.stringify(chunk.map(row=>keys.map(key=>row[key])));
+   if(payload.length<1||payload.length>8192)
+    throw Error('Synthetic JSON parameter exceeds guarded SQL byte budget');
+   const expressions=keys.map((key,i)=>
+    '(element.value ->> '+i+')::'+
+    (integer(key)?'integer':date(key)?'date':'text'));
+   const sql='INSERT INTO '+tableName(schema,t.name)+' ('+
+    keys.map(part).join(',')+') SELECT '+expressions.join(',')+
+    ' FROM jsonb_array_elements($1::jsonb) AS element(value)';
+   statements.push(sql);params.push([payload]);
+   expectedAffectedRows.push(chunk.length);
+  }
  }
  return {schema,scenario,seed,rowsPerTable,totalRows:rowsPerTable*tables.length,
   statements,params,expectedAffectedRows,tables:details};
@@ -74,10 +83,10 @@ export async function verifyDemoSeed({plan,query}={}){
     plan.tables.length!==5)return false;
  for(const t of plan.tables){
   const sql='SELECT '+t.columns.map(part).join(',')+
-   ' FROM '+tableName(plan.schema,t.name)+' ORDER BY "id" LIMIT 21';
+   ' FROM '+tableName(plan.schema,t.name)+' ORDER BY "id" LIMIT 101';
   const observed=await query(sql,[]);
   if(!Array.isArray(observed?.rows)||observed.rows.length!==t.rows.length||
-     t.rows.length>20)return false;
+     t.rows.length>100)return false;
   for(let i=0;i<t.rows.length;i++){
    const actual=observed.rows[i],expected=t.rows[i];
    if(Object.keys(actual).length!==t.columns.length)return false;
