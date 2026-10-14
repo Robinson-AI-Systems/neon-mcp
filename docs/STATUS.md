@@ -1,3 +1,19 @@
+## D-5 guarded SQL execute and atomic batch — PR #140
+
+`neon_sql_execute` and `neon_sql_execute_transaction` now expose the
+private B-3 transactional apply path under B-1 full-owner destructive
+confirmation/audit. Every statement has a checked PostgreSQL AST root
+and bounded expected affected rows. A separate exact provider-verified
+read-only SELECT assertion must pass after the transaction. The core
+runner passes verified endpoint/host to the direct driver and rolls
+back development mismatches before COMMIT; production requires owner
+activation, one-use exact isolated preview token, durable WAL restore
+point, spend admission and confirmation. Failed/ambiguous COMMIT or
+postcondition is pending, never blindly replayed. No actual database
+write, autonomous spend or manual release was performed; live acceptance
+requires a separately authorized isolated scratch fixture and checked
+production deployment. All automated tests must pass before merge.
+
 ## D-5 isolated exact SQL preview — PR #139, source/CI not live-accepted
 
 The existing B-3 disposable child branch preview is now registered as
