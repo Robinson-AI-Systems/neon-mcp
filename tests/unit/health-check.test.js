@@ -10,7 +10,7 @@ function fixture({response={done:true,rows:[],rowCount:0,truncated:false},
  const calls=[],handlers=createHealthHandlers({
   verifyTarget:async a=>({pid:foreign?'other-project':a.projectId,
    bid:a.branchId,endpointId:a.endpointId,database:a.databaseName,
-   role:a.roleName,endpoint:{host:'ep-real.neon.tech'}}),
+   role:a.roleName,endpoint:{host:'fixture-host.example.invalid'}}),
   contextFor:async()=>({trusted:true}),
   runQuery:async input=>{calls.push(input);
    return input.text===HEALTH_SQL[denyCheck]?{done:false,code:'insufficient_privilege'}:response}
@@ -36,7 +36,7 @@ describe('D-6 fifteen read-only PostgreSQL health diagnostics',()=>{
   expect(x.requested).toEqual(HEALTH_DEFAULT);
   expect(f.calls.map(x=>x.text)).toEqual(HEALTH_DEFAULT.map(n=>HEALTH_SQL[n]));
   expect(f.calls.every(x=>x.target.pooled===false&&
-   x.target.expectedEndpointHost==='ep-real.neon.tech')).toBe(true);
+   x.target.expectedEndpointHost==='fixture-host.example.invalid')).toBe(true);
  });
  it('continues safe independent checks when one database read is refused',async()=>{
   const f=fixture({denyCheck:'replication_slots'}),x=json(await f.handler({
