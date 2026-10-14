@@ -100,7 +100,6 @@ export async function runGuardedRoleDependencyProbe(a,c,t,ep,db,monitor){
 // protected-resource and owner-stored read policies remain mandatory.
 import {parse} from 'libpg-query';
 import {runAuthorizedSqlRead} from './sql-read.js';
-import {classifySql} from './sql-guard.js';
 
 const MAX_PUBLIC_ROWS=201;
 const MAX_PUBLIC_COLUMNS=16;
