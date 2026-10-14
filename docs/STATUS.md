@@ -1,3 +1,15 @@
+## D-6 dependency-reviewed development extension removal — PR #154
+
+Added full-owner B-1 confirmation/audit, exact target revalidation, observed
+external dependency preview and AST-pinned DROP EXTENSION RESTRICT. Only the
+six audited extensions, no CASCADE, production or application-owned target.
+Rechecks current classification/protection/app ownership before issuing DDL;
+PostgreSQL independently refuses remaining dependencies. Ambiguous results
+remain pending and are never blindly retried. Unit tests include every door;
+disposable PG proves actual dependent-column refusal with preserved records,
+then successful removal and independent catalog absence. Hosted acceptance
+is queued for a normal release containing #154, with fixtures and cleanup.
+
 ## D-9 bounded branch data comparison — PR #153
 
 Implemented read-only counts and MD5 fingerprint comparison with two independently
@@ -15,6 +27,7 @@ activation implied. Continue eligible D-6 schema maintenance while releases wait
 | D-4 scratch retirement | merged #150 | Verify deployed SHA and custom identity; branch-create dryRun; resume approved isolated fixture/consent/refusal/delete cycle, independent role absence, fresh authentication denial and cleanup | READY #148 only; original scratch baseline preserved; existing IN-06/IN-16 approvals, production OFF, spending $0 |
 | D-6 extension workflow | merged #151 | Custom full-owner write preview, scoped install/update, catalog readback, protection/production denials and fixture cleanup | Local/CI tracked separately; no hosted mutation performed |
 | D-6 schema/type/health and D-9 history | merged #149 or newer | Verify exact direct scratch SQL target; bounded read acceptance for types, DDL sketches, health/index advice and migration history | Source tests only; protected/self-resource and read gates remain |
+| D-6 extension removal | merged #154 | Custom dependency preview, refusal with dependent fixture, authorized RESTRICT removal, independent absence and cleanup | Source/CI separate; same full-owner, protected, production and $0 gates |
 | Daily release recovery | merged #152 | Inspect future scheduled event, once-per-Denver-day marker, exact-main checks and live/READY alias readback | #152 source merged; October 14 receipt already exists at #148, so later same-day backups must skip |
 
 This is planned release-dependent acceptance; continue eligible implementation.

@@ -259,24 +259,26 @@ export async function observeScopedQueryCancellation({
 const approvedExtensions=new Set(['citext','pg_trgm','unaccent','hstore',
   'btree_gin','btree_gist']);
 export const safeExtensionNames=Object.freeze([...approvedExtensions]);
-export function buildReviewedExtensionDDL(name,update=false){
- if(!approvedExtensions.has(name)||typeof update!=='boolean')
+export function buildReviewedExtensionDDL(name,update=false,remove=false){
+ if(!approvedExtensions.has(name)||typeof update!=='boolean'||typeof remove!=='boolean'||remove&&update)
   throw Error('Extension is not in the audited low-risk development allowlist');
+ if(remove)return 'DROP EXTENSION '+quoteIdent(name)+' RESTRICT';
  return update?'ALTER EXTENSION '+quoteIdent(name)+' UPDATE':
   'CREATE EXTENSION '+quoteIdent(name)+' WITH SCHEMA "public"';
 }
 export async function runReviewedExtensionMutation({
- ctx,target,name,update=false,sqlLayer}={}){
+ ctx,target,name,update=false,remove=false,sqlLayer}={}){
  if(!ctx?.db||!ctx.connection?.neonOrg||!target?.projectId||
   !target?.branchId||!target?.endpointId||!target?.expectedEndpointHost||
   !target?.database||!target?.role||target.pooled!==false)
   throw Error('Verified direct development SQL identity required');
- const statement=buildReviewedExtensionDDL(name,update);
+ const statement=buildReviewedExtensionDDL(name,update,remove);
  const parsed=await parse(statement);
  const stmt=parsed?.stmts?.[0]?.stmt;
  if(parsed?.stmts?.length!==1||
-  !update&&!stmt?.CreateExtensionStmt||
-  update&&!stmt?.AlterExtensionStmt)
+  !remove&&!update&&!stmt?.CreateExtensionStmt||
+  update&&!stmt?.AlterExtensionStmt||
+  remove&&(stmt?.DropStmt?.removeType!=='OBJECT_EXTENSION'||stmt.DropStmt.behavior!=='DROP_RESTRICT'))
   throw Error('Unreviewed extension statement AST');
  const withSql=sqlLayer??createSqlLayer({db:ctx.db,
   vault:createKeyVault({db:ctx.db,env:ctx.env}),env:ctx.env});
