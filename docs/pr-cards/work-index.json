@@ -578,14 +578,18 @@
         "D-5"
       ],
       "card": "docs/pr-cards/D-6.md",
-      "status": "PLANNED",
+      "status": "IN_PROGRESS",
       "migration": "none",
       "budget": 500,
       "units": [
         "D-6"
       ],
-      "readiness": "WRITE_CARD_AT_START",
-      "ownerInputs": []
+      "readiness": "READY",
+      "ownerInputs": [],
+      "pr": [
+        143
+      ],
+      "note": "Four of the planned D-6 schema inspection reads implemented with provider-bound SQL, bounded catalog metadata and genuine disposable Postgres tests; external custom SQL acceptance requires checked deployment, remaining schema/health tools pending."
     },
     {
       "id": "D-7",

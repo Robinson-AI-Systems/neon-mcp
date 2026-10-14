@@ -167,13 +167,13 @@ The SQL guard (`docs/designs/BATCH-B.md` B-3) classifies every statement with th
 
 | Tool | What it does | Flags | Aud | Profile | Card |
 | --- | --- | --- | --- | --- | --- |
-| `neon_schema_list_schemas` | Schemas in a database (system schemas hidden) | — | B Op | R | D-6 |
-| `neon_schema_list_tables` | Tables with row estimates and sizes | — | B Op | R | D-6 |
-| `neon_schema_describe_table` | Columns, types, defaults, indexes, constraints, foreign keys, triggers, RLS policies for one table | — | B Op | R | D-6 |
+| `neon_schema_list_schemas` | Schemas in a database (system schemas hidden) | — | B Op | R | D-6 (built #143; live SQL acceptance pending) |
+| `neon_schema_list_tables` | Tables with row estimates and sizes | — | B Op | R | D-6 (built #143; live SQL acceptance pending) |
+| `neon_schema_describe_table` | Columns, types, defaults, indexes, constraints, foreign keys, triggers, RLS policies for one table | — | B Op | R | D-6 (built #143; live SQL acceptance pending) |
 | `neon_schema_get_ddl` | The schema as SQL (one table or a whole database) | — | B | R | D-6 |
 | `neon_schema_search` | Find tables and columns by name | — | B Op | R | D-6 |
 | `neon_schema_list_objects` | Views, materialized views, functions, enums, sequences, triggers, policies or publications (by kind) | — | B Op | R | D-6 |
-| `neon_schema_list_extensions` | Installed and available extensions with versions | — | B Op | R | D-6 |
+| `neon_schema_list_extensions` | Installed and available extensions with versions | — | B Op | R | D-6 (built #143; live SQL acceptance pending) |
 | `neon_schema_enable_extension` | Install an extension, or update an installed one to a newer version with `update: true` (production: confirm) | C* Pr | B Op | E | D-6 |
 | `neon_schema_disable_extension` | Remove an extension (preview lists dependent objects) | C D Pr | Op | F | D-6 |
 | `neon_schema_create_index` | Create an index, CONCURRENTLY by default (production: confirm) | C* Pr | B Op | E | D-6 |
