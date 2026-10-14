@@ -351,6 +351,9 @@ export async function runReviewedReindexMutation({ctx,target,schema,table,index,
     !target.endpointId||!target.expectedEndpointHost||!target.database||
     !target.role||target.pooled!==false)
   throw Error('Verified direct reindex target required');
+ const timeout=await ctx.db.getSqlMaintenanceTimeoutMs?.();
+ if(!Number.isSafeInteger(timeout)||timeout<15000||timeout>3600000)
+  throw Error('Verified stored maintenance timeout is unavailable');
  const statement=buildReviewedReindexDDL({schema,table,index,scope});
  const ast=await parse(statement);
  if(ast?.stmts?.length!==1||!ast.stmts[0]?.stmt?.ReindexStmt)
@@ -362,7 +365,7 @@ export async function runReviewedReindexMutation({ctx,target,schema,table,index,
    // Concurrent reindex must not run inside a transaction; a network error
    // is ambiguous, so B-1 leaves the request pending rather than replaying.
    await client.query('SET lock_timeout = 5000');
-   await client.query('SET statement_timeout = 15000');
+   await client.query('SET statement_timeout = '+timeout);
    await client.query(statement);
    return {issued:true};
   });

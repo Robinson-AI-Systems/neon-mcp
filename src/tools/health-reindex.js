@@ -15,7 +15,7 @@ const complete=x=>x?.done===true&&x.truncated===false&&
  x.rowCount===x.rows.length&&x.rows.length<=200;
 function validIndex(i){
  return i&&/^\d+$/.test(i.index_oid)&&valid(i.index_name)&&valid(i.table_name)&&
- ['valid_index','ready_index','unique_index','primary_index','constraint_index','custom_expression']
+ ['valid_index','ready_index','unique_index','primary_index','exclusion_index','constraint_index','custom_expression']
   .every(k=>typeof i[k]==='boolean')&&typeof i.method==='string'&&i.method.length<=63&&
  Number.isInteger(i.key_count)&&i.key_count>=1&&Number.isInteger(i.attribute_count)&&
  i.attribute_count>=i.key_count&&i.attribute_count<=32&&
@@ -41,7 +41,7 @@ function publicObservation(snapshot){
 export function createReindexHandlers({contextFor=createProjectWriteContext,
  verifyTarget=verifyConnectionTarget,query=runPublicSqlQuery,
  mutate=runReviewedReindexMutation}={}){
- async function observe(a,c,{allowInvalid=false}={}){
+ async function observe(a,c,{allowInvalid=false,includeRecovery=false}={}){
   if(c?.connection?.profile!=='full'||!valid(a?.schemaName)||
      a.schemaName.startsWith('pg_')||a.schemaName==='information_schema'||
      !valid(a.tableName)||!['index','table'].includes(a.scope)||
@@ -63,8 +63,10 @@ export function createReindexHandlers({contextFor=createProjectWriteContext,
      new Set(inventory.rows.map(x=>x.index_name)).size!==inventory.rows.length)
    throw Error('Complete regular-table/index inventory is required');
   const all=inventory.rows.filter(x=>x.table_name===a.tableName);
-  const selection=a.scope==='index'?all.filter(x=>x.index_name===a.indexName):all;
-  if(!selection.length||a.scope==='index'&&selection.length!==1||
+  const selection=a.scope==='index'?all.filter(x=>x.index_name===a.indexName||
+    includeRecovery&&(!x.valid_index||!x.ready_index||/_cc(new|old)\d*$/.test(x.index_name))):all;
+  if(!selection.length||a.scope==='index'&&!includeRecovery&&selection.length!==1||
+     selection.some(x=>x.exclusion_index)||
      (!allowInvalid&&selection.some(x=>!x.valid_index||!x.ready_index)))
    throw Error('Only observed valid ready indexes can be rebuilt');
   // Refuse a same-name index on a different table rather than silently
@@ -81,9 +83,9 @@ export function createReindexHandlers({contextFor=createProjectWriteContext,
      '/'+a.schemaName+'/'+a.scope+'/'+chosen,before,
     summary:'Rebuild '+a.scope+' '+a.schemaName+'.'+chosen+
      ' CONCURRENTLY on a verified development regular table. '+before.indexes.length+
-     ' observed valid indexes; sizes and scans are observations, not reliable bloat estimates.'+
+     ' observed valid non-exclusion indexes; sizes and scans are observations, not reliable bloat estimates.'+
      ' PostgreSQL may create temporary _ccnew artifacts after failure; never automatically retry or drop them.'+
-     ' It uses compute/IO and may wait for running transactions.'};
+     ' It uses compute/IO and may wait for running transactions; the owner-tighter stored maintenance timeout starts at ten minutes.'};
   },
   apply:async(a,c,{before})=>{
    const fresh=await observe(a,c);
@@ -114,7 +116,7 @@ export function createReindexHandlers({contextFor=createProjectWriteContext,
   const ctx=await contextFor(connectionCtx),result=await write.handler(a,ctx);
   const value=JSON.parse(result.content[0].text);
   if(value.confirmed==='pending'){
-   try{const observed=publicObservation(await observe(a,ctx,{allowInvalid:true}));
+   try{const observed=publicObservation(await observe(a,ctx,{allowInvalid:true,includeRecovery:true}));
     return {content:[{type:'text',text:JSON.stringify({...value,
      observationOnly:true,observed,
      warning:'Operation unconfirmed; inspect invalid _ccnew artifacts before any separately approved cleanup. Do not retry.'})}]};}

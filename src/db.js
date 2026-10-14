@@ -469,6 +469,11 @@ export function createDb(sql = productionSql()) {
       const rows = await sql`SELECT value FROM settings WHERE key = 'sql.affected_rows_tolerance'`;
       return rows.length ? rows[0].value : null;
     },
+    /** Stored owner-tightenable ceiling for nontransactional maintenance DDL. */
+    async getSqlMaintenanceTimeoutMs() {
+      const rows = await sql`SELECT value FROM settings WHERE key = 'sql.maintenance_timeout_ms'`;
+      return rows.length ? rows[0].value : null;
+    },
     /** Database-backed IN-09 defaults; never rely on an untrusted caller's SQL policy. */
     async getSqlReadPolicy() {
       const rows = await sql`SELECT value FROM settings WHERE key = 'sql.read_policy'`;
@@ -562,7 +567,7 @@ export function createDb(sql = productionSql()) {
     async listSafeSettings() {
       return sql`SELECT key,value,updated_at FROM settings WHERE key IN
         ('protected_resources','pricing','spend.cap_per_change_cents',
-        'spend.cap_per_day_cents','sql.read_policy','sql.affected_rows_tolerance',
+        'spend.cap_per_day_cents','sql.read_policy','sql.maintenance_timeout_ms','sql.affected_rows_tolerance',
         'operation_wait_seconds','neon_api_budget_per_minute','default_region')
         ORDER BY key`;
     },
@@ -711,6 +716,9 @@ export function createDb(sql = productionSql()) {
         ON CONFLICT (key) DO NOTHING`;
       await sql`INSERT INTO settings (key, value, updated_by)
         VALUES ('sql.affected_rows_tolerance', '0'::jsonb, 'system_default_design_B-3')
+        ON CONFLICT (key) DO NOTHING`;
+      await sql`INSERT INTO settings (key, value, updated_by)
+        VALUES ('sql.maintenance_timeout_ms', '600000'::jsonb, 'system_default_D-9')
         ON CONFLICT (key) DO NOTHING`;
       await sql`INSERT INTO settings (key, value, updated_by) VALUES
         ('spend.cap_per_change_cents', '2500'::jsonb, 'system_default_IN-10'),

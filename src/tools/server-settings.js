@@ -31,9 +31,9 @@ const setting=defineWrite({
  verify:async(_before,after,args)=>JSON.stringify(after?.value)===JSON.stringify(args.value)
 });
 export const tools=[{...setting.tool,profiles:['full'],
- description:'Preview and confirm a stricter server spending cap or SQL read policy; never widen limits.',
+ description:'Preview and confirm tighter spend, SQL read or maintenance limits; never widen limits.',
  inputSchema:{type:'object',properties:{...setting.tool.inputSchema.properties,
-  setting:{type:'string',enum:['spend.cap_per_change_cents','spend.cap_per_day_cents','sql.read_policy']},
+  setting:{type:'string',enum:['spend.cap_per_change_cents','spend.cap_per_day_cents','sql.read_policy','sql.maintenance_timeout_ms']},
   value:{oneOf:[{type:'integer',minimum:0},{type:'object',properties:{
     maxRows:{type:'integer',minimum:1,maximum:200},productionReads:{type:'boolean'}},
     required:['maxRows','productionReads'],additionalProperties:false}]}},

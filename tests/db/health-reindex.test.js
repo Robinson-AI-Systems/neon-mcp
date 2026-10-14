@@ -24,6 +24,7 @@ it('rebuilds INDEX and TABLE concurrently with independently read catalogs and p
  const f=makeContractFixture(),c=f.ctx;
  c.connection={neonOrg:'org-fake',profile:'full',mode:'preview'};
  c.getBranch=async()=>({id:base.branchId});
+ c.db.getSqlMaintenanceTimeoutMs=async()=>600000;
  const handlers=createReindexHandlers({contextFor:async()=>c,
   verifyTarget:async x=>({pid:x.projectId,bid:x.branchId,endpointId:x.endpointId,
    database:x.databaseName,role:x.roleName,endpoint:{host:'direct.fake'}}),
@@ -48,6 +49,9 @@ it('rebuilds INDEX and TABLE concurrently with independently read catalogs and p
  }
  const records=(await client.query('SELECT id,code,state FROM people ORDER BY id')).rows;
  expect(records).toEqual([{id:1,code:'a',state:1},{id:2,code:'b',state:2},{id:3,code:'c',state:3}]);
+ await client.query('ALTER TABLE people ADD COLUMN active_range int4range');
+ await client.query('ALTER TABLE people ADD CONSTRAINT people_range_excl EXCLUDE USING gist(active_range WITH &&)');
+ expect(parsed(await handlers.neon_health_reindex({...base,scope:'table',confirm:true},c)).done).toBe(false);
  expect(parsed(await handlers.neon_health_reindex({...base,scope:'index',
   indexName:'missing_idx',confirm:true},c)).done).toBe(false);
 });

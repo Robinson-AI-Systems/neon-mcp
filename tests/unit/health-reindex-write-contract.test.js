@@ -10,7 +10,7 @@ const base={projectId:'proj-fake',branchId:'br-fake',endpointId:'ep-fake',
  databaseName:'neondb',roleName:'owner',schemaName:'public',tableName:'people'};
 const first={index_oid:'123',index_name:'people_code_idx',table_name:'people',
  valid_index:true,ready_index:true,unique_index:false,primary_index:false,
- constraint_index:false,index_bytes:'8192',scans:'0',method:'btree',
+ constraint_index:false,exclusion_index:false,index_bytes:'8192',scans:'0',method:'btree',
  custom_expression:false,key_count:1,attribute_count:1,columns:['code']};
 function fixture(opts={},door='direct'){
  const f=makeContractFixture(opts);let index={...first},server;
@@ -80,7 +80,15 @@ describe('D-9 guarded concurrent development reindex',()=>{
    expect(result.done).toBe(false);expect(f.calls).toHaveLength(0);
   }
  });
- it('refuses production/protected targets immediately before DDL',async()=>{
+ it('refuses exclusion indexes for INDEX and TABLE reindex',async()=>{
+ for(const scope of ['index','table']){
+  const f=fixture();f.setIndex({...first,exclusion_index:true});
+  const args={...base,scope,...(scope==='index'?{indexName:first.index_name}:{}),confirm:true};
+  expect(f.parse(await f.handler(args)).done).toBe(false);
+  expect(f.calls).toHaveLength(0);
+ }
+});
+it('refuses production/protected targets immediately before DDL',async()=>{
   const f=fixture();f.ctx.getBranch=async()=>({id:base.branchId,protected:true});
   const result=f.parse(await f.handler({...base,scope:'table',confirm:true}));
   expect(result.confirmed).toBe('pending');expect(f.calls).toHaveLength(0);
