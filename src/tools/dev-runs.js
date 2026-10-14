@@ -31,21 +31,40 @@ async function verifiedProject(a,c){
  return {...s,client,project:result.project};
 }
 async function allBranches(client,projectId){
- const body=await projectRead(client,'listProjectBranches',{
-  path:{project_id:projectId},query:{limit:100}});
- if(!Array.isArray(body?.branches)||body.branches.length>100||
-    body.pagination?.cursor||body.pagination?.next||
-    new Set(body.branches.map(b=>b.id)).size!==body.branches.length||
-    body.branches.some(b=>!ID.test(b.id||'')||b.project_id!==projectId))
-  throw Error('Complete provider branch inventory required; no implicit pagination');
- return body.branches;
+ const branches=[],seenIds=new Set(),seenCursors=new Set();
+ let cursor=null;
+ // A bounded complete provider census, not an implicit 100-branch project cap.
+ // Above 10,000 branches (100 pages) fail closed instead of claiming completeness.
+ for(let page=0;page<100;page++){
+  const body=await projectRead(client,'listProjectBranches',{
+   path:{project_id:projectId},query:{limit:100,...(cursor?{cursor}:{})}});
+  if(!Array.isArray(body?.branches)||body.branches.length>100)
+   throw Error('Provider returned an invalid development branch page');
+  for(const item of body.branches){
+   if(!ID.test(item?.id||'')||item.project_id!==projectId||
+      seenIds.has(item.id))throw Error('Invalid, foreign or duplicate provider branch');
+   seenIds.add(item.id);
+   const annotation=body.annotations?.[item.id]??item.annotation??null;
+   branches.push({...item,...(annotation?{runAnnotation:annotation}:{})});
+  }
+  const next=body.pagination?.cursor??null;
+  if(next===null)return branches;
+  if(typeof next!=='string'||next.length===0||seenCursors.has(next)||
+     body.branches.length===0)throw Error('Incomplete or repeated provider pagination');
+  seenCursors.add(next);cursor=next;
+ }
+ throw Error('Provider branch inventory exceeds safe 10,000-row census; use bounded provider maintenance');
 }
-async function exactBranch(client,projectId,branchId){
+
+async function branchDetails(client,projectId,branchId){
  const data=await projectRead(client,'getProjectBranch',
   {path:{project_id:projectId,branch_id:branchId}});
  if(data?.branch?.id!==branchId||data.branch.project_id!==projectId)
   throw Error('Independent branch readback disagrees with the target');
- return data.branch;
+ return data;
+}
+async function exactBranch(client,projectId,branchId){
+ return (await branchDetails(client,projectId,branchId)).branch;
 }
 function expiry(hours){
  const d=new Date(Date.now()+hours*3600000);
@@ -90,7 +109,7 @@ async function createPreview(a,c){
  // B-1 still checks protected resources and app ownership on the parent.
  const cls=await classifyTarget(c,{projectId:s.projectId,branchId:parent.id});
  if(!cls.allowed)throw Error('Parent identity could not be classified');
- return {...s,parent,runId:rid,expiresAt:expiry(hours),
+ return {...s,parent,runId:rid,auditKey:c.writeKey('neon_dev_branch_create',a),expiresAt:expiry(hours),
   settings,count:bs.length,branchName:a.name,schemaOnly:a.schemaOnly===true,
   plan:attestedProjectPlan(s.project,s.orgId)};
 }
@@ -127,6 +146,7 @@ const create=defineWrite({name:'neon_dev_branch_create',
     ' seconds); monthly cost requires the stored owner spending caps. No production branch mutation.'};
  },
  apply:async(a,c,{before,requestKey:key})=>{
+  if(key!==before.auditKey)throw Error('Write request identity drift');
   const fresh=await verifiedProject(a,c);
   const branches=await allBranches(fresh.client,fresh.projectId);
   const parent=branches.find(x=>x.id===before.parent.id);
@@ -151,19 +171,25 @@ const create=defineWrite({name:'neon_dev_branch_create',
     autoscaling_limit_min_cu:saved.compute.min_cu,
     autoscaling_limit_max_cu:saved.compute.max_cu,
     suspend_timeout_seconds:saved.compute.suspend_seconds}],
-   annotation_value:{rtc_run:before.runId}};
+   annotation_value:{rtc_run:before.runId,rtc_request:key}};
   const result=await applyNeonWrite({client:fresh.client,operationId:'createProjectBranch',
    params:{path:{project_id:fresh.projectId},body},
    projectId:fresh.projectId,requestKey:key});
   if(result?.confirmed!==true)return {confirmed:'pending',operations:result?.operations??[]};
-  const branchId=result.data?.branch?.id;
-  if(!ID.test(branchId||'')||result.data.branch.project_id!==fresh.projectId)
+  // A lost response may have been resolved by the pinned SDK's rtc_request
+  // annotation readback; that result is a branch, not a {branch} envelope.
+  const recovered=result.data?.branch??result.data;
+  const branchId=recovered?.id;
+  if(!ID.test(branchId||'')||recovered.project_id!==fresh.projectId)
    return {confirmed:'pending',operations:result.operations??[]};
   // Persist ownership only after independently checking the exact created ID.
-  const observed=await exactBranch(fresh.client,fresh.projectId,branchId);
+  const detailed=await branchDetails(fresh.client,fresh.projectId,branchId);
+  const observed=detailed.branch;
   if(observed.name!==before.branchName||observed.parent_id!==parent.id||
      observed.protected===true||observed.default===true||
-     observed.expires_at!==before.expiresAt)
+     observed.expires_at!==before.expiresAt||
+     detailed.annotation?.value?.rtc_run!==before.runId||
+     detailed.annotation?.value?.rtc_request!==key)
    return {confirmed:'pending',operations:result.operations??[]};
   const recorded=await c.db.recordDevRunBranch?.({orgId:fresh.orgId,
    projectId:fresh.projectId,runId:before.runId,branchId,parentId:parent.id,
@@ -175,20 +201,24 @@ const create=defineWrite({name:'neon_dev_branch_create',
  readAfter:async(a,c)=>{
   if(!ID.test(c.devCreatedBranchId||''))return null;
   const s=await verifiedProject(a,c);
-  const branch=await exactBranch(s.client,s.projectId,c.devCreatedBranchId);
+  const detail=await branchDetails(s.client,s.projectId,c.devCreatedBranchId);
+  const branch=detail.branch;
   const result=await projectRead(s.client,'listProjectBranchEndpoints',{
    path:{project_id:s.projectId,branch_id:branch.id}});
   if(!Array.isArray(result?.endpoints)||result.endpoints.some(e=>
      e.project_id!==s.projectId||e.branch_id!==branch.id))return null;
-  return {branch,endpoints:result.endpoints};
+  return {branch,endpoints:result.endpoints,annotation:detail.annotation?.value??null};
  },
  verify:async(before,after)=>{
   const b=after?.branch;
-  return b?.name===before.branchName&&b.parent_id===before.parent.id&&
+  return after?.annotation?.rtc_run===before.runId&&
+   after?.annotation?.rtc_request===before.auditKey&&
+   b?.name===before.branchName&&b.parent_id===before.parent.id&&
    b.protected===false&&b.default===false&&b.expires_at===before.expiresAt&&
    after.endpoints.length===1&&after.endpoints[0].type==='read_write'&&
    after.endpoints[0].autoscaling_limit_min_cu===before.settings.compute.min_cu&&
-   after.endpoints[0].autoscaling_limit_max_cu===before.settings.compute.max_cu;
+   after.endpoints[0].autoscaling_limit_max_cu===before.settings.compute.max_cu&&
+   after.endpoints[0].suspend_timeout_seconds===before.settings.compute.suspend_seconds;
  }});
 
 function depths(owned){
@@ -204,6 +234,7 @@ function depths(owned){
   .sort((a,b)=>b.depth-a.depth||a.object_id.localeCompare(b.object_id));
 }
 async function cleanupPreview(a,c){
+ if(a.outsideApp!==undefined)throw Error('Cleanup cannot override application ownership');
  if(!RUN.test(a.runId||''))throw Error('Select an existing owned run ID');
  const s=await verifiedProject(a,c);
  const run=await c.db.getDevRun?.({orgId:s.orgId,projectId:s.projectId,runId:a.runId});
@@ -226,7 +257,7 @@ async function cleanupPreview(a,c){
   if(exact.default===true||exact.protected===true||
      exact.project_id!==s.projectId||
      await c.guards.checkProtected({projectId:s.projectId,branchId:b.id},c)!==true||
-     await c.guards.checkApp({projectId:s.projectId,branchId:b.id},c,a)!==true)
+     await c.guards.checkApp({projectId:s.projectId,branchId:b.id},c,{...a,outsideApp:false})!==true)
    throw Error('Protected or app-owned run branch refused');
   const cls=await classifyTarget(c,{projectId:s.projectId,branchId:b.id});
   if(!cls.allowed||cls.production)
@@ -266,7 +297,7 @@ const cleanup=defineWrite({name:'neon_dev_cleanup',destructive:true,
     if(exact.default===true||exact.protected===true||
        !classification.allowed||classification.production||
        await c.guards.checkProtected({projectId:now.projectId,branchId:object.object_id},c)!==true||
-       await c.guards.checkApp({projectId:now.projectId,branchId:object.object_id},c,a)!==true)
+       await c.guards.checkApp({projectId:now.projectId,branchId:object.object_id},c,{...a,outsideApp:false})!==true)
      throw Error('Branch became protected, production, shared or app-owned; refusing deletion');
     if(current.some(b=>b.parent_id===object.object_id))
      throw Error('Existing child prevents branch cleanup');
@@ -304,7 +335,10 @@ const cleanup=defineWrite({name:'neon_dev_cleanup',destructive:true,
 const createSchema=input({name:{type:'string',pattern:'^[A-Za-z][A-Za-z0-9_-]{2,79}$'},
  parentBranchId:id,runId,ttlHours:{type:'integer',minimum:1,maximum:720},
  schemaOnly:{type:'boolean'}},['name','parentBranchId']);
-const cleanupSchema=input({runId},['runId']);
+const cleanupSchema={type:'object',properties:{projectId:id,runId,
+ dryRun:{type:'boolean'},confirm:{type:'boolean'},
+ requestKey:{type:'string',minLength:8,maxLength:128}},
+ required:['runId'],additionalProperties:false};
 export const tools=[
  {...create.tool,description:'Create an expiring, cost-checked run-owned development branch with verified compute and durable audit.',
   inputSchema:createSchema,profiles:['full'],area:'developer',audience:['builder','owner']},
@@ -321,10 +355,20 @@ export function createDevRunHandlers({contextFor=createProjectWriteContext}={}){
     limit:a.limit??50});
    if(!Array.isArray(runs)||runs.length>50)
     throw Error('Complete scoped developer run inventory unavailable');
-   return readText({projectId:s.projectId,runs:runs.map(r=>({
-    runId:r.id,status:r.status,createdAt:r.created_at,
-    cleanedAt:r.cleaned_at,objects:r.objects,remaining:r.remaining
-   }))});
+   const details=[];
+   for(const r of runs){
+    const objects=await c.db.listDevRunObjects?.({orgId:s.orgId,
+     projectId:s.projectId,runId:r.id});
+    if(!Array.isArray(objects)||objects.length>100||
+       objects.some(o=>o.run_id!==r.id||o.object_type!=='branch'))
+     throw Error('Complete persisted run objects required');
+    details.push({runId:r.id,status:r.status,createdAt:r.created_at,
+     cleanedAt:r.cleaned_at,objects:objects.map(o=>({
+      type:o.object_type,id:o.object_id,parentId:o.parent_id,
+      expiresAt:o.expires_at,cleaned:o.cleaned,cleanedNote:o.cleaned_note
+     })),remaining:r.remaining});
+   }
+   return readText({projectId:s.projectId,runs:details});
   },
   async neon_dev_cleanup(a,raw){return cleanup.handler(a,await contextFor(raw));}
  };

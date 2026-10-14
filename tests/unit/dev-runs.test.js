@@ -1,4 +1,5 @@
 import {describe,it,expect,vi,afterEach} from 'vitest';
+import {createHash} from 'node:crypto';
 import {makeFakeNeon} from '../../test/helpers/fake-neon.js';
 import {makeNeonClient} from '../../src/neon/client.js';
 import {IDS,project,mainBranch,devBranch,devEndpoint,responses} from '../../test/helpers/neon-fixtures.js';
@@ -10,12 +11,13 @@ import {handlers as metaHandlers,tools as metaTools} from '../../src/tools/meta.
 const args={projectId:IDS.project,name:'testdev',parentBranchId:IDS.main};
 const expiry=()=>new Date(Date.now()+86400000).toISOString().slice(0,19)+'Z';
 const list=branches=>({branches,annotations:{}});
-function make({allowed=true,production=false,withOwned=false,badProof=false}={}){
+function make({allowed=true,production=false,withOwned=false,badProof=false,
+ recovered=false,paginate=false}={}){
  const fake=makeFakeNeon();
  const client=makeNeonClient({key:'napi_FAKE_DEV_RUN_TEST',orgId:IDS.org,
   fetch:fake.fetch,budget:{async consume(){return {allowed:true};}}});
  let rows=withOwned?[{run_id:'run-owned',object_type:'branch',object_id:IDS.dev,
-  parent_id:IDS.main,cleaned:false}]:[];
+  parent_id:IDS.main,expires_at:'2026-10-16T00:00:00Z',cleaned:false}]:[];
  let current=withOwned?{id:'run-owned',status:'active',project_id:IDS.project}:null;
  const f=makeContractFixture();
  f.ctx.connection={neonOrg:IDS.org,projectScope:IDS.project,profile:'full',mode:'preview'};
@@ -53,14 +55,33 @@ function make({allowed=true,production=false,withOwned=false,badProof=false}={})
   name:'Fake',subscription_type:'launch_v3',branches_limit:5000}});
  fake.when('getProject').resolves({project:p});
  const e=expiry();
+ const key=f.ctx.writeKey('neon_dev_branch_create',args);
+ const rid='run-'+createHash('sha256').update(key).digest('hex').slice(0,24);
+ const annotation={object:{type:'console/branch',id:IDS.dev},
+  value:{rtc_run:rid,rtc_request:key}};
  const branch=devBranch({name:'testdev',protected:false,expires_at:badProof?'2026-01-01T00:00:00Z':e});
  if(!withOwned){
-  fake.when('listProjectBranches').resolves(list([mainBranch()]));
-  fake.when('createProjectBranch').resolves({
-   ...responses.createProjectBranch(),branch:devBranch({name:'testdev',protected:false,
-    expires_at:e}),operations:[]});
+  if(recovered){
+   fake.when('listProjectBranches').resolves(list([mainBranch()]))
+    .resolves(list([mainBranch()]))
+    .resolves({branches:[mainBranch(),devBranch({name:'testdev',expires_at:e})],
+      annotations:{[IDS.dev]:annotation}});
+   fake.when('createProjectBranch').rejects(503,{code:'',message:'Ambiguous response'});
+  }else if(paginate){
+   fake.when('listProjectBranches')
+    .resolves({...list([]),pagination:{cursor:'next-page'}})
+    .resolves(list([mainBranch()]));
+   fake.when('createProjectBranch').resolves({
+    ...responses.createProjectBranch(),branch:devBranch({name:'testdev',
+     protected:false,expires_at:e}),operations:[]});
+  }else{
+   fake.when('listProjectBranches').resolves(list([mainBranch()]));
+   fake.when('createProjectBranch').resolves({
+    ...responses.createProjectBranch(),branch:devBranch({name:'testdev',
+     protected:false,expires_at:e}),operations:[]});
+  }
   fake.when('getProjectBranch').resolves({
-   ...responses.getProjectBranch('dev'),branch});
+   ...responses.getProjectBranch('dev'),branch,annotation});
   fake.when('listProjectBranchEndpoints').resolves({endpoints:[devEndpoint()]});
  }else{
   fake.when('listProjectBranches').resolves(list([mainBranch(),devBranch({name:'testdev'})]))
@@ -137,10 +158,36 @@ describe('V-1 recorded development lifecycle',()=>{
   expect(denied.isError).toBe(true);
   f.fake.assertClean();
  });
+ it('accepts a complete cursor-paginated provider inventory',async()=>{
+  const f=make({paginate:true});
+  const result=f.parse(await f.handlers.neon_dev_branch_create({...args,dryRun:true}));
+  expect(result.needsConfirmation).toBe(true);
+  expect(f.fake.calls.filter(x=>x.operationId==='listProjectBranches')).toHaveLength(2);
+  expect(f.fake.calls.every(x=>x.method==='GET')).toBe(true);
+  f.fake.assertClean();
+ });
+ it('reconciles an ambiguous provider POST via rtc_request and independent branch annotation',async()=>{
+  const f=make({recovered:true});
+  const result=f.parse(await f.handlers.neon_dev_branch_create({...args,confirm:true}));
+  expect(result,JSON.stringify(result)).toMatchObject({done:true,confirmed:true});
+  expect(f.fake.calls.filter(x=>x.method==='POST')).toHaveLength(1);
+  expect(f.rows).toHaveLength(1);
+  f.fake.assertClean();
+ });
+ it('refuses caller app-ownership override during developer cleanup',async()=>{
+  const f=make({withOwned:true});
+  f.ctx.guards.checkApp=async(_t,_c,a)=>a?.outsideApp===true;
+  const result=f.parse(await f.handlers.neon_dev_cleanup({
+   projectId:IDS.project,runId:'run-owned',outsideApp:true,confirm:true}));
+  expect(result.done).toBe(false);
+  expect(f.fake.calls.every(x=>x.method==='GET')).toBe(true);
+  f.fake.assertClean();
+ });
  it('lists only exact project-run scope without a Neon mutation',async()=>{
   const f=make({withOwned:true});
   const out=f.parse(await f.handlers.neon_dev_list_runs({projectId:IDS.project,limit:20}));
-  expect(out.runs).toMatchObject([{runId:'run-owned',objects:1,remaining:1}]);
+  expect(out.runs).toMatchObject([{runId:'run-owned',remaining:1,
+  objects:[{id:IDS.dev,parentId:IDS.main,expiresAt:'2026-10-16T00:00:00Z',cleaned:false}]}]);
   const foreign=f.parse(await f.handlers.neon_dev_list_runs({
    projectId:'proj-foreign-00001'}).catch(()=>({
     content:[{text:JSON.stringify({done:false})}]})));
