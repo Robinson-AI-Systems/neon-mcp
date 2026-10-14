@@ -1,3 +1,9 @@
+## October 14 release catch-up: actual owner custom-service acceptance (non-mutating)
+
+Independently verified GitHub `main` and `live` at `71fc6416b34f71c8f2b3318d266246ecceb03542`, and Vercel production deployment `dpl_GEeYpKbdgjDPU5TpSBf8F2JWrg3c` READY with that exact source and canonical alias. Authenticated custom Neon MCP enrolled-project discovery and isolated scratch baseline branch/role readbacks succeeded; V-1 owned-run read returned no runs. Fixed B-3 custom direct SQL read returned one complete empty public schema; custom migration-history read returned complete with no sources. These are genuine limited read observations, not acceptance of pending D-4/D-6/D-9/V-1 mutation scenarios.
+
+Nonmutating D-4 branch-create preview was refused by the application-ownership B-1 guard, and V-1 branch-create preview returned a guarded generic refusal. Investigated shared `src/neon/project-write-context.js`: when a durable `getProjectAppOwnership` method is absent (it is currently absent from `src/db.js`), its fallback expects app/integration evidence from provider `listProjects`. Missing/unknown evidence fails closed. Do not grant `outsideApp`, authorize spending, mark clean, or infer absence of application ownership. The owner-approved IN-06 scratch authorization remains recorded and is not being requested again. A diagnostic read-only owner guard probe is source work, not yet deployed. The next agent must establish trusted ownership evidence or an independently approved isolated policy and repeat preview, exact clean fixture write, readback, denial and cleanup through this custom service. The queue below remains authoritative.
+
 ## October 14 release acceptance ancestry repair
 
 Repinned pending acceptance to independently verified merged implementation commits
@@ -32,7 +38,7 @@ open obligations, original fixture ownership, approvals and deployment provenanc
     "gates": "Existing IN-06 isolated scratch enrollment and operation-specific guards",
     "dependsOn": [],
     "status": "PENDING",
-    "lastEvidence": "Existing ledger/card remains authoritative; current live/provider acceptance must be reconciled at session start. Seed revision conservatively includes reviewed current main."
+    "lastEvidence": "2026-10-14: main/live production Vercel READY exact 71fc6416; authenticated custom scratch project/branch/role readbacks passed. Nonmutating ordinary branch create dryRun returned refused_by_guard: application ownership refused. No role deletion, fixture creation, one-use consent or cleanup occurred; continue original IN-06/IN-16 exact tests when gates independently permit."
   },
   {
     "id": "NEON-D6",
@@ -43,7 +49,7 @@ open obligations, original fixture ownership, approvals and deployment provenanc
     "gates": "Non-production direct connection, ownership and exact cleanup; no production SQL",
     "dependsOn": [],
     "status": "PENDING",
-    "lastEvidence": "Existing ledger/card remains authoritative; current live/provider acceptance must be reconciled at session start. Seed revision conservatively includes reviewed current main."
+    "lastEvidence": "2026-10-14: production exact SHA READY. Authenticated custom scratch PostgreSQL schema list read returned complete (public schema, zero tables). Concurrent index preview/apply, denial/recovery and cleanup not performed because scratch write gate refused; retain PENDING."
   },
   {
     "id": "NEON-D9-REINDEX",
@@ -54,7 +60,7 @@ open obligations, original fixture ownership, approvals and deployment provenanc
     "gates": "Original approved scratch isolation, direct exact PostgreSQL target, full-owner B-1 confirmation, production OFF and zero autonomous spending",
     "dependsOn": [],
     "status": "PENDING",
-    "lastEvidence": "Implementation branch source pending required CI and merge; no deployed custom acceptance. Revision pinned to implementation commit."
+    "lastEvidence": "2026-10-14: READY release confirmed; authenticated custom migration history read returned complete/empty on scratch, NOT reindex proof. REINDEX write/readback/refusal and cleanup remain unperformed, preserve full B-1 gates."
   },
   {
     "id": "NEON-D6-VACUUM",
@@ -76,7 +82,7 @@ open obligations, original fixture ownership, approvals and deployment provenanc
     "gates": "Checked release containing PR #160; separately approved isolated scratch; full owner and independent protected/app/production guards; no unattended spending",
     "dependsOn": [],
     "status": "PENDING",
-    "lastEvidence": "PR #160 code and local/CI evidence only; Code was implemented at 4da1abb; hosted acceptance remains unavailable until a normal checked release."
+    "lastEvidence": "2026-10-14: production READY exact 71fc6416. Authenticated custom neon_dev_list_runs returned empty; full scratch provider inventory includes only baseline, no run-owned branches. neon_dev_branch_create dryRun refused_by_guard before mutation. App ownership guard needs trustworthy source evidence; no spend or cleanup performed; maintain PENDING."
   }
 ]
 ```
