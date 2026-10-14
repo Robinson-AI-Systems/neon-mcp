@@ -1,3 +1,45 @@
+### Workflow maintenance handoff — owner publication approved
+
+New offline session utility: eight behavioral tests passed, including actual Git ancestry, partial releases, unknown/failed deployments, rollback, dependency gating, invalid queues, PR alignment and bounded output. All repository queues validate. Existing source/status evidence is preserved; no provider acceptance or release was performed. Owner explicitly approved publication on October 14; publish the reviewed maintenance branch, require exact-head CI/reviews, and merge only when those gates pass. No extra production release is authorized by this approval. Full broad application suites on the shared runner were interrupted after resource/time-limit failures; do not claim them passed. Existing exact-head remote CI/review gates must pass before any main merge.
+
+## Release acceptance queue — workflow optimization 2026-10-14
+
+Owner-authorized guidance/tooling maintenance: consolidated session procedure, focused
+checks between meaningful edits, substantial capability grouping, and read-only queued
+acceptance/PR-boundary report. This records source/tooling work, not a live/provider pass.
+The queue below seeds existing outstanding obligations; reconcile exact scenarios and
+already-proven evidence from the unchanged cards/ledger before running. Keep all prior
+open obligations, original fixture ownership, approvals and deployment provenance.
+
+<!-- release-acceptance:start -->
+```json
+[
+  {
+    "id": "NEON-D4",
+    "priority": 1,
+    "requiredRevision": "b7d95d51e8ebad0491165f3160fd0e49401e7da7",
+    "task": "Complete authorized D-4 scratch acceptance, independent readbacks and exact fixture cleanup",
+    "procedure": "docs/pr-cards/D-4.md",
+    "gates": "Existing IN-06 isolated scratch enrollment and operation-specific guards",
+    "dependsOn": [],
+    "status": "PENDING",
+    "lastEvidence": "Existing ledger/card remains authoritative; current live/provider acceptance must be reconciled at session start. Seed revision conservatively includes reviewed current main."
+  },
+  {
+    "id": "NEON-D6",
+    "priority": 2,
+    "requiredRevision": "b7d95d51e8ebad0491165f3160fd0e49401e7da7",
+    "task": "Verify deployed D-6 concurrent-index preview/apply/recovery/refusals using authorized scratch fixtures",
+    "procedure": "docs/pr-cards/D-6.md",
+    "gates": "Non-production direct connection, ownership and exact cleanup; no production SQL",
+    "dependsOn": [],
+    "status": "PENDING",
+    "lastEvidence": "Existing ledger/card remains authoritative; current live/provider acceptance must be reconciled at session start. Seed revision conservatively includes reviewed current main."
+  }
+]
+```
+<!-- release-acceptance:end -->
+
 ## D-6 ordinary concurrent index lifecycle — PR #155
 
 Implemented confirmed development CREATE/DROP INDEX CONCURRENTLY with exact

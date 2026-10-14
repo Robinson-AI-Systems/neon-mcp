@@ -1,5 +1,7 @@
 # PLAYBOOK — how to deliver one PR card, step by step
 
+Session startup, cadence and release-dependent proof follow `docs/SESSION-START.md`. These recipes preserve all existing security, review and validation gates. Run focused checks at coherent seams and full required gates before publishing, rather than the whole suite after each small local edit.
+
 The rules are in `AGENTS.md`; the short start is `docs/SESSION-START.md`; the work is the card in `docs/pr-cards/`.
 Same procedure as the Stripe MCP's PLAYBOOK, adapted to this repo (no Next.js, no browser tests; Neon instead of Stripe;
 a fake Neon server and real throwaway Postgres instead of stripe-mock).
@@ -54,7 +56,7 @@ While implementing:
 
 ### Step 3a — PR size
 
-Prefer coherent groups of 450–800 production lines (tests/docs not counted), about 15 production files, hard stop ~800 lines, at most one
+Prefer coherent groups of 450–800 production lines (tests/docs not counted), about 15 production files, advisory size estimate, at most one
 migration, one risk area (keys / production guard / SQL guard / spend / tools-of-one-area / doors). Smaller complete PRs are valid: never pad or mix unrelated safety boundaries. Group operations sharing the API, permissions, guard and fixtures. Reuse `src/tools/read-descriptors.js` and tested provider helpers instead of duplicating schemas. Run focused validation before complete CI, and address all failing checks in one corrective push. When shell access is absent, make one GitHub REST tree commit per coherent completed change and require exact-head Actions evidence. Measure before
 opening the PR:
 
