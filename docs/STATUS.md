@@ -1,4 +1,4 @@
-## Active D-8 optional live RLS security inspection (implementation awaiting CI)
+## D-8 opt-in verified RLS catalog inspection — PR #136, acceptance pending
 
 An opt-in `rlsTarget` on `neon_security_review` uses an exact provider-verified
 branch/compute/database/role and B-3 read-only SQL policy to count per-schema

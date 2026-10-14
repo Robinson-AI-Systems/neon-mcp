@@ -206,7 +206,7 @@ The SQL guard (`docs/designs/BATCH-B.md` B-3) classifies every statement with th
 
 | Tool | What it does | Flags | Aud | Profile | Card |
 | --- | --- | --- | --- | --- | --- |
-| `neon_security_review` | Verified network/JWKS/branch, audit level, bounded compute-replication and configured issuer per-branch/role exposure; actual JWT, RLS, clients, log delivery and costs not evaluated | — | Ow Op | R | D-8 (built #90; impact #96; issuer map #104; policy validation #114) |
+| `neon_security_review` | Verified network/JWKS/branch, audit, computes and configured issuer exposure; optional verified branch/endpoint/database/role adds bounded PostgreSQL RLS and policy-count aggregates, not policy effectiveness. Actual JWT, clients, log delivery and costs remain unverified | — | Ow Op | R | D-8 (built #90; impact #96; issuer map #104; policy validation #114; RLS #136) |
 | `neon_security_set_ip_allow` | Guarded Scale-plan add/remove/replace with live entitlement, unknown provider field refusal, network-block effectiveness warning, stale access-state proof and verified readback | C Pr A | Ow | F | D-8 (built #92; live plan #95; network safety #105) |
 | `neon_security_set_logical_replication` | Turn on logical replication (cannot be turned off; restarts computes) | C D Pr | Ow | F | D-8 |
 | `neon_security_set_public_access` | Guarded preview/confirm of public internet/VPC access with verified current flags and exact readback; refuses both-path lockout | C Pr | Ow | F | D-8 (built offline #91) |

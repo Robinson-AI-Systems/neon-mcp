@@ -14,7 +14,7 @@ function fixture({sql={done:true,rowCount:1,truncated:false,rows:[{
  const client=makeNeonClient({key:'napi_FAKE_rls_read',orgId:IDS.org,
   fetch:fake.fetch,budget:{async consume(){return {allowed:true}}}});
  fake.when('getProject').resolves({project:project()});
- fake.when('listProjectBranches').resolves({branches:[mainBranch(),devBranch()]});
+ fake.when('listProjectBranches').resolves({branches:[mainBranch(),devBranch()],annotations:{}});
  fake.when('listProjectEndpoints').resolves({endpoints:[mainEndpoint(),devEndpoint()]});
  fake.when('getProjectJWKS').resolves({jwks:[]});
  const c={connection:{neonOrg:IDS.org,projectScope:IDS.project,profile:'read_only'}};
