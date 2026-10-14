@@ -21,7 +21,12 @@ export function canonicalNeonEndpointHost(value) {
   const labels = value.toLowerCase().split('.');
   if (labels.some(label => label.startsWith('-') || label.endsWith('-')))
     throw new Error('Invalid Neon endpoint hostname');
-  labels[0] = labels[0].replace(/-pooler$/, '');
+  // Only Neon-issued ep-* hosts have a documented direct/-pooler pair.
+  // A custom DNS/CNAME domain named "db-pooler" is a distinct host and
+  // MUST NOT be equated with "db" during self-protection admission.
+  if (labels.length >= 3 && labels[0].startsWith('ep-') &&
+      labels.slice(-2).join('.') === 'neon.tech')
+    labels[0] = labels[0].replace(/-pooler$/, '');
   if (!labels[0] || labels[0].endsWith('-'))
     throw new Error('Invalid Neon endpoint hostname');
   return labels.join('.');
