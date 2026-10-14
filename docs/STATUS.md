@@ -143,6 +143,17 @@ open obligations, original fixture ownership, approvals and deployment provenanc
     "dependsOn": [],
     "status": "PENDING",
     "lastEvidence": "PR #165 reviewed implementation registered through commit 6842ab5779aa6ecf582ac20ccd0360d5e4fa23fe; source-only scenario preview; no deployed custom MCP read or neon_dev_seed application acceptance; do not mark PASSED."
+  },
+  {
+    "id": "NEON-V1-RUN-PAGES",
+    "priority": 4,
+    "requiredRevision": "af7b0dce295193287067d05aeba4e2b58b9dde43",
+    "task": "On checked deployed custom Neon MCP, verify multi-page owner-scoped recorded run listing, active/cleaned/age filters and invalid/foreign-cursor refusal without mutations",
+    "procedure": "docs/pr-cards/V-1.md",
+    "gates": "Native custom MCP read-only identity; no provider writes, cleanups, money or production access",
+    "dependsOn": [],
+    "status": "PENDING",
+    "lastEvidence": "2026-10-14: source-only V-1 exact query, keyset cursor and unit/disposable-PG tests proposed. Full exact-head Actions, merge, released custom-owner multi-page acceptance and denials unproven; recorded expiry is not provider absence."
   }
 ]
 ```
