@@ -335,6 +335,36 @@ const cleanup=defineWrite({name:'neon_dev_cleanup',destructive:true,
 const createSchema=input({name:{type:'string',pattern:'^[A-Za-z][A-Za-z0-9_-]{2,79}$'},
  parentBranchId:id,runId,ttlHours:{type:'integer',minimum:1,maximum:720},
  schemaOnly:{type:'boolean'}},['name','parentBranchId']);
+// Cursors are read-only bookmarks, not owner authorization or cleanup evidence.
+const cursorPattern=/^[A-Za-z0-9_-]{1,512}$/;
+function decodeRunCursor(raw,scope,filters){
+ if(raw===undefined)return {cursorAt:null,cursorId:null};
+ if(typeof raw!=='string'||!cursorPattern.test(raw))
+  throw Error('Invalid run-page cursor');
+ let data;
+ try{
+  data=JSON.parse(Buffer.from(raw,'base64url').toString('utf8'));
+ }catch{throw Error('Invalid run-page cursor');}
+ if(!data||typeof data!=='object'||Array.isArray(data)||
+    Object.keys(data).sort().join(',')!=='at,id,older,org,project,status,v'||
+    data.v!==1||data.org!==scope.orgId||data.project!==scope.projectId||
+    data.status!==filters.status||data.older!==filters.olderThanDays||
+    typeof data.at!=='string'||data.at.length>40||
+    !/^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d{1,6})?Z$/.test(data.at)||
+    Number.isNaN(Date.parse(data.at))||!RUN.test(data.id||'')||
+    Buffer.from(JSON.stringify(data)).toString('base64url')!==raw)
+  throw Error('Run-page cursor does not match the enrolled scope and filters');
+ return {cursorAt:data.at,cursorId:data.id};
+}
+function encodeRunCursor(last,scope,filters){
+ const at=last?.created_at_cursor;
+ if(typeof at!=='string'||at.length>40||Number.isNaN(Date.parse(at))||
+    !RUN.test(last?.id||''))throw Error('Complete run-page ordering unavailable');
+ return Buffer.from(JSON.stringify({v:1,org:scope.orgId,project:scope.projectId,
+  status:filters.status,older:filters.olderThanDays,at,id:last.id}))
+  .toString('base64url');
+}
+
 const cleanupSchema={type:'object',properties:{projectId:id,runId,
  dryRun:{type:'boolean'},confirm:{type:'boolean'},
  requestKey:{type:'string',minLength:8,maxLength:128}},
@@ -342,8 +372,56 @@ const cleanupSchema={type:'object',properties:{projectId:id,runId,
 export const tools=[
  {...create.tool,description:'Create an expiring, cost-checked run-owned development branch with verified compute and durable audit.',
   inputSchema:createSchema,profiles:['full'],area:'developer',audience:['builder','owner']},
- defineReadTool('neon_dev_list_runs','List scoped run ownership, expiration and cleanup progress without exposing secrets.',
-  {projectId:readId,limit:{type:'integer',minimum:1,maximum:50}},{area:'developer'}),
+ defineReadTool('neon_dev_list_runs','Page scoped development runs, recorded expiry and cleanup state; never infer provider absence.',
+  {projectId:readId,limit:{type:'integer',minimum:1,maximum:50},
+   status:{type:'string',enum:['all','active','cleaned']},
+   olderThanDays:{type:'integer',minimum:1,maximum:3650},
+   cursor:{type:'string',pattern:'^[A-Za-z0-9_-]{1,512}
+ {...cleanup.tool,description:'Confirm deletion of only recorded, non-production run branches; verify absence and preserve other branches.',
+  inputSchema:cleanupSchema,profiles:['full'],area:'developer',audience:['builder','operator']}];
+export function createDevRunHandlers({contextFor=createProjectWriteContext}={}){
+ return {
+  async neon_dev_branch_create(a,raw){return create.handler(a,await contextFor(raw));},
+  async neon_dev_list_runs(a,raw){
+   const c=await contextFor(raw),s=scope(a,c);
+   const limit=a.limit??50,filters={status:a.status??'all',
+    olderThanDays:a.olderThanDays??null};
+   if(!Number.isSafeInteger(limit)||limit<1||limit>50||
+      !['all','active','cleaned'].includes(filters.status)||
+      filters.olderThanDays!==null&&(!Number.isSafeInteger(filters.olderThanDays)||
+       filters.olderThanDays<1||filters.olderThanDays>3650))
+    throw Error('Invalid recorded-run page filters');
+   const cursor=decodeRunCursor(a.cursor,s,filters);
+   const rows=await c.db.listDevRuns?.({orgId:s.orgId,projectId:s.projectId,
+    limit,...filters,...cursor});
+   if(!Array.isArray(rows)||rows.length>limit+1||
+      rows.some(r=>!RUN.test(r?.id||'')||r.project_id!==s.projectId||
+       !['active','cleaned'].includes(r.status)))
+    throw Error('Complete scoped developer run page unavailable');
+   const hasMore=rows.length>limit,runs=rows.slice(0,limit);
+   const details=[];
+   for(const r of runs){
+    const objects=await c.db.listDevRunObjects?.({orgId:s.orgId,
+     projectId:s.projectId,runId:r.id});
+    if(!Array.isArray(objects)||objects.length>100||
+       objects.some(o=>o.run_id!==r.id||o.object_type!=='branch'))
+     throw Error('Complete persisted run objects required');
+    details.push({runId:r.id,status:r.status,createdAt:r.created_at,
+     cleanedAt:r.cleaned_at,objects:objects.map(o=>({
+      type:o.object_type,id:o.object_id,parentId:o.parent_id,
+      expiresAt:o.expires_at,cleaned:o.cleaned,cleanedNote:o.cleaned_note
+     })),remaining:r.remaining});
+   }
+   return readText({projectId:s.projectId,runs:details,
+    hasMore,nextCursor:hasMore?encodeRunCursor(runs.at(-1),s,filters):null,
+    filters,recordedOnly:true,
+    caution:'Recorded expiration and cleanup status do not prove Neon provider absence. Use individually confirmed guarded cleanup.'});
+  },
+  async neon_dev_cleanup(a,raw){return cleanup.handler(a,await contextFor(raw));}
+ };
+}
+export const handlers=createDevRunHandlers();
+}},{area:'developer'}),
  {...cleanup.tool,description:'Confirm deletion of only recorded, non-production run branches; verify absence and preserve other branches.',
   inputSchema:cleanupSchema,profiles:['full'],area:'developer',audience:['builder','operator']}];
 export function createDevRunHandlers({contextFor=createProjectWriteContext}={}){
