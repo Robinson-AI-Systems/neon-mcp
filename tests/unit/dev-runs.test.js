@@ -14,7 +14,6 @@ function make({allowed=true,production=false,withOwned=false,badProof=false}={})
  const fake=makeFakeNeon();
  const client=makeNeonClient({key:'napi_FAKE_DEV_RUN_TEST',orgId:IDS.org,
   fetch:fake.fetch,budget:{async consume(){return {allowed:true};}}});
- const saved=new Map();
  let rows=withOwned?[{run_id:'run-owned',object_type:'branch',object_id:IDS.dev,
   parent_id:IDS.main,cleaned:false}]:[];
  let current=withOwned?{id:'run-owned',status:'active',project_id:IDS.project}:null;
