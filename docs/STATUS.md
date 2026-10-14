@@ -1,3 +1,18 @@
+## D-8 guarded audit-level reduction — PR #138
+
+Registered the existing approved `neon_security_set_audit_log_level` tool
+for owner-confirmed decreases of observed Neon project audit verbosity.
+The pinned `updateProject` schema supports `settings.audit_log_level`
+(base, extended, full). No increase, unknown current state, unverified
+project/org, changed non-audit security settings, failed independent
+provider readback or absent B-1 production/app approval can confirm the
+operation. The preview warns that reduced audit detail may impair security
+investigations/compliance; no price upgrade, production activation, spend
+reservation or real provider mutation was invoked during development.
+Provider-contract fake-Neon and write lifecycle tests validate POST/PATCH
+and refusal conditions; CI required. Real effect and audit delivery remain
+unverified until separately authorized owner acceptance.
+
 ## D-5 safe DML EXPLAIN — PR #137 implementation and CI pending
 
 The existing SQL explain tool now supports approved non-executing EXPLAIN of
