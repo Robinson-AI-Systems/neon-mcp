@@ -1,3 +1,20 @@
+## Approved D-4 retirement and recurring branch cleanup — October 13, 2026
+
+Owner approved D-4-RETIREMENT-AMENDMENT.md (IN-16); implement the confirmed
+retirement path without claiming idle pooled clients absent or changing production
+or protected-resource gates. #131 was merged as a proposal; approval is now recorded.
+D-4 source implementation and real acceptance remain open.
+
+The reported branch-cleanup credential mismatch is not a remaining repository
+blocker: #132 completed one-time cleanup through repository-scoped Actions and
+remote inventory contains only main, live and the intentional archive. Added a
+permanent merged-PR cleanup workflow using the same repository's short-lived
+Actions token. It deletes only the exact merged ai/* head after complete open-PR
+reads, ancestry proof and an exact-tip deletion lease; preserves main/live/archive,
+open work, divergent commits and foreign/fork branches. No custom provider grant
+is widened, no PAT installed, and no Vercel build or live promotion is triggered.
+Reconcile cleanup success through its independent Actions result and remote refs.
+
 **2026-10-13 merged-branch housekeeping follow-through (PR #132):** The owner-authorized, exact-head pinned `git-housekeeping.yml` workflow is being used to preserve and prune seven merged branches from #125–#131 and the housekeeping PR's own branch. `.github/housekeeping/plan.json` adds their observed remote tips; cleanup never targets `main`, `live`, or the historical archive, checks open PRs and stale SHA leases, archives every candidate and reads the remote back. PR source/CI passing does not prove cleanup; only the main-push `preserve-and-prune` job and actual post-run branch listing can close this operation. This does not promote live or authorize any production/provider write.
 
 **D-5 single-query cancellation — PR #130:** Owner-confirmed `neon_sql_stop_query` uses the existing B-1 permission, production and audit rules, requires provider-verified direct database identity, refuses idle computes, and independently verifies the original query ended. It never ends a session or enables D-4 role deletion. Fake-provider/SQL tests are separate from checked deployment and owner-approved scratch acceptance. See `pr-cards/D-5.md`.

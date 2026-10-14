@@ -1,6 +1,7 @@
-# D-4: confirmed role retirement — proposed owner decision
+# D-4: confirmed role retirement — approved owner decision
 
-Status: PROPOSED / NOT APPROVED. This document does not register a deletion tool,
+Status: APPROVED 2026-10-13 (owner: "I approve the change."). Implementation
+and real acceptance remain pending. This document does not register a deletion tool,
 change existing safety guards, authorize provider writes, or complete D-4.
 Owner requested independent resolution of the stalled role-deletion decision.
 Baseline: main after #130. #129 already implements read-only retirement review;
@@ -30,7 +31,7 @@ contract that blocks new admissions, drains existing clients on all computes and
 returns independently verifiable completion. Do not make this the only possible
 way to implement a supported explicitly destructive administration operation.
 
-## Narrow amendment to approve
+## Approved narrow amendment
 
 The current implementation/card absolute absence-of-pooled-clients condition stays required for any
 operation advertised as nondisruptive. Add a separate confirmed-retirement path
@@ -75,7 +76,7 @@ or generic safeToDelete to true merely because the owner accepted this risk.
    maintenance consent. A maintenance window may be immediate for a disposable
    fixture; it is not an automatic scheduling or blanket production authorization.
 
-## Concrete implementation and acceptance after approval
+## Concrete implementation and acceptance
 
 Reuse #129's provider inventory and src/tools/role-delete-inventory.js; add the
 confirmed retirement tool under the original canonical role-deletion capability.
