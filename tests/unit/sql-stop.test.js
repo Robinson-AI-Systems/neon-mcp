@@ -11,14 +11,14 @@ import {requestScopedQueryCancellation,observeScopedQueryCancellation}
 const a={projectId:IDS.project,branchId:IDS.dev,endpointId:IDS.devEndpoint,
  databaseName:'neondb',roleName:'neondb_owner',pid:12345};
 const unpack=r=>JSON.parse(r.content[0].text);
-function fixture({allowed=true,foreignEndpoint=false,verified=true}={}){
+function fixture({allowed=true,foreignEndpoint=false,verified=true,idle=false}={}){
  const fake=makeFakeNeon(),changes=[],requests=[];
  const client=makeNeonClient({key:'napi_FAKE_sql_cancel',orgId:IDS.org,
   fetch:fake.fetch,budget:{async consume(){return {allowed:true}}}});
  fake.when('getProject').resolves({project:project()});
  fake.when('getProjectBranch').resolves(responses.getProjectBranch('dev'));
- fake.when('getProjectEndpoint').resolves({endpoint:devEndpoint(
-  foreignEndpoint?{branch_id:IDS.main}:{})});
+ fake.when('getProjectEndpoint').resolves({endpoint:devEndpoint({
+  current_state:idle?'idle':'active',...(foreignEndpoint?{branch_id:IDS.main}:{})})});
  fake.when('getProjectBranchDatabase').resolves({database:database(IDS.dev)});
  fake.when('getProjectBranchRole').resolves({role:role(IDS.dev)});
  const context={connection:{neonOrg:IDS.org,projectScope:IDS.project,
@@ -74,7 +74,7 @@ describe('D-5 single query interruption owner write contract',()=>{
   f.fake.assertClean();
  });
  it('refuses unsafe scope, forged endpoint, protected policy, and invalid PID',async()=>{
-  for(const settings of [{foreignEndpoint:true},{allowed:false}]){
+  for(const settings of [{foreignEndpoint:true},{allowed:false},{idle:true}]){
    const f=fixture(settings);
    const out=unpack(await f.handler.handlers.neon_sql_stop_query(
     {...a,confirm:true},{}));
