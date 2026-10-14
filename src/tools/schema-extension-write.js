@@ -1,6 +1,7 @@
 // D-6 owner-confirmed, development-only extension install/upgrade.
 // Provider metadata and actual post-write catalog readback are mandatory.
 // This is deliberately not a generic SQL DDL escape hatch.
+import {classifyTarget} from '../neon/production.js';
 import {defineWrite} from '../core/write.js';
 import {verifyConnectionTarget} from './connections.js';
 import {createProjectWriteContext} from '../neon/project-write-context.js';
@@ -20,7 +21,7 @@ export function createExtensionWriteHandlers({
  query=runPublicSqlQuery,mutate=runReviewedExtensionMutation
 }={}){
  async function observe(a,c){
-  if(c?.connection?.profile!=='full'||c.connection.mode!=='preview'||
+  if(c?.connection?.profile!=='full'||!['preview','production'].includes(c.connection.mode)||
      !allowed.has(a?.extensionName)||typeof a.update!=='boolean')
    throw Error('Full owner on a development branch must select an audited extension');
   const v=await verifyTarget(a,c);
@@ -46,8 +47,7 @@ export function createExtensionWriteHandlers({
    if(!result.installedVersion||
       result.installedVersion===result.availableVersion)
     throw Error('Only a verified available extension upgrade can be applied');
-  }else if(result.installedVersion!==null)
-   throw Error('Extension is already installed; use update only if a newer version exists');
+  }
   return result;
  }
  const mutation=defineWrite({
@@ -67,6 +67,13 @@ export function createExtensionWriteHandlers({
    const fresh=await planned(a,c);
    if(JSON.stringify(fresh)!==JSON.stringify(before))
     throw Error('Extension or target changed after owner preview');
+   const classification=await classifyTarget(c,fresh.target);
+   if(!classification.allowed||classification.production||
+      await c.guards.checkProtected(fresh.target,c)!==true||
+      await c.guards.checkApp(fresh.target,c,{...a,outsideApp:false})!==true)
+    throw Error('Development extension target no longer eligible');
+   if(!a.update&&fresh.installedVersion!==null)
+    return {confirmed:true}; // Idempotent ensure; no second DDL.
    const result=await mutate({ctx:c,target:fresh.target,
     name:a.extensionName,update:a.update});
    return {confirmed:result?.issued===true?true:'pending'};
@@ -77,12 +84,11 @@ export function createExtensionWriteHandlers({
     after.installedVersion===before.availableVersion
  });
  const tool={...mutation.tool,profiles:['full'],area:'schema',audience:['owner'],
-  description:'Owner-confirmed, development-only install or upgrade of six audited PostgreSQL extensions; exact catalog checks and independent result readback, never generic SQL.',
+  description:'Confirm audited development extension installation or upgrade.',
   inputSchema:{type:'object',properties:{
    projectId:id,branchId:id,endpointId:id,databaseName:name,roleName:name,
    extensionName:{type:'string',enum:safeExtensionNames},update:{type:'boolean'},
-   outsideApp:{type:'boolean'},dryRun:{type:'boolean'},confirm:{type:'boolean'},
-   requestKey:{type:'string',minLength:8,maxLength:128}
+   dryRun:{type:'boolean'},confirm:{type:'boolean'}
   },required:['projectId','branchId','endpointId','databaseName',
    'roleName','extensionName','update'],additionalProperties:false}};
  return {tools:[tool],handlers:{async neon_schema_enable_extension(a,connectionCtx){

@@ -9,7 +9,7 @@ const id=x=>typeof x==='string'&&/^[a-z0-9-]{1,60}$/.test(x);
 const name=x=>typeof x==='string'&&/^[A-Za-z_][A-Za-z0-9_-]{0,62}$/.test(x);
 const required=['branchId','roleName'];
 const spec=defineReadTool('neon_role_retirement_review',
- 'Review provider role impact; optionally verify database dependency counts with guarded read-only PostgreSQL inspection, never claim pooler clearance.',
+ 'Inspect retirement dependencies; pooler clearance unknown.',
  {projectId:readId,branchId:readId,roleName:roleSchema,
   monitorDatabase:{type:'string',pattern:'^[A-Za-z_][A-Za-z0-9_-]{0,62}$'},
   monitorRole:roleSchema},

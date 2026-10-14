@@ -1,18 +1,58 @@
-## D-6 guarded extension management — PR #150
+## Release follow-up queue — October 14 session
 
-`neon_schema_enable_extension` provides owner-confirmed development-only
-installation or upgrade for six audited built-in PostgreSQL extensions.
-All B-1 protected/application/production and durable confirmation checks,
-exact five-resource direct-host identity, B-3 bounded catalog validation,
-server-constructed AST-pinned SQL and independent post-write catalog readback
-remain required. Live acceptance and extension deletion/production paths
-are still outstanding; zero autonomous spending and production writes OFF.
+| Capability | Minimum source | Run as soon as that revision is READY | Last evidence / gates |
+| --- | --- | --- | --- |
+| D-4 scratch retirement | merged #150 | Verify deployed SHA and custom identity; branch-create dryRun; resume approved isolated fixture/consent/refusal/delete cycle, independent role absence, fresh authentication denial and cleanup | READY #148 only; original scratch baseline preserved; existing IN-06/IN-16 approvals, production OFF, spending $0 |
+| D-6 extension workflow | merged #151 | Custom full-owner write preview, scoped install/update, catalog readback, protection/production denials and fixture cleanup | Local/CI tracked separately; no hosted mutation performed |
+| D-6 schema/type/health and D-9 history | merged #149 or newer | Verify exact direct scratch SQL target; bounded read acceptance for types, DDL sketches, health/index advice and migration history | Source tests only; protected/self-resource and read gates remain |
+| Daily release recovery | merged #152 | Inspect future scheduled event, once-per-Denver-day marker, exact-main checks and live/READY alias readback | #152 source merged; October 14 receipt already exists at #148, so later same-day backups must skip |
 
-The checked October 14 scheduled release ran around 05:12 Denver, much later
-than its correct 00:01 schedule. It created the October 14 atomic release
-marker, fast-forwarded live to `8ab1d149e9dad5966b907370889d3279af58207e`,
-and Vercel subsequently reached READY. No unapproved manual release or
-additional recurring trigger was introduced; GitHub schedules are best effort.
+This is planned release-dependent acceptance; continue eligible implementation.
+Update rows after every observed release and acceptance run. No manual release implied.
+
+## D-6 development extension workflow — PR #151
+
+Owner-confirmed install/upgrade of six audited extensions, durable B-1 audit,
+exact direct SQL identity and independent version readback. Rechecks provider
+classification, protected resources and application ownership immediately before
+DDL. Disposable PostgreSQL installation, update, rollback and all three transport
+write contracts verify source behavior; custom hosted acceptance awaits the normal
+checked release. Preserves #150 D-4 correction and #152 release repair.
+Production OFF; autonomous spending $0.
+
+<!-- Current repair also records no-change daily receipts: backups cannot publish later same-day development after a successful no-op. -->
+## October 14 owner-requested daily release recovery repair — current
+
+Owner request on October 14: investigate and repair missed daily releases across the MCP repositories and Appliance Desk, including the quoted owner-run checked recovery. This supersedes the prior scheduled-only/no-new-trigger restriction for missed-event recovery only. Primary 00:01 Denver remains; retries are 00:17, 01:17 and 05:37 Denver plus 12:43 UTC. Explicit recovery defaults OFF and requires both the original actor and the triggering actor to be christcr2012, main, true recovery input and elapsed midnight. Every path retains successful exact-main CI, ancestry, atomic once-per-Denver-day receipt and independent readback. No production-provider activation, spending, force push or preview build is authorized.
+
+Local release safety tests pass. Merge requires exact-head application CI and review resolution. Source repair is separate from observed schedule execution and Vercel READY/alias proof; inspect actual daily run and receipt, do not equate main/live drift after a release with failure. These infrastructure PRs do not replace the existing substantive implementation batch.
+
+## #150 — D-4 checked-release self-endpoint alias recovery (source/CI; live pending)
+
+October 14 checked daily main-to-live promotion reached merged #148 and Vercel
+production READY at that exact source revision. The saved Production
+`NEON_MCP_SELF_ORG_ID`, `NEON_MCP_SELF_PROJECT_ID` and
+`NEON_MCP_SELF_ENDPOINT_HOST` now predate the READY deployment.
+Authenticated custom scratch project/branch reads succeeded; however a
+non-mutating `neon_branch_create` preview on the approved run-owned,
+nondefault 0.25-CU scratch candidate **still failed** with the previous
+generic account-details error before any spend or provider mutation.
+No branch or role was created, no consent issued and no deletion accepted.
+
+A concrete potential root cause in the deployed implementation is that
+`configuredSelfResource` compared a saved direct endpoint host literally
+against `DATABASE_URL`, while the guarded SQL self-database protection
+already treats Neon's exact `-pooler` alias as the same endpoint. #150
+centralizes strict canonicalization for these two safety boundaries, refuses
+invalid/lookalike hosts and missing/mismatched identity, and returns only
+fixed configuration-reason codes to authenticated full owners; no secrets
+or internal hosts. Unit tests prove direct/pooler compatibility and all
+self-protection refusals. This is a hypothesis pending a future checked
+scheduled deployment and fresh custom-service preview, NOT confirmed repair.
+If still refused, use the safe code to reconcile protected Vercel Production
+settings without exposing credentials. D-4 destructive owner-approved X-3
+tests and independent denial/readback/cleanup remain open. Production writes
+OFF, autonomous spending $0, existing approval preserved, no unscheduled deploy.
 
 ## D-9 review correction — PR #149
 

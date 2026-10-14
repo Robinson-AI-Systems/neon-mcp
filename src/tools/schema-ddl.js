@@ -8,7 +8,7 @@ import {TABLES_SQL,COLUMNS_SQL} from './schema-reads.js';
 const ident={type:'string',pattern:'^[A-Za-z_][A-Za-z0-9_-]{0,62}$'};
 const required=['projectId','branchId','endpointId','databaseName','roleName','schemaName'];
 const base=defineReadTool('neon_schema_get_ddl',
- 'Inspect structural CREATE TABLE SQL with clear omissions; not an executable migration.',
+ 'Inspect structural table DDL; omissions listed, never executable.',
  {projectId:readId,branchId:readId,endpointId:readId,databaseName:ident,
   roleName:ident,schemaName:ident,tableName:ident},{area:'schema'});
 export const tools=[{...base,inputSchema:{...base.inputSchema,required}}];

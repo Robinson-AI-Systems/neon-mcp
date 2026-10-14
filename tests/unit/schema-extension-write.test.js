@@ -11,6 +11,7 @@ function fixture({initial=null,foreign=false,mode='preview',profile='full',
  const events=[];
  const ctx={connection:{neonOrg:'org-fake',projectScope:args.projectId,
   mode,profile},deploymentEnv:'production',
+  getBranch:async()=>({id:args.branchId,default:mode==='production'}),
   db:{recordWritePreview:async x=>events.push(['preview',x.tool]),
    reserveWrite:async x=>{events.push(['reserve',x.tool]);return {created:true,id:1}},
    completeWrite:async x=>events.push(['complete',x.confirmed])},

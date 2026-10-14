@@ -215,3 +215,23 @@ of all rules. Example structure (replace with verified facts):
 > Update the authoritative ledger, place permanent handoff on final merged PR,
 > and generate the next compact continuation prompt in this exact style.
 
+
+## Release-aware sessions and short prompts — owner correction October 14, 2026
+
+Plan for limited releases. Source implementation and meaningful automated verification
+continue while deployment-dependent acceptance waits. A scheduled release dependency
+is queued acceptance, not a project-wide blocker or reason to end a session early.
+Maintain the running release-follow-up list in `docs/STATUS.md`: capability, minimum
+reviewed revision, exact acceptance/cleanup steps, gates and last evidence. At session
+start and every observed release, verify the deployed revision, run all newly eligible
+checks, and update that list without calling source/CI proof live acceptance.
+This creates no new release authorization: scheduled-only policy remains in force
+unless the owner separately authorizes a particular manual release.
+
+Continuation prompts are brief context pointers, about 100–150 words: repository,
+verified checkpoint/final PR handoff, current outcome/next action and release-follow-up
+list. Refer to repository instructions for workflow, guidance and implementation order;
+do not copy them. Require substantial coherent PRs at the documented scope, normal
+five-merge cadence and a final PR number divisible by five, dynamically reconciled
+with concurrent numbering. No padding, documentation-only PRs or premature continuation.
+Include only genuinely new missing owner inputs, never repeat supplied approvals.
