@@ -171,6 +171,17 @@ open obligations, original fixture ownership, approvals and deployment provenanc
     "dependsOn": [],
     "status": "PENDING",
     "lastEvidence": "2026-10-14: source-only V-1 exact query, keyset cursor and unit/disposable-PG tests proposed. Full exact-head Actions, merge, released custom-owner multi-page acceptance and denials unproven; recorded expiry is not provider absence."
+  },
+  {
+    "id": "NEON-V2-DEMO-SEED",
+    "priority": 4,
+    "requiredRevision": "44661ab59075f9a26f14de98c9035e534021e7ac",
+    "task": "On checked released custom Neon full-owner TEST connection, prove four synthetic scenario seed previews, nonproduction run-owned branch confirmation, exact rows, idempotent retry, foreign/protected/production refusals and recorded fixture cleanup",
+    "procedure": "docs/pr-cards/V-2.md",
+    "gates": "Owner scratch certification, genuine B-1/B-3 spend/SQL guard, explicit one-time confirmation, no production, no app data, independently owned scratch fixtures only",
+    "dependsOn": [],
+    "status": "PENDING",
+    "lastEvidence": "2026-10-14: source scenario seed implementation and fake/throwaway PostgreSQL tests authored, but not yet CI-merged, checked released or genuinely custom-host accepted. Retain separate V-1 acceptance and scratch owner certification."
   }
 ]
 ```
