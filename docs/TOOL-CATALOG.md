@@ -278,9 +278,9 @@ only recorded objects. Every tool refuses production targets (B-2) before readin
 
 | Tool | What it does | Flags | Aud | Profile | Card |
 | --- | --- | --- | --- | --- | --- |
-| `neon_dev_branch_create` | Throwaway branch for a feature or test run: from a parent (data or schema-only), small compute, expiry (default 24 h), recorded in a run; connection info without password | P Dev | B | E | V-1 |
-| `neon_dev_list_runs` | Runs and what each created, with expiry and cleanup state | — | B | R | V-1 |
-| `neon_dev_cleanup` | Delete exactly what a run created (branches first-child-first, then databases/roles on kept branches); per-object report | C Dev | B | E | V-1 |
+| `neon_dev_branch_create` | Create an audited, expiring branch with run metadata, stored safe compute, provider-backed price and exact readback | P Dev | B | E | V-1 built #160 |
+| `neon_dev_list_runs` | Read scoped recorded run ownership and remaining cleanup with no provider secrets | — | B | R | V-1 built #160 |
+| `neon_dev_cleanup` | Confirm child-first, recorded-only branch soft deletion with exact protected/production refusals | C Dev | B | E | V-1 built #160 |
 | `neon_dev_list_scenarios` | Seed scenarios available, with what each creates | — | B | R | V-2 |
 | `neon_dev_seed` | Fill a dev branch with realistic data from a named scenario, a plain description mapped to scenarios, or rows from a public CSV/JSON URL; preview lists every table and row count | P Dev | B | E | V-2 |
 | `neon_dev_reset_branch` | Reset a dev branch to its parent's latest state (no production confirm needed; refuses production) | P Dev | B | E | V-3 |
@@ -361,7 +361,7 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #157 (source capability listing, deployment acceptance separate):** `read_only` 47; `everyday` 55; `full` 91. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
+**Implemented registry at #160 (source tooling only; deployed acceptance separate):** `read_only` 48; `everyday` 56; `full` 94. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
 
 ## Totals
 
