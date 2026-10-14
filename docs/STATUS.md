@@ -13,6 +13,23 @@ must be complete; partial, unknown and overlong data fail closed. Fake
 provider and disposable PG fixtures test readback and no data mutation.
 This is code/CI proof only; custom deployed acceptance remains pending.
 
+## D-6 evidence-backed non-executing index advice — PR #148
+
+Registered `neon_health_suggest_indexes` to evaluate explicitly selected one-to-three
+table columns against verified, bounded PostgreSQL table scan statistics and
+actual leading-index metadata. A complete exact project/branch/endpoint/
+database/role and unpooled host is required before two fixed B-3 SELECTs.
+Only a cumulative high-sequential-scan observation with no existing leading
+index can produce a review-only `CREATE INDEX CONCURRENTLY IF NOT EXISTS`
+candidate. Invalid schema/table/columns, missing or incomplete catalogs,
+unknown counts, identity mismatch and system schemas fail closed. Does not
+inspect query text, application rows, values or issue DDL. The caller must
+independently examine actual query predicates, selectivity, maintenance costs
+and existing composite indexes before a separately gated write. Unit/fake
+provider and disposable PostgreSQL 17 tests added; exact-head CI and custom
+live SQL acceptance must be verified separately. No autonomous spending or
+production writes enabled.
+
 ## D-6 guarded structural PostgreSQL DDL inspection — PR #147
 
 `neon_schema_get_ddl` now constructs explicitly non-executable CREATE TABLE

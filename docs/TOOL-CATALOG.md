@@ -105,7 +105,7 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 | `neon_branch_reset_from_parent` | Reset from verified parent; always preserve prior state under a uniquely named new branch and apply guarded spend limits | C D Pr $ | B Op | F | D-2 (built #55) |
 | `neon_branch_restore` | Restore verified source/head/LSN/UTC timestamp; always preserve prior state and verify both branches | C D Pr $ | Op | F | D-2 (built #55) |
 | `neon_branch_compare_schema` | Compare verified branches for one database at HEAD, LSN or past UTC time independently on each side | — | B Op | R | D-2 (built #52, historical variants #57) |
-| `neon_branch_compare_data` | Row differences for chosen tables between two branches (or a branch and a point in time): counts, then added / removed / changed rows by primary key, capped with a handle; tables without a primary key compare by count and checksum only | — | B Op | R | D-9 |
+| `neon_branch_compare_data` | Row differences for chosen tables between two branches (or a branch and a point in time): counts, then added / removed / changed rows by primary key, capped with a handle; tables without a primary key compare by count and checksum only | — | B Op | R | D-9 (built #149; hosted acceptance pending) |
 
 ## Computes (`neon_compute_*`) — 10
 
@@ -179,14 +179,14 @@ The SQL guard (`docs/designs/BATCH-B.md` B-3) classifies every statement with th
 | `neon_schema_create_index` | Create an index, CONCURRENTLY by default (production: confirm) | C* Pr | B Op | E | D-6 |
 | `neon_schema_drop_index` | Drop an index (preview shows its recent use) | C D Pr | Op | F | D-6 |
 | `neon_schema_generate_types` | TypeScript types (or Zod schemas) generated from the tables | — | B | R | D-6 (built #146, real PostgreSQL metadata test; live acceptance pending) |
-| `neon_schema_list_migrations` | Verified Prisma, Drizzle, Knex, Flyway and golang-migrate history; bounded applied/failed/rolled-back metadata and comparable missing expected names; never applies changes | — | B Op | R | D-9 (built #149; hosted acceptance pending) |
+| `neon_schema_list_migrations` | The app's migration history read from its own table (Prisma `_prisma_migrations`, Drizzle, Knex, Flyway, golang-migrate detected): applied, failed or rolled back, with dates; given the repo's migration names, also which are not applied yet. Read-only — applying stays with the app or `neon_workflow_safe_migration` | — | B Op | R | D-9 |
 
 ## Health (`neon_health_*`) — 4
 
 | Tool | What it does | Flags | Aud | Profile | Card |
 | --- | --- | --- | --- | --- | --- |
 | `neon_health_check` | Database health in one call (any of 15 checks): sizes, cache hit rate, connections, locks, long-running queries, bloat, autovacuum, unused/duplicate indexes, transaction-ID age, replication | — | Op | R | D-6 (built #145; hosted acceptance pending) |
-| `neon_health_suggest_indexes` | Index suggestions from scan statistics and slow queries, each with the exact CREATE INDEX statement | — | B Op | R | D-6 |
+| `neon_health_suggest_indexes` | Review-only candidate on explicitly selected columns from verified PostgreSQL scan/index stats; no SQL execution or query text | — | B Op | R | D-6 (built #148; live SQL acceptance pending) |
 | `neon_health_vacuum_analyze` | VACUUM (ANALYZE) a table or database (production: confirm; load warning) | C* Pr | Op | E | D-6 |
 | `neon_health_reindex` | Rebuild a bloated or invalid index, or all indexes of a table, `CONCURRENTLY` by default (preview shows sizes before and the bloat estimate; production: confirm; never a whole database or system catalogs) | C* Pr | Op | E | D-9 |
 
@@ -361,7 +361,7 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #149 (source capability listing, deployment acceptance separate):** `read_only` 45; `everyday` 53; `full` 83. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
+**Implemented registry at #149 (source capability listing, deployment acceptance separate):** `read_only` 46; `everyday` 54; `full` 84. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
 
 ## Totals
 
