@@ -3,6 +3,9 @@
 import {isIP} from 'node:net';
 import {projectScope,projectClient,projectRead} from './project-context.js';
 import {defineReadTool,readId,readText} from './read-descriptors.js';
+import {verifyConnectionTarget} from './connections.js';
+import {createProjectWriteContext} from '../neon/project-write-context.js';
+import {runPublicSqlQuery} from '../neon/sql-run.js';
 
 const id=x=>typeof x==='string'&&/^[a-z0-9-]{1,60}$/.test(x);
 const role=x=>typeof x==='string'&&/^[A-Za-z_][A-Za-z0-9_]{0,62}$/.test(x);
@@ -11,8 +14,13 @@ export const tools=[
   'List scoped trusted JWKS issuers without revealing embedded URL credentials.',{
    projectId:readId},{area:'security',audience:['owner','operator']}),
  defineReadTool('neon_security_review',
-  'Review project network, audit level, JWKS and verified replication compute exposure.',{
-   projectId:readId},{area:'security',audience:['owner','operator']})
+  'Review project security and optional live PostgreSQL RLS catalog coverage.',{
+   projectId:readId,rlsTarget:{type:'object',
+    properties:{branchId:readId,endpointId:readId,
+     databaseName:{type:'string',pattern:'^[A-Za-z_][A-Za-z0-9_-]{0,62}$'},
+     roleName:{type:'string',pattern:'^[A-Za-z_][A-Za-z0-9_-]{0,62}$'}},
+    required:['branchId','endpointId','databaseName','roleName'],
+    additionalProperties:false}},{area:'security',audience:['owner','operator']})
 ];
 function safeJwksUrl(raw){
  try{
@@ -190,7 +198,53 @@ function verifiedBranchPosture(data,projectId){
  return {state:'observed',total:data.branches.length,
   protected:protectedCount,default:defaultCount};
 }
-export function createSecurityReadHandlers({getClient=projectClient}={}){
+// Optional D-8 RLS inventory: only fixed catalog SQL, never a caller statement.
+// A per-schema aggregate avoids table names and row data. A truncated or
+// malformed inventory is UNKNOWN, not falsely reported as full coverage.
+export const RLS_COVERAGE_SQL =
+ 'SELECT n.nspname AS schema_name, COUNT(*)::int AS table_count,'+
+ ' COUNT(*) FILTER (WHERE c.relrowsecurity)::int AS rls_enabled,'+
+ ' COUNT(*) FILTER (WHERE c.relforcerowsecurity)::int AS rls_forced,'+
+ ' COUNT(*) FILTER (WHERE EXISTS (SELECT 1 FROM pg_catalog.pg_policy p'+
+ ' WHERE p.polrelid = c.oid))::int AS tables_with_policies'+
+ ' FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n'+
+ ' ON n.oid = c.relnamespace'+
+ " WHERE c.relkind IN ('r','p')"+
+ " AND n.nspname NOT IN ('pg_catalog','information_schema')"+
+ " AND n.nspname NOT LIKE 'pg_toast%'"+
+ ' GROUP BY n.nspname ORDER BY n.nspname LIMIT 201';
+export function summarizeRlsCoverage(result){
+ if(result?.done!==true) return {state:'unavailable',
+  code:typeof result?.code==='string'?result.code:'read_unavailable'};
+ if(!Array.isArray(result.rows)||result.truncated===true||
+    result.rows.length>200||result.rowCount!==result.rows.length)
+  return {state:'incomplete',reason:'Database-wide schema inventory is not complete'};
+ const seen=new Set(),schemas=[];
+ let tables=0,enabled=0,forced=0,withPolicies=0;
+ for(const row of result.rows){
+  const counts=['table_count','rls_enabled','rls_forced','tables_with_policies'];
+  if(typeof row?.schema_name!=='string'||!row.schema_name||
+     row.schema_name.length>63||/[\x00-\x1f\x7f]/.test(row.schema_name)||
+     seen.has(row.schema_name)||counts.some(k=>
+      !Number.isSafeInteger(row[k])||row[k]<0||row[k]>1000000)||
+     row.rls_enabled>row.table_count||row.rls_forced>row.table_count||
+     row.tables_with_policies>row.table_count)
+   return {state:'incomplete',reason:'Malformed or duplicate catalog coverage data'};
+  seen.add(row.schema_name);
+  schemas.push({schema:row.schema_name,tables:row.table_count,
+   rlsEnabled:row.rls_enabled,rlsForced:row.rls_forced,
+   tablesWithPolicies:row.tables_with_policies});
+  tables+=row.table_count;enabled+=row.rls_enabled;
+  forced+=row.rls_forced;withPolicies+=row.tables_with_policies;
+ }
+ return {state:'observed',schemaCount:schemas.length,tables,rlsEnabled:enabled,
+  rlsForced:forced,tablesWithPolicies:withPolicies,schemas,
+  effectiveness:'notEvaluated',
+  note:'Catalog flags and policy counts are not proof that every role is denied unsafe access.'};
+}
+export function createSecurityReadHandlers({getClient=projectClient,
+ verifyTarget=verifyConnectionTarget,contextFor=createProjectWriteContext,
+ runQuery=runPublicSqlQuery}={}){
  return {async neon_security_list_jwks(a,c){
   const scope=projectScope(c,a.projectId??null);
   if(!scope.projectId)throw Error('Choose an authorized project for security');
@@ -227,6 +281,31 @@ export function createSecurityReadHandlers({getClient=projectClient}={}){
   const issuerCoverage=configuredIssuerCoverage(issuers,branches.branches);
   const exposure=verifiedReplicationExposure(endpoints,scope.projectId,branches.branches);
   const security=settings??{};
+  let rlsCoverage=null;
+  if(a.rlsTarget!==undefined){
+   const target=a.rlsTarget;
+   if(!target||typeof target!=='object'||Array.isArray(target)||
+      ['branchId','endpointId','databaseName','roleName'].some(k=>
+       typeof target[k]!=='string'||!target[k])||
+      Object.keys(target).some(k=>!['branchId','endpointId','databaseName','roleName'].includes(k)))
+    throw Error('RLS inspection requires one exact database and direct compute selection');
+   try{
+    const verified=await verifyTarget({...target,projectId:scope.projectId},c);
+    if(verified.pid!==scope.projectId||verified.bid!==target.branchId||
+       verified.endpointId!==target.endpointId||
+       verified.database!==target.databaseName||verified.role!==target.roleName||
+       typeof verified.endpoint?.host!=='string')
+     throw Error('RLS database/compute identity was not verified');
+    const sql=await runQuery({ctx:await contextFor(c),
+     target:{projectId:verified.pid,branchId:verified.bid,
+      endpointId:verified.endpointId,expectedEndpointHost:verified.endpoint.host,
+      database:verified.database,role:verified.role,pooled:false},
+     text:RLS_COVERAGE_SQL,params:[]});
+    rlsCoverage=summarizeRlsCoverage(sql);
+   }catch{
+    rlsCoverage={state:'unavailable',code:'verification_unavailable'};
+   }
+  }
   return readText({projectId:scope.projectId,metadataComplete:true,
    checks:{
     protectedBranches:posture,
@@ -237,13 +316,14 @@ export function createSecurityReadHandlers({getClient=projectClient}={}){
     auditLoggingLevel:observedAuditLevel(security.audit_log_level),
     ipAllowlist:observedIps(security.allowed_ips),
     trustedJwks:{state:'observed',issuerCount:issuers.length,
-      configuredCoverage:issuerCoverage}
+      configuredCoverage:issuerCoverage},
+    ...(rlsCoverage!==null?{rlsCoverage}:{})
    },
-   notEvaluated:['RLS policy coverage','Login role access',
+   notEvaluated:[...(rlsCoverage?.state==='observed'?[]:['RLS policy coverage']),'Login role access',
     'Advisor findings and live network reachability',
     'Real replication subscribers, audit delivery and incremental billing',
     'JWT token verification and PostgreSQL role login effectiveness'],
-   note:'Compute impact is a point-in-time metadata inventory, not an active-client probe or billable increment. Enabling replication is irreversible and suspends active endpoints. Audit level is configured state only, not proof of delivered logs. JWKS branch/role assignments are configured metadata, not proof of usable JWT authentication. No database or external JWKS endpoint was contacted.'});
+   note:'Compute impact is a point-in-time metadata inventory, not an active-client probe or billable increment. Enabling replication is irreversible and suspends active endpoints. Audit level is configured state only, not proof of delivered logs. JWKS branch/role assignments are configured metadata, not proof of usable JWT authentication. A PostgreSQL catalog read happens only if rlsTarget is supplied; otherwise no database or external JWKS endpoint is contacted.'});
  }};
 }
 export const handlers=createSecurityReadHandlers();

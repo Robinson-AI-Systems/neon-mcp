@@ -1,3 +1,27 @@
+## D-8 opt-in verified RLS catalog inspection — PR #136, acceptance pending
+
+An opt-in `rlsTarget` on `neon_security_review` uses an exact provider-verified
+branch/compute/database/role and B-3 read-only SQL policy to count per-schema
+PostgreSQL tables, enabled/forced RLS flags and tables with policies, without
+reading any application rows or table names. Absent target keeps metadata-only
+behavior. Missing permissions, identity, SQL policy, truncated catalogs and
+invalid counts remain explicitly unavailable/incomplete, never a false
+security-pass statement. JWT/auth, role effectiveness and network efficacy
+remain unverified; this is an approved D-8 partial security-review capability,
+not completed real acceptance. Test at checked deployment after CI.
+
+2026-10-13 hosted read acceptance investigation: custom project/branch and
+connection-metadata reads passed, but custom `neon_sql_query` and optional
+connection testing failed before SQL because Vercel production lacked the
+mandatory self-database identity triplet. Those three encrypted production-only
+variables have now been created using the independently inspected dedicated
+Neon MCP project, organization and direct endpoint. Their exact-host match
+against the stored DATABASE_URL remains unverified because its secret was not
+exposed. A checked scheduled deployment is required before retesting; do not
+claim fixed SQL or loosen the self-protection guard. No live provider write,
+destructive test, production enablement, paid capacity or manual release occurred.
+Scratch X-3 still requires an isolated owner-approved project and key.
+
 ## D-4 confirmed retirement implementation — owner-approved IN-16
 
 Canonical neon_role_delete is registered for full owners under B-1 guards. A
