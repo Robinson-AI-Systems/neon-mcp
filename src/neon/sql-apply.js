@@ -19,7 +19,7 @@ const lsnPattern = /^[0-9a-f]{1,8}\/[0-9a-f]{1,8}$/i;
 
 /** A successful COMMIT is never assumed if the driver throws: leave audit pending. */
 export async function applyGuardedSql({ ctx, target, statements, params, requestKey,
-  previewToken, confirm = false, acceptEstimate = false,
+  previewToken, expectedAffectedRows = null, confirm = false, acceptEstimate = false,
   allowFullTable = false, sqlLayer, verifyReadBack } = {}) {
   const orgId = ctx?.connection?.neonOrg ?? ctx?.connection?.neon_org;
   const scope = ctx?.connection?.projectScope ?? ctx?.connection?.project_scope;
@@ -63,6 +63,10 @@ export async function applyGuardedSql({ ctx, target, statements, params, request
     return deny('preview_required', 'Production SQL needs an unexpired exact-preview token.');
   if (!production && previewToken != null)
     return deny('unexpected_preview', 'A production preview token cannot be used for development SQL.');
+  if (!production && (!Array.isArray(expectedAffectedRows) ||
+      expectedAffectedRows.length !== statements.length ||
+      expectedAffectedRows.some(n => !Number.isSafeInteger(n) || n < 0 || n > 1000000)))
+    return deny('dev_rows_required', 'Development SQL needs explicit bounded expected row counts.');
   // Stored, bounded policy is read before claiming/consuming a token or opening SQL.
   // Never let an unconfigured runner silently accept more affected rows.
   let tolerance;
@@ -108,11 +112,15 @@ export async function applyGuardedSql({ ctx, target, statements, params, request
     expected = preview.sql_expected_rows;
     estimated = preview.sql_estimate === true;
   }
+  if (!production) expected = [...expectedAffectedRows];
   let outcome = 'pending', affectedRows = null, restoreLsnSaved = false;
   try {
     const result = await sqlLayer({ neonOrg: orgId, projectScope: scope || null },
       { projectId: target.projectId, branchId: target.branchId, database: target.database,
-        role: target.role, pooled: false }, async client => {
+        role: target.role, pooled: false,
+        ...(target.endpointId ? { endpointId: target.endpointId } : {}),
+        ...(target.expectedEndpointHost ? {
+          expectedEndpointHost:target.expectedEndpointHost } : {}) }, async client => {
         let begun = false, committing = false;
         try {
           await client.query('BEGIN');
