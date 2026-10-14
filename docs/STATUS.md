@@ -1,3 +1,17 @@
+## #142 — owner opt-in real PostgreSQL role dependency evidence
+
+The existing role retirement review now accepts a paired exact monitor
+database/role, and—only for nondefault, unprotected branch selection—uses
+the same fixed PostgreSQL dependency inventory, B-2/B-3 resource/app/
+production read guard and provider identity checks as the delete preview.
+Only identity-correlated aggregate ownership, membership and active session
+counts from complete computes are exposed. Missing access or drift reports
+`unavailable`, never zero. Despite clean PostgreSQL counters, hidden
+managed-pool clients and external application credentials remain unknown,
+so `safeToDelete:false` and no implicit deletion authorization remain.
+No provider SQL mutation, compute wake-up or fixture creation occurred.
+Check exact-head automated and real scratch acceptance separately.
+
 ## #141 — live plan attestation enables project-scoped scratch pricing
 
 The custom project's enrollment is complete, but its branch-creation dry-run
