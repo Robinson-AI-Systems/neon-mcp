@@ -69,7 +69,7 @@ export async function createProjectWriteContext({connection,db,env=process.env}=
    if(typeof c.db.getProjectAppOwnership==='function')
     own=await c.db.getProjectAppOwnership({
      orgId:c.connection.neonOrg,projectId:target.projectId});
-   else {
+   if(own?.verified!==true) {
     // Neon's application/integration maps are provider evidence, not caller-supplied flags.
     let data;
     try{
