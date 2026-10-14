@@ -490,14 +490,35 @@ export function createDb(sql = productionSql()) {
       return prior.length===1&&prior[0].connection===connectionId&&
         prior[0].status==='active'?prior[0]:null;
     },
-    async listDevRuns({orgId,projectId,limit=50}) {
-      if(!Number.isSafeInteger(limit)||limit<1||limit>50)throw Error('Invalid run list limit');
+    /** Keyset page: a run can never escape its enrolled organization and project.
+     * Fetch one extra row solely to prove whether another page exists.
+     * Date precision is retained to the microsecond to avoid skipping tied runs. */
+    async listDevRuns({orgId,projectId,limit=50,status='all',
+      olderThanDays=null,cursorAt=null,cursorId=null}) {
+      if(!Number.isSafeInteger(limit)||limit<1||limit>50||
+         !['all','active','cleaned'].includes(status)||
+         olderThanDays!==null&&(!Number.isSafeInteger(olderThanDays)||
+          olderThanDays<1||olderThanDays>3650)||
+         (cursorAt===null)!==(cursorId===null)||
+         cursorAt!==null&&(
+          typeof cursorAt!=='string'||cursorAt.length>40||
+          !/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,6})?Z$/.test(cursorAt)||
+          Number.isNaN(Date.parse(cursorAt))||
+          !/^[a-z0-9-]{4,64}$/.test(cursorId||'')))
+        throw Error('Invalid scoped run pagination or filters');
       return sql`SELECT r.id,r.project_id,r.status,r.created_at,r.cleaned_at,
+        to_char(r.created_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS created_at_cursor,
         (SELECT count(*)::int FROM dev_run_objects o WHERE o.run_id=r.id) AS objects,
         (SELECT count(*)::int FROM dev_run_objects o
          WHERE o.run_id=r.id AND o.cleaned=FALSE) AS remaining
-        FROM dev_runs r WHERE r.neon_org=${orgId} AND r.project_id=${projectId}
-        ORDER BY r.created_at DESC,r.id DESC LIMIT ${limit}`;
+        FROM dev_runs r
+        WHERE r.neon_org=${orgId} AND r.project_id=${projectId}
+          AND (${status}='all' OR r.status=${status})
+          AND (${olderThanDays}::int IS NULL OR
+            r.created_at < now() - (${olderThanDays}::int * INTERVAL '1 day'))
+          AND (${cursorAt}::timestamptz IS NULL OR
+            (r.created_at,r.id)<(${cursorAt}::timestamptz,${cursorId}))
+        ORDER BY r.created_at DESC,r.id DESC LIMIT ${limit+1}`;
     },
     async getDevRun({orgId,projectId,runId}) {
       const rows=await sql`SELECT id,project_id,status,created_at,connection

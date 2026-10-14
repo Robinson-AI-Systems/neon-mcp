@@ -1,3 +1,14 @@
+## October 14 — V-1 scoped run inventory pages (unmerged source)
+
+Recorded development runs now have filter-bound cursor pages, age and
+active/cleaned filtering, exact org/project checks and microsecond
+database order. This closes the bounded-run-list visibility gap without
+pretending that recorded expiry proves Neon provider deletion. Read-only:
+no provider call, automated sweep, production activation, money or approval.
+Tests proposed in unit and disposable PostgreSQL; no local suite, exact-head
+Actions, merge, release or genuine custom-host acceptance is claimed.
+V-1 run create/cleanup tests and D-4/D-6/D-9 acceptance stay PENDING.
+
 ## October 14 — V-2 deterministic, read-only scenario preview (PR #165)
 
 Cohesive source slice: synthetic SaaS, store, rental, and blog datasets (five dependency-ordered tables each), deterministic validated seed, bounded 1–100 rows/table and previews of fabricated example.com/555 contacts. The enrolled service tool `neon_dev_list_scenarios` has no SQL/provider effect. This is not a complete V-2 seed-write workflow: real development database seeding, `auto`/file import, audit/idempotency, deny tests and provider acceptance remain engineering work. V-1/D-4/D-6/D-9 fixture acceptance remains queued, and the new read-only tool requires a checked release for custom-host acceptance.
@@ -132,6 +143,17 @@ open obligations, original fixture ownership, approvals and deployment provenanc
     "dependsOn": [],
     "status": "PENDING",
     "lastEvidence": "PR #165 reviewed implementation registered through commit 6842ab5779aa6ecf582ac20ccd0360d5e4fa23fe; source-only scenario preview; no deployed custom MCP read or neon_dev_seed application acceptance; do not mark PASSED."
+  },
+  {
+    "id": "NEON-V1-RUN-PAGES",
+    "priority": 4,
+    "requiredRevision": "af7b0dce295193287067d05aeba4e2b58b9dde43",
+    "task": "On checked deployed custom Neon MCP, verify multi-page owner-scoped recorded run listing, active/cleaned/age filters and invalid/foreign-cursor refusal without mutations",
+    "procedure": "docs/pr-cards/V-1.md",
+    "gates": "Native custom MCP read-only identity; no provider writes, cleanups, money or production access",
+    "dependsOn": [],
+    "status": "PENDING",
+    "lastEvidence": "2026-10-14: source-only V-1 exact query, keyset cursor and unit/disposable-PG tests proposed. Full exact-head Actions, merge, released custom-owner multi-page acceptance and denials unproven; recorded expiry is not provider absence."
   }
 ]
 ```
