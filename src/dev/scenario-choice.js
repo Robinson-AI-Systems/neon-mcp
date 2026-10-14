@@ -11,10 +11,10 @@ const words=Object.freeze({
   'comments','comment','publishing','publication','content management']
 });
 export const SUPPORTED_DEMOS=Object.freeze(Object.keys(words));
-const escaped=value=>value.replace(/[.*+?^$()|[\]{}]/g,'\\$&');
+// Matching expressions are assembled exclusively from reviewed literal word lists.
 function hits(text,keys){
  return keys.filter(word=>{
-  const pattern=new RegExp('(?:^|[^a-z0-9])'+escaped(word)+
+  const pattern=new RegExp('(?:^|[^a-z0-9])'+word+
    '(?:$|[^a-z0-9])','i');
   return pattern.test(text);
  });
