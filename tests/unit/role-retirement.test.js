@@ -83,9 +83,6 @@ describe('D-4 verified owner role retirement planning',()=>{
 
 
 describe('D-4 owner opt-in live PostgreSQL dependency read',()=>{
- function withMonitor(options={}){
-  return fixture({owned:false,pooled:false,...options});
- }
  it('declares strict paired monitor target without adding a write tool',()=>{
   const properties=tools[0].inputSchema.properties;
   expect(properties.monitorDatabase).toBeDefined();
