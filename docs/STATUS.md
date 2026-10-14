@@ -1,3 +1,30 @@
+## #150 — D-4 checked-release self-endpoint alias recovery (source/CI; live pending)
+
+October 14 checked daily main-to-live promotion reached merged #148 and Vercel
+production READY at that exact source revision. The saved Production
+`NEON_MCP_SELF_ORG_ID`, `NEON_MCP_SELF_PROJECT_ID` and
+`NEON_MCP_SELF_ENDPOINT_HOST` now predate the READY deployment.
+Authenticated custom scratch project/branch reads succeeded; however a
+non-mutating `neon_branch_create` preview on the approved run-owned,
+nondefault 0.25-CU scratch candidate **still failed** with the previous
+generic account-details error before any spend or provider mutation.
+No branch or role was created, no consent issued and no deletion accepted.
+
+A concrete potential root cause in the deployed implementation is that
+`configuredSelfResource` compared a saved direct endpoint host literally
+against `DATABASE_URL`, while the guarded SQL self-database protection
+already treats Neon's exact `-pooler` alias as the same endpoint. #150
+centralizes strict canonicalization for these two safety boundaries, refuses
+invalid/lookalike hosts and missing/mismatched identity, and returns only
+fixed configuration-reason codes to authenticated full owners; no secrets
+or internal hosts. Unit tests prove direct/pooler compatibility and all
+self-protection refusals. This is a hypothesis pending a future checked
+scheduled deployment and fresh custom-service preview, NOT confirmed repair.
+If still refused, use the safe code to reconcile protected Vercel Production
+settings without exposing credentials. D-4 destructive owner-approved X-3
+tests and independent denial/readback/cleanup remain open. Production writes
+OFF, autonomous spending $0, existing approval preserved, no unscheduled deploy.
+
 ## D-9 review correction — PR #149
 
 Review findings addressed: central bounded PostgreSQL identifier quoting,
