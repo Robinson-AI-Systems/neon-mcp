@@ -334,3 +334,36 @@ export async function runReviewedIndexMutation({ctx,target,schema,table,index,
    await client.query(statement);return {issued:true};
   });
 }
+
+
+// D-9: REINDEX only the exact reviewed INDEX or regular TABLE, outside BEGIN.
+export function buildReviewedReindexDDL({schema,table,index,scope='index'}={}){
+ if(!['index','table'].includes(scope)||typeof schema!=='string'||
+    schema.startsWith('pg_')||schema==='information_schema')
+  throw Error('Reviewed non-system reindex scope required');
+ const name=scope==='index'?index:table;
+ return 'REINDEX '+(scope==='index'?'INDEX':'TABLE')+' CONCURRENTLY '+
+  quoteIdent(schema)+'.'+quoteIdent(name);
+}
+export async function runReviewedReindexMutation({ctx,target,schema,table,index,
+ scope='index',sqlLayer}={}){
+ if(!ctx?.db||!ctx.connection?.neonOrg||!target?.projectId||!target.branchId||
+    !target.endpointId||!target.expectedEndpointHost||!target.database||
+    !target.role||target.pooled!==false)
+  throw Error('Verified direct reindex target required');
+ const statement=buildReviewedReindexDDL({schema,table,index,scope});
+ const ast=await parse(statement);
+ if(ast?.stmts?.length!==1||!ast.stmts[0]?.stmt?.ReindexStmt)
+  throw Error('Unreviewed reindex statement');
+ const layer=sqlLayer??createSqlLayer({db:ctx.db,
+  vault:createKeyVault({db:ctx.db,env:ctx.env}),env:ctx.env});
+ return layer({neonOrg:ctx.connection.neonOrg,projectScope:ctx.connection.projectScope??null},
+  target,async client=>{
+   // Concurrent reindex must not run inside a transaction; a network error
+   // is ambiguous, so B-1 leaves the request pending rather than replaying.
+   await client.query('SET lock_timeout = 5000');
+   await client.query('SET statement_timeout = 15000');
+   await client.query(statement);
+   return {issued:true};
+  });
+}
