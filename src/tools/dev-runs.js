@@ -376,7 +376,7 @@ export const tools=[
   {projectId:readId,limit:{type:'integer',minimum:1,maximum:50},
    status:{type:'string',enum:['all','active','cleaned']},
    olderThanDays:{type:'integer',minimum:1,maximum:3650},
-   cursor:{type:'string',pattern:'^[A-Za-z0-9_-]{1,512}
+   cursor:{type:'string',pattern:'^[A-Za-z0-9_-]{1,512}$'}},{area:'developer'}),
  {...cleanup.tool,description:'Confirm deletion of only recorded, non-production run branches; verify absence and preserve other branches.',
   inputSchema:cleanupSchema,profiles:['full'],area:'developer',audience:['builder','operator']}];
 export function createDevRunHandlers({contextFor=createProjectWriteContext}={}){
