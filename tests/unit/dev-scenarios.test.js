@@ -11,10 +11,7 @@ describe('V-2 deterministic synthetic developer scenarios',()=>{
   expect(tools[0].profiles).toEqual(['read_only','everyday','full']);
   expect(tools[0].area).toBe('developer');
   expect(tools[0].inputSchema.additionalProperties).toBe(false);
-  const out=json(handlers.neon_dev_list_scenarios({}) instanceof Promise
-   ? {content:[{text:'{}'}]} : {content:[{text:'{}'}]});
-  expect(out).toEqual({});
- });
+});
  it('exposes exactly four real five-table demos with dependency-ordered columns',()=>{
   expect(SCENARIO_NAMES).toEqual(['saas','store','rental','blog']);
   const all=listDemoScenarios();
@@ -35,7 +32,7 @@ describe('V-2 deterministic synthetic developer scenarios',()=>{
    expect(a).toMatchObject({scenario,tableCount:5,totalRows:50,syntheticOnly:true,
     execution:'none'});
    expect(a).toEqual(planDemoScenario({scenario,rowsPerTable:10,seed:'sample-42'}));
-   expect(a).not.toEqual(planDemoScenario({scenario,rowsPerTable:10,seed:'sample-43'}));
+   expect(a.tables[0].sample).not.toEqual(planDemoScenario({scenario,rowsPerTable:10,seed:'sample-43'}).tables[0].sample);
    const data=generateDemoRows({scenario,rowsPerTable:10,seed:'sample-42'});
    expect(data).toHaveLength(5);
    const allTables=new Map(data.map(t=>[t.name,t]));
@@ -47,8 +44,8 @@ describe('V-2 deterministic synthetic developer scenarios',()=>{
     for(const [i,row] of t.rows.entries()){
      for(const name of Object.keys(row).filter(k=>k.endsWith('_id')))
       expect(row[name]).toBeGreaterThan(0);
-     expect(Object.values(row).some(x=>typeof x==='string'&&
-      /(?!example\.com)[^\s@]+@[^\s@]+\.(?!example\.com)/.test(x))).toBe(false);
+     for(const value of Object.values(row)) if(typeof value==='string'&&value.includes('@'))
+      expect(value.endsWith('@example.com')).toBe(true);
      expect(Object.keys(row)).toEqual(t.columns);
      expect(row.id).toBe(i+1);
     }
