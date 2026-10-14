@@ -77,15 +77,32 @@ export function createDemoSeedHandlers({
  const definition=defineWrite({name:'neon_dev_seed',productionEffect:'none',
   plan:async(a,c)=>{
    const state=await targetFor(a,c,verifyTarget);
-   const chosen=chooseDemoScenario(a);
    const key=c.writeKey('neon_dev_seed',a);
+   if(a.sourceUrl!==undefined){
+    if(a.scenario!==undefined||a.description!==undefined||
+       a.seed!==undefined||a.rowsPerTable!==undefined)
+     throw Error('Public import cannot be combined with a synthetic scenario');
+    const source=await fetchSource(a.sourceUrl);
+    const importPlan=compilePublicImport({source,requestKey:key});
+    return {projectId:state.target.projectId,branchId:state.target.branchId,
+     target:'dev-public-import:'+state.target.projectId+'/'+state.target.branchId+
+      '/'+state.target.database+'/'+importPlan.schema,
+     before:{...state,mode:'public',importPlan,requestKey:key},
+     summary:'Import '+importPlan.totalRows+' checked rows into one isolated '+
+      importPlan.schema+'.import_rows table with '+importPlan.columns.length+
+      ' columns, source host '+importPlan.sourceHost+
+      '. Public CSV/JSON only, max 10 MB, no redirects, pinned TLS/DNS; '+
+      'reject personal secrets, foreign emails or unsafe phones. '+
+      'No production writes or provider resources. Confirm once.'};
+   }
+   const chosen=chooseDemoScenario(a);
    const seedPlan=compileDemoSeed({
     scenario:chosen.scenario,seed:a.seed??'demo',rowsPerTable:a.rowsPerTable??3,
     requestKey:key});
    return {projectId:state.target.projectId,branchId:state.target.branchId,
     target:'dev-seed:'+state.target.projectId+'/'+state.target.branchId+
      '/'+state.target.database+'/'+seedPlan.schema,
-    before:{...state,seedPlan,requestKey:key},
+    before:{...state,mode:'demo',seedPlan,requestKey:key},
     summary:'Create isolated '+seedPlan.schema+' with '+seedPlan.totalRows+
      ' fabricated '+chosen.scenario+' rows in five foreign-key ordered tables on run '+
      a.runId+'. No customer data, existing-schema changes, provider provisioning'+
