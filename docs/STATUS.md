@@ -1,3 +1,12 @@
+## October 14 release acceptance ancestry repair
+
+Repinned pending acceptance to independently verified merged implementation commits
+from the corresponding reviewed PRs after squash merges removed the original source
+pins from main ancestry. All existing procedures, gates, dependencies and PENDING
+states remain intact. This makes an applicable release eligible for verification;
+it is neither deployed proof nor a provider acceptance pass. Every updated pin is
+an ancestor of independently observed current main.
+
 ### Workflow maintenance handoff — owner publication approved
 
 New offline session utility: eight behavioral tests passed, including actual Git ancestry, partial releases, unknown/failed deployments, rollback, dependency gating, invalid queues, PR alignment and bounded output. All repository queues validate. Existing source/status evidence is preserved; no provider acceptance or release was performed. Owner explicitly approved publication on October 14; publish the reviewed maintenance branch, require exact-head CI/reviews, and merge only when those gates pass. No extra production release is authorized by this approval. Full broad application suites on the shared runner were interrupted after resource/time-limit failures; do not claim them passed. Existing exact-head remote CI/review gates must pass before any main merge.
@@ -39,7 +48,7 @@ open obligations, original fixture ownership, approvals and deployment provenanc
   {
     "id": "NEON-D9-REINDEX",
     "priority": 3,
-    "requiredRevision": "75f2e6ac12d9c2bfc3107957bda9ee098660260a",
+    "requiredRevision": "6cd2a26a870c2041918bff0c30e31d2a7ecc983f",
     "task": "Run authenticated custom development INDEX/TABLE REINDEX CONCURRENTLY, independent valid/ready readback, scope denials and exact fixture recovery",
     "procedure": "docs/pr-cards/D-9.md",
     "gates": "Original approved scratch isolation, direct exact PostgreSQL target, full-owner B-1 confirmation, production OFF and zero autonomous spending",
@@ -50,7 +59,7 @@ open obligations, original fixture ownership, approvals and deployment provenanc
   {
     "id": "NEON-D6-VACUUM",
     "priority": 3,
-    "requiredRevision": "9dc65e891fa749da0ab8dca4dc131e248c2f1448",
+    "requiredRevision": "aa97d4ea342f5c926cadb9ba323321974fb6928d",
     "task": "Owner-authenticated custom development VACUUM ANALYZE on a disposable regular PostgreSQL table; independent relation readback, protected/production denials, fixture cleanup",
     "procedure": "docs/pr-cards/D-6.md",
     "gates": "Full-owner B-1 confirmation, exact scratch direct target, production OFF, self/app/protected exclusions and zero autonomous spending",
@@ -61,7 +70,7 @@ open obligations, original fixture ownership, approvals and deployment provenanc
   {
     "id": "NEON-V1-RUNS",
     "priority": 4,
-    "requiredRevision": "4da1abb402d9f9b757ccbf623ab736e1c7ab62e2",
+    "requiredRevision": "9da7d741276084da46850ee1e247678add153a16",
     "task": "Validate custom isolated dev run branch expiry/annotation/compute, B-4 source-confirmed owner spending gate, durable run read, exact cleanup and foreign-run/production denials",
     "procedure": "docs/pr-cards/V-1.md",
     "gates": "Checked release containing PR #160; separately approved isolated scratch; full owner and independent protected/app/production guards; no unattended spending",
