@@ -1,3 +1,16 @@
+## D-6 schema inventory and table inspector (PR #143, CI and real acceptance separate)
+
+Implemented the first four approved schema tools: schemas, tables with
+physical size/row estimates and RLS flags, table column/index/constraint/
+RLS-policy metadata, and installed/available extensions. Every query is
+fixed catalog SQL with positional identifier binding, AST-proven
+read-only B-3 execution, five provider identity checks and direct host
+verification. PostgreSQL 17 fixture tests cover real table/index/RLS and
+identifier injection; unit tests cover truncation, fixed SQL and denied
+foreign endpoints. No application row data, policy expressions or default
+secrets are read. Live SQL is not claimed until checked deployment and
+custom-service readback. D-6 remaining work is tracked on its work card.
+
 ## #142 — owner opt-in real PostgreSQL role dependency evidence
 
 The existing role retirement review now accepts a paired exact monitor
