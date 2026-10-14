@@ -218,6 +218,17 @@ open obligations, original fixture ownership, approvals and deployment provenanc
     "dependsOn": [],
     "status": "PENDING",
     "lastEvidence": "2026-10-14: #169 scenario seed source/CI/merge proven; subsequent source adds deterministic description disambiguation and ≤16-statement 500-row JSONB batch apply, with unit/disposable-PG tests authored. Full-size exact-head CI, merge, release, owner scratch certification and live custom TEST acceptance remain unproven. Preserve V-1 and D-series queues."
+  },
+  {
+    "id": "NEON-V2-PUBLIC-FILE",
+    "priority": 4,
+    "requiredRevision": "04eb4e5b2fa4a9571c691725d53135e5ea878f2a",
+    "task": "With approved public synthetic CSV and JSON fixtures, check the released native Neon MCP full-owner TEST file preview, pinned host/domain policy, owner confirmation, exact row readback, idempotent retry, private/redirect/changed-source denial and owned branch cleanup",
+    "procedure": "docs/pr-cards/V-2.md",
+    "gates": "Independent owner approval of non-sensitive public fixture and disposable enrolled scratch run; genuine custom MCP connection; strict nonproduction classification; checked release only; existing B-1/B-3 gates",
+    "dependsOn": [],
+    "status": "PENDING",
+    "lastEvidence": "2026-10-14: source safe fetch/parser, guarded one-table import, fake/unit, real disposable PostgreSQL tests authored. Exact-head CI, PR merge, production promotion, owner fixture certification, live custom TEST and cleanup NOT yet evidenced."
   }
 ]
 ```
