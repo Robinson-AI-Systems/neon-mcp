@@ -171,3 +171,68 @@ export async function runPublicSqlExplain({ctx,target,text,params=[],analyze=fal
  const result=await runAuthorizedSqlRead({ctx,target,text:plan,params,sqlLayer:layer});
  return {...compactPublicResult(result),analyzed:result?.done===true?analyze:false};
 }
+
+
+// D-5: fixed SQL for a single guarded query cancellation. Never terminate a
+// backend, expose SQL text, or accept a caller-provided statement or target DB.
+const ACTIVE_SESSION_SQL='SELECT pid,datname,usename,backend_type,state,'+
+ ' backend_start::text AS backend_start,query_start::text AS query_start'+
+ ' FROM pg_catalog.pg_stat_activity WHERE pid=$1 AND datname=current_database()'+
+ " AND usename=current_user AND backend_type='client backend'"+
+ ' AND pid<>pg_backend_pid()';
+const SIGNAL_CANCEL_SQL='SELECT pg_cancel_backend(pid) AS cancelled'+
+ ' FROM pg_catalog.pg_stat_activity WHERE pid=$1 AND datname=current_database()'+
+ " AND usename=current_user AND backend_type='client backend' AND state='active'"+
+ ' AND backend_start::text=$2 AND query_start::text=$3 AND pid<>pg_backend_pid()';
+const validPid=value=>Number.isSafeInteger(value)&&value>=1&&value<=2147483647;
+const validSignature=row=>validPid(row?.pid)&&row.state==='active'&&
+ typeof row.backend_start==='string'&&row.backend_start.length>0&&
+ typeof row.query_start==='string'&&row.query_start.length>0;
+const targetOptions=t=>({projectId:t.projectId,branchId:t.branchId,
+ database:t.database,role:t.role,endpointId:t.endpointId,
+ expectedEndpointHost:t.expectedEndpointHost,pooled:false});
+function scopedSql(ctx,sqlLayer){
+ if(typeof sqlLayer==='function')return sqlLayer;
+ return createSqlLayer({db:ctx.db,
+  vault:createKeyVault({db:ctx.db,env:ctx.env}),env:ctx.env});
+}
+export async function requestScopedQueryCancellation({ctx,target,pid,sqlLayer}={}){
+ if(!validPid(pid)||!ctx?.connection?.neonOrg||!target?.projectId||
+    !target?.branchId||!target?.database||!target?.role||
+    !target?.endpointId||!target?.expectedEndpointHost)
+  throw Error('An exact scoped session and direct connection are required');
+ const layer=scopedSql(ctx,sqlLayer);
+ return layer({neonOrg:ctx.connection.neonOrg,projectScope:ctx.connection.projectScope??null},
+  targetOptions(target),async client=>{
+   const pre=await client.query(ACTIVE_SESSION_SQL,[pid]);
+   if(!Array.isArray(pre?.rows)||pre.rows.length!==1||
+      !validSignature(pre.rows[0])||pre.rows[0].pid!==pid)
+    return {requested:false};
+   const snapshot=pre.rows[0];
+   const reply=await client.query(SIGNAL_CANCEL_SQL,
+    [pid,snapshot.backend_start,snapshot.query_start]);
+   if(!Array.isArray(reply?.rows)||reply.rows.length!==1||
+      reply.rows[0]?.cancelled!==true)
+    return {requested:false};
+   return {requested:true,signature:{
+    pid,backendStart:snapshot.backend_start,queryStart:snapshot.query_start}};
+  });
+}
+export async function observeScopedQueryCancellation({
+ ctx,target,pid,signature,sqlLayer
+}={}){
+ if(!validPid(pid)||signature?.pid!==pid||
+    typeof signature.backendStart!=='string'||
+    typeof signature.queryStart!=='string'||!target?.expectedEndpointHost)
+  throw Error('A verified cancellation attempt is required');
+ const layer=scopedSql(ctx,sqlLayer);
+ return layer({neonOrg:ctx.connection.neonOrg,projectScope:ctx.connection.projectScope??null},
+  targetOptions(target),async client=>{
+   const found=await client.query(ACTIVE_SESSION_SQL,[pid]);
+   if(!Array.isArray(found?.rows)||found.rows.length>1)
+    throw Error('Session readback was incomplete');
+   const row=found.rows[0];
+   return {finished:!row||row.backend_start!==signature.backendStart||
+    row.query_start!==signature.queryStart||row.state!=='active'};
+  });
+}
