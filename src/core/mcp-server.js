@@ -4,6 +4,7 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { requireMcpToken } from './mcp-auth.js';
+import { SelfResourceConfigurationError } from './self-resource.js';
 import { isToolAllowed } from './profiles.js';
 import { scrubNeonResult, redactNeonText } from './scrub.js';
 import { shapeResult, selectResult } from './result-rules.js';
@@ -74,7 +75,15 @@ export async function dispatchReadOnlyTool({ registry, name, args, connection, d
     return {isError:true,content:[{type:'text',text:'Tool unavailable'}]};
   }
   try { return await safeMcpResult(await handler(args || {},{connection,db,env,registry}),{args:args||{},tool:item,db,connection}); }
-  catch {
+  catch (error) {
+    // An authenticated full owner needs an actionable diagnosis; never include
+    // environment values, hostnames, connection strings or stack traces.
+    if (connection?.profile === 'full' &&
+        error instanceof SelfResourceConfigurationError)
+      return {isError:true,content:[{type:'text',text:JSON.stringify({
+        done:false,code:error.code,
+        message:'Neon MCP server self-resource setup requires an owner configuration check'
+      })}]};
     return {isError:true,content:[{type:'text',text:'Could not read account details; check server setup'}]};
   }
 }

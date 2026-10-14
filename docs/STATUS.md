@@ -1,8 +1,36 @@
+<!-- Current repair also records no-change daily receipts: backups cannot publish later same-day development after a successful no-op. -->
 ## October 14 owner-requested daily release recovery repair — current
 
 Owner request on October 14: investigate and repair missed daily releases across the MCP repositories and Appliance Desk, including the quoted owner-run checked recovery. This supersedes the prior scheduled-only/no-new-trigger restriction for missed-event recovery only. Primary 00:01 Denver remains; retries are 00:17, 01:17 and 05:37 Denver plus 12:43 UTC. Explicit recovery defaults OFF and requires both the original actor and the triggering actor to be christcr2012, main, true recovery input and elapsed midnight. Every path retains successful exact-main CI, ancestry, atomic once-per-Denver-day receipt and independent readback. No production-provider activation, spending, force push or preview build is authorized.
 
 Local release safety tests pass. Merge requires exact-head application CI and review resolution. Source repair is separate from observed schedule execution and Vercel READY/alias proof; inspect actual daily run and receipt, do not equate main/live drift after a release with failure. These infrastructure PRs do not replace the existing substantive implementation batch.
+
+## #150 — D-4 checked-release self-endpoint alias recovery (source/CI; live pending)
+
+October 14 checked daily main-to-live promotion reached merged #148 and Vercel
+production READY at that exact source revision. The saved Production
+`NEON_MCP_SELF_ORG_ID`, `NEON_MCP_SELF_PROJECT_ID` and
+`NEON_MCP_SELF_ENDPOINT_HOST` now predate the READY deployment.
+Authenticated custom scratch project/branch reads succeeded; however a
+non-mutating `neon_branch_create` preview on the approved run-owned,
+nondefault 0.25-CU scratch candidate **still failed** with the previous
+generic account-details error before any spend or provider mutation.
+No branch or role was created, no consent issued and no deletion accepted.
+
+A concrete potential root cause in the deployed implementation is that
+`configuredSelfResource` compared a saved direct endpoint host literally
+against `DATABASE_URL`, while the guarded SQL self-database protection
+already treats Neon's exact `-pooler` alias as the same endpoint. #150
+centralizes strict canonicalization for these two safety boundaries, refuses
+invalid/lookalike hosts and missing/mismatched identity, and returns only
+fixed configuration-reason codes to authenticated full owners; no secrets
+or internal hosts. Unit tests prove direct/pooler compatibility and all
+self-protection refusals. This is a hypothesis pending a future checked
+scheduled deployment and fresh custom-service preview, NOT confirmed repair.
+If still refused, use the safe code to reconcile protected Vercel Production
+settings without exposing credentials. D-4 destructive owner-approved X-3
+tests and independent denial/readback/cleanup remain open. Production writes
+OFF, autonomous spending $0, existing approval preserved, no unscheduled deploy.
 
 ## D-9 review correction — PR #149
 
