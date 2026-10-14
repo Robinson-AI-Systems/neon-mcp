@@ -50,7 +50,7 @@ function setup({policy={productionReads:true,maxRows:20},protectedItem=false,
 }
 describe('D-5 owner-approved SQL query',()=>{
  it('registers a read-only SQL tool without role-deletion authority',()=>{
-  expect(tools.map(t=>t.name)).toEqual(['neon_sql_query','neon_sql_explain','neon_sql_list_activity']);
+  expect(tools.map(t=>t.name)).toEqual(['neon_sql_query','neon_sql_explain','neon_sql_list_activity','neon_sql_list_slow_queries']);
   expect(tools[0]).toMatchObject({name:'neon_sql_query',writes:false,area:'sql'});
   expect(tools[0].profiles).toContain('read_only');
   expect(tools[0].inputSchema.additionalProperties).toBe(false);
@@ -108,6 +108,23 @@ describe('D-5 owner-approved SQL query',()=>{
   expect(f.queries[3].sql).not.toContain('pg_terminate_backend');
   expect(JSON.stringify(result)).not.toContain('SELECT $1::int AS answer');
   f.fake.assertClean();
+ });
+ it('shows scoped slow statement fingerprints without raw query text',async()=>{
+  const f=setup();
+  const result=body(await f.handlers.neon_sql_list_slow_queries(args,f.ctx));
+  expect(result.done).toBe(true);
+  expect(f.queries[3].sql).toContain('FROM pg_stat_statements');
+  expect(f.queries[3].sql).toContain('datname=current_database()');
+  expect(f.queries[3].sql).toContain('ORDER BY total_exec_time DESC');
+  expect(f.queries[3].sql).not.toContain('SELECT query,');
+  expect(f.fake.calls.every(x=>x.method==='GET')).toBe(true);
+  f.fake.assertClean();
+ });
+ it('honors the production read setting for slow-query inspection',async()=>{
+  const f=setup({production:true,policy:{productionReads:false,maxRows:20}});
+  expect(body(await f.handlers.neon_sql_list_slow_queries(args,f.ctx)).code)
+   .toBe('production_reads_disabled');
+  expect(f.opens).toHaveLength(0);
  });
  it('refuses write SQL and unsafe plans before opening a connection',async()=>{
   for(const query of ['DELETE FROM invoices','SELECT 1; DELETE FROM invoices',
