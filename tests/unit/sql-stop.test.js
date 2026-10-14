@@ -36,8 +36,8 @@ function fixture({allowed=true,foreignEndpoint=false,verified=true}={}){
   verifyTarget:(x,c)=>verifyConnectionTarget(x,c,async()=>({client})),
   requestStop:async args=>{
    requests.push({phase:'signal',args});
-   return {requested:true,signature:{pid:a.pid,backendStart:'2026-10-13 18:00',
-    queryStart:'2026-10-13 18:01'}};},
+   return {requested:true,signature:{pid:a.pid,backendStart:'1791930000.000000',
+    queryStart:'1791930060.000000'}};},
   readStop:async args=>{
    requests.push({phase:'readback',args});
    return {finished:verified};
@@ -108,7 +108,7 @@ describe('D-5 fixed server-side PostgreSQL cancellation boundary',()=>{
  const ctx={connection:{neonOrg:IDS.org,projectScope:IDS.project}};
  const activity={pid:12345,datname:'neondb',usename:'neondb_owner',
   backend_type:'client backend',state:'active',
-  backend_start:'2026-10-13 18:00',query_start:'2026-10-13 18:01'};
+  backend_start:'1791930000.000000',query_start:'1791930060.000000'};
  function layer({missing=false,stale=false}={}){
   const statements=[];
   const sqlLayer=async(_scope,_target,cb)=>cb({query:async(sql,params)=>{
@@ -126,8 +126,8 @@ describe('D-5 fixed server-side PostgreSQL cancellation boundary',()=>{
   expect(f.statements).toHaveLength(2);
   expect(f.statements[0].sql).toContain('datname=current_database()');
   expect(f.statements[0].sql).toContain('usename=current_user');
-  expect(f.statements[1].sql).toContain('backend_start::text=$2');
-  expect(f.statements[1].sql).toContain('query_start::text=$3');
+  expect(f.statements[1].sql).toContain('EXTRACT(EPOCH FROM backend_start)::text=$2');
+  expect(f.statements[1].sql).toContain('EXTRACT(EPOCH FROM query_start)::text=$3');
   expect(f.statements[1].params).toEqual(
    [12345,activity.backend_start,activity.query_start]);
   expect(f.statements.every(q=>!q.sql.includes('pg_terminate_backend'))).toBe(true);
