@@ -11,6 +11,8 @@ import {applyGuardedSql} from '../neon/sql-apply.js';
 import {createSqlLayer} from '../neon/sql.js';
 import {createKeyVault} from '../neon/keys.js';
 import {compileDemoSeed,verifyDemoSeed} from '../dev/seed-plan.js';
+import {fetchPublicSource} from '../dev/public-source.js';
+import {compilePublicImport,verifyPublicImport} from '../dev/import-plan.js';
 import {chooseDemoScenario} from '../dev/scenario-choice.js';
 
 const id={type:'string',pattern:'^[a-z0-9-]{1,60}$'};
@@ -23,6 +25,7 @@ const schema={
   databaseName:name,roleName:name,
   scenario:{type:'string',enum:['saas','store','rental','blog']},
   description:{type:'string',minLength:5,maxLength:400},
+  sourceUrl:{type:'string',minLength:12,maxLength:2048},
   seed:{type:'string',pattern:'^[A-Za-z0-9_-]{1,80}$'},
   rowsPerTable:{type:'integer',minimum:1,maximum:100},
   dryRun:{type:'boolean'},confirm:{type:'boolean'},
@@ -66,7 +69,8 @@ async function targetFor(a,c,verifyTarget){
 }
 export function createDemoSeedHandlers({
  contextFor=createProjectWriteContext,verifyTarget=verifyConnectionTarget,
- runner=applyGuardedSql,admissionsFor=c=>createSqlAdmissions({db:c.db}),
+ runner=applyGuardedSql,fetchSource=fetchPublicSource,
+ admissionsFor=c=>createSqlAdmissions({db:c.db}),
  sqlFactory=c=>createSqlLayer({db:c.db,
   vault:createKeyVault({db:c.db,env:c.env}),env:c.env})
 }={}){
