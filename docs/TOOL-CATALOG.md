@@ -151,7 +151,7 @@ The SQL guard (`docs/designs/BATCH-B.md` B-3) classifies every statement with th
 
 | Tool | What it does | Flags | Aud | Profile | Card |
 | --- | --- | --- | --- | --- | --- |
-| `neon_sql_query` | Read-only SQL (SELECT, SHOW, EXPLAIN without ANALYZE) inside a READ ONLY transaction, row cap and time limit; production reads allowed by setting (IN-09) | — | B Op | R | D-5 |
+| `neon_sql_query` | Read-only SQL (SELECT, SHOW, EXPLAIN without ANALYZE) inside a READ ONLY transaction, row cap and time limit; production reads allowed by setting (IN-09) | — | B Op | R | D-5 (built #126; live SQL unverified) |
 | `neon_sql_execute` | One writing statement. Non-production: preview, confirm when destructive. Production: production guard, exact affected rows previewed on a throwaway branch, applied in a transaction that rolls back if the count differs, restore point recorded | C* Pr D | B Op | E | D-5 |
 | `neon_sql_execute_transaction` | Several statements in one all-or-nothing transaction, same rules as `neon_sql_execute` (strictest statement decides) | C* Pr D | B Op | E | D-5 |
 | `neon_sql_explain` | Query plan; ANALYZE only for read-only statements (writes are analyzed on a throwaway branch by `neon_sql_preview_change`) | — | B Op | R | D-5 |
