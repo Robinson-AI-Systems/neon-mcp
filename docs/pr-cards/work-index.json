@@ -536,9 +536,10 @@
         85,
         86,
         88,
-        129
+        129,
+        142
       ],
-      "note": "IN-16 approves confirmed retirement (D-4-RETIREMENT-AMENDMENT.md). Canonical role delete now implements exact one-use owner/connection/role/OID/revision preview, dependency checks and explicit unknown-pooled-client interruption consent. Known app-owned migration evidence and real checked-deployment/provider/idle-pool acceptance remain open. Do not infer pooler absence or widen production/protected/spend gates. D-5 approval remains independent."
+      "note": "IN-16 approves confirmed retirement (D-4-RETIREMENT-AMENDMENT.md). Canonical role delete now implements exact one-use owner/connection/role/OID/revision preview, dependency checks and explicit unknown-pooled-client interruption consent. Known app-owned migration evidence and real checked-deployment/provider/idle-pool acceptance remain open. Do not infer pooler absence or widen production/protected/spend gates. D-5 approval remains independent. #142 opt-in guarded PostgreSQL dependency evidence for read-only role retirement review; never infer pooled client absence or deletion eligibility."
     },
     {
       "id": "D-5",
