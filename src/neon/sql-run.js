@@ -100,6 +100,7 @@ export async function runGuardedRoleDependencyProbe(a,c,t,ep,db,monitor){
 // protected-resource and owner-stored read policies remain mandatory.
 import {parse} from 'libpg-query';
 import {runAuthorizedSqlRead} from './sql-read.js';
+import {classifySql} from './sql-guard.js';
 
 const MAX_PUBLIC_ROWS=201;
 const MAX_PUBLIC_COLUMNS=16;
@@ -149,4 +150,25 @@ export async function runPublicSqlQuery({ctx,target,text,params=[],sqlLayer}={})
    return client.query(limited,[...values,MAX_PUBLIC_ROWS]);
   }}));
  return compactPublicResult(await runAuthorizedSqlRead({ctx,target,text,params,sqlLayer:boundedLayer}));
+}
+
+
+export async function runPublicSqlExplain({ctx,target,text,params=[],analyze=false,sqlLayer}={}){
+ if(typeof text!=='string'||text.length>20000||typeof analyze!=='boolean')
+  return {done:false,code:'not_read_only',message:'A SELECT statement is required.'};
+ let ast;
+ try{ast=await parse(text);}catch{
+  return {done:false,code:'not_read_only',message:'A valid SELECT is required.'};
+ }
+ if(ast?.stmts?.length!==1||!ast.stmts[0]?.stmt?.SelectStmt)
+  return {done:false,code:'not_read_only',message:'Only SELECT plans are supported.'};
+ const selected=await classifySql(text);
+ if(selected.kind!=='read')
+  return {done:false,code:'not_read_only',message:'This plan is not read-only.'};
+ const plan='EXPLAIN (FORMAT TEXT, ANALYZE '+(analyze?'TRUE':'FALSE')+') '+
+  text.trim().replace(/;\s*$/,'');
+ const layer=sqlLayer??createSqlLayer({db:ctx?.db,
+  vault:createKeyVault({db:ctx?.db,env:ctx?.env}),env:ctx?.env});
+ const result=await runAuthorizedSqlRead({ctx,target,text:plan,params,sqlLayer:layer});
+ return {...compactPublicResult(result),analyzed:result?.done===true?analyze:false};
 }
