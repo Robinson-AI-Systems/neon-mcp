@@ -1,3 +1,14 @@
+## October 14 — V-1 scoped run inventory pages (unmerged source)
+
+Recorded development runs now have filter-bound cursor pages, age and
+active/cleaned filtering, exact org/project checks and microsecond
+database order. This closes the bounded-run-list visibility gap without
+pretending that recorded expiry proves Neon provider deletion. Read-only:
+no provider call, automated sweep, production activation, money or approval.
+Tests proposed in unit and disposable PostgreSQL; no local suite, exact-head
+Actions, merge, release or genuine custom-host acceptance is claimed.
+V-1 run create/cleanup tests and D-4/D-6/D-9 acceptance stay PENDING.
+
 ## October 14 — V-2 deterministic, read-only scenario preview (PR #165)
 
 Cohesive source slice: synthetic SaaS, store, rental, and blog datasets (five dependency-ordered tables each), deterministic validated seed, bounded 1–100 rows/table and previews of fabricated example.com/555 contacts. The enrolled service tool `neon_dev_list_scenarios` has no SQL/provider effect. This is not a complete V-2 seed-write workflow: real development database seeding, `auto`/file import, audit/idempotency, deny tests and provider acceptance remain engineering work. V-1/D-4/D-6/D-9 fixture acceptance remains queued, and the new read-only tool requires a checked release for custom-host acceptance.
