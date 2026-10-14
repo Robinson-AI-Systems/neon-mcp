@@ -1,3 +1,26 @@
+## D-9 review correction — PR #149
+
+Review findings addressed: central bounded PostgreSQL identifier quoting,
+repeated Prisma migration attempts preserved, failed/rolled-back attempts
+excluded from applied-name matching, and explicit recovery guidance for failed
+Prisma migrations. New tests distinguish repeated attempts from applied status.
+Review resolution, exact-head CI and live custom acceptance remain separate.
+
+## D-9 verified application migration history — PR #149
+
+Registered `neon_schema_list_migrations` with safe bounded read-only
+metadata from PostgreSQL's five recognized migration tracking tables:
+Prisma, Drizzle, Knex, Flyway and golang-migrate. Discovery and all history
+reads use exact direct five-resource connection, B-3 read admission and
+protected/production constraints; only recognized status/name/time fields
+are fetched, never migration logs, source SQL or application records.
+Prisma failed/rolled-back entries and Flyway failures remain visible; missing
+expected names are reported only for comparable name-based systems (not
+Drizzle hashes or golang-migrate numeric versions). All catalogs and histories
+must be complete; partial, unknown and overlong data fail closed. Fake
+provider and disposable PG fixtures test readback and no data mutation.
+This is code/CI proof only; custom deployed acceptance remains pending.
+
 ## D-6 evidence-backed non-executing index advice — PR #148
 
 Registered `neon_health_suggest_indexes` to evaluate explicitly selected one-to-three
