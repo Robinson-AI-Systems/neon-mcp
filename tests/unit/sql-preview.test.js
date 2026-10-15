@@ -118,6 +118,27 @@ describe('B-3c exact child-only preview', () => {
     expect(res.previewToken).toBeUndefined();
     f.fake.assertClean();
   });
+  it('rehearses DDL on a child with bounded SQL timings and provider schema diff',async()=>{
+    const f=fixture({dev:true});
+    f.fake.when('getProjectBranchSchemaComparison').resolves({
+      diff:'ALTER TABLE widgets ADD COLUMN archived boolean'
+    });
+    const targetBranch={...target,branchId:fx.IDS.dev};
+    const res=await createSqlExactPreview({...args(f),target:targetBranch,
+      statements:['ALTER TABLE widgets ADD COLUMN archived boolean'],
+      params:[[]],captureDiagnostics:true});
+    expect(res).toMatchObject({done:true,exact:true,childDeleted:true,
+      affectedRows:[0],schemaChanged:true,
+      statementDurationsMs:[0],
+      schemaDiff:'ALTER TABLE widgets ADD COLUMN archived boolean'});
+    expect(res.schemaHash).toMatch(/^[a-f0-9]{64}$/);
+    expect(f.attempts[0].branchId).toBe('br-fake-kept-000003');
+    expect(f.attempts[0].branchId).not.toBe(targetBranch.branchId);
+    expect(f.fake.calls.map(c=>c.operationId)).toEqual([
+      'createProjectBranch','getProjectBranchSchemaComparison','deleteProjectBranch']);
+    f.fake.assertClean();
+  });
+
   it('deletes an unsafe unrecorded kept child, leaving the attempt unconfirmed',async()=>{
     const f=fixture({dev:true});
     const output=await createSqlExactPreview({...args(f),
