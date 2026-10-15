@@ -85,7 +85,7 @@ CI's aggregate `ci` at the exact head remains the merge gate, including for docu
 
 Keep the normal 40–100 line card; link a bounded appendix when the mapping/test matrix is longer. Include:
 
-- Baseline SHA, prerequisites actually merged, drift A findings, recipe links, one risk area and migration owner.
+- Baseline SHA, prerequisites actually merged, drift A findings, recipe links, explicit risk boundaries and migration ownership/order.
 - Files labelled **existing** / **proposed**; signatures and trusted-service injection points; every caller affected.
 - Input → API/SQL/table-column mapping; validation/default/omission rules; identifiers quoted, values bound.
 - Ordered steps, each with a concrete fixture, command and expected outcome; run between ≤150-line slices.
