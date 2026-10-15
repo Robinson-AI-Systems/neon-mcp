@@ -10,8 +10,6 @@ const NEXT={
  dataApi:'Configure Neon Data API with owner approval',
  quota:'Review current branch and compute quotas with the owner'
 };
-const missing=why=>({status:'missing',why});
-const ok=()=>({status:'ok'});
 const validNames=(items,max=12)=>Array.isArray(items)&&items.length<=max&&
  items.every(x=>typeof x==='string'&&IDENT.test(x));
 export const INTEGRATION_TABLES_SQL='SELECT n.nspname AS schema_name,'+

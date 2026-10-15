@@ -20,7 +20,8 @@ function fixture({blocked=false,appOwned=false,invalidStatus=false}={}){
  const f=makeContractFixture({blocked,appOwned});
  const fake=makeFakeNeon();
  fake.when('getProject').resolves({project:fx.project({
-  owner_id:fx.IDS.org,owner:{branches_limit:10,subscription_type:'launch'}})});
+  owner_id:fx.IDS.org,owner:{branches_limit:10,subscription_type:'launch',
+   email:'owner@example.test',name:'Synthetic Owner'}})});
  fake.when('listProjectBranches').resolves(fx.responses.listProjectBranches());
  const client=makeNeonClient({key:'napi_FAKE_v4_key',orgId:fx.IDS.org,
   budget:{consume:async()=>({allowed:true})},fetch:fake.fetch});

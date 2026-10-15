@@ -30,7 +30,8 @@ describe('tool registry', () => {
         expect(tool.profiles).toEqual(['neon_project_rename','neon_branch_rename','neon_branch_set_expiration','neon_branch_create',
          'neon_compute_start','neon_compute_suspend','neon_compute_restart','neon_compute_update_settings'].includes(tool.name)?['everyday','full']:['full']);
         expect(tool.writeContract).toBe('defineWrite-v1');
-      } else expect(tool.profiles).toContain(['neon_check_key_access','neon_role_retirement_review','neon_write_guard_readiness'].includes(tool.name)?'full':'read_only');
+      } else expect(tool.profiles).toContain(['neon_check_key_access','neon_role_retirement_review','neon_write_guard_readiness',
+       'neon_dev_anonymized_status'].includes(tool.name)?'full':'read_only');
       expect(typeof registry.handlers[tool.name]).toBe('function');
     }
   });

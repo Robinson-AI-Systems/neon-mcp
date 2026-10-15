@@ -8,7 +8,6 @@ import {compileTunePlan,summarizeTune} from '../dev/tuning-plan.js';
 import {createSqlExactPreview} from '../neon/sql-preview.js';
 import {createSqlLayer} from '../neon/sql.js';
 import {createKeyVault} from '../neon/keys.js';
-import {createHash} from 'node:crypto';
 const id={type:'string',pattern:'^[a-z0-9-]{1,60}$'};
 const name={type:'string',pattern:'^[A-Za-z_][A-Za-z0-9_-]{0,62}$'};
 const schema={type:'object',additionalProperties:false,properties:{
@@ -21,7 +20,6 @@ const schema={type:'object',additionalProperties:false,properties:{
  requestKey:{type:'string',minLength:8,maxLength:128}},
  required:['projectId','branchId','endpointId','databaseName','roleName',
   'runId','query','params']};
-const hash=x=>createHash('sha256').update(x).digest('hex');
 export function createDevTuneHandlers({
  contextFor=createProjectWriteContext,verifyTarget=verifyConnectionTarget,
  sqlFactory=c=>createSqlLayer({db:c.db,

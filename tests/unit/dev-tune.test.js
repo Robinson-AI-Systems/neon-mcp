@@ -7,7 +7,7 @@ const input={projectId:'proj-v4-tune',branchId:'br-v4-dev',
  query:'SELECT * FROM public.widgets WHERE status = $1 LIMIT 100',
  params:['rare']};
 function fixture({blocked=false,appOwned=false,expired=false,
- protectedBranch=false,changed=false,unowned=false,pending=false}={}){
+ protectedBranch=false,unowned=false,pending=false}={}){
  const f=makeContractFixture({blocked,appOwned});
  const expiry=new Date(Date.now()+86400000).toISOString();
  f.ctx.connection={neonOrg:'org-v4',projectScope:input.projectId,
