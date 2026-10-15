@@ -4,7 +4,6 @@ import {createHash} from 'node:crypto';
 import {defineWrite} from '../core/write.js';
 import {createProjectWriteContext} from '../neon/project-write-context.js';
 import {verifyConnectionTarget} from './connections.js';
-import {classifyTarget} from '../neon/production.js';
 import {classifySql} from '../neon/sql-guard.js';
 import {createSqlAdmissions} from '../neon/sql-admission.js';
 import {applyGuardedSql} from '../neon/sql-apply.js';
@@ -15,12 +14,12 @@ import {fetchPublicSource} from '../dev/public-source.js';
 import {compilePublicImport,verifyPublicImport} from '../dev/import-plan.js';
 import {chooseDemoScenario} from '../dev/scenario-choice.js';
 import {compileAutoSeed,verifyAutoSeed} from '../dev/auto-plan.js';
+import {ownedDevTarget} from '../dev/owned-run.js';
 import {runAuthorizedSqlRead} from '../neon/sql-read.js';
 
 const id={type:'string',pattern:'^[a-z0-9-]{1,60}$'};
 const run={type:'string',pattern:'^[a-z0-9-]{4,64}$'};
 const name={type:'string',pattern:'^[A-Za-z_][A-Za-z0-9_-]{0,62}$'};
-const RUN=/^[a-z0-9-]{4,64}$/;
 const schema={
  type:'object',additionalProperties:false,
  properties:{projectId:id,branchId:id,runId:run,endpointId:id,
@@ -35,41 +34,6 @@ const schema={
   requestKey:{type:'string',minLength:8,maxLength:128}},
  required:['projectId','branchId','runId','endpointId','databaseName','roleName']
 };
-async function targetFor(a,c,verifyTarget){
- if(c?.connection?.profile!=='full'||!RUN.test(a.runId||'')||
-    typeof c.db?.getDevRun!=='function'||
-    typeof c.db?.listDevRunObjects!=='function'||
-    typeof c.getBranch!=='function')
-  throw Error('Full owner and recorded developer run required');
- const v=await verifyTarget(a,c);
- if(v.pid!==a.projectId||v.bid!==a.branchId||
-    v.endpointId!==a.endpointId||v.database!==a.databaseName||
-    v.role!==a.roleName||typeof v.endpoint?.host!=='string')
-  throw Error('Exact project, branch and direct PostgreSQL identity unavailable');
- const orgId=c.connection.neonOrg;
- const owned=await c.db.getDevRun({orgId,projectId:v.pid,runId:a.runId});
- const objects=await c.db.listDevRunObjects({
-  orgId,projectId:v.pid,runId:a.runId});
- if(owned?.id!==a.runId||owned.status!=='active'||
-    !Array.isArray(objects)||objects.length<1||objects.length>100||
-    objects.some(x=>x.run_id!==a.runId)||
-    objects.filter(x=>x.object_type==='branch'&&x.object_id===v.bid&&x.cleaned!==true).length!==1)
-  throw Error('Exact active recorded run branch not owned by this connection scope');
- const branch=await c.getBranch({projectId:v.pid,branchId:v.bid});
- const recorded=objects.find(x=>x.object_type==='branch'&&x.object_id===v.bid);
- const expiry=Date.parse(branch?.expires_at||''),recordedExpiry=Date.parse(recorded?.expires_at||'');
- if(branch?.id!==v.bid||branch.project_id!==v.pid||
-    branch.default===true||branch.protected===true||
-    !Number.isFinite(expiry)||expiry<Date.now()+300000||
-    expiry!==recordedExpiry)
-  throw Error('Selected owned development branch is not safely expiring');
- const target={projectId:v.pid,branchId:v.bid,endpointId:v.endpointId,
-  expectedEndpointHost:v.endpoint.host,database:v.database,role:v.role,pooled:false};
- const cls=await classifyTarget(c,target);
- if(cls.allowed!==true||cls.production===true)
-  throw Error('Synthetic seeding strictly refuses production or shared branches');
- return {target,expiry};
-}
 export function createDemoSeedHandlers({
  contextFor=createProjectWriteContext,verifyTarget=verifyConnectionTarget,
  runner=applyGuardedSql,fetchSource=fetchPublicSource,
@@ -93,7 +57,7 @@ export function createDemoSeedHandlers({
  }
  const definition=defineWrite({name:'neon_dev_seed',productionEffect:'none',
   plan:async(a,c)=>{
-   const state=await targetFor(a,c,verifyTarget);
+   const state=await ownedDevTarget(a,c,verifyTarget);
    const key=c.writeKey('neon_dev_seed',a);
    if(a.sourceUrl!==undefined){
     if(a.scenario!==undefined||a.description!==undefined||
@@ -147,7 +111,7 @@ export function createDemoSeedHandlers({
      ' or production writes. Review the bounded SQL and confirm once.'};
   },
   apply:async(a,c,{before,requestKey})=>{
-   const state=await targetFor(a,c,verifyTarget);
+   const state=await ownedDevTarget(a,c,verifyTarget);
    if(requestKey!==before.requestKey||
       JSON.stringify(state)!==JSON.stringify({target:before.target,expiry:before.expiry}))
     throw Error('Run, scope or target changed after preview');

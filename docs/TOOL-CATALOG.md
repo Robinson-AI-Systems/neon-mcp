@@ -284,10 +284,10 @@ only recorded objects. Every tool refuses production targets (B-2) before readin
 | `neon_dev_cleanup` | Confirm child-first, recorded-only branch soft deletion with exact protected/production refusals | C D Dev | B | F | V-1 built #160 |
 | `neon_dev_list_scenarios` | Preview named or unambiguously described synthetic demo tables and FK-ordered sample rows without executing SQL | — | B | R | V-2 read preview built #165 |
 | `neon_dev_seed` | Confirm run-owned dev-only synthetic scenarios, bounded existing-schema auto seed with verified six-table catalog and FK/constraint admission, or public HTTPS CSV/JSON single-table import; B-1/B-3 audit, exact readback, no production | P Dev | B | F | V-2 scenario application in source |
-| `neon_dev_reset_branch` | Reset a dev branch to its parent's latest state (no production confirm needed; refuses production) | P Dev | B | E | V-3 |
-| `neon_dev_checkpoint` | Record a named checkpoint (LSN) on a dev branch before a test | P Dev | B | E | V-3 |
-| `neon_dev_restore_checkpoint` | Put a dev branch back to a checkpoint in seconds | P Dev | B | E | V-3 |
-| `neon_dev_migration_preview` | Run migration SQL (or a migrations folder's pending files from a public URL) on a throwaway branch: schema diff, errors, timing, lock warnings; keeps or deletes the branch | P Dev | B | E | V-3 |
+| `neon_dev_reset_branch` | B-1/B-4 priced run-owned reset from verified parent; safely preserves and expires recorded recovery branch, no production | P Dev | B | E | V-3 |
+| `neon_dev_checkpoint` | Capture named WAL LSN with full-owner run scope; immutable service-side checkpoint, no production | P Dev | B | E | V-3 |
+| `neon_dev_restore_checkpoint` | B-1/B-4 priced self-restore using recorded LSN and retention checks; preserved expiry/cleanup, no production | P Dev | B | E | V-3 |
+| `neon_dev_migration_preview` | AST-safe inline/public SQL pending Prisma rehearsal on a priced one-hour disposable child; bounded lock warnings, optional verified run-owned keep, no target writes | P Dev | B | E | V-3 |
 | `neon_dev_anonymized_copy` | Masked copy of a production branch for development (Neon anonymized branches, beta): masking rules previewed; refused when a column that looks personal has no rule | C Dev | B | E | V-4 |
 | `neon_dev_tune_query` | Tune a slow query on a throwaway copy: plan, index candidates tried there, before/after timings; nothing changes on the original | P Dev | B | E | V-4 |
 | `neon_dev_check_integration` | Is a project ready for an app being built (spec: tables/migrations present, extensions, roles, pooled URL, protection, expiry, Auth/Data API)? Read-only, with exact steps | — | B | R | V-4 |

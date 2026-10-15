@@ -24,7 +24,7 @@ export function isPublicIPv4(ip){
   a===198&&(b===18||b===19||b===51&&c===100)||
   a===203&&b===0&&c===113);
 }
-export function checkedPublicSource(raw){
+export function checkedPublicSource(raw,{allowSql=false}={}){
  if(typeof raw!=='string'||raw.length<12||raw.length>2048)
   throw Error('Provide one bounded HTTPS CSV or JSON URL');
  let url;
@@ -38,14 +38,19 @@ export function checkedPublicSource(raw){
     host.split('.').length<2)
   throw Error('Public-file HTTPS host refused');
  const kind=url.pathname.toLowerCase().endsWith('.csv')?'csv':
-  url.pathname.toLowerCase().endsWith('.json')?'json':null;
+  url.pathname.toLowerCase().endsWith('.json')?'json':
+  allowSql===true&&url.pathname.toLowerCase().endsWith('.sql')?'sql':null;
  if(!kind)throw Error('Public URL must point to a CSV or JSON file');
  return {url,host,kind};
 }
 /** All connections are TLS-verified against the original hostname, and DNS
  * is pinned to a prevalidated public address. Responses never redirect. */
-export async function fetchPublicSource(raw,{resolve=nodeLookup,request=https.request}={}){
- const {url,host,kind}=checkedPublicSource(raw);
+export async function fetchPublicSource(raw,{resolve=nodeLookup,request=https.request,
+ allowSql=false,maxBytes=MAX_BYTES}={}){
+ if(allowSql!==false&&allowSql!==true||
+    maxBytes!==(allowSql?131072:MAX_BYTES))
+  throw Error('Unverified public-source size policy');
+ const {url,host,kind}=checkedPublicSource(raw,{allowSql});
  let answers;
  try{answers=await resolve(host,{all:true});}
  catch{throw Error('Public-file DNS validation failed');}
@@ -69,13 +74,13 @@ export async function fetchPublicSource(raw,{resolve=nodeLookup,request=https.re
     maxHeaderSize:16384},res=>{
     if(res.statusCode!==200||
        res.headers['content-encoding']&&res.headers['content-encoding']!=='identity'||
-       Number(res.headers['content-length']||0)>MAX_BYTES){
+       Number(res.headers['content-length']||0)>maxBytes){
      res.destroy();done(Error('Unacceptable public file response'));return;
     }
     const chunks=[];
     res.on('data',part=>{
      const item=Buffer.from(part);total+=item.length;
-     if(total>MAX_BYTES){res.destroy();done(Error('File exceeds cap'));return;}
+     if(total>maxBytes){res.destroy();done(Error('File exceeds cap'));return;}
      chunks.push(item);
     });
     res.on('end',()=>done(null,Buffer.concat(chunks,total)));

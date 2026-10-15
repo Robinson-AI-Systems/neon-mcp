@@ -13,7 +13,7 @@ it('seeds bounded developer TTL and compute limits and real owned tables',async(
  expect(await db.getDevSettings()).toMatchObject({
   ttl_hours:24,compute:{min_cu:0.25,max_cu:1,suspend_seconds:300}});
  const tables=await rawQuery("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname=current_schema() AND tablename LIKE 'dev_%' ORDER BY tablename");
- expect(tables.map(x=>x.tablename)).toEqual(['dev_run_objects','dev_runs']);
+ expect(tables.map(x=>x.tablename)).toEqual(['dev_checkpoints','dev_run_objects','dev_runs']);
 });
 it('atomically scopes run and branch ownership by organization/project/connection',async()=>{
  const first={id:'run-first',orgId:org,projectId:proj,connectionId:'conn-first'};
