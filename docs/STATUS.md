@@ -1,3 +1,15 @@
+## October 14 — V-2 catalog-driven existing-schema auto mode (PR engineering/CI pending)
+
+Implementation in progress on `ai/gpt6/v2-existing-schema-seed-20261014`
+covers fresh bounded six-table PostgreSQL catalog admission, topologically
+ordered synthetic parameterized inserts, foreign/unique/check refusals or
+explicit skipped rows, durable B-1/B-3 owner-confirmed dev-only write,
+fingerprint drift rejection and independent exact-cell readback. Authored
+unit and disposable PostgreSQL tests are not proof of passing CI.
+V-2 stays IN_PROGRESS; do not claim real custom-host/provider testing,
+owner scratch fixtures, cleanup, production access or a released deployment.
+No new roadmap ID, cost permission or owner decision is introduced.
+
 ## Owner-requested design detail — October 14, 2026
 
 Completed a code-grounded remaining-design review in `docs/implementation-contracts/REMAINING-WORK-ROUTES.md` and linked

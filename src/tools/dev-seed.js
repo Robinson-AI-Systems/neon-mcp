@@ -14,6 +14,8 @@ import {compileDemoSeed,verifyDemoSeed} from '../dev/seed-plan.js';
 import {fetchPublicSource} from '../dev/public-source.js';
 import {compilePublicImport,verifyPublicImport} from '../dev/import-plan.js';
 import {chooseDemoScenario} from '../dev/scenario-choice.js';
+import {compileAutoSeed,verifyAutoSeed} from '../dev/auto-plan.js';
+import {runAuthorizedSqlRead} from '../neon/sql-read.js';
 
 const id={type:'string',pattern:'^[a-z0-9-]{1,60}$'};
 const run={type:'string',pattern:'^[a-z0-9-]{4,64}$'};
@@ -23,7 +25,8 @@ const schema={
  type:'object',additionalProperties:false,
  properties:{projectId:id,branchId:id,runId:run,endpointId:id,
   databaseName:name,roleName:name,
-  scenario:{type:'string',enum:['saas','store','rental','blog']},
+  scenario:{type:'string',enum:['saas','store','rental','blog','auto']},
+   existingSchema:{type:'string',pattern:'^[A-Za-z_][A-Za-z0-9_]{0,62}$'},
   description:{type:'string',minLength:5,maxLength:400},
   sourceUrl:{type:'string',minLength:12,maxLength:2048},
   seed:{type:'string',pattern:'^[A-Za-z0-9_-]{1,80}$'},
@@ -72,15 +75,29 @@ export function createDemoSeedHandlers({
  runner=applyGuardedSql,fetchSource=fetchPublicSource,
  admissionsFor=c=>createSqlAdmissions({db:c.db}),
  sqlFactory=c=>createSqlLayer({db:c.db,
-  vault:createKeyVault({db:c.db,env:c.env}),env:c.env})
+  vault:createKeyVault({db:c.db,env:c.env}),env:c.env}),
+ autoPlanFor=null
 }={}){
+ async function loadAuto(a,c,target,key){
+  if(typeof autoPlanFor==='function')
+   return autoPlanFor({args:a,ctx:c,target,requestKey:key});
+  const layer=sqlFactory(c);
+  const query=async(text,params)=>{
+   const result=await runAuthorizedSqlRead({ctx:c,target,text,params,sqlLayer:layer});
+   if(result?.done!==true||result.truncated===true||!Array.isArray(result.rows))
+    throw Error('Safe bounded development-schema catalog read unavailable');
+   return result.rows;
+  };
+  return compileAutoSeed({existingSchema:a.existingSchema,
+   rowsPerTable:a.rowsPerTable??3,requestKey:key,query});
+ }
  const definition=defineWrite({name:'neon_dev_seed',productionEffect:'none',
   plan:async(a,c)=>{
    const state=await targetFor(a,c,verifyTarget);
    const key=c.writeKey('neon_dev_seed',a);
    if(a.sourceUrl!==undefined){
     if(a.scenario!==undefined||a.description!==undefined||
-       a.seed!==undefined||a.rowsPerTable!==undefined)
+       a.seed!==undefined||a.rowsPerTable!==undefined||a.existingSchema!==undefined)
      throw Error('Public import cannot be combined with a synthetic scenario');
     const source=await fetchSource(a.sourceUrl);
     const importPlan=compilePublicImport({source,requestKey:key});
@@ -95,6 +112,27 @@ export function createDemoSeedHandlers({
       'reject personal secrets, foreign emails or unsafe phones. '+
       'No production writes or provider resources. Confirm once.'};
    }
+   if(a.scenario==='auto'){
+    if(a.sourceUrl!==undefined||a.description!==undefined||
+       a.existingSchema===undefined)
+     throw Error('Existing-schema auto mode needs an explicit schema only');
+    if(await c.guards?.checkApp?.({projectId:state.target.projectId,
+      branchId:state.target.branchId,target:'branch:'+state.target.branchId},
+      c,{...a,outsideApp:false})!==true)
+     throw Error('Application-owned schema cannot be auto-seeded');
+    const autoPlan=await loadAuto(a,c,state.target,key);
+    return {projectId:state.target.projectId,branchId:state.target.branchId,
+     target:'dev-auto:'+state.target.projectId+'/'+state.target.branchId+
+      '/'+state.target.database+'/'+autoPlan.schema,
+     before:{...state,mode:'auto',autoPlan,requestKey:key},
+     summary:'Insert '+autoPlan.totalRows+' fabricated rows into '+
+      autoPlan.tableCount+' catalog-verified existing dev tables in '+
+      autoPlan.schema+', with '+autoPlan.totalSkipped+
+      ' rejected or dependent rows skipped. No existing rows changed. '+
+      'Only supported foreign keys and constraints; no production or app-owned writes.'};
+   }
+   if(a.existingSchema!==undefined)
+    throw Error('Existing schema is exclusive to auto mode');
    const chosen=chooseDemoScenario(a);
    const seedPlan=compileDemoSeed({
     scenario:chosen.scenario,seed:a.seed??'demo',rowsPerTable:a.rowsPerTable??3,
@@ -126,8 +164,17 @@ export function createDemoSeedHandlers({
        plan.totalRows!==before.importPlan.totalRows)
      throw Error('Public file changed after owner preview; no SQL was sent');
     verifyPlan=verifyPublicImport;
+   }else if(before.mode==='auto'){
+    if(a.scenario!=='auto'||a.description!==undefined||
+       a.sourceUrl!==undefined||a.existingSchema===undefined)
+     throw Error('Auto seed inputs changed since preview');
+    plan=await loadAuto(a,c,state.target,requestKey);
+    if(plan.fingerprint!==before.autoPlan.fingerprint)
+     throw Error('Existing schema or preflight conflicts changed; no SQL sent');
+    verifyPlan=verifyAutoSeed;
    }else{
-    if(a.sourceUrl!==undefined)throw Error('Expected a synthetic seed source');
+    if(a.sourceUrl!==undefined||a.existingSchema!==undefined)
+     throw Error('Expected a synthetic seed source');
     const chosen=chooseDemoScenario(a);
     plan=compileDemoSeed({
      scenario:chosen.scenario,seed:a.seed??'demo',rowsPerTable:a.rowsPerTable??3,
@@ -169,7 +216,7 @@ export function createDemoSeedHandlers({
  });
  const tool={...definition.tool,inputSchema:schema,
   area:'developer',audience:['builder','owner'],profiles:['full'],
-  description:'Seed synthetic demonstrations or import vetted public CSV/JSON into a new dev-only table with audited exact readback.'};
+  description:'Owner-confirmed seed for isolated demos, supported existing dev schemas or vetted public CSV/JSON; exact readback, no production writes.'};
  return {tools:[tool],handlers:{
   neon_dev_seed:async(a,raw)=>definition.handler(a,await contextFor(raw))
  }};
