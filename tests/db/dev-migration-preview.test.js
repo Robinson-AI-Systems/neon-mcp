@@ -35,7 +35,7 @@ describe('V-3 real PostgreSQL migration fixture: parent stays unchanged',()=>{
   expect(history).toHaveLength(1);
   expect(history[0].migration_name).toBe('20261001_initial');
   const sizes=await rawQuery(TABLE_SIZE_SQL,[schema]);
-  expect(sizes).toContainEqual({table_name:'widgets',estimated_rows:2500});
+  expect(sizes).toContainEqual({table_name:'widgets',estimated_rows:'2500'});
   const text='ALTER TABLE '+q(child)+'.widgets ADD COLUMN archived boolean';
   const plan=await compileMigrationPreview({
    args:{schemaName:schema,migrations:[
