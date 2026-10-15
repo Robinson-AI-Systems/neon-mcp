@@ -744,14 +744,15 @@
         "V-1"
       ],
       "card": "docs/pr-cards/V-3.md",
-      "status": "PLANNED",
+      "status": "IN_PROGRESS",
       "migration": "dev_checkpoints",
       "budget": 450,
       "units": [
         "V-3"
       ],
-      "readiness": "WRITE_CARD_AT_START",
-      "ownerInputs": []
+      "readiness": "SOURCE_IMPLEMENTING",
+      "ownerInputs": [],
+      "note": "2026-10-14: original V-3 approved subsection in branch ai/gpt6/v3-checkpoint-migration-20261014, including service-owned immutable named WAL positions, V-1 scoped reset/restore via D-2 priced preservation, and B-3c child-only public/inline migration rehearsal with failure/lock/cleanup paths. Tests and exact-head CI pending. No custom hosted/provider/spend/cleanup acceptance claimed."
     },
     {
       "id": "V-4",
