@@ -11,7 +11,7 @@ async function fixture({verified=true,price=true,full=false}={}){
    subscription_type:'launch',branches_limit:10}})});
  fake.when('listProjectBranches').resolves({branches:
   full?Array.from({length:10},(_,i)=>fx.devBranch({id:'br-fake-'+i})):
-   [fx.mainBranch(),fx.devBranch()]});
+   [fx.mainBranch(),fx.devBranch()],annotations:{}});
  const neon=makeNeonClient({key:'napi_FAKE_v4_cost',orgId:fx.IDS.org,
   budget:{consume:async()=>({allowed:true})},fetch:fake.fetch});
  const db={
