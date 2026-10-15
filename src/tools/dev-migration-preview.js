@@ -84,6 +84,17 @@ export function createDevMigrationHandlers({
    loadSizes:async schemaName=>read(TABLE_SIZE_SQL,[schemaName]),
    fetchFile:async url=>fetchFile(url,{allowSql:true,maxBytes:131072})});
  }
+ async function checkedMigrationPlan(a,c,target,key){
+  const result=await planFor(a,c,target,key);
+  if(!result||!Array.isArray(result.statements)||
+     result.statements.length<1||result.statements.length>20||
+     !Array.isArray(result.summary)||result.summary.length!==result.statements.length||
+     result.summary.some(x=>typeof x?.root!=='string')||
+     !Array.isArray(result.params)||result.params.length!==result.statements.length||
+     typeof result.fingerprint!=='string'||!/^[a-f0-9]{64}$/.test(result.fingerprint))
+   throw Error('Complete verified migration plan and diagnostics required');
+  return result;
+ }
  const write=defineWrite({
   name:'neon_dev_migration_preview',productionEffect:'none',
   destructive:true,
@@ -93,7 +104,7 @@ export function createDevMigrationHandlers({
   plan:async(a,c)=>{
    const state=await current(a,c);
    const key=c.writeKey('neon_dev_migration_preview',a);
-   const migration=await planFor(a,c,state.target,key);
+   const migration=await checkedMigrationPlan(a,c,state.target,key);
    if(migration.anyFullTable&&a.allowFullTable!==true)
     throw Error('Unbounded migration statements require explicit child-only acknowledgment');
    return {projectId:a.projectId,branchId:a.branchId,
@@ -112,7 +123,7 @@ export function createDevMigrationHandlers({
    if(JSON.stringify(state)!==JSON.stringify({
     target:before.target,expiry:before.expiry})||requestKey!==before.requestKey)
     throw Error('Development branch or run changed since preview');
-   const migration=await planFor(a,c,state.target,requestKey);
+   const migration=await checkedMigrationPlan(a,c,state.target,requestKey);
    if(migration.fingerprint!==before.migration.fingerprint||
       migration.anyFullTable&&a.allowFullTable!==true)
     throw Error('Migrations, history, lock policy or source changed since preview');

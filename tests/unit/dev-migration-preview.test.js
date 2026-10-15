@@ -25,8 +25,9 @@ function fixture({drift=false,blocked=false,appOwned=false,
  let planned=0;
  const makePlan=vi.fn(async()=>{
   planned++;
-  return {fingerprint:drift&&planned>1?'unexpected':'stable',mode:'inline',
+  return {fingerprint:drift&&planned>1?'f'.repeat(64):'a'.repeat(64),mode:'inline',
    schema:'public',statements:input.statements,params:[[]],
+   summary:[{migration:'inline_1',root:'AlterTableStmt',fullTable:false}],
    alreadyApplied:[],warnings:[{statement:1,table:'widgets',
     estimatedRows:250000,reason:'Potential ACCESS EXCLUSIVE lock'}],
    filenames:['inline_1'],anyFullTable:false};
