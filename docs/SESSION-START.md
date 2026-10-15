@@ -12,6 +12,47 @@ external acceptance tracked separately. Use focused checks while building,
 then the full required gates on the substantial assembled PR. See the governing
 instructions' **PR workload is measured in predefined batch subsections** rule.
 
+## Recovery when an agent stalls mid-PR or mid-CI (2026-10-15)
+
+A long tool sequence or disconnected chat must **not** turn work into a
+status-only answer. Work is synchronous: never claim to be running in the
+background, ask the owner to wait for an invisible continuation, or restart
+the roadmap from stale context. Resume from persisted GitHub state:
+
+1. Read actual `main`, the currently open PR/branch, its head SHA, the most
+   recent exact-head CI jobs, review threads, the active card and permanent
+   handoff. The PR, commits and CI logs are the checkpoint; do not infer
+   completion from earlier commentary or reimplement already committed code.
+2. Identify the single current incomplete **predefined batch subsection**,
+   the last verified green head and the *first concrete failing integration*.
+   If the last action was an edit, immediately check its corresponding test
+   and expected fake/schema/catalog contracts. Collect **all** failing jobs,
+   not just the first. A newly required result field must update its
+   behavior, producer, consumer, fake and negative-case tests **in one batch**.
+3. Fix the entire observed failure set together on the existing PR, using
+   focused checks while assembling. Push one cohesive corrective commit/CI
+   cycle rather than committing each file and cancelling parallel runs. When
+   working solely through the GitHub connector, stage a single tree commit
+   where supported; if that operation fails, reconcile the head and continue
+   with bounded sequential file edits without losing or overwriting work.
+4. After a clean exact-head CI, finish the security/acceptance self-review,
+   reconcile feedback and merge with exact SHA (if authorized). Verify
+   post-merge `main` checks; keep deployment and real provider acceptance
+   separate. Only then count the whole subsection/bundle. Move directly to
+   the next approved eligible subsection; do not spend the session repeatedly
+   generating status reports or continuation prompts.
+5. Before any interruption, persist a **one-paragraph checkpoint** on the
+   open substantive PR or in `docs/STATUS.md`: branch/PR/head, completed
+   integration seams, known failing jobs with causes, concrete next test/edit,
+   and remaining external gates. This checkpoint belongs in the same
+   implementation PR, never a documentation-only PR.
+
+**Anti-loop rule:** If two CI cycles expose the same failure, inspect the
+actual resulting source and the runner log before changing another fixture;
+do not repeat a speculative fix. Run full gates on the final complete
+outcome, not after every helper. No budget, security, branch, production,
+review, hosting or owner gate may be weakened to shorten this cycle.
+
 ## 0. Reconcile and recover
 
 Read the governing instructions and the current permanent handoff, not historical
