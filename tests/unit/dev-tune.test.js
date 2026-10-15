@@ -38,7 +38,8 @@ function fixture({blocked=false,appOwned=false,expired=false,
   verifyTarget:async()=>({pid:input.projectId,bid:input.branchId,
    endpointId:input.endpointId,database:input.databaseName,
    role:input.roleName,endpoint:{host:'dev.example.test'}}),
-  previewRunner,sqlFactory:()=>async()=>null});
+  previewRunner,sqlFactory:()=>async()=>null,
+  estimateChildCost:async()=>({increaseCents:1,estimate:true,canApply:true})});
  return {...f,...built,previewRunner,
   call:a=>built.handlers.neon_dev_tune_query(a,{})};
 }

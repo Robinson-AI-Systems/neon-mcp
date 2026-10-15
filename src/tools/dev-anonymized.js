@@ -75,7 +75,9 @@ async function observedSource(a,c,verifyTarget,sqlFactory,readColumns){
  if(b.some(x=>x.name===name))throw Error('An earlier masked-copy request may already exist');
  const recorded=await c.db.getDevRun?.({orgId:info.orgId,
   projectId:a.projectId,runId:a.runId});
- if(recorded&&recorded.status!=='active')throw Error('Run was closed');
+ if(recorded?.id!==a.runId||recorded.status!=='active'||
+    recorded.connection!==(c.connectionId??null))
+  throw Error('An existing active, connection-owned development run is required');
  return {projectId:a.projectId,source:source.id,sourceIsProduction:cls.production,
   name,count:b.length,expiry:expiry(ttl),settings,
   plan:attestedProjectPlan(info.project,info.orgId),mask,

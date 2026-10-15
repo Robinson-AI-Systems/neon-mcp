@@ -16,7 +16,7 @@ const rows=[
  {schema_name:'public',table_name:'customers',column_name:'email',data_type:'text'},
  {schema_name:'public',table_name:'customers',column_name:'name',data_type:'text'}
 ];
-function fixture({blocked=false,appOwned=false,invalidStatus=false}={}){
+function fixture({blocked=false,appOwned=false,invalidStatus=false,missingRun=false}={}){
  const f=makeContractFixture({blocked,appOwned});
  const fake=makeFakeNeon();
  fake.when('getProject').resolves({project:fx.project({
@@ -32,7 +32,7 @@ function fixture({blocked=false,appOwned=false,invalidStatus=false}={}){
  f.ctx.writeKey=()=>key;
  f.ctx.db.getDevSettings=async()=>({ttl_hours:24,compute:{
   min_cu:0.25,max_cu:1,suspend_seconds:300}});
- f.ctx.db.getDevRun=async()=>null;
+ f.ctx.db.getDevRun=async()=>missingRun?null:{id:input.runId,status:'active',connection:null};
  f.ctx.db.reserveDevRun=vi.fn(async()=>({id:input.runId}));
  f.ctx.db.recordDevRunBranch=vi.fn(async()=>true);
  const createBranch=vi.fn(async()=>({confirmed:true,
@@ -87,6 +87,12 @@ describe('V-4 owner-confirmed anonymized development copy lifecycle',()=>{
   expect(f.createBranch).toHaveBeenCalledTimes(1);
   expect(parse(await f.call({...input,confirm:true})).confirmed).toBe('pending');
   expect(f.createBranch).toHaveBeenCalledTimes(1);
+ });
+ it('requires an active pre-existing run: never creates a run just to copy source data',async()=>{
+  const f=fixture({missingRun:true});
+  expect(parse(await f.call({...input,confirm:true})).done).toBe(false);
+  expect(f.createBranch).not.toHaveBeenCalled();
+  expect(f.ctx.db.reserveDevRun).not.toHaveBeenCalled();
  });
  it('refuses protected/app-owned and non-owner modes before the provider call',async()=>{
   for(const flags of [{blocked:true},{appOwned:true}]){
