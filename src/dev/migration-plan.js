@@ -110,14 +110,17 @@ export async function compileMigrationPreview({args,requestKey,loadApplied,
    seen.add(item.name);
   }
   const applied=appliedPrismaRows(await loadApplied(schema));
+  // Validate every applied/pending boundary before any external source is fetched.
   let missing=false;
   for(const item of files){
    if(applied.has(item.name)){
     if(missing)deny();
-    appliedNames.push(item.name);continue;
-   }
-   missing=true;selected.push({name:item.name,source:await fetchFile(item.url)});
+    appliedNames.push(item.name);
+   }else missing=true;
   }
+  for(const item of files)
+   if(!applied.has(item.name))
+    selected.push({name:item.name,source:await fetchFile(item.url)});
  }else{
   if(!Array.isArray(inline)||inline.length<1||inline.length>20||
      inline.some(x=>typeof x!=='string'||x.length<1||x.length>20000))deny();
