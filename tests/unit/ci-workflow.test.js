@@ -26,7 +26,7 @@ describe('.github/workflows/ci.yml', () => {
   });
   it('the aggregate ci job always runs, needs every job and requires each to be success', () => {
     const jobs = Object.keys(wf.jobs).filter((n) => n !== 'ci');
-    expect(jobs.sort()).toEqual(['check', 'db', 'unit']);
+    expect(jobs.sort()).toEqual(['check', 'db', 'rtc', 'unit']);
     expect(wf.jobs.ci.if).toBe('always()');
     expect([...wf.jobs.ci.needs].sort()).toEqual(jobs);
     const script = wf.jobs.ci.steps.map((s) => s.run).join('\n');
