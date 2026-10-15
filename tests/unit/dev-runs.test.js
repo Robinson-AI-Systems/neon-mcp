@@ -1,4 +1,4 @@
-import {describe,it,expect,vi,afterEach} from 'vitest';
+import {describe,it,expect,vi,afterEach,beforeEach} from 'vitest';
 import {createHash} from 'node:crypto';
 import {makeFakeNeon} from '../../test/helpers/fake-neon.js';
 import {makeNeonClient} from '../../src/neon/client.js';
@@ -99,6 +99,11 @@ function make({allowed=true,production=false,withOwned=false,badProof=false,
  return {...f,fake,client,handlers,registry,get rows(){return rows;},get run(){return current;},
   selectedExpiry:e,forceRun:(id='run-owned')=>{current={id,status:'active',project_id:IDS.project};}};
 }
+// Fixture/provider and handler expiry must share one instant; real timers still run.
+beforeEach(()=>{
+ vi.useFakeTimers({toFake:['Date']});
+ vi.setSystemTime(new Date('2026-10-15T12:00:00.000Z'));
+});
 afterEach(()=>vi.useRealTimers());
 describe('V-1 recorded development lifecycle',()=>{
  it('registers two audited writes and a safe read with exact schemas',()=>{

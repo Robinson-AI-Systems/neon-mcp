@@ -1,5 +1,16 @@
 ## October 15 — acceptance catch-up, released V-2 read-only scenario evidence
 
+## Workflow closeout: deterministic expiry fixture — October 15
+
+Final-main CI for the owner-requested workflow correction exposed an existing
+wall-clock race in the V-1 test: fixture expiry and handler expiry are computed
+separately to the second. Pin Date only during the test; real timers, original
+expiry/ownership assertions and all runtime behavior remain unchanged. This is
+a test reliability repair, zero product bundles or real Neon acceptance. Focused
+V-1 tests and required exact-head CI/review must pass before merge; preserve all
+production, spending, SQL and fixture ownership gates.
+
+
 ## Owner-requested bundle scope accounting correction — October 15
 
 Operational maintenance, zero product bundles/subsections: preserve an inspected
