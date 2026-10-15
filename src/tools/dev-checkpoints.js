@@ -96,7 +96,8 @@ export function createDevCheckpointHandlers({
  contextFor=createProjectWriteContext,verifyTarget=verifyConnectionTarget,
  sqlFactory=c=>createSqlLayer({db:c.db,
   vault:createKeyVault({db:c.db,env:c.env}),env:c.env}),
- readWal=null,delegate=null,postRestore=backupExpiry
+ readWal=null,delegate=null,postRestore=backupExpiry,
+ inventoryFor=singleBranchInventory,checkRetention=retention
 }={}){
  const delegated=delegate??createBranchRestoreHandlers({contextFor:async c=>c});
  const checkpoint=defineWrite({name:'neon_dev_checkpoint',productionEffect:'none',
@@ -147,7 +148,7 @@ export function createDevCheckpointHandlers({
     const state=await sameOwned(a,c,verifyTarget);
     if(kind==='checkpoint'&&!checkName(a.checkpointName))
      throw Error('Choose an existing named run checkpoint');
-    const inventory=await singleBranchInventory(c,a.projectId,a.branchId);
+    const inventory=await inventoryFor(c,a.projectId,a.branchId);
     const requestKey=c.writeKey(kind==='reset'?'neon_dev_reset_branch':
      'neon_dev_restore_checkpoint',a);
     const preserveName='dev-preserve-'+hash(requestKey).slice(0,24);
@@ -158,7 +159,7 @@ export function createDevCheckpointHandlers({
      checkpointRecord=await c.db.getDevCheckpoint?.({
       orgId:c.connection.neonOrg,projectId:a.projectId,branchId:a.branchId,
       runId:a.runId,name:a.checkpointName});
-     retentionSeconds=await retention(c,a,checkpointRecord,inventory.client);
+     retentionSeconds=await checkRetention(c,a,checkpointRecord,inventory.client);
     }else{
      const branch=await c.getBranch({projectId:a.projectId,branchId:a.branchId});
      if(typeof branch?.parent_id!=='string'||!inventory.branches.some(
@@ -189,7 +190,7 @@ export function createDevCheckpointHandlers({
       runId:a.runId,name:a.checkpointName});
      if(JSON.stringify(cp)!==JSON.stringify(before.checkpointRecord))
       throw Error('Recorded checkpoint changed before owner approval');
-     const history=await retention(c,a,cp,inventory.client);
+     const history=await checkRetention(c,a,cp,inventory.client);
      if(history!==before.retentionSeconds)
       throw Error('Restore history policy changed before apply');
     }
