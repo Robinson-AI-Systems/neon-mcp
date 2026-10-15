@@ -124,17 +124,26 @@ export function createDevMigrationHandlers({
      allowFullTable:a.allowFullTable===true},
     target:state.target,statements:migration.statements,
     params:migration.params,requestKey,neonClient:client,sqlLayer:sqlFactory(c),
-    keepChild:keep,recordChild:keep?detail=>saveKeptChild({
+    captureDiagnostics:true,keepChild:keep,recordChild:keep?detail=>saveKeptChild({
      ctx:c,args:a,detail}):null});
    if(output?.done!==true||output.exact!==true||
-      (keep?output?.childKept!==true:output?.childDeleted!==true))
+      (keep?output?.childKept!==true:output?.childDeleted!==true)||
+      !Array.isArray(output.statementDurationsMs)||
+      output.statementDurationsMs.length!==migration.statements.length||
+      output.statementDurationsMs.some(ms=>!Number.isSafeInteger(ms)||ms<0)||
+      migration.summary.some(x=>x.root!=='InsertStmt'&&x.root!=='UpdateStmt'&&
+       x.root!=='DeleteStmt')&&typeof output.schemaDiff!=='string'){
+    c.currentDevMigrationFailure=output?.sqlFailure??null;
     return {confirmed:'pending'};
+   }
    c.currentDevMigration={
     success:true,kept:keep,branchId:keep?output.childBranchId:null,
     childExpiresAt:keep?output.childExpiresAt:null,
     affectedRows:output.affectedRows,schemaChanged:output.schemaChanged,
     warnings:migration.warnings,alreadyApplied:migration.alreadyApplied,
-    pendingMigrations:migration.filenames,statementCount:migration.statements.length};
+    pendingMigrations:migration.filenames,statementCount:migration.statements.length,
+    statementDurationsMs:output.statementDurationsMs,schemaDiff:output.schemaDiff,
+    schemaHash:output.schemaHash};
    return {confirmed:true};
   },
   readAfter:async(_a,c)=>c.currentDevMigration??null,
@@ -156,9 +165,14 @@ export function createDevMigrationHandlers({
     migrationPreview:{kept:x.kept,
      ...(x.kept?{branchId:x.branchId,expiresAt:x.childExpiresAt}:{}),
      affectedRows:x.affectedRows,schemaChanged:x.schemaChanged,
-     lockWarnings:x.warnings,alreadyApplied:x.alreadyApplied,
+     lockWarnings:x.warnings,statementDurationsMs:x.statementDurationsMs,
+     schemaDiff:x.schemaDiff,schemaHash:x.schemaHash,
+     alreadyApplied:x.alreadyApplied,
      pendingMigrations:x.pendingMigrations,statementCount:x.statementCount}});
   }
+  if(result?.confirmed==='pending'&&ctx.currentDevMigrationFailure)
+   response.content[0].text=JSON.stringify({...result,
+    migrationError:ctx.currentDevMigrationFailure});
   return response;
  }}};
 }
