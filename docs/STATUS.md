@@ -1,3 +1,14 @@
+## Owner-requested design detail — October 14, 2026
+
+Completed a code-grounded remaining-design review in `docs/implementation-contracts/REMAINING-WORK-ROUTES.md` and linked
+it from AGENTS. Concrete per-subsection state, input/output, failure/recovery,
+file integration and test contracts supplement existing approved designs. No
+runtime code, roadmap status/dependencies, acceptance queue, credentials,
+resources, production switch or release changed. No completed product batch
+subsection is claimed. Implementing sessions resume the authoritative roadmap
+order, reconciling current main/concurrent cards and actual owner inputs first.
+This dated design note is not a new implementation priority or replacement handoff.
+
 ### Owner workflow clarification — October 14, 2026
 
 PR workload is counted in whole predefined batch subsections from the approved
