@@ -3,6 +3,7 @@
 import {parse} from 'libpg-query';
 import {classifySql} from '../neon/sql-guard.js';
 import {quoteIdent} from '../neon/sql-ident.js';
+import {checkedPublicSource} from './public-source.js';
 import {createHash} from 'node:crypto';
 const digest=x=>createHash('sha256').update(x).digest('hex');
 const NAME=/^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/;
@@ -107,6 +108,8 @@ export async function compileMigrationPreview({args,requestKey,loadApplied,
    if(!NAME.test(item?.name||'')||seen.has(item.name)||
       typeof item.url!=='string'||item.url.length<12||item.url.length>2048||
       !item.url.toLowerCase().split('?')[0].endsWith('.sql'))deny();
+   const address=checkedPublicSource(item.url,{allowSql:true});
+   if(address.kind!=='sql')deny();
    seen.add(item.name);
   }
   const applied=appliedPrismaRows(await loadApplied(schema));
