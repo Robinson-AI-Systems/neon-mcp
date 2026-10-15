@@ -1,3 +1,21 @@
+## October 15 — V-4 anonymized copy, disposable tuner and integration evidence (PR and checks pending)
+
+Original V-4 subsection, built together rather than split into subcards, is on
+`ai/gpt6/v4-masked-copy-tuning-integration-20261015`. It covers the bounded
+metadata-only sensitive-column mask planner, priced owner-confirmed beta Neon
+anonymized-branch request with V-1 run ledger, a disposable B-3c child for
+index and EXPLAIN tuning, and a read-only provider/PostgreSQL integration
+checklist. Unit, fake provider and disposable PostgreSQL tests are authored;
+required exact-head CI and diff security review remain unverified. V-4 is
+IN_PROGRESS, not a completed bundle; no real branch copied, queried, or
+approved for connection and no production/spending switch changed.
+
+V-3 source **merged** in PR #175 on main 75c0c6f1047e21c96a53f8c6f56c399c4d32bcfa;
+all exact-head and post-merge main CI passed. V-3 live custom-provider
+restoration, backup TTL/cleanup and acceptance are still pending.
+V-2 source merged in PR #174 and passed CI; V-2 live scratch/provider
+acceptance remains pending independently.
+
 ## October 14 — V-3 run-owned LSN checkpoint, recovery and isolated migrations (PR/CI pending)
 
 Approved existing V-3 (not subcards): `neon_dev_checkpoint`,
