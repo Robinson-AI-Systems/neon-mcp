@@ -181,7 +181,7 @@ export function createDevCheckpointHandlers({
     if(JSON.stringify(current)!==JSON.stringify({target:before.target,expiry:before.expiry})||
        requestKey!==before.requestKey)
      throw Error('Run, branch or request identity drifted after preview');
-    const inventory=await singleBranchInventory(c,a.projectId,a.branchId);
+    const inventory=await inventoryFor(c,a.projectId,a.branchId);
     if(inventory.branches.some(x=>x.name===before.preserveName))
      throw Error('A previous restore may already have created its preservation branch');
     if(kind==='checkpoint'){
