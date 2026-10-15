@@ -396,6 +396,16 @@ node scripts/openapi-find.mjs "create branch"   # look an operation up in the ve
 python3 docs/pr-cards/validate-index.py
 ```
 
+## Recovery without status-only stalls
+
+When resuming an interrupted implementation, follow the durable anti-stall
+recovery procedure in [SESSION-START](docs/SESSION-START.md#recovery-when-an-agent-stalls-mid-pr-or-mid-ci-2026-10-15).
+Recover the open PR, exact head and failed jobs first; batch fixes, update
+producer/consumer/fixtures together, rerun required checks and merge when
+authorized. Do not stop at a checkpoint report, loop on unchanged CI, create
+documentation-only PRs or count an unfinished predefined batch subsection.
+Never bypass deployment, provider, owner, spending or security gates.
+
 ## Ending a session
 
 1. `docs/STATUS.md`: merged, in progress (branch, PR, head SHA, CI run), blocked and why, next.
