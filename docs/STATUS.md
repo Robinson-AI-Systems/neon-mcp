@@ -1,3 +1,16 @@
+## October 14 — V-3 run-owned LSN checkpoint, recovery and isolated migrations (PR/CI pending)
+
+Approved existing V-3 (not subcards): `neon_dev_checkpoint`,
+`neon_dev_reset_branch`, `neon_dev_restore_checkpoint` and
+`neon_dev_migration_preview`. In-progress source adds durable checkpoint
+persistence, V-1 ownership/recovery, paid D-2 preservation, public raw SQL
+migration parsing/Prisma history + lock warnings, and B-3c disposable preview
+with kept child recorded under the expiring run. No production changes or
+unapproved costs. All source, required unit/real Postgres fixtures and exact
+head CI must pass before merge; real custom service scratch/provider
+restoration, precise cleanup and after-release testing are still UNVERIFIED.
+Do not count this unfinished source as a completed roadmap subsection.
+
 ## October 14 — V-2 catalog-driven existing-schema auto mode (PR engineering/CI pending)
 
 Implementation in progress on `ai/gpt6/v2-existing-schema-seed-20261014`
