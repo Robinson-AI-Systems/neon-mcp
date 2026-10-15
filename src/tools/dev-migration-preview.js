@@ -127,7 +127,7 @@ export function createDevMigrationHandlers({
     keepChild:keep,recordChild:keep?detail=>saveKeptChild({
      ctx:c,args:a,detail}):null});
    if(output?.done!==true||output.exact!==true||
-      keep?output?.childKept!==true:output?.childDeleted!==true)
+      (keep?output?.childKept!==true:output?.childDeleted!==true))
     return {confirmed:'pending'};
    c.currentDevMigration={
     success:true,kept:keep,branchId:keep?output.childBranchId:null,
