@@ -36,7 +36,9 @@ permission, confirmation and provider boundary independently enforced/tested;
 shared delivery never combines or relaxes those controls. Split delivery only
 for a concrete migration, dependency, safety or reviewability reason; record
 that reason and the unfinished integration. A bundle spanning PRs counts once
-when its intended outcome is fully implemented, verified and merged. The current
+when its intended outcome is fully implemented, verified and merged. Keep measuring the existing rolling per-substantive-PR workload averages even
+when a bundle spans PRs; explain smaller justified deliveries rather than hiding
+them in bundle totals. The current
 owner prompt sets bundle count, never a standing repository quota. These rules
 supersede older numeric/grouping restrictions in recipes or example cards.
 
@@ -369,7 +371,7 @@ and cents; stored in integer cents (unit rates in integer micro-dollars).
 | Runtime facts (env vars, tables, infra) as built | `docs/ARCHITECTURE.md` |
 | Remaining acceptance | `docs/PLAN.md` |
 | Approved designs (how) | `docs/designs/BATCH-*.md` |
-| Exactly what one PR builds | `docs/pr-cards/<ID>.md` (wins over the design where they differ) |
+| Approved subsection scope and selected bundle acceptance | `docs/pr-cards/<ID>.md` (wins over the design where they differ) |
 | Current state and next item | `docs/STATUS.md`, `docs/MASTER-ROADMAP.md`, `docs/pr-cards/work-index.json` |
 | Owner decisions | `docs/OWNER-INPUTS.md` |
 | Dated decisions and reasons | `docs/DECISIONS.md` |
