@@ -26,7 +26,7 @@ const schema={
  properties:{projectId:id,branchId:id,runId:run,endpointId:id,
   databaseName:name,roleName:name,
   scenario:{type:'string',enum:['saas','store','rental','blog','auto']},
-  existingSchema:{type:'string',pattern:'^[A-Za-z_][A-Za-z0-9_]{0,62}
+   existingSchema:{type:'string',pattern:'^[A-Za-z_][A-Za-z0-9_]{0,62}$'},
   description:{type:'string',minLength:5,maxLength:400},
   sourceUrl:{type:'string',minLength:12,maxLength:2048},
   seed:{type:'string',pattern:'^[A-Za-z0-9_-]{1,80}$'},

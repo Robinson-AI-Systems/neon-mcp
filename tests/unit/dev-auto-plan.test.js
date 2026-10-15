@@ -128,6 +128,12 @@ describe('V-2 six-table catalog-driven synthetic seeding',()=>{
   await expect(compileAutoSeed({existingSchema:'pg_catalog',rowsPerTable:2,
    requestKey,query:makeCatalog().query})).rejects.toThrow();
  });
+ it('refuses credential-bearing or identity-sensitive schema columns',async()=>{
+  const f=makeCatalog();
+  f.columns.find(c=>c.table_name==='organizations'&&c.column_name==='name').column_name='password_hash';
+  await expect(compileAutoSeed({existingSchema:schema,rowsPerTable:3,
+   requestKey,query:f.query})).rejects.toThrow(/safe six-table/);
+ });
  it('ties a stable fingerprint to changes in CHECK policy and catalog',async()=>{
   const a=await plan();
   const b=await plan({check:'CHECK ((price_cents >= 1))'});

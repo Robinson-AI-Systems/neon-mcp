@@ -87,6 +87,7 @@ function typeOf(row){
  if(!['int4','text','varchar','bpchar','bool','date','numeric','timestamptz'].includes(value))deny();
  if(typeof row.generated!=='string'||row.generated!==''||
     !['','d'].includes(row.identity)||typeof row.required!=='boolean')deny();
+ if(/(?:password|passphrase|secret|token|ssn|birth|dob|address|credit|card_number|credential|oauth|api_key|hash|cookie|session|mfa|otp|private|recovery)/i.test(row.column_name))deny();
  if(!Number.isSafeInteger(row.type_modifier))deny();
  const maxLen=['varchar','bpchar'].includes(value)?row.type_modifier-4:null;
  if(maxLen!==null&&(maxLen<1||maxLen>1048576))deny();

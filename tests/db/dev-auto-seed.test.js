@@ -60,7 +60,7 @@ it('loads six related existing PostgreSQL tables with exact FK/check/unique and 
  expect(conflicting.statements).toHaveLength(0);
 });
 it('rejects an altered unique/check/FK catalog before a second write',async()=>{
- await run('ALTER TABLE '+quoted+'.plans ADD CONSTRAINT price_below_ceiling CHECK (price_cents < 1000)');
+ await run('ALTER TABLE '+quoted+'.plans ADD CONSTRAINT price_below_ceiling CHECK (price_cents <> 9999)');
  try{
   await expect(plan()).rejects.toThrow(/safe six-table/);
  }finally{
