@@ -283,7 +283,7 @@ only recorded objects. Every tool refuses production targets (B-2) before readin
 | `neon_dev_list_runs` | Page scoped recorded runs by age/status with exact cursors; inspect owned objects without inferring provider cleanup | — | B | R | V-1 built #160 |
 | `neon_dev_cleanup` | Confirm child-first, recorded-only branch soft deletion with exact protected/production refusals | C D Dev | B | F | V-1 built #160 |
 | `neon_dev_list_scenarios` | Preview named or unambiguously described synthetic demo tables and FK-ordered sample rows without executing SQL | — | B | R | V-2 read preview built #165 |
-| `neon_dev_seed` | Confirm a named or unambiguous described synthetic relational demo (1–100 rows/table) on expiring run-owned branches with B-1/B-3 audit, exact FK/row readback; auto/public import pending | P Dev | B | F | V-2 scenario application in source |
+| `neon_dev_seed` | Confirm a synthetic demo or import up to 900 rows from a validated public HTTPS CSV/JSON into an isolated single table on a run-owned branch; strict B-1/B-3 gates and readback; existing-schema auto pending | P Dev | B | F | V-2 scenario application in source |
 | `neon_dev_reset_branch` | Reset a dev branch to its parent's latest state (no production confirm needed; refuses production) | P Dev | B | E | V-3 |
 | `neon_dev_checkpoint` | Record a named checkpoint (LSN) on a dev branch before a test | P Dev | B | E | V-3 |
 | `neon_dev_restore_checkpoint` | Put a dev branch back to a checkpoint in seconds | P Dev | B | E | V-3 |

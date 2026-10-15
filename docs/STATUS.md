@@ -1,3 +1,23 @@
+## October 14 — V-2 single-table public CSV/JSON import (unreleased source)
+
+The guarded `neon_dev_seed` path now supports a public HTTPS `sourceUrl`
+as an exclusive alternative to the four synthetic scenario modes. Intended
+outcome: an isolated owned `rmcp_import_*` schema with one typed table and
+up to 900 checked CSV/JSON rows on the exact run-owned expiring dev branch.
+Source enforces a 10 MB cap, TLS-verified hostname with DNS-pinned public
+IPv4, no credentials/custom ports/redirects/compression, 10-second timeout,
+fatal UTF-8, bounded headers/rows/cells and synthetic-contact/sensitive-field
+refusals. A second fetch must exactly match the preview SHA-256 before the
+existing B-1/B-3 transaction and independent every-cell readback; no source
+data is returned or stored in durable audit logs.
+
+Unit/fake transport and actual disposable PostgreSQL checks are authored,
+not claimed CI green, merged, released or accepted by real custom Neon MCP.
+Owner-approved external fixture certification and cleanup remain mandatory.
+V-2 `auto` into pre-existing schemas, including real FK/check/unique
+reconciliation, remains IN_PROGRESS. No production permission or spending
+limit was changed.
+
 ## October 14 — V-2 natural-language mapping and full-size relational seed (unreleased source)
 
 Read-only scenario previews and owner-confirmed scenario seeding accept reviewed
@@ -198,6 +218,17 @@ open obligations, original fixture ownership, approvals and deployment provenanc
     "dependsOn": [],
     "status": "PENDING",
     "lastEvidence": "2026-10-14: #169 scenario seed source/CI/merge proven; subsequent source adds deterministic description disambiguation and ≤16-statement 500-row JSONB batch apply, with unit/disposable-PG tests authored. Full-size exact-head CI, merge, release, owner scratch certification and live custom TEST acceptance remain unproven. Preserve V-1 and D-series queues."
+  },
+  {
+    "id": "NEON-V2-PUBLIC-FILE",
+    "priority": 4,
+    "requiredRevision": "04eb4e5b2fa4a9571c691725d53135e5ea878f2a",
+    "task": "With approved public synthetic CSV and JSON fixtures, check the released native Neon MCP full-owner TEST file preview, pinned host/domain policy, owner confirmation, exact row readback, idempotent retry, private/redirect/changed-source denial and owned branch cleanup",
+    "procedure": "docs/pr-cards/V-2.md",
+    "gates": "Independent owner approval of non-sensitive public fixture and disposable enrolled scratch run; genuine custom MCP connection; strict nonproduction classification; checked release only; existing B-1/B-3 gates",
+    "dependsOn": [],
+    "status": "PENDING",
+    "lastEvidence": "2026-10-14: source safe fetch/parser, guarded one-table import, fake/unit, real disposable PostgreSQL tests authored. Exact-head CI, PR merge, production promotion, owner fixture certification, live custom TEST and cleanup NOT yet evidenced."
   }
 ]
 ```
