@@ -48,6 +48,24 @@ async function observedSource(a,c,verifyTarget,sqlFactory,readColumns){
   throw Error('Source branch identity not verified');
  const cls=await classifyTarget(c,{projectId:a.projectId,branchId:source.id});
  if(!cls.allowed)throw Error('Source classification unavailable');
+ // Production copy activation must be independent of the read-only parent
+ // mutation classification; cloning data can itself expose private content.
+ if(cls.production){
+  if(c.connection?.mode!=='production'||
+     (await c.guards?.checkProduction?.({
+       projectId:a.projectId,branchId:source.id,
+       target:'branch:'+a.projectId+'/'+source.id
+      },c,{productionEffect:'write'}))?.allowed!==true)
+   throw Error('Production source copies require separately enabled owner production access');
+ }
+ const dbs=await projectRead(info.client,'listProjectBranchDatabases',{
+  path:{project_id:a.projectId,branch_id:source.id}});
+ // Neon clones every DB on a branch, not just the selected database.
+ if(!Array.isArray(dbs?.databases)||dbs.databases.length!==1||
+    dbs.pagination?.cursor||
+    dbs.databases[0]?.branch_id!==source.id||
+    dbs.databases[0]?.name!==a.databaseName)
+  throw Error('Masking requires one independently verified source database');
  const matched=await verifyTarget({...a,branchId:a.sourceBranchId},c);
  if(matched?.pid!==a.projectId||matched.bid!==a.sourceBranchId||
     matched.endpointId!==a.endpointId||matched.database!==a.databaseName||

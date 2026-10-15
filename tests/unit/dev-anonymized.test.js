@@ -6,8 +6,8 @@ import {makeNeonClient} from '../../src/neon/client.js';
 import {applyNeonWrite} from '../../src/neon/write-neon.js';
 import * as fx from '../../test/helpers/neon-fixtures.js';
 const key='rmcp_mask_test_abcdef123456789';
-const input={projectId:fx.IDS.project,sourceBranchId:fx.IDS.main,
- endpointId:fx.IDS.mainEndpoint,runId:'run-v4-masked',
+const input={projectId:fx.IDS.project,sourceBranchId:fx.IDS.dev,
+ endpointId:fx.IDS.devEndpoint,runId:'run-v4-masked',
  databaseName:'neondb',roleName:'neondb_owner',
  rules:[{schemaName:'public',tableName:'customers',columnName:'email',preset:'email'},
   {schemaName:'public',tableName:'customers',columnName:'name',preset:'text'}]};
@@ -16,19 +16,24 @@ const rows=[
  {schema_name:'public',table_name:'customers',column_name:'email',data_type:'text'},
  {schema_name:'public',table_name:'customers',column_name:'name',data_type:'text'}
 ];
-function fixture({blocked=false,appOwned=false,invalidStatus=false,missingRun=false}={}){
+function fixture({blocked=false,appOwned=false,invalidStatus=false,missingRun=false,
+ multipleDatabases=false,production=false}={}){
  const f=makeContractFixture({blocked,appOwned});
  const fake=makeFakeNeon();
  fake.when('getProject').resolves({project:fx.project({
   owner_id:fx.IDS.org,owner:{branches_limit:10,subscription_type:'launch',
    email:'owner@example.test',name:'Synthetic Owner'}})});
  fake.when('listProjectBranches').resolves(fx.responses.listProjectBranches());
+ fake.when('listProjectBranchDatabases').resolves({
+  databases:multipleDatabases?[
+   fx.database(fx.IDS.dev),fx.database(fx.IDS.dev,{name:'second_db',id:500})
+  ]:[fx.database(fx.IDS.dev)]});
  const client=makeNeonClient({key:'napi_FAKE_v4_key',orgId:fx.IDS.org,
   budget:{consume:async()=>({allowed:true})},fetch:fake.fetch});
  f.ctx.connection={neonOrg:fx.IDS.org,projectScope:fx.IDS.project,
   profile:'full',mode:'preview'};
  f.ctx.clientFor=async()=>client;
- f.ctx.getBranch=async()=>fx.mainBranch();
+ f.ctx.getBranch=async()=>production?fx.mainBranch():fx.devBranch();
  f.ctx.writeKey=()=>key;
  f.ctx.db.getDevSettings=async()=>({ttl_hours:24,compute:{
   min_cu:0.25,max_cu:1,suspend_seconds:300}});
@@ -40,8 +45,8 @@ function fixture({blocked=false,appOwned=false,invalidStatus=false,missingRun=fa
  const observe=vi.fn(async()=>invalidStatus?{valid:false,state:'anonymizing'}:
   {valid:true,state:'anonymized'});
  const built=createDevAnonymizedHandlers({contextFor:async()=>f.ctx,
-  verifyTarget:async()=>({pid:fx.IDS.project,bid:fx.IDS.main,
-   endpointId:fx.IDS.mainEndpoint,database:'neondb',
+  verifyTarget:async()=>({pid:fx.IDS.project,bid:input.sourceBranchId,
+   endpointId:input.endpointId,database:'neondb',
    role:'neondb_owner',endpoint:{host:'ep-fake.dev.test'}}),
   priceFor:async()=>({increaseCents:1,estimate:true,canApply:true}),
   readColumns:async()=>rows,createBranch,observe});
@@ -68,14 +73,14 @@ describe('V-4 owner-confirmed anonymized development copy lifecycle',()=>{
   expect(f.createBranch).toHaveBeenCalledTimes(1);
   const body=f.createBranch.mock.calls[0][0].params.body;
   expect(body).toMatchObject({start_anonymization:true,
-   branch_create:{branch:{parent_id:fx.IDS.main,protected:false,
+   branch_create:{branch:{parent_id:fx.IDS.dev,protected:false,
     init_source:'parent-data'}}});
   expect(body.masking_rules).toHaveLength(2);
   expect(body.masking_rules.map(r=>r.masking_function)).toContain('anon.fake_email()');
   expect(body.branch_create.branch.expires_at).toMatch(/Z$/);
   expect(body.annotation_value).toMatchObject({rtc_run:input.runId,rtc_request:key});
   expect(f.ctx.db.recordDevRunBranch).toHaveBeenCalledWith(expect.objectContaining({
-   branchId:'br-masked-new',parentId:fx.IDS.main,runId:input.runId}));
+   branchId:'br-masked-new',parentId:fx.IDS.dev,runId:input.runId}));
   expect(parse(await f.call({...input,confirm:true})).done).toBe(true);
   expect(f.createBranch).toHaveBeenCalledTimes(1);
   f.fake.assertClean();
@@ -87,6 +92,11 @@ describe('V-4 owner-confirmed anonymized development copy lifecycle',()=>{
   expect(f.createBranch).toHaveBeenCalledTimes(1);
   expect(parse(await f.call({...input,confirm:true})).confirmed).toBe('pending');
   expect(f.createBranch).toHaveBeenCalledTimes(1);
+ });
+ it('refuses multiple source databases before any unmasked clone',async()=>{
+  const f=fixture({multipleDatabases:true});
+  expect(parse(await f.call({...input,confirm:true})).done).toBe(false);
+  expect(f.createBranch).not.toHaveBeenCalled();
  });
  it('requires an active pre-existing run: never creates a run just to copy source data',async()=>{
   const f=fixture({missingRun:true});
