@@ -54,3 +54,8 @@ than a passive coordination note. Preserve every existing specialized gate.
 Publication: run native regressions and required repository checks; merge only on
 exact-head CI and review disposition. Record final main/merge/CI and remaining
 acceptance separately in the permanent merged-PR handoff.
+
+Final-main verification found a pre-existing wall-clock race in V-1 dev-runs tests:
+fixture expiry and handler expiry could differ by a second. Pin Date (not timers)
+per test and restore it afterward. Preserve every original expiry, ownership,
+recovery and no-second-POST assertion; change no production behavior.
