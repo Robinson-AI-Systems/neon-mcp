@@ -39,7 +39,10 @@ function fixture({drift=false,blocked=false,appOwned=false,
   expect(opts.statements).toEqual(input.statements);
   expect(opts.ctx.allowFullTable).toBe(false);
   if(pending)return {done:false,code:'preview_cleanup_pending'};
+  expect(opts.captureDiagnostics).toBe(true);
   return {done:true,exact:true,affectedRows:[0],schemaChanged:true,
+   statementDurationsMs:[7],schemaDiff:'ALTER TABLE widgets ADD COLUMN archived boolean',
+   schemaHash:'abcd1234',
    ...(opts.keepChild?{childKept:!badKeep,childDeleted:false,
     childBranchId:'br-kept',childExpiresAt:'2026-10-14T23:00:00Z'}:
     {childDeleted:!badDelete,childKept:false})};
@@ -71,7 +74,8 @@ describe('V-3 run-owned price-gated disposable migration rehearsal',()=>{
   expect(out).toMatchObject({done:true,confirmed:true});
   expect(out.migrationPreview).toMatchObject({
    kept:false,statementCount:1,affectedRows:[0],
-   schemaChanged:true,pendingMigrations:['inline_1']});
+   schemaChanged:true,pendingMigrations:['inline_1'],
+   statementDurationsMs:[7],schemaDiff:'ALTER TABLE widgets ADD COLUMN archived boolean'});
   expect(out.migrationPreview.lockWarnings).toHaveLength(1);
   expect(f.previewRunner).toHaveBeenCalledTimes(1);
   expect(f.previewRunner.mock.calls[0][0].keepChild).toBe(false);
