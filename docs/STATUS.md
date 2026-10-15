@@ -1,3 +1,22 @@
+### October 15 — owner-requested bundle guidance consistency review
+
+Reviewed current main 75c0c6f1047e21c96a53f8c6f56c399c4d32bcfa. Aligned existing governing instructions, session
+procedure and applicable playbook/card/recipe references: cards define approved
+scope; related whole subsections form coherent bundles; PR splits need concrete
+migration/dependency/safety/reviewability reasons. Removed stale numeric ceilings
+and blanket one-risk/one-migration fragmentation rules where present. Session target
+comes from the current owner, not PR count; incidental fixes/checkpoints do not end
+an unfinished bundle. Remaining engineering must not be hidden as external proof.
+Removed a stale generic session sentence that called future work maintenance.
+All original subsection IDs, roadmap order, source/provider acceptance, independent
+approval/guard/cleanup rules, CI/review and hosting/cost gates remain unchanged.
+Dated PR-count instructions/credits below are historical to their original
+sessions, never standing quotas or credits toward the current target.
+This is explicitly requested guidance maintenance, zero product bundles; no provider
+operation or release. Required exact-head checks and review disposition govern merge.
+Preserve concurrent implementation branches; resume actual current main and the
+implementing agent's active approved outcome after reading this alignment.
+
 ## October 14 — V-3 run-owned LSN checkpoint, recovery and isolated migrations (PR/CI pending)
 
 Approved existing V-3 (not subcards): `neon_dev_checkpoint`,
