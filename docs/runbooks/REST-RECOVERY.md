@@ -1,6 +1,6 @@
 # REST/Actions stalled-session recovery and exact-head CI gate (2026-10-12)
 
-Applies to five-PR sessions without local checkout or working GitHub DNS. Supplements SESSION-START sections 0/5/6 and PLAYBOOK Steps 5–10. Owner, protected-resource, production, spending and review gates remain mandatory.
+Applies to sessions without local checkout or working GitHub DNS. Supplements SESSION-START sections 0/5/6 and PLAYBOOK Steps 5–10. Owner, protected-resource, production, spending and review gates remain mandatory.
 
 ## Observed failure and correction
 
@@ -30,4 +30,4 @@ This tool does not poll or access network. It requires check, unit, db and ci fo
 
 After every branch commit, state: verified main SHA; PR number, branch and head SHA; merged PRs counted toward five; exact-head and post-merge check/unit/db/ci; unresolved review IDs; last changed paths; single next action; production/live scratch/spending/owner gate status. Save this in the card progress note or PR handoff and carry it into the next chat prompt if interrupted.
 
-Only successfully merged PRs count. Stop at a PR-number multiple of five or a true owner/security blocker, and issue a concise continuation prompt. Never promise asynchronous work.
+Report only successfully merged PRs as merged. Session scope/count comes only from the current owner prompt; record true blockers and issue a concise continuation prompt at the clean handoff. Never promise asynchronous work.
