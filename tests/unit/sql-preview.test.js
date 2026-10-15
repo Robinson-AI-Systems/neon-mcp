@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { createSqlExactPreview, sqlScopeHash } from '../../src/neon/sql-preview.js';
 import { makeFakeNeon } from '../../test/helpers/fake-neon.js';
 import { makeNeonClient } from '../../src/neon/client.js';
@@ -8,9 +8,15 @@ const key = 'napi_FAKE_preview_fixture_key';
 const target = { projectId: fx.IDS.project, branchId: fx.IDS.main,
   database: 'neondb', role: 'neondb_owner' };
 const requestKey = 'rmcp_preview_12345678';
-function fixture({ admit = true, protectedItem = false, failSql = false } = {}) {
+function fixture({ admit = true, protectedItem = false, failSql = false,
+  dev = false } = {}) {
   const fake = makeFakeNeon();
-  fake.when('createProjectBranch').resolves(fx.responses.createProjectBranch());
+  const child = 'br-fake-kept-000003';
+  fake.when('createProjectBranch').resolves(dev?{
+    ...fx.responses.createProjectBranch(),
+    branch:fx.devBranch({id:child,parent_id:fx.IDS.dev,
+      current_state:'init',expires_at:'2026-10-11T19:00:00Z'})
+  }:fx.responses.createProjectBranch());
   fake.when('deleteProjectBranch').resolves({
     branch: fx.devBranch(), operations: []
   });
@@ -21,7 +27,7 @@ function fixture({ admit = true, protectedItem = false, failSql = false } = {}) 
     db: { getProtectedResources: async () => protectedItem ? [{
       kind: 'other', org: fx.IDS.org, project_id: fx.IDS.project, label: 'Protected'
     }] : [], recordSqlPreview: async item => records.push(item) },
-    getBranch: async () => fx.mainBranch(),
+    getBranch: async () => dev ? fx.devBranch() : fx.mainBranch(),
     checkApp: async () => true,
     previewAdmission: async () => admit
   };
@@ -94,4 +100,34 @@ describe('B-3c exact child-only preview', () => {
     ]) expect(sqlScopeHash({ orgId: fx.IDS.org, target,
       statements: a.statements, params: a.params, ...change })).not.toBe(v);
   });
+  it('keeps only the verified run-owned one-hour child; never writes the parent', async () => {
+    const f=fixture({dev:true}),recordChild=vi.fn(async()=>true);
+    const childTarget={...target,branchId:fx.IDS.dev};
+    const res=await createSqlExactPreview({...args(f),target:childTarget,
+      keepChild:true,recordChild});
+    expect(res).toMatchObject({done:true,exact:true,childKept:true,
+      childDeleted:false,childBranchId:'br-fake-kept-000003',
+      childExpiresAt:'2026-10-11T19:00:00Z'});
+    expect(recordChild).toHaveBeenCalledWith(expect.objectContaining({
+      projectId:fx.IDS.project,branchId:'br-fake-kept-000003',
+      parentBranchId:fx.IDS.dev}));
+    expect(f.fake.calls.map(c=>c.operationId)).toEqual(['createProjectBranch']);
+    expect(f.attempts[0].branchId).toBe('br-fake-kept-000003');
+    expect(f.attempts[0].branchId).not.toBe(childTarget.branchId);
+    expect(f.records).toEqual([]);
+    expect(res.previewToken).toBeUndefined();
+    f.fake.assertClean();
+  });
+  it('deletes an unsafe unrecorded kept child, leaving the attempt unconfirmed',async()=>{
+    const f=fixture({dev:true});
+    const output=await createSqlExactPreview({...args(f),
+      target:{...target,branchId:fx.IDS.dev},keepChild:true,
+      recordChild:async()=>false});
+    expect(output).toMatchObject({done:false,code:'preview_failed'});
+    expect(f.fake.calls.map(c=>c.operationId)).toEqual([
+      'createProjectBranch','deleteProjectBranch']);
+    expect(f.records).toEqual([]);
+    f.fake.assertClean();
+  });
+
 });
