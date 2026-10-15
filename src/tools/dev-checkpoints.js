@@ -31,7 +31,7 @@ const parse=m=>JSON.parse(m.content[0].text);
 async function sameOwned(a,c,verifyTarget){
  return ownedDevTarget(a,c,verifyTarget,{requireAppFree:true});
 }
-async function singleBranchInventory(c,projectId,branchId){
+async function singleBranchInventory(c,projectId,branchId,{allowChildren=false}={}){
  const client=await c.clientFor(projectId);
  const data=await projectRead(client,'listProjectBranches',
   {path:{project_id:projectId},query:{limit:100}});
@@ -41,7 +41,7 @@ async function singleBranchInventory(c,projectId,branchId){
     new Set(data.branches.map(x=>x.id)).size!==data.branches.length||
     !data.branches.some(x=>x.id===branchId))
   throw Error('Complete Neon development branch inventory required');
- if(data.branches.some(x=>x.parent_id===branchId))
+ if(!allowChildren&&data.branches.some(x=>x.parent_id===branchId))
   throw Error('Developer restore refuses branches with children or foreign resources');
  return {client,branches:data.branches};
 }
@@ -60,7 +60,7 @@ async function retention(c,a,row,client){
  return seconds;
 }
 async function backupExpiry(c,a,before,mutationKey){
- const {client,branches}=await singleBranchInventory(c,a.projectId,a.branchId);
+ const {client,branches}=await singleBranchInventory(c,a.projectId,a.branchId,{allowChildren:true});
  const matches=branches.filter(x=>x.name===before.preserveName);
  if(matches.length!==1||matches[0].id===a.branchId||
     matches[0].project_id!==a.projectId||matches[0].default===true||
@@ -71,7 +71,7 @@ async function backupExpiry(c,a,before,mutationKey){
  // it must remain discoverable for exact owner-run cleanup/recovery, never
  // be silently lost due to a post-restore HTTP error.
  if(await c.db.recordDevRunBranch?.({orgId,projectId:a.projectId,
-  runId:a.runId,branchId:backup.id,parentId:a.branchId,expiresAt:desired})!==true){
+  runId:a.runId,branchId:backup.id,parentId:backup.parent_id,expiresAt:desired})!==true){
   const objects=await c.db.listDevRunObjects?.({orgId,projectId:a.projectId,runId:a.runId});
   if(!objects?.some(x=>x.object_type==='branch'&&x.object_id===backup.id&&
      x.cleaned===false))return false;
