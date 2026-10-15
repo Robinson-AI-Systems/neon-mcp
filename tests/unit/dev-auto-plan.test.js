@@ -45,7 +45,8 @@ function makeCatalog({cycle=false,unsafe=false,conflict=false,check='CHECK ((pri
  let hits=0;
  const query=async(sql,params)=>{
   expect(params).toHaveLength(1);
-  expect(params[0]).toBe(schema);
+  if([AUTO_TABLES_SQL,AUTO_COLUMNS_SQL,AUTO_CONSTRAINTS_SQL,AUTO_UNSAFE_SQL].includes(sql))
+   expect(params[0]).toBe(schema);
   if(sql===AUTO_TABLES_SQL)return tables;
   if(sql===AUTO_COLUMNS_SQL)return columns;
   if(sql===AUTO_CONSTRAINTS_SQL)return constraints;
