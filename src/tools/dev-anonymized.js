@@ -81,7 +81,7 @@ async function observedSource(a,c,verifyTarget,sqlFactory,readColumns){
   plan:attestedProjectPlan(info.project,info.orgId),mask,
   runId:a.runId,requestKey:key};
 }
-async function verifyMaskedState(a,c,branchId,expectation){
+export async function verifyMaskedState(a,c,branchId,expectation){
  const client=await c.clientFor(a.projectId);
  const data=await projectRead(client,'getProjectBranch',
   {path:{project_id:a.projectId,branch_id:branchId}});
@@ -112,11 +112,12 @@ export function createDevAnonymizedHandlers({
  sqlFactory=c=>createSqlLayer({db:c.db,
   vault:createKeyVault({db:c.db,env:c.env}),env:c.env}),
  readColumns=null,createBranch=applyNeonWrite,
- observe=verifyMaskedState
+ observe=verifyMaskedState,priceFor=null
 }={}){
  const write=defineWrite({name:'neon_dev_anonymized_copy',
   productionEffect:'none',
-  spend:async(_a,c,before)=>{
+  spend:async(a,c,before)=>{
+   if(priceFor)return priceFor({args:a,ctx:c,before});
    const p=before.plan;
    if(p?.verified!==true||!['Launch','Scale'].includes(p.name)||
       before.count>=p.branchLimit)return null;
