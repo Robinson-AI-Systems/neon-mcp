@@ -29,7 +29,7 @@ export const AUTO_COLUMNS_SQL=`SELECT c.relname AS table_name, a.attname AS colu
  ORDER BY c.relname,a.attnum LIMIT 201`;
 export const AUTO_CONSTRAINTS_SQL=`SELECT c.relname AS table_name, con.contype AS kind,
  pg_get_constraintdef(con.oid,true) AS definition,
- r.relname AS referenced_table,
+ r.relname AS referenced_table, rn.nspname AS referenced_schema,
  array_to_json(ARRAY(SELECT a.attname FROM unnest(con.conkey)
  WITH ORDINALITY AS k(n,ord) JOIN pg_attribute a
  ON a.attrelid=c.oid AND a.attnum=k.n ORDER BY k.ord))::text AS columns_json,
@@ -39,6 +39,7 @@ export const AUTO_CONSTRAINTS_SQL=`SELECT c.relname AS table_name, con.contype A
  FROM pg_constraint con JOIN pg_class c ON c.oid=con.conrelid
  JOIN pg_namespace n ON n.oid=c.relnamespace
  LEFT JOIN pg_class r ON r.oid=con.confrelid
+ LEFT JOIN pg_namespace rn ON rn.oid=r.relnamespace
  WHERE n.nspname=$1 AND c.relkind='r'
  ORDER BY c.relname,con.conname LIMIT 201`;
 export const AUTO_UNSAFE_SQL=`SELECT c.relname AS table_name
@@ -116,7 +117,7 @@ function catalogModel({schema,tables,columns,constraints,unsafe}){
   }else if(row.kind==='f'){
    const ref=parseNames(row.references_json);
    if(keys.length!==1||ref.length!==1||ref[0]!=='id'||
-      !byName.has(row.referenced_table)||row.referenced_table===table.name)deny();
+      !byName.has(row.referenced_table)||row.referenced_schema!==schema||row.referenced_table===table.name)deny();
    table.foreign.push({column:keys[0],parent:row.referenced_table});
   }else if(row.kind==='c'){
    table.checks.push(compiledCheck(row.definition,table.columns));
@@ -255,11 +256,11 @@ export async function compileAutoSeed({existingSchema,rowsPerTable=3,requestKey,
      bool:'boolean',date:'date',numeric:'numeric',timestamptz:'timestamptz'})[col.type]);
    statements.push('INSERT INTO '+qualified(schema,table.name)+' ('+
     keys.map(c=>q(c.name)).join(',')+') SELECT '+types.join(',')+
-    ' FROM jsonb_array_elements($1::jsonb) AS item(value) ON CONFLICT DO NOTHING');
+    ' FROM jsonb_array_elements($1::jsonb) AS item(value) WHERE true ON CONFLICT DO NOTHING');
    params.push([JSON.stringify(batch)]);expectedAffectedRows.push(batch.length);
   }
  }
- if(statements.length>MAX_STATEMENTS||!statements.length)deny();
+ if(statements.length>MAX_STATEMENTS)deny();
  const totalRows=prepared.reduce((n,t)=>n+t.rows.length,0);
  const totalSkipped=prepared.reduce((n,t)=>n+t.skipped,0);
  const compact=prepared.map(t=>({name:t.name,oid:t.oid,
