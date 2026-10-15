@@ -75,6 +75,8 @@ export async function createSqlExactPreview({ ctx, target, statements, params,
         reason: 'budget_exhausted', sqlLayer, allowFullTable: ctx.allowFullTable });
     return fail('spend_refused', 'Spending safety did not approve a disposable preview branch.');
   }
+  if(tuning&&cls.production)
+    return fail('production_preview_only','Query tuning is dev-copy only');
   if(keepChild&&cls.production)
     return fail('production_preview_only','Run-owned kept child cannot be created from a production target');
   const token = randomBytes(32).toString('base64url');
