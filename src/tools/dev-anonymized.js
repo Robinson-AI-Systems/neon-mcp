@@ -147,7 +147,9 @@ export function createDevAnonymizedHandlers({
   },
   apply:async(a,c,{before,requestKey})=>{
    const fresh=await observedSource(a,c,verifyTarget,sqlFactory,readColumns);
-   if(requestKey!==before.requestKey||JSON.stringify(fresh)!==JSON.stringify(before))
+   if(requestKey!==before.requestKey||
+      JSON.stringify({...fresh,expiry:before.expiry})!==JSON.stringify(before)||
+      Date.parse(before.expiry)<Date.now()+300000)
     throw Error('Source, masking, quota or policy changed after approval');
    const run=await c.db.reserveDevRun?.({id:a.runId,
     orgId:c.connection.neonOrg,projectId:a.projectId,
@@ -175,6 +177,7 @@ export function createDevAnonymizedHandlers({
     expiresAt:before.expiry});
    if(recorded!==true)return {confirmed:'pending'};
    c.maskedBranchId=id;
+   c.maskedExpectation=before;
    const state=await observe(a,c,id,before);
    if(!state.valid||state.state!=='anonymized')
     return {confirmed:'pending'};
@@ -182,8 +185,7 @@ export function createDevAnonymizedHandlers({
   },
   readAfter:async(a,c)=>{
    if(!ID.test(c.maskedBranchId||''))return null;
-   return observe(a,c,c.maskedBranchId,c.currentWrite?.before??{
-    expiry:c.maskedExpiry,mask:c.maskedPlan});
+   return observe(a,c,c.maskedBranchId,c.maskedExpectation);
   },
   verify:(_before,after)=>after?.valid===true&&after.state==='anonymized'
  });
@@ -215,10 +217,12 @@ export function createDevAnonymizedHandlers({
     {path:{project_id:a.projectId,branch_id:a.branchId}});
    if(status?.project_id!==a.projectId||status?.branch_id!==a.branchId)
     throw Error('Masking provider status unavailable');
+   if(!['created','initialized','anonymizing','anonymized',
+     'initialization_error','error'].includes(status.state))
+    throw Error('Unknown anonymization state');
    return readText({branchId:a.branchId,state:status.state,
-    safeToConnect:status.state==='anonymized',
-    next:status.state==='anonymized'?'Use scoped dev connection':
-     'Keep this branch isolated and inspect run cleanup/status'});
+    safeToConnect:false,
+    next:'Check all original masking rules and the owner-run record independently before using the copy'});
   }
  }};
 }
