@@ -59,3 +59,26 @@ Final-main verification found a pre-existing wall-clock race in V-1 dev-runs tes
 fixture expiry and handler expiry could differ by a second. Pin Date (not timers)
 per test and restore it afterward. Preserve every original expiry, ownership,
 recovery and no-second-POST assertion; change no production behavior.
+
+## Execution efficiency and parallel CI — owner request October 15
+
+Observed Appliance #466 final CI jobs: unit 97–106s and browser 119–184s in
+parallel; production-build steps 13–20s. Workspace #144 test jobs were 76–85s
+with sequential verification phases. Those measurements do not explain the
+entire session hour; local retries, integration/correction work and orchestration
+remain distinct and must not be assigned invented durations.
+
+`session:prepare` consolidates capability diagnosis and a fresh-main conflict
+comparison before publication. Existing cards hold the finite consumer/fixture
+checklist. Shared native tests prove real Git conflicts without worktree/ref
+mutation, bounded memory diagnosis, CI topology/timeout protection and phase
+budget failure propagation. Independent CI families are sibling jobs, all still
+required by the original aggregate name. Timed root phases have a 180-second
+feedback budget: profile/split growth, never hide it through increased limits.
+No production behavior, provider call, deployment or product bundle is claimed.
+All existing checks and safety/approval gates remain binding.
+
+Preparation also detects missing/stale default Prisma client generation before
+typecheck. Appliance local quick initially failed on stale generated types after
+main/schema advanced; fixture-only generation repairs the environment, not source
+contracts or test assertions. No database connection or migration is implied.

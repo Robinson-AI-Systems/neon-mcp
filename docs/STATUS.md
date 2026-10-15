@@ -1,5 +1,18 @@
 ## October 15 — acceptance catch-up, released V-2 read-only scenario evidence
 
+## Owner-requested execution efficiency / parallel CI maintenance — October 15
+
+Preserve substantial outcome scope and complete acceptance. Consolidated local
+capability/publication diagnosis and early real-boundary fixture preparation reduce
+avoidable retries. Independent verification families run in parallel with original
+required aggregate names; new topology/timeout regressions and measured 180-second
+root phase budgets preserve fast feedback as coverage grows. No tests/assertions,
+provider gates, immutable pins, releases or production behavior are waived.
+Existing session/CI checks and final-main verification remain mandatory. This is
+maintenance, zero product bundles or genuine deployed/provider acceptance. See
+SESSION-START and the existing SESSION-WORKFLOW card for evidence and procedure.
+
+
 ## Workflow closeout: deterministic expiry fixture — October 15
 
 Final-main CI for the owner-requested workflow correction exposed an existing
