@@ -4,11 +4,12 @@ import { validateSettingTightening } from './core/setting-constraints.js';
 import { neon } from '@neondatabase/serverless';
 import { hashToken } from './core/oauth.js';
 import { validatePricing } from './neon/pricing.js';
+import {checkpointStore,initCheckpoints} from './db-checkpoints.js';
 
 export const SCHEMA_TABLES = Object.freeze([
   'neon_orgs', 'neon_keys', 'oauth_clients', 'oauth_codes', 'oauth_tokens',
   'login_attempts', 'rate_limits', 'change_log', 'one_time_secrets',
-  'secret_requests', 'settings', 'result_store', 'dev_runs', 'dev_run_objects', 'scratch_attestations'
+  'secret_requests', 'settings', 'result_store', 'dev_runs', 'dev_run_objects', 'dev_checkpoints', 'scratch_attestations'
 ]);
 
 // Keep this list in step with the code and token tables: refresh must preserve all fields.
@@ -28,6 +29,7 @@ function productionSql() {
 export function createDb(sql = productionSql()) {
   if (typeof sql !== 'function') throw new TypeError('Database SQL must be a tagged-template function.');
   return {
+    ...checkpointStore(sql),
 
     // OAuth client registration and authentication (always persist token and client secret hashes).
     async createOAuthClient({ clientId, clientSecret, redirectUris, clientName }) {
@@ -863,6 +865,7 @@ export function createDb(sql = productionSql()) {
       )`;
       await sql`CREATE UNIQUE INDEX IF NOT EXISTS dev_branch_sole_owner
         ON dev_run_objects (object_type,object_id)`;
+      await initCheckpoints(sql);
       await sql`INSERT INTO settings (key,value,updated_by)
         VALUES ('dev',
           '{"ttl_hours":24,"compute":{"min_cu":0.25,"max_cu":1,"suspend_seconds":300}}'::jsonb,
