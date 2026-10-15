@@ -288,9 +288,10 @@ only recorded objects. Every tool refuses production targets (B-2) before readin
 | `neon_dev_checkpoint` | Capture named WAL LSN with full-owner run scope; immutable service-side checkpoint, no production | P Dev | B | E | V-3 |
 | `neon_dev_restore_checkpoint` | B-1/B-4 priced self-restore using recorded LSN and retention checks; preserved expiry/cleanup, no production | P Dev | B | E | V-3 |
 | `neon_dev_migration_preview` | AST-safe inline/public SQL pending Prisma rehearsal on a priced one-hour disposable child; bounded lock warnings, optional verified run-owned keep, no target writes | P Dev | B | E | V-3 |
-| `neon_dev_anonymized_copy` | Masked copy of a production branch for development (Neon anonymized branches, beta): masking rules previewed; refused when a column that looks personal has no rule | C Dev | B | E | V-4 |
-| `neon_dev_tune_query` | Tune a slow query on a throwaway copy: plan, index candidates tried there, before/after timings; nothing changes on the original | P Dev | B | E | V-4 |
-| `neon_dev_check_integration` | Is a project ready for an app being built (spec: tables/migrations present, extensions, roles, pooled URL, protection, expiry, Auth/Data API)? Read-only, with exact steps | — | B | R | V-4 |
+| `neon_dev_anonymized_copy` | Price-confirmed beta anonymized dev branch from verified source, full metadata mask rules, expiring V-1 owner-run ledger; incomplete status never grants safe access | C Dev | Ow | F | V-4 |
+| `neon_dev_tune_query` | Full-owner priced disposable-child SELECT EXPLAIN before/after one quoted index, exact cleanup, valid CREATE INDEX CONCURRENTLY advice; original untouched | P Dev | B | F | V-4 |
+| `neon_dev_check_integration` | Read-only scoped app metadata checklist: tables, migrations, extensions, roles, pooled host, protections, expiry, Auth/Data API and quota, with every missing action | — | B | R | V-4 |
+| `neon_dev_anonymized_status` | Full-owner run-scoped beta masking status, no raw data and no safe-to-connect claim without independent privacy proof | — | Ow | F | V-4 |
 
 ## Project profiles (`neon_profile_*`, readiness and setup) — 6
 
