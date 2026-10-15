@@ -100,7 +100,7 @@ function catalogModel({schema,tables,columns,constraints,unsafe}){
  for(const row of tables){
   const name=checkName(row.table_name);
   if(byName.has(name)||!/^\d+$/.test(row.relation_oid||''))deny();
-  byName.set(name,{name,oid:row.relation_oid,columns:[],foreign:[],checks:[],unique:new Set()});
+  byName.set(name,{name,oid:row.relation_oid,columns:[],foreign:[],checks:[],checkDefinitions:[],unique:new Set()});
  }
  for(const row of columns){
   const table=byName.get(row.table_name);if(!table)deny();
@@ -121,6 +121,7 @@ function catalogModel({schema,tables,columns,constraints,unsafe}){
    table.foreign.push({column:keys[0],parent:row.referenced_table});
   }else if(row.kind==='c'){
    table.checks.push(compiledCheck(row.definition,table.columns));
+   table.checkDefinitions.push(row.definition);
   }else deny();
  }
  for(const table of byName.values()){
@@ -143,7 +144,8 @@ function catalogModel({schema,tables,columns,constraints,unsafe}){
  }
  return ordered;
 }
-const normalized=value=>value instanceof Date?value.toISOString().slice(0,10):
+const normalized=(value,type)=>value instanceof Date?
+ (type==='timestamptz'?value.toISOString():value.toISOString().slice(0,10)):
  typeof value==='bigint'?value.toString():value;
 function syntheticValue(column,table,rowIndex,hash,base){
  const name=column.name,i=rowIndex+1;
@@ -265,7 +267,7 @@ export async function compileAutoSeed({existingSchema,rowsPerTable=3,requestKey,
  const totalSkipped=prepared.reduce((n,t)=>n+t.skipped,0);
  const compact=prepared.map(t=>({name:t.name,oid:t.oid,
   columns:t.columns,rows:t.rows,skipped:t.skipped,
-  foreign:t.foreign}));
+  foreign:t.foreign,checkDefinitions:t.checkDefinitions}));
  const fingerprint=digest(JSON.stringify({schema,compact,params}));
  return {mode:'auto',schema,rowsPerTable,totalRows,totalSkipped,
   tableCount:prepared.length,tables:compact,
@@ -287,7 +289,7 @@ export async function verifyAutoSeed({plan,query}={}){
    const actual=observation.rows[i],expected=table.rows[i];
    if(Object.keys(actual).length!==table.columns.length)return false;
    for(const col of table.columns){
-    const value=normalized(actual[col.name]);
+    const value=normalized(actual[col.name],col.type);
     if(value!==expected[col.name])return false;
    }
   }
