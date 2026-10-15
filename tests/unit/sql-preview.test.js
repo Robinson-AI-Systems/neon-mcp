@@ -21,6 +21,7 @@ function fixture({ admit = true, protectedItem = false, failSql = false,
     branch: fx.devBranch(), operations: []
   });
   const attempts = [], records = [];
+  let explains=0;
   const ctx = {
     connection: { neonOrg: fx.IDS.org, projectScope: fx.IDS.project, mode: 'preview' },
     selfProject: { org: fx.IDS.org, project_id: 'proj-fake-self-db' },
@@ -37,6 +38,14 @@ function fixture({ admit = true, protectedItem = false, failSql = false,
     attempts.push(branchTarget);
     return fn({ query: async (sql, values) => {
       attempts.push({ sql, values });
+      if(sql.startsWith('EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)')){
+        explains++;
+        return {rowCount:1,rows:[{'QUERY PLAN':[{
+          Plan:{'Node Type':explains===1?'Seq Scan':'Index Scan',
+            'Relation Name':'invoices'},
+          'Execution Time':explains===1?22:3,
+          'Planning Time':0.1}]}]};
+      }
       if (sql.startsWith('DELETE') && failSql) throw Error('fake SQL failed');
       return { rowCount: sql.startsWith('DELETE') ? 2 : 0, rows: [] };
     } });
@@ -100,6 +109,39 @@ describe('B-3c exact child-only preview', () => {
     ]) expect(sqlScopeHash({ orgId: fx.IDS.org, target,
       statements: a.statements, params: a.params, ...change })).not.toBe(v);
   });
+  it('compares owner-bound EXPLAIN ANALYZE on disposable child only',async()=>{
+    const f=fixture({dev:true});
+    f.fake.when('getProjectBranchSchemaComparison').resolves({
+      diff:'CREATE INDEX rmcp_tune_example ON invoices(id)'
+    });
+    const childTarget={...target,branchId:fx.IDS.dev};
+    const tuneQuery='SELECT * FROM public.invoices WHERE id = $1 LIMIT 100';
+    const {compileTunePlan}=await import('../../src/dev/tuning-plan.js');
+    const plan=await compileTunePlan({query:tuneQuery,params:[1],requestKey});
+    const result=await createSqlExactPreview({...args(f),
+      target:childTarget,statements:plan.createStatements,
+      params:[[]],tuneQuery,tuneParams:[1]});
+    expect(result).toMatchObject({done:true,exact:true,childDeleted:true,
+      tuning:{before:{executionMs:22,seqScans:['invoices']},
+        after:{executionMs:3,seqScans:[]}}});
+    expect(f.attempts[0].branchId).not.toBe(childTarget.branchId);
+    expect(f.attempts[0].branchId).toBe('br-fake-kept-000003');
+    expect(f.fake.calls.map(x=>x.operationId)).toEqual([
+      'createProjectBranch','getProjectBranchSchemaComparison','deleteProjectBranch']);
+    expect(f.records).toHaveLength(1);
+    f.fake.assertClean();
+  });
+  it('rejects query tuning on a production-classified source before creating any branch',async()=>{
+    const f=fixture();
+    const tuneQuery='SELECT * FROM public.invoices WHERE id = $1 LIMIT 100';
+    const {compileTunePlan}=await import('../../src/dev/tuning-plan.js');
+    const plan=await compileTunePlan({query:tuneQuery,params:[1],requestKey});
+    const result=await createSqlExactPreview({...args(f),
+      statements:plan.createStatements,params:[[]],tuneQuery,tuneParams:[1]});
+    expect(result).toMatchObject({done:false,code:'production_preview_only'});
+    expect(f.fake.calls).toEqual([]);
+  });
+
   it('keeps only the verified run-owned one-hour child; never writes the parent', async () => {
     const f=fixture({dev:true}),recordChild=vi.fn(async()=>true);
     const childTarget={...target,branchId:fx.IDS.dev};
