@@ -18,7 +18,9 @@ describe('tool registry', () => {
       'neon_role_reset_password',
       'neon_role_create_read_only','neon_role_delete','neon_role_retirement_review',
       'neon_connection_get_info','neon_connection_show_once','neon_sql_query','neon_sql_explain','neon_sql_list_activity','neon_sql_list_slow_queries','neon_sql_stop_query','neon_sql_preview_change','neon_sql_execute','neon_sql_execute_transaction','neon_schema_list_schemas','neon_schema_list_tables','neon_schema_describe_table','neon_schema_list_extensions','neon_schema_search','neon_schema_list_objects','neon_health_check','neon_health_suggest_indexes','neon_schema_generate_types','neon_schema_get_ddl','neon_schema_list_migrations','neon_branch_compare_data','neon_schema_enable_extension','neon_schema_disable_extension','neon_schema_create_index','neon_schema_drop_index','neon_health_reindex','neon_health_vacuum_analyze','neon_dev_branch_create','neon_dev_list_runs','neon_dev_cleanup','neon_write_guard_readiness','neon_dev_list_scenarios','neon_dev_seed','neon_dev_checkpoint','neon_dev_reset_branch',
-      'neon_dev_restore_checkpoint','neon_dev_migration_preview',
+      'neon_dev_restore_checkpoint','neon_dev_migration_preview','neon_dev_anonymized_copy',
+      'neon_dev_anonymized_status','neon_dev_tune_query',
+      'neon_dev_check_integration',
       'neon_snapshot_list','neon_snapshot_delete','neon_snapshot_update','neon_snapshot_create','neon_snapshot_restore','neon_snapshot_set_schedule','neon_security_list_jwks','neon_security_review',
       'neon_security_set_public_access','neon_security_set_ip_allow',
       'neon_security_set_jwks','neon_security_set_audit_log_level',
@@ -28,7 +30,8 @@ describe('tool registry', () => {
         expect(tool.profiles).toEqual(['neon_project_rename','neon_branch_rename','neon_branch_set_expiration','neon_branch_create',
          'neon_compute_start','neon_compute_suspend','neon_compute_restart','neon_compute_update_settings'].includes(tool.name)?['everyday','full']:['full']);
         expect(tool.writeContract).toBe('defineWrite-v1');
-      } else expect(tool.profiles).toContain(['neon_check_key_access','neon_role_retirement_review','neon_write_guard_readiness'].includes(tool.name)?'full':'read_only');
+      } else expect(tool.profiles).toContain(['neon_check_key_access','neon_role_retirement_review','neon_write_guard_readiness',
+       'neon_dev_anonymized_status'].includes(tool.name)?'full':'read_only');
       expect(typeof registry.handlers[tool.name]).toBe('function');
     }
   });

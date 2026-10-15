@@ -7,6 +7,7 @@ import { checkProtectedTarget } from '../core/protected-resources.js';
 import { call } from './client.js';
 import { waitForOperations } from './operations.js';
 import { createSqlEstimatedPreview } from './sql-estimate.js';
+import {compileTunePlan,parseExplainJson} from '../dev/tuning-plan.js';
 
 const fail = (code, message) => ({ done: false, code, message });
 const hash = x => createHash('sha256').update(x).digest('hex');
@@ -28,7 +29,8 @@ export function sqlScopeHash({ orgId, target, statements, params }) {
  */
 export async function createSqlExactPreview({ ctx, target, statements, params,
   requestKey, neonClient, sqlLayer, waiter = waitForOperations, now = Date.now,
- keepChild=false, recordChild=null, captureDiagnostics=false } = {}) {
+ keepChild=false, recordChild=null, captureDiagnostics=false,
+ tuneQuery=null,tuneParams=[] } = {}) {
   const orgId = ctx?.connection?.neonOrg ?? ctx?.connection?.neon_org;
   const scope = ctx?.connection?.projectScope ?? ctx?.connection?.project_scope;
   if (!validId(orgId) || !validId(target?.projectId) ||
@@ -42,8 +44,18 @@ export async function createSqlExactPreview({ ctx, target, statements, params,
       typeof ctx?.previewAdmission !== 'function' ||
       typeof ctx?.checkApp !== 'function'||
       (keepChild!==false&&(keepChild!==true||typeof recordChild!=='function'))||
-      typeof captureDiagnostics!=='boolean')
+      typeof captureDiagnostics!=='boolean'||
+      tuneQuery!==null&&typeof tuneQuery!=='string')
     return fail('not_authorized', 'An authenticated and safety-checked SQL preview context is required.');
+  let tuning=null;
+  if(tuneQuery!==null){
+    try{tuning=await compileTunePlan({
+      query:tuneQuery,params:tuneParams,requestKey});
+    }catch{return fail('not_authorized','Unsafe or unverified query tuning request');}
+    if(keepChild||JSON.stringify(tuning.createStatements)!==
+        JSON.stringify(statements)||params.some(row=>row.length))
+      return fail('not_authorized','Tuning may modify only its disposable copy');
+  }
   const statementsInfo = await Promise.all(statements.map(classifySql));
   if (statementsInfo.some(x => x.kind === 'read' || x.kind === 'refused'))
     return fail('sql_not_previewable', 'Use the query tool for reads; unsupported SQL cannot be previewed.');
@@ -63,6 +75,8 @@ export async function createSqlExactPreview({ ctx, target, statements, params,
         reason: 'budget_exhausted', sqlLayer, allowFullTable: ctx.allowFullTable });
     return fail('spend_refused', 'Spending safety did not approve a disposable preview branch.');
   }
+  if(tuning&&cls.production)
+    return fail('production_preview_only','Query tuning is dev-copy only');
   if(keepChild&&cls.production)
     return fail('production_preview_only','Run-owned kept child cannot be created from a production target');
   const token = randomBytes(32).toString('base64url');
@@ -72,6 +86,7 @@ export async function createSqlExactPreview({ ctx, target, statements, params,
   let error = null, fallbackReason = null;
   let retainedChild=false,expiresAt=null;
   let statementDurationsMs=[],schemaDiff=null,sqlFailure=null,activeStatement=0;
+  let measuredBefore=null,measuredAfter=null;
   try {
     const expires = new Date(now() + 3600000).toISOString().replace('.000Z', 'Z');
     expiresAt=expires;
@@ -103,6 +118,11 @@ export async function createSqlExactPreview({ ctx, target, statements, params,
           began = true;
           await client.query('SET LOCAL lock_timeout = 5000');
           await client.query('SET LOCAL statement_timeout = 15000');
+          if(tuning){
+            const raw=await client.query(
+              'EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) '+tuning.query,tuneParams);
+            measuredBefore=parseExplainJson(raw.rows);
+          }
           const counts = [];
           for (let i = 0; i < statements.length; i++) {
             activeStatement=i+1;
@@ -115,6 +135,11 @@ export async function createSqlExactPreview({ ctx, target, statements, params,
             if (!Number.isSafeInteger(result.rowCount) && statementsInfo[i].kind !== 'ddl')
               throw new Error('unknown_affected_rows');
             counts.push(Number.isSafeInteger(result.rowCount) ? result.rowCount : 0);
+          }
+          if(tuning){
+            const raw=await client.query(
+              'EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) '+tuning.query,tuneParams);
+            measuredAfter=parseExplainJson(raw.rows);
           }
           await client.query('COMMIT');
           return counts;
@@ -187,7 +212,9 @@ export async function createSqlExactPreview({ ctx, target, statements, params,
     return fail('preview_not_recorded', 'The preview could not be durably recorded; no apply token was issued.');
   }
   return { done: true, exact: true, production: cls.production,
-    affectedRows: countRows, schemaChanged: Boolean(schemaHash), previewToken: token,
+    affectedRows: countRows, schemaChanged: Boolean(schemaHash),
+    ...(tuning?{tuning:{before:measuredBefore,after:measuredAfter}}:{}),
+    previewToken: token,
     validForMinutes: 30, childDeleted: true,
     ...(captureDiagnostics?{statementDurationsMs,schemaDiff,schemaHash}: {}) };
 }

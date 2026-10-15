@@ -34,6 +34,9 @@ import * as devScenarios from './dev-scenarios.js';
 import * as devSeed from './dev-seed.js';
 import * as devCheckpoints from './dev-checkpoints.js';
 import * as devMigrationPreview from './dev-migration-preview.js';
+import * as devAnonymized from './dev-anonymized.js';
+import * as devTune from './dev-tune.js';
+import * as devIntegration from './dev-integration.js';
 import * as schemaExtensionDrop from './schema-extension-drop.js';
 import * as schemaExtensionWrite from './schema-extension-write.js';
 import * as snapshots from './snapshots.js';
@@ -60,4 +63,5 @@ import * as resultTools from './results.js';
 import * as serverSettings from './server-settings.js';
 import * as keyAccess from './key-access.js';
 import * as ownerAdministration from './owner-administration.js';
-export const registry=mergeNamespaces([server,ownerProduction,ownerReads,ownerAdministration,keyAccess,serverSettings,resultTools,projects,operations,projectWrites,projectSettings,branches,branchWrites,branchLifecycle,branchRestores,computes,computeSpend,computeLifecycle,databaseRoleReads,databaseWrites,roleCreate,roleReset,roleReadOnly,roleDelete,roleRetirement,connections,sql,sqlStop,sqlPreview,sqlExecute,schemaReads,schemaDiscovery,healthCheck,indexAdvice,schemaTypes,schemaDdl,migrationHistory,dataCompare,schemaExtensionWrite,schemaExtensionDrop,schemaIndexWrite,healthReindex,healthVacuum,devRuns,writeReadiness,devScenarios,devSeed,devCheckpoints,devMigrationPreview,snapshots,snapshotDelete,snapshotRename,snapshotCreate,snapshotRestore,snapshotSchedule,security,securityWrites,securityIp,securityJwks,securityAudit,meta]);
+export const registry=mergeNamespaces([server,ownerProduction,ownerReads,ownerAdministration,keyAccess,serverSettings,resultTools,projects,operations,projectWrites,projectSettings,branches,branchWrites,branchLifecycle,branchRestores,computes,computeSpend,computeLifecycle,databaseRoleReads,databaseWrites,roleCreate,roleReset,roleReadOnly,roleDelete,roleRetirement,connections,sql,sqlStop,sqlPreview,sqlExecute,schemaReads,schemaDiscovery,healthCheck,indexAdvice,schemaTypes,schemaDdl,migrationHistory,dataCompare,schemaExtensionWrite,schemaExtensionDrop,schemaIndexWrite,healthReindex,healthVacuum,devRuns,writeReadiness,devScenarios,devSeed,devCheckpoints,devMigrationPreview,
+ devAnonymized,devTune,devIntegration,snapshots,snapshotDelete,snapshotRename,snapshotCreate,snapshotRestore,snapshotSchedule,security,securityWrites,securityIp,securityJwks,securityAudit,meta]);

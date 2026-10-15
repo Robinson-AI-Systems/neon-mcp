@@ -23,14 +23,14 @@ function scope(a,c){
  if(!p.projectId||!ID.test(p.projectId))throw Error('Choose one enrolled development project');
  return {orgId:p.org,projectId:p.projectId};
 }
-async function verifiedProject(a,c){
+export async function verifiedProject(a,c){
  const s=scope(a,c),client=await c.clientFor(s.projectId);
  const result=await projectRead(client,'getProject',{path:{project_id:s.projectId}});
  if(result?.project?.id!==s.projectId||result.project.org_id!==s.orgId)
   throw Error('Exact Neon project identity unavailable');
  return {...s,client,project:result.project};
 }
-async function allBranches(client,projectId){
+export async function allBranches(client,projectId){
  const branches=[],seenIds=new Set(),seenCursors=new Set();
  let cursor=null;
  // A bounded complete provider census, not an implicit 100-branch project cap.
@@ -66,11 +66,11 @@ async function branchDetails(client,projectId,branchId){
 async function exactBranch(client,projectId,branchId){
  return (await branchDetails(client,projectId,branchId)).branch;
 }
-function expiry(hours){
+export function expiry(hours){
  const d=new Date(Date.now()+hours*3600000);
  return d.toISOString().slice(0,19)+'Z';
 }
-function config(x){
+export function config(x){
  if(!x||!Number.isSafeInteger(x.ttl_hours)||x.ttl_hours<1||
     x.ttl_hours>720||!x.compute||
     ![x.compute.min_cu,x.compute.max_cu].every(v=>

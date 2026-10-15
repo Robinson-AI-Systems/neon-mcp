@@ -1,3 +1,18 @@
+## October 15 — acceptance catch-up, released V-2 read-only scenario evidence
+
+Confirmed actual main vs live and direct Vercel production READY metadata: current
+production source is 40977a074ee530c8d46aa5b4e5e3797f94cb5157, not
+PR #175/#177. The connected authenticated **custom** Robinson Neon MCP
+returned all four V-2 synthetic read-only previews (saas/store/rental/blog)
+and four-scenario discovery with no Neon writes, dollars or raw customer data.
+An invalid scenario returned INVALID_ARGUMENT with a generic account error,
+not a reliable specific input-denial proof. Thus NEON-V2-SCENARIOS remains
+PENDING for that part; its demonstrated live reads are real but partial.
+V-1/D-series/provider write acceptance still needs the previously recorded
+owner scratch fixture and operation-specific approvals. Do not treat ordinary
+Neon connector reads or CI as custom write/readback or cleanup evidence.
+No release or production activation was initiated.
+
 ### October 15 — owner-requested bundle guidance consistency review
 
 Reviewed current main 75c0c6f1047e21c96a53f8c6f56c399c4d32bcfa. Aligned existing governing instructions, session
@@ -16,6 +31,24 @@ This is explicitly requested guidance maintenance, zero product bundles; no prov
 operation or release. Required exact-head checks and review disposition govern merge.
 Preserve concurrent implementation branches; resume actual current main and the
 implementing agent's active approved outcome after reading this alignment.
+
+## October 15 — V-4 anonymized copy, disposable tuner and integration evidence (PR and checks pending)
+
+Original V-4 subsection, built together rather than split into subcards, is on
+`ai/gpt6/v4-masked-copy-tuning-integration-20261015`. It covers the bounded
+metadata-only sensitive-column mask planner, priced owner-confirmed beta Neon
+anonymized-branch request with V-1 run ledger, a disposable B-3c child for
+index and EXPLAIN tuning, and a read-only provider/PostgreSQL integration
+checklist. Unit, fake provider and disposable PostgreSQL tests are authored;
+required exact-head CI and diff security review remain unverified. V-4 is
+IN_PROGRESS, not a completed bundle; no real branch copied, queried, or
+approved for connection and no production/spending switch changed.
+
+V-3 source **merged** in PR #175 on main 75c0c6f1047e21c96a53f8c6f56c399c4d32bcfa;
+all exact-head and post-merge main CI passed. V-3 live custom-provider
+restoration, backup TTL/cleanup and acceptance are still pending.
+V-2 source merged in PR #174 and passed CI; V-2 live scratch/provider
+acceptance remains pending independently.
 
 ## October 14 — V-3 run-owned LSN checkpoint, recovery and isolated migrations (PR/CI pending)
 
@@ -263,7 +296,7 @@ open obligations, original fixture ownership, approvals and deployment provenanc
     "gates": "No DB/SQL mutation, no real customer data or money; V-1 acceptance remains separate",
     "dependsOn": [],
     "status": "PENDING",
-    "lastEvidence": "PR #165 reviewed implementation registered through commit 6842ab5779aa6ecf582ac20ccd0360d5e4fa23fe; source-only scenario preview; no deployed custom MCP read or neon_dev_seed application acceptance; do not mark PASSED."
+    "lastEvidence": "2026-10-15: independently checked Vercel production READY at git live 40977a074ee530c8d46aa5b4e5e3797f94cb5157 and authenticated custom Robinson Neon MCP connected. Genuine read-only neon_dev_list_scenarios discovery and all four synthetic 1-row scenario previews (saas, store, rental, blog) succeeded; no provider data or mutation. Unsupported scenario returned INVALID_ARGUMENT with generic account error, so exact malformed-input-denial acceptance remains unproven. Preserve PENDING until full required denial/seed distinctions are verified."
   },
   {
     "id": "NEON-V1-RUN-PAGES",
