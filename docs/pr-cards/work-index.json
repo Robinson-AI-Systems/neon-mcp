@@ -750,9 +750,9 @@
       "units": [
         "V-3"
       ],
-      "readiness": "SOURCE_IMPLEMENTING",
+      "readiness": "SOURCE_MERGED_HOSTED_ACCEPTANCE_PENDING",
       "ownerInputs": [],
-      "note": "2026-10-14: original V-3 approved subsection in branch ai/gpt6/v3-checkpoint-migration-20261014, including service-owned immutable named WAL positions, V-1 scoped reset/restore via D-2 priced preservation, and B-3c child-only public/inline migration rehearsal with failure/lock/cleanup paths. Tests and exact-head CI pending. No custom hosted/provider/spend/cleanup acceptance claimed."
+      "note": "2026-10-15: full original V-3 engineering merged PR #175 at main 75c0c6f1047e21c96a53f8c6f56c399c4d32bcfa; exact-head check, unit, disposable PG, CI, release-policy and post-merge main CI passed; hosted custom MCP, real provider owner-approved scratch restore/backup expiry/cleanup remain separately unverified. No new spend or production access."
     },
     {
       "id": "V-4",
@@ -763,14 +763,15 @@
         "V-3"
       ],
       "card": "docs/pr-cards/V-4.md",
-      "status": "PLANNED",
+      "status": "IN_PROGRESS",
       "migration": "none",
       "budget": 450,
       "units": [
         "V-4"
       ],
-      "readiness": "WRITE_CARD_AT_START",
-      "ownerInputs": []
+      "readiness": "SOURCE_IMPLEMENTING",
+      "ownerInputs": [],
+      "note": "2026-10-15 current PR engineering: original V-4 masked beta copy, read-only guarded metadata rules with missing email refusal, full-owner B-4 priced run-owned creation/status, disposable child-only index EXPLAIN tuning and integration health checklist. Unit, fake Neon provider shape and actual PG tests authored pending exact-head CI/security review; no production data provider or hosted acceptance."
     },
     {
       "id": "O-1",
