@@ -143,3 +143,15 @@ This explicit docs/planning request permits this focused documentation PR; routi
 ## 2026-10-13 — Owner-approved D-5 independence (IN-15)
 
 The owner approved implementing D-5 without completing D-4 public role deletion. D-3 is the completed index prerequisite; D-4 provider-verified connection selection remains mandatory in every SQL tool. D-4 deletion remains unregistered pending independently reliable pooled-client safety evidence. Approval does not enable production changes, real fixture mutations or spending. See the D-5 implementation card.
+
+## October 14, 2026 — owner-delegated concrete implementation designs
+
+The owner requested completing/revising remaining designs, then extending the
+same Sol 5.6 implementation detail to all six active custom MCP repositories.
+[REMAINING-WORK-ROUTES.md](implementation-contracts/REMAINING-WORK-ROUTES.md) adds typed state/argument/result
+contracts, domain-specific failure and recovery cases, current code seams and
+finite proof requirements for the remaining indexed scope. This is an explicit
+design-maintenance exception to routine no-docs-only implementation work, not a
+feature PR or completed subsection. Existing owner-specific missing inputs,
+spending/production/credential/cleanup authority remain gated; this entry does
+not mark them answered. The original Toolkit stays reference-only.
