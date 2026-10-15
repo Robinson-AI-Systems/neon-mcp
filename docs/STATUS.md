@@ -1,5 +1,17 @@
 ## October 15 — acceptance catch-up, released V-2 read-only scenario evidence
 
+## Acceptance-first session tooling — October 15, 2026
+
+Owner-authorized cross-repository workflow repair: session status now presents
+per-deployment acceptance actions before roadmap work, separately lists waiting
+checks, and validates complete/stale-free temporary acceptance accounting.
+SESSION-START is authoritative for sequencing and final closeout; push checkpoints
+continue into required obligations. This maintenance completes no product bundle,
+closes no provider/deployed acceptance, changes no release/approval gate, and
+preserves concurrent roadmap work and existing evidence. Focused native script
+regressions and required exact-head CI/review must pass before merge.
+
+
 Confirmed actual main vs live and direct Vercel production READY metadata: current
 production source is 40977a074ee530c8d46aa5b4e5e3797f94cb5157, not
 PR #175/#177. The connected authenticated **custom** Robinson Neon MCP

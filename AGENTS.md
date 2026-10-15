@@ -1,5 +1,15 @@
 # AGENTS.md — the rules. Read this first, every session.
 
+## Session entry and authority
+
+“Do N bundles” starts the complete procedure in [docs/SESSION-START.md](docs/SESSION-START.md).
+N sets new implementation workload only; acceptance, reconciliation, required checks,
+reviews, merges, cleanup and permanent handoff remain session obligations. Project
+instructions need only identify this repository and point here; keep workflow rules
+in the repository. A push or met bundle count is not permission to omit closeout.
+This owner-requested workflow-tooling repair is maintenance, not a product bundle.
+
+
 ## Owner-requested implementation detail — October 14, 2026
 
 Read only the applicable subsection in [REMAINING-WORK-ROUTES.md](docs/implementation-contracts/REMAINING-WORK-ROUTES.md)
@@ -241,7 +251,7 @@ test recipes and remaining-work guidance. Open only the relevant section; this i
     is the current task — fix it before any new card.
 12. **Problems are not blockers.** Red CI, lint, failing tests, wrong parameters, conflicts and unclear code are yours to
     fix; stop only for a hard limit or an owner decision the current step needs (SESSION-START §6).
-13. **Focused tasks, then a recovery point.** Run affected tests/lint at meaningful seams within the predefined batch subsection; end every turn right after a push whose resume note names the exact next action.
+13. **Focused tasks, then a recovery point.** Run affected tests/lint at meaningful seams within the predefined batch subsection; checkpoint the exact next action after a push, then continue required CI/review/merge and session obligations.
 14. **GitHub REST fallback when local execution is unavailable (owner directive, 2026-10-11).** Do not stall because
     this chat workspace lacks a usable checkout, terminal or local PostgreSQL. Use authenticated GitHub REST API
     operations (through `gh api` where available, otherwise the GitHub connector's REST-backed actions) for repository
