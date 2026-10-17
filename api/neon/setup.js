@@ -37,6 +37,7 @@ function page(message='',p={}) {
     orgLabel:['Organization name','A recognizable name for this organization, such as its account email.'],
     projectId:['Project ID','Copy the ID of the single Neon project this key can access.'],
     key:['Neon API key','Paste the project-scoped API key copied from Neon.'],
+    personalKey:['Personal administrator API key','Paste a Neon personal API key for an admin of the selected organization; it is encrypted and never exposed to agents.'],
     label:['Key name','Use the same descriptive name you gave this key in Neon.'],
     passphrase:['Administrator passphrase','Enter your Neon MCP administrator passphrase, configured in Vercel as ADMIN_PASSPHRASE.'],
     keyId:['Stored key ID','Use the numeric ID returned by List keys.'],
@@ -61,6 +62,9 @@ function page(message='',p={}) {
   const list=form('list_keys',org());
   const add=form('add_key',org()+input('orgLabel')+input('projectId')+input('key','password')+
     input('label')+'<input type="hidden" name="kind" value="project">');
+  const personal=form('add_personal_key',org()+input('orgLabel')+
+    input('personalKey','password')+input('label')+
+    '<input type="hidden" name="kind" value="personal">');
   const revoke=form('revoke_key',org()+input('keyId','number'));
   const listProtected=form('list_protected_resources',org());
   const protectedEditor=form('save_protected_resources',org()+
@@ -85,6 +89,9 @@ function page(message='',p={}) {
     '<h2>List keys</h2>'+list+'<h2>Add scoped key</h2>'+
     '<p>Save one project-scoped key at a time. Fill the fields below from top to bottom, then select add key. '+
     'This connects Neon MCP to that project; it does not change the application’s database connection.</p>'+add+
+    '<h2>Enroll personal organization administrator key</h2>'+
+    '<p>Required for Neon organization invitations, membership removal and other personally-authorized API operations. '+
+    'This elevated credential must belong to an organization administrator, is checked against the exact selected organization, and cannot be submitted through agent tools. It is unavailable on preview deployments.</p>'+personal+
     '<h2>Revoke a key</h2>'+revoke+
     '<h2>Protected resources (owner only)</h2>'+
     '<p>Your Neon MCP database cannot be removed from protection. Configure and verify its own project in Vercel first.</p>'+
@@ -156,6 +163,13 @@ export function createSetupHandler({db,vault,exchange,env=process.env,scratchCli
           kind:'project',key:p.key,label:p.label});
         return send(res,200,page('Scoped key stored for '+added.projectId+'; last four '+added.last4),
           'text/html; charset=utf-8');
+      }
+      if(p.action==='add_personal_key'){
+        if(p.kind!=='personal'||p.projectId)return send(res,400,{error:'personal_key_scope_required'});
+        const added=await vault.storeKey({orgId,orgLabel:p.orgLabel,projectId:null,
+          kind:'personal',key:p.personalKey,label:p.label});
+        return send(res,200,page('Verified personal administrator key stored for '+added.orgId+
+          '; last four '+added.last4),'text/html; charset=utf-8');
       }
       if(p.action==='revoke_key'){
         if(!/^\d+$/.test(String(p.keyId))||!Number.isSafeInteger(Number(p.keyId)))
