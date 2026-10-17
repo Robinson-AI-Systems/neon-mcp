@@ -47,3 +47,25 @@ it('rotates one active server key atomically and rejects racing or foreign CAS a
  expect(rows[0].n).toBe(1);
  expect(await db.getEncryptedNeonKey({orgId:'org-foreign',kind:'org'})).toBeNull();
 });
+
+it('protects personal API keys enrolled across multiple organizations in real PostgreSQL',async()=>{
+ const first='org-vault-cross-one',second='org-vault-cross-two';
+ await db.saveNeonOrg({orgId:first,label:'One'});
+ await db.saveNeonOrg({orgId:second,label:'Two'});
+ const k=await db.saveEncryptedNeonKey({orgId:second,kind:'personal',
+  keyEnc:'v1.encrypted-fixture-only',last4:'0001',label:'other owner',
+  reach:{verified:true,providerKeyId:3881}});
+ expect(await db.hasActiveServerProviderKey({orgId:first,kind:'personal',
+  providerKeyId:3881})).toBe(true);
+ expect(await db.hasActiveServerProviderKey({orgId:first,kind:'personal',
+  providerKeyId:3882})).toBe(false);
+ expect(await db.hasActiveServerProviderKey({orgId:first,kind:'organization',
+  providerKeyId:3881})).toBe(false);
+ await db.saveEncryptedNeonKey({orgId:second,kind:'org',keyEnc:'v1.legacy-encrypted',
+  last4:'0002',reach:{verified:true}});
+ expect(await db.hasActiveServerProviderKey({orgId:second,kind:'organization',
+  providerKeyId:3882})).toBe(true);
+ expect(await db.revokeNeonKey({orgId:second,id:k.id})).toBe(true);
+ expect(await db.hasActiveServerProviderKey({orgId:first,kind:'personal',
+  providerKeyId:3881})).toBe(false);
+});
