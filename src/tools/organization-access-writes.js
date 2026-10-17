@@ -3,7 +3,7 @@
 import {defineWrite} from '../core/write.js';
 import {requestKey,call} from '../neon/client.js';
 import {projectClient,projectRead,projectScope} from './project-context.js';
-import {members} from './organization-access.js';
+import {members,projectRoles} from './organization-access.js';
 import {configuredSelfResource} from '../core/self-resource.js';
 import {checkProtectedTarget} from '../core/protected-resources.js';
 
@@ -73,7 +73,8 @@ async function projectAccess(args,ctx){
  });
  if(new Set(permissions.map(p=>p.id)).size!==permissions.length)
   throw Error('Duplicate project access identifiers');
- return {...i,projectId,permissions};
+ const roleRows=await projectRoles(i.client,projectId);
+ return {...i,projectId,permissions,roleRows};
 }
 function guardNoLockout(i,a){
  if(i.actor && i.target?.userId===i.actor)
@@ -237,6 +238,54 @@ const revokeShare=defineWrite({
   !after.permissions.some(p=>p.id===a.permissionId)
 });
 
+
+const projectMemberRole=defineWrite({
+ name:'neon_access_set_project_role',key:'org',access:true,projectWide:true,
+ productionEffect:'none',
+ plan:async(a,c)=>{
+  if(!['viewer','editor','admin','inherit'].includes(a.role))
+   throw Error('Choose viewer, editor, admin or inherit');
+  const i=await projectAccess(a,c);
+  const member=i.list.find(m=>m.id===a.memberId),row=i.roleRows.find(m=>m.memberId===a.memberId);
+  if(!member||!row||row.userId!==member.userId)
+   throw Error('Project member identity or current permissions are unverified');
+  if(i.actor&&member.userId===i.actor)
+   throw Error('Changing the credential owner’s own project access is refused to prevent lockout');
+  const next=a.role==='inherit'?null:a.role;
+  if(row.projectRole===next)throw Error('Requested explicit project role is already in effect');
+  const effect=next?('Set explicit '+next+' access'):
+    'Clear explicit access; the inherited organization-role permission remains';
+  return {target:'project:'+i.projectId+':member:'+a.memberId,
+   projectId:i.projectId,before:{...i,member,row},
+   summary:effect+' for member '+a.memberId+' on project '+i.projectId+
+    '. Current effective permission: '+String(row.effectivePermission??'none')+
+    '. This changes account access; verify all affected external consumers and keys.'};
+ },
+ apply:async(a,c,{before,requestKey})=>{
+  const now=await projectAccess(a,c);
+  const current=now.roleRows.find(m=>m.memberId===a.memberId);
+  if(!current||current.userId!==before.member.userId||
+     JSON.stringify(now.roleRows)!==JSON.stringify(before.roleRows)||
+     JSON.stringify(now.permissions)!==JSON.stringify(before.permissions))
+   throw Error('Project membership or sharing changed after the preview');
+  if(now.actor&&now.actor===before.member.userId)
+   throw Error('Changing the credential owner’s own access is refused');
+  const path={project_id:before.projectId,member_id:a.memberId};
+  return a.role==='inherit'?
+    change('removeProjectMemberRole',{path},c,requestKey):
+    change('setProjectMemberRole',{path,body:{role:a.role}},c,requestKey);
+ },
+ readAfter:projectAccess,
+ verify:(before,after,a)=>{
+  if(after.org!==before.org||after.projectId!==before.projectId)return false;
+  const row=after.roleRows.find(m=>m.memberId===a.memberId);
+  return row?.userId===before.member.userId&&
+    (row.projectRole??null)===(a.role==='inherit'?null:a.role)&&
+    after.roleRows.every(m=>m.memberId===a.memberId||
+      JSON.stringify(m)===JSON.stringify(before.roleRows.find(x=>x.memberId===m.memberId)));
+ }
+});
+
 const defs=[
  [memberRole,{memberId:uid,role:roleProp},['memberId','role']],
  [memberRemove,{memberId:uid},['memberId']],
@@ -245,7 +294,9 @@ const defs=[
    additionalProperties:false}}},['invitations']],
  [share,{projectId:id,email:emailProp},['projectId','email']],
  [revokeShare,{projectId:id,permissionId:{type:'string',minLength:1,maxLength:120}},
-  ['projectId','permissionId']]
+  ['projectId','permissionId']],
+ [projectMemberRole,{projectId:id,memberId:uid,role:{type:'string',
+   enum:['viewer','editor','admin','inherit']}},['projectId','memberId','role']]
 ];
 export const tools=defs.map(([d,fields,required])=>({...d.tool,profiles,area:'owner',
  audience:['owner'],description:{
@@ -253,7 +304,8 @@ export const tools=defs.map(([d,fields,required])=>({...d.tool,profiles,area:'ow
   neon_member_remove:'Preview and confirm removal of a non-self, non-last-admin organization member.',
   neon_member_invite:'Preview and confirm up to ten personally authorized Neon invitation emails.',
   neon_access_share_project:'Preview and confirm scoped legacy Neon project email sharing.',
-  neon_access_revoke_share:'Preview and confirm revocation of a verified legacy project share.'
+  neon_access_revoke_share:'Preview and confirm revocation of a verified legacy project share.',
+  neon_access_set_project_role:'Preview and confirm exact per-project member role or return to organization defaults.'
  }[d.tool.name],inputSchema:schema({...fields,...base},required)}));
 export const handlers=Object.fromEntries(defs.map(([d])=>[
  d.tool.name,(a,c)=>d.handler(a,writeContext(c))
