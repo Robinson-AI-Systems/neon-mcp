@@ -790,7 +790,7 @@
       ],
       "readiness": "SOURCE_IMPLEMENTING",
       "ownerInputs": [],
-      "note": "Source branch ai/gpt6/o1-owner-access-20261016 contains nine owner access tools and secure owner-key enrollment; complete exact-head CI, independent review, merged source, checked release and separate genuine owner/provider acceptance are all pending. This note claims no completed O-1 subsection or money/production/email approval."
+      "note": "O-1 source merged as #185 at 6c58a599; postmerge exact CI green. Live/provider membership and invitation acceptance remain pending, with no actual email or resource mutation performed."
     },
     {
       "id": "O-2",
@@ -801,14 +801,15 @@
         "O-1"
       ],
       "card": "docs/pr-cards/O-2.md",
-      "status": "PLANNED",
+      "status": "IN_PROGRESS",
       "migration": "none",
       "budget": 400,
       "units": [
         "O-2"
       ],
-      "readiness": "WRITE_CARD_AT_START",
-      "ownerInputs": []
+      "readiness": "SOURCE_IMPLEMENTING",
+      "ownerInputs": [],
+      "note": "Source under review in PR #186. Five O-2 key/transfer tools, secure credential handoff and guarded writes. Exact-head CI/review/merge and genuine provider acceptance not yet claimed."
     },
     {
       "id": "O-3",
