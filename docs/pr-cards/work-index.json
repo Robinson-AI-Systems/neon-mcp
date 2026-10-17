@@ -782,14 +782,15 @@
         "V-4"
       ],
       "card": "docs/pr-cards/O-1.md",
-      "status": "PLANNED",
+      "status": "IN_PROGRESS",
       "migration": "none",
       "budget": 450,
       "units": [
         "O-1"
       ],
-      "readiness": "WRITE_CARD_AT_START",
-      "ownerInputs": []
+      "readiness": "SOURCE_IMPLEMENTING",
+      "ownerInputs": [],
+      "note": "Source branch ai/gpt6/o1-owner-access-20261016 contains nine owner access tools and secure owner-key enrollment; complete exact-head CI, independent review, merged source, checked release and separate genuine owner/provider acceptance are all pending. This note claims no completed O-1 subsection or money/production/email approval."
     },
     {
       "id": "O-2",
