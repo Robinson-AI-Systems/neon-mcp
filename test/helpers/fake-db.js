@@ -105,6 +105,25 @@ export function createFakeDb({ clock = () => Date.now(), orgs = [] } = {}) {
         reach:structuredClone(reach),added_at:new Date(),checked_at:new Date(),revoked_at:null});
       return {id};
     },
+    async rotateEncryptedNeonKey({orgId,kind,projectId=null,expectedVaultId,
+      expectedKeyEnc,keyEnc,last4,label,reach}) {
+      const row=keys.find(v=>v.org_id===orgId&&v.kind===kind&&
+       v.project_id===projectId&&v.id===expectedVaultId&&
+       v.key_enc===expectedKeyEnc&&!v.revoked_at);
+      if(!row)return false;
+      Object.assign(row,{key_enc:keyEnc,last4,label,reach:structuredClone(reach),
+       checked_at:new Date()});
+      return true;
+    },
+    async hasActiveServerProviderKey({orgId,kind,providerKeyId}) {
+      if(!orgId||!['personal','organization'].includes(kind)||
+       !Number.isSafeInteger(providerKeyId)||providerKeyId<1)
+       throw TypeError('Invalid provider key check');
+      return keys.some(k=>!k.revoked_at &&
+       (kind==='personal'?k.kind==='personal':
+        k.org_id===orgId&&['org','project'].includes(k.kind)) &&
+       (k.reach?.providerKeyId==null||k.reach.providerKeyId===providerKeyId));
+    },
     async listNeonKeySummaries(orgId) {
       return structuredClone(keys.filter(v=>v.org_id===orgId).map(({key_enc:_cipher,...rest})=>rest));
     },

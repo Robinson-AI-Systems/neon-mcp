@@ -1,0 +1,29 @@
+{
+  "productionAdded": 607,
+  "productionRemoved": 3,
+  "planComparison": "All five original O-2 tools are registered and integrated through production owner profile admission and common B-1 audited one-use writes. Source verifies exact personal administrator authority, provider-key scope and project identities, encrypts one-time key/claim handoffs, atomically rotates active server credentials, checks cross-organization personal-key usage, and enforces protected/app/production guards. One original subsection is a substantial complete workflow, not five artificially counted tasks. Neon API does not provide a Console claim URL: transfer request ID and official recipient acceptance method are delivered only through owner escrow; genuine hosted-provider proof remains pending.",
+  "newEngineering": "New key inventory/creation/revocation and ownership transfer workflows, 607 production lines added/3 removed, independent Fake Neon SDK shape contracts, real PostgreSQL atomic rotation and cross-organization revocation tests, user-facing profile admission for O-1/O-2, and owner instructions.",
+  "relatedWorkDecision": "O-2 includes all five approved API-key/ownership transfer tools, one tight secret/audit/production boundary. Billing/usage and spending alerts O-3 use a different API class and remain a separate future work unit; no extra bundle counted.",
+  "decision": "SUBSTANTIAL_EXCEPTION",
+  "exceptionEvidence": [
+    "One original approved subsection O-2 includes five independently callable, user-facing owner capabilities with four audited mutations, secret rotation/escrow, and protected project ownership transfer—not a helper-sized subset.",
+    "607 meaningful new source lines and 3 source deletions, excluding tests/docs, with disposable PostgreSQL race protection, real SDK provider route fixtures, cross-org lockout denial, full-owner tool admission, and multi-boundary regression tests.",
+    "Exact branch 5f689354490df20dc5cdd821d2d9479757ebaec8 passed aggregate ci, check/lint/security, unit, disposable Postgres, RTC subset and release policy on 2026-10-17. Final documentation commit must also pass exact-head required checks before merge."
+  ],
+  "subsections": [
+    {
+      "id": "O-2",
+      "remainingEngineering": [],
+      "criteria": [
+        {
+          "criterion": "Tools: neon_apikey_list, neon_apikey_create, neon_apikey_revoke, neon_transfer_request_create, neon_transfer_projects_between_orgs.",
+          "evidence": "src/tools/owner-key-reads.js, owner-key-writes.js and owner-transfers.js implement all five and src/tools/index.js registers them. tests/unit/owner-api-contract.test.js validates official SDK paths/bodies for eight underlying Neon API operations; src/core/profiles.js admits full-owner guarded callers."
+        },
+        {
+          "criterion": "Tests: new key never in a result (one-time page) or stored directly; revoking a server key refused; claim link on the one-time page; transfer preview lists integrations to reconfigure; production guard on transfers.",
+          "evidence": "tests/unit/owner-keys-and-transfers.test.js proves one-time token escrow/consumption and absence of plaintext in tool results; exact provider ID and cross-org legacy lockout denial; default branch/Vercel/GitHub preview, disabled production, app/protected denials and replay prevention. tests/db/neon-keys.test.js exercises atomic encrypted credential CAS and cross-org personal key revocation in disposable PostgreSQL. Neon's pinned API returns request ID/expiry, NOT a console claim URL: the one-time page delivers the ID and supported recipient acceptance method (explicit provider-contract deviation; no invented link). No live provider acceptance claimed."
+        }
+      ]
+    }
+  ]
+}

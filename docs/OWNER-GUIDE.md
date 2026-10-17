@@ -76,3 +76,30 @@ resumes. OS credential managers remain the desktop default. Neither option place
 in chats, prompts, Git or shared artifacts. Initial provider consent or an expired/revoked
 underlying authorization can still require a new owner sign-in. Source/tests are not
 proof that the new deployed workflow has been exercised against the real provider.
+
+## API-key management and project ownership transfers (O-2)
+
+With a verified full-owner connection, your coding agent may list provider API-key
+metadata, request a new personal, organization or project-limited organization key,
+or revoke a specific provider key after preview and independent confirmation.
+Creating personal or organization keys requires a verified personal administrator.
+The new key token is never included in the agent's tool result: it is delivered
+through the passphrase-controlled single-use setup page, or verified against Neon
+and atomically encrypted into this server's active key vault. The prior provider
+key remains usable until you separately and explicitly revoke it. If a server key's
+provider identity cannot be verified, the agent refuses a potentially locking revoke.
+
+Project ownership transfer is a production-class operation. The agent checks every
+project's verified owner and default branch, existing protections and application
+ownership, and any known Vercel or GitHub integrations. It requires production
+permission and exact confirmation. Transfer requests return an expiring request ID;
+Neon's API does NOT return a verified Console claim URL, so the owner one-time page
+provides the ID and the official recipient-side method, not a fabricated URL.
+The recipient must accept separately. An interorganization transfer requires a
+personal administrator who can also administer the destination organization.
+Provider responses and post-transfer ownership are independently verified or
+explicitly marked unverified; ambiguous writes are never automatically replayed.
+
+**Source implementation does not mean live acceptance.** No real account key or
+project was mutated during developer tests. Release and owner/provider testing remain
+separate repository obligations.

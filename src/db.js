@@ -219,6 +219,42 @@ export function createDb(sql = productionSql()) {
           ${JSON.stringify(reach)}::jsonb, now()) RETURNING id`;
       return { id: rows[0].id };
     },
+    // Atomic compare-and-swap: replacement is already authenticated by Neon and
+    // encrypted before overwriting one active scope. Never disable the old row first.
+    async rotateEncryptedNeonKey({orgId,kind,projectId=null,expectedVaultId,
+      expectedKeyEnc,keyEnc,last4,label,reach}) {
+      if(!orgId||!['project','org','personal'].includes(kind)||
+        (kind==='project')!==Boolean(projectId)||
+        !(Number.isSafeInteger(expectedVaultId)&&expectedVaultId>0 || typeof expectedVaultId==='string'&&/^[1-9][0-9]{0,18}$/.test(expectedVaultId))||!expectedKeyEnc||!keyEnc||
+        typeof last4!=='string'||last4.length!==4||!reach?.verified)
+        throw new TypeError('Invalid verified credential rotation');
+      const rows=await sql`UPDATE neon_keys SET key_enc=${keyEnc},
+        last4=${last4},label=${label},reach=${JSON.stringify(reach)}::jsonb,
+        checked_at=now() WHERE id=${expectedVaultId} AND org_id=${orgId}
+        AND kind=${kind} AND COALESCE(project_id,'')=COALESCE(${projectId},'')
+        AND key_enc=${expectedKeyEnc} AND revoked_at IS NULL RETURNING id`;
+      return rows.length===1;
+    },
+    // Personal API keys can be enrolled for several organizations. An account-wide
+    // provider revoke must search all stored personal scopes, not only one org.
+    // Legacy rows lack providerKeyId and are therefore ambiguous, never safe to revoke.
+    async hasActiveServerProviderKey({orgId,kind,providerKeyId}) {
+      if(!orgId||!['personal','organization'].includes(kind)||
+        !Number.isSafeInteger(providerKeyId)||providerKeyId<1)
+        throw new TypeError('Invalid provider-key identity verification');
+      const rows=kind==='personal'
+        ? await sql`SELECT id FROM neon_keys WHERE kind = 'personal'
+             AND revoked_at IS NULL AND (
+             reach->>'providerKeyId' IS NULL OR
+             reach->>'providerKeyId' = ${String(providerKeyId)})
+             LIMIT 1`
+        : await sql`SELECT id FROM neon_keys WHERE org_id=${orgId}
+             AND kind IN ('org','project') AND revoked_at IS NULL AND (
+             reach->>'providerKeyId' IS NULL OR
+             reach->>'providerKeyId' = ${String(providerKeyId)})
+             LIMIT 1`;
+      return rows.length>0;
+    },
     async listNeonKeySummaries(orgId) {
       return await sql`SELECT id, org_id, kind, project_id, last4, label, reach,
         added_at, checked_at, revoked_at FROM neon_keys WHERE org_id = ${orgId}

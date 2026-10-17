@@ -1,3 +1,7 @@
+## October 17 — O-2 key/ownership implementation in progress (NOT accepted)
+
+Branch ai/gpt6/o2-keys-transfers-20261017 is based on source-merged O-1 #185 (main 6c58a599). Implementing verified API-key metadata, audited key creation/revocation, atomic verified server-key replacement and passphrase-only secret escrow, and production-protected inter-organization transfer/request workflows. Provider transfer-request API returns an identifier, not a canonical Console claim URL: owner escrow contains exact claim identifiers and official acceptance instructions, no fabricated URL. All O-2 engineering, tests, exact-head CI, review, merge and real-provider acceptance remain open until independently verified; no actual provider mutation or manual release authorized. O-1 central write admission omission is being repaired in the same implementation. Live remains behind main at e1389efd until a normal authorized release.
+
 ## October 16 — O-1 owner organization and project access (source under review)
 
 On the checked `b6350728` main baseline, O-1 is being implemented as **one
