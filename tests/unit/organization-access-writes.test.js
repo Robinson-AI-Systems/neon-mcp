@@ -20,7 +20,7 @@ const env={VERCEL_ENV:'production',DATABASE_URL:'postgresql://fake:fake@localhos
  NEON_MCP_SELF_ORG_ID:org,NEON_MCP_SELF_PROJECT_ID:'project-self',
  NEON_MCP_SELF_ENDPOINT_HOST:'localhost'};
 const result=r=>JSON.parse(r.content[0].text);
-function fixture({kind='org',members=[owner,staff],failWrite=false,foreign=false}={}){
+function fixture({kind='org',members=[owner,staff],failWrite=false,foreign=false,appOwned=false}={}){
  const state={members:structuredClone(members),invitations:[],shares:[],
   projectRoles:[
    {member_id:ownerId,user_id:'user-owner',org_role:'admin',
@@ -85,7 +85,8 @@ function fixture({kind='org',members=[owner,staff],failWrite=false,foreign=false
    audit.push({...x,kind:'complete'});
    for(const v of reserved.values())if(v.orgId===x.orgId)v.confirmed=x.confirmed;
   },
-  getProtectedResources:async()=>[]
+  getProtectedResources:async()=>[],
+  getProjectAppOwnership:async()=>({verified:true,appOwned})
  };
  const connection={neonOrg:org,profile:'full',mode:'preview'};
  return {context:{connection,db,env},ops,state,audit,reserved};
@@ -184,6 +185,24 @@ describe('O-1 audited member and access writes',()=>{
    projectId:project,email:'new@example.test',confirm:true},foreign.context));
   expect(denied.done).toBe(false);expect(foreign.ops.some(x=>x.write)).toBe(false);
  });
+
+ it('respects real B-2/B-4 and verified app ownership; outsideApp never bypasses protected self',async()=>{
+  const owned=fixture({appOwned:true});
+  const args={projectId:project,email:'tenant@example.test',confirm:true};
+  const denied=result(await handlers.neon_access_share_project(args,owned.context));
+  expect(denied).toMatchObject({done:false,code:'refused_by_guard'});
+  expect(owned.ops.some(x=>x.write)).toBe(false);
+  const allowed=result(await handlers.neon_access_share_project(
+   {...args,outsideApp:true},owned.context));
+  expect(allowed.confirmed).toBe(true);
+
+  const self=fixture();
+  self.context.env.NEON_MCP_SELF_PROJECT_ID=project;
+  const blocked=result(await handlers.neon_access_share_project({
+   ...args,outsideApp:true},self.context));
+  expect(blocked).toMatchObject({done:false,code:'refused_by_guard'});
+  expect(self.ops.every(x=>!x.write)).toBe(true);
+ });
  it('an unknown transport outcome stays pending, never retries mutations',async()=>{
   const f=fixture({failWrite:true}),args={memberId:staffId,role:'editor',confirm:true};
   const first=result(await handlers.neon_member_set_role(args,f.context));
@@ -197,8 +216,8 @@ describe('O-1 audited member and access writes',()=>{
    {profile:'read_only'}]){
    const f=fixture();
    const c={...f.context,connection:{...f.context.connection,...update}};
-   expect(()=>handlers.neon_member_set_role({
-    memberId:staffId,role:'editor',confirm:true},c)).toThrow(
+   await expect(handlers.neon_member_set_role({
+    memberId:staffId,role:'editor',confirm:true},c)).rejects.toThrow(
      /Full owner organization access/);
    expect(f.ops.some(x=>x.write)).toBe(false);
   }
