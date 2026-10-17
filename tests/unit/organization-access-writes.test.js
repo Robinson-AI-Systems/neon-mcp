@@ -86,10 +86,12 @@ function fixture({kind='org',members=[owner,staff],failWrite=false,foreign=false
    for(const v of reserved.values())if(v.orgId===x.orgId)v.confirmed=x.confirmed;
   },
   getProtectedResources:async()=>[],
+  getSpendPolicy:async()=>({perChangeCents:0,perDayCents:0}),
+  getPricing:async()=>null,
   getProjectAppOwnership:async()=>({verified:true,appOwned})
  };
  const connection={neonOrg:org,profile:'full',mode:'preview'};
- return {context:{connection,db,env},ops,state,audit,reserved};
+ return {context:{connection,db,env:{...env}},ops,state,audit,reserved};
 }
 beforeEach(()=>{sim.getClient=null;sim.read=null;sim.call=null});
 describe('O-1 audited member and access writes',()=>{
