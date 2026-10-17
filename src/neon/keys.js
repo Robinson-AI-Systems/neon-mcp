@@ -114,6 +114,34 @@ export function createKeyVault({db,env=process.env,fetch}={}) {
     }
     return {id:saved.id,orgId,kind,projectId,last4:key.slice(-4),reach};
   }
+  // A generated key can replace the server credential without a window with no key.
+  // The prior provider token remains valid until separately, explicitly revoked.
+  async function storeOrRotateKey({orgId,kind,projectId=null,key,label,providerKeyId}) {
+    if(!orgId || !VALID_KINDS.has(kind) || (kind==='project')!==Boolean(projectId) ||
+       !Number.isSafeInteger(providerKeyId)||providerKeyId<1)
+      throw new KeySetupError('invalid_scope');
+    if(isPreview()&&kind!=='project')
+      throw Error('Owner key enrollment is unavailable on preview');
+    if(typeof key!=='string'||!key.startsWith('napi_')||key.length<24)
+      throw new KeySetupError('invalid_key');
+    const reach=await verify({key,orgId,projectId,kind});
+    const storedReach={...reach,providerKeyId};
+    const encrypted=encryptSecret(key,{env,context:aad(orgId,kind,projectId)});
+    const current=await db.getEncryptedNeonKey({orgId,kind,projectId});
+    if(current) {
+      if(typeof db.rotateEncryptedNeonKey!=='function')
+        throw Error('Atomic credential rotation unavailable');
+      const moved=await db.rotateEncryptedNeonKey({orgId,kind,projectId,
+        expectedVaultId:current.id,expectedKeyEnc:current.key_enc,
+        keyEnc:encrypted,last4:key.slice(-4),label,reach:storedReach});
+      if(!moved)throw Error('Server credential changed during rotation');
+      return {id:current.id,rotated:true,kind,projectId};
+    }
+    await db.saveNeonOrg({orgId,label:orgId});
+    const fresh=await db.saveEncryptedNeonKey({orgId,kind,projectId,
+      keyEnc:encrypted,last4:key.slice(-4),label,reach:storedReach});
+    return {id:fresh.id,rotated:false,kind,projectId};
+  }
   async function keyFor({orgId,projectId=null,need='project'}) {
     if(!orgId || !['project','org','personal'].includes(need)) throw new TypeError('Invalid key selection');
     if(need!=='project' && isPreview()) return {missing:'Organization-wide key access is disabled on preview.'};
@@ -156,5 +184,5 @@ export function createKeyVault({db,env=process.env,fetch}={}) {
     }
     return {checked:keys.length,keys};
   }
-  return {storeKey,keyFor,listKeys,revokeKey,checkStoredKeyAccess};
+  return {storeKey,storeOrRotateKey,keyFor,listKeys,revokeKey,checkStoredKeyAccess};
 }
