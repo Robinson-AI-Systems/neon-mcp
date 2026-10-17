@@ -242,7 +242,6 @@ export function createDb(sql = productionSql()) {
       if(!orgId||!['personal','organization'].includes(kind)||
         !Number.isSafeInteger(providerKeyId)||providerKeyId<1)
         throw new TypeError('Invalid provider-key identity verification');
-      const scope=kind==='personal'?'personal':'org';
       const rows=kind==='personal'
         ? await sql`SELECT id FROM neon_keys WHERE kind = 'personal'
              AND revoked_at IS NULL AND (
