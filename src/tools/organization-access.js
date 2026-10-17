@@ -97,6 +97,32 @@ function permissionInfo(row){
   // Legacy permission is not the new project-role API: don't invent a role.
   role:row.role??null};
 }
+
+/** New per-project role API; never substitute deprecated email sharing. */
+export async function projectRoles(client,projectId,{read=projectRead}={}){
+ const data=await read(client,'listProjectMembers',{path:{project_id:projectId}});
+ const raw=data?.members??data?.project_members;
+ if(!Array.isArray(raw)||raw.length>500)
+  throw Error('Neon project-member role inventory unavailable or incomplete');
+ const seen=new Set();
+ return raw.map(x=>{
+  const memberId=x?.member_id??x?.id;
+  if(typeof memberId!=='string'||!memberId||typeof x?.user_id!=='string'||
+     !['admin','editor','member','viewer','collaborator'].includes(x.org_role)||
+     (x.project_role!=null&&!['admin','editor','viewer'].includes(x.project_role))||
+     !['VIEWER','EDITOR','ADMIN'].includes(x.effective_project_permission)||
+     seen.has(memberId))
+    throw Error('Neon project member permissions could not be verified');
+  seen.add(memberId);
+  return {memberId,userId:x.user_id,orgRole:x.org_role,
+   projectRole:x.project_role??null,orgDefault:x.org_default_project_permission??null,
+   explicitPermission:x.explicit_project_permission??null,
+   effectivePermission:x.effective_project_permission,
+   credentialRotationRecommended:x.credential_rotation_recommended===true,
+   orgKeyRotationRecommended:x.org_api_key_rotation_recommended===true};
+ });
+}
+
 export function createOrganizationAccessReadHandlers({
  getClient=projectClient,read=projectRead
 }={}){
@@ -145,9 +171,8 @@ export function createOrganizationAccessReadHandlers({
     seen.add(p.id);return p;
    });
    if(permissions.length>500)throw Error('Too many project shares for a complete inventory');
-   return readText({projectId,legacyShares:permissions,
-    projectMemberRoles:{state:'not_evaluated',
-     reason:'Legacy sharing API is not the newer project-role grant inventory'}});
+   const members=await projectRoles(client,projectId,{read});
+   return readText({projectId,legacyShares:permissions,projectMemberRoles:members});
   }
  };
 }
