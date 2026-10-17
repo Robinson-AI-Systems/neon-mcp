@@ -14,7 +14,7 @@ vi.mock('../../src/neon/client.js',async original=>{
 });
 vi.mock('../../src/neon/project-write-context.js',()=>({
  createProjectWriteContext:async ctx=>({...ctx,
-  deploymentEnv:ctx.env.VERCEL_ENV,writeKey:(name,args)=>'rmcp_'+name+'_'+(args.requestKey??'testrequest123'),
+  deploymentEnv:ctx.env.VERCEL_ENV,writeKey:(name,args)=>'rmcp_'+name+'_'+(args.requestKey??'testrequest123').toLowerCase(),
   guards:state.guards})
 }));
 vi.mock('../../src/neon/keys.js',async original=>{
@@ -26,8 +26,9 @@ import {handlers as keys,tools as keyTools} from '../../src/tools/owner-key-writ
 import {handlers as transfers,tools as transferTools} from '../../src/tools/owner-transfers.js';
 
 const org='org-scratch',project='proj-scratch',dest='org-destination';
+const fakeEncryptionKey=Buffer.alloc(32,17).toString('base64url');
 const env={VERCEL_ENV:'production',PUBLIC_BASE_URL:'https://neon-mcp.example.test',
- TOKEN_ENCRYPTION_KEY:Buffer.alloc(32,17).toString('base64url'),
+ TOKEN_ENCRYPTION_KEY:fakeEncryptionKey,
  NEON_MCP_SELF_ORG_ID:org,NEON_MCP_SELF_PROJECT_ID:'proj-self',
  NEON_MCP_SELF_ENDPOINT_HOST:'localhost'};
 const output=value=>JSON.parse(value.content[0].text);
