@@ -197,9 +197,9 @@ describe('O-1 audited member and access writes',()=>{
    {profile:'read_only'}]){
    const f=fixture();
    const c={...f.context,connection:{...f.context.connection,...update}};
-   const denied=result(await handlers.neon_member_set_role({
-    memberId:staffId,role:'editor',confirm:true},c));
-   expect(denied.done).toBe(false);
+   await expect(handlers.neon_member_set_role({
+    memberId:staffId,role:'editor',confirm:true},c)).rejects.toThrow(
+     /Full owner organization access/);
    expect(f.ops.some(x=>x.write)).toBe(false);
   }
  });
