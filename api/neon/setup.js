@@ -62,6 +62,9 @@ function page(message='',p={}) {
   const list=form('list_keys',org());
   const add=form('add_key',org()+input('orgLabel')+input('projectId')+input('key','password')+
     input('label')+'<input type="hidden" name="kind" value="project">');
+  const organization=form('add_org_key',org()+input('orgLabel')+
+    input('key','password')+input('label')+
+    '<input type="hidden" name="kind" value="org">');
   const personal=form('add_personal_key',org()+input('orgLabel')+
     input('personalKey','password')+input('label')+
     '<input type="hidden" name="kind" value="personal">');
@@ -89,6 +92,8 @@ function page(message='',p={}) {
     '<h2>List keys</h2>'+list+'<h2>Add scoped key</h2>'+
     '<p>Save one project-scoped key at a time. Fill the fields below from top to bottom, then select add key. '+
     'This connects Neon MCP to that project; it does not change the application’s database connection.</p>'+add+
+    '<h2>Enroll organization-scoped key</h2>'+
+    '<p>For organization inventory, member role adjustments, and project access. Store a verified organization API key separately from each project key. This is available only on the checked production deployment.</p>'+organization+
     '<h2>Enroll personal organization administrator key</h2>'+
     '<p>Required for Neon organization invitations, membership removal and other personally-authorized API operations. '+
     'This elevated credential must belong to an organization administrator, is checked against the exact selected organization, and cannot be submitted through agent tools. It is unavailable on preview deployments.</p>'+personal+
@@ -163,6 +168,13 @@ export function createSetupHandler({db,vault,exchange,env=process.env,scratchCli
           kind:'project',key:p.key,label:p.label});
         return send(res,200,page('Scoped key stored for '+added.projectId+'; last four '+added.last4),
           'text/html; charset=utf-8');
+      }
+      if(p.action==='add_org_key'){
+        if(p.kind!=='org'||p.projectId)return send(res,400,{error:'organization_key_scope_required'});
+        const added=await vault.storeKey({orgId,orgLabel:p.orgLabel,projectId:null,
+          kind:'org',key:p.key,label:p.label});
+        return send(res,200,page('Verified organization key stored for '+added.orgId+
+          '; last four '+added.last4),'text/html; charset=utf-8');
       }
       if(p.action==='add_personal_key'){
         if(p.kind!=='personal'||p.projectId)return send(res,400,{error:'personal_key_scope_required'});
