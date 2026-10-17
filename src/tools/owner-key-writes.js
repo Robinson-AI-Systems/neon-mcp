@@ -190,7 +190,7 @@ const defs=[
   purpose:{type:'string',pattern:'^[a-z][a-z0-9-]{0,24}$'},
   projectId:id,storeAsServerKey:{type:'boolean'}},['kind','purpose']],
  [revoke,{kind:{type:'string',enum:kindValues},
-  keyId:{type:'integer',minimum:1},replacementVaultId:{type:'string',pattern:'^[1-9][0-9]{0,18}},
+  keyId:{type:'integer',minimum:1},replacementVaultId:{type:'string',pattern:'^[1-9][0-9]{0,18}$'}},
   ['kind','keyId']]
 ];
 export const tools=defs.map(([d,fields,required])=>({...d.tool,profiles:['full'],
