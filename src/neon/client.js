@@ -69,8 +69,23 @@ export function makeNeonClient({ key, orgId, budget, fetch, baseUrl, sleep = DEF
     url: '/projects/{project_id}/jwks/{jwks_id}', path,
     headers: { Authorization: 'Bearer ' + key }
   });
+  // Per-project membership endpoints shipped after our July 2026 vendored spec.
+  // Exact route and argument contracts: Neon 2026 API docs; no arbitrary URL.
+  const projectMembers=path=>sdk.get({
+    url:'/projects/{project_id}/members',path,
+    headers:{Authorization:'Bearer '+key}
+  });
+  const projectMemberRole=(path,body)=>sdk.put({
+    url:'/projects/{project_id}/members/{member_id}/role',path,body,
+    headers:{Authorization:'Bearer '+key}
+  });
+  const removeProjectMemberRole=path=>sdk.delete({
+    url:'/projects/{project_id}/members/{member_id}/role',path,
+    headers:{Authorization:'Bearer '+key}
+  });
   return Object.freeze({ sdk, orgId, budget, sleep, recoverBranch, getProjectJWKS,
-    addProjectJWKS, deleteProjectJWKS });
+    addProjectJWKS, deleteProjectJWKS, projectMembers,projectMemberRole,
+    removeProjectMemberRole });
 }
 
 function safeError(error, fallbackStatus) {
@@ -110,14 +125,24 @@ export async function call(client, operationId, params = {}, {
     typeof raw.addProjectJWKS !== 'function';
   const jwksDelete = operationId === 'deleteProjectJWKS' &&
     typeof raw.deleteProjectJWKS !== 'function';
+  const memberList = operationId==='listProjectMembers'&&
+    typeof raw.listProjectMembers!=='function';
+  const memberPut = operationId==='setProjectMemberRole'&&
+    typeof raw.setProjectMemberRole!=='function';
+  const memberDelete = operationId==='removeProjectMemberRole'&&
+    typeof raw.removeProjectMemberRole!=='function';
   if (!recoverBranch && !jwksRead && !jwksAdd && !jwksDelete &&
+      !memberList && !memberPut && !memberDelete &&
       typeof raw[operationId] !== 'function')
     throw new Error('Neon operation is not supported by the pinned SDK.');
   if (!client?.sdk || typeof client?.budget?.consume !== 'function' ||
       (recoverBranch && typeof client.recoverBranch !== 'function') ||
       (jwksRead && typeof client.getProjectJWKS !== 'function') ||
       (jwksAdd && typeof client.addProjectJWKS !== 'function') ||
-      (jwksDelete && typeof client.deleteProjectJWKS !== 'function'))
+      (jwksDelete && typeof client.deleteProjectJWKS !== 'function') ||
+      (memberList && typeof client.projectMembers !== 'function') ||
+      (memberPut && typeof client.projectMemberRole !== 'function') ||
+      (memberDelete && typeof client.removeProjectMemberRole !== 'function'))
     throw new TypeError('Invalid Neon client');
   if (write && (typeof key !== 'string' || !key)) throw new TypeError('Writes require a request key');
   const deadline = Date.now() + Math.max(0, Math.min(45000, budgetMs));
@@ -134,7 +159,13 @@ export async function call(client, operationId, params = {}, {
             ? await client.addProjectJWKS(params.path, params.body)
             : jwksDelete
               ? await client.deleteProjectJWKS(params.path)
-              : await raw[operationId]({ client: client.sdk, ...params });
+              : memberList
+                ? await client.projectMembers(params.path)
+                : memberPut
+                  ? await client.projectMemberRole(params.path,params.body)
+                  : memberDelete
+                    ? await client.removeProjectMemberRole(params.path)
+                    : await raw[operationId]({ client: client.sdk, ...params });
     } catch (error) {
       result = { error };
     }
