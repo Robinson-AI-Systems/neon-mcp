@@ -14,7 +14,13 @@ const externalProjectWrites=new Set(['neon_project_create','neon_project_rename'
  'neon_database_create','neon_database_update','neon_database_delete',
  'neon_role_create','neon_role_create_read_only',
  'neon_role_delete','neon_role_reset_password','neon_connection_show_once',
- 'neon_sql_stop_query','neon_schema_enable_extension','neon_schema_disable_extension','neon_schema_create_index','neon_schema_drop_index','neon_health_reindex','neon_health_vacuum_analyze','neon_dev_branch_create','neon_dev_cleanup','neon_dev_seed']);
+ 'neon_sql_stop_query','neon_schema_enable_extension','neon_schema_disable_extension','neon_schema_create_index','neon_schema_drop_index','neon_health_reindex','neon_health_vacuum_analyze','neon_dev_branch_create','neon_dev_cleanup','neon_dev_seed',
+ // O-1 and O-2 are user-facing writes: allow only these audited known contracts,
+ // while profile/deployment and each tool's guards still apply.
+ 'neon_member_invite','neon_member_set_role','neon_member_remove',
+ 'neon_access_set_project_role','neon_access_share_project','neon_access_revoke_share',
+ 'neon_apikey_create','neon_apikey_revoke',
+ 'neon_transfer_request_create','neon_transfer_projects_between_orgs']);
 export function isToolAllowed(tool, connection, {productionDeployment=false}={}) {
   if(!tool || !profiles.has(connection?.profile) ||
       !Array.isArray(tool.profiles) || !tool.profiles.includes(connection.profile))return false;
