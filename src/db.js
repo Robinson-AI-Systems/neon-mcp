@@ -225,7 +225,7 @@ export function createDb(sql = productionSql()) {
       expectedKeyEnc,keyEnc,last4,label,reach}) {
       if(!orgId||!['project','org','personal'].includes(kind)||
         (kind==='project')!==Boolean(projectId)||
-        !Number.isSafeInteger(expectedVaultId)||!expectedKeyEnc||!keyEnc||
+        !(Number.isSafeInteger(expectedVaultId)&&expectedVaultId>0 || typeof expectedVaultId==='string'&&/^[1-9][0-9]{0,18}$/.test(expectedVaultId))||!expectedKeyEnc||!keyEnc||
         typeof last4!=='string'||last4.length!==4||!reach?.verified)
         throw new TypeError('Invalid verified credential rotation');
       const rows=await sql`UPDATE neon_keys SET key_enc=${keyEnc},
