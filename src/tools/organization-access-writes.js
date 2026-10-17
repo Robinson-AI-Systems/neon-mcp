@@ -63,9 +63,9 @@ async function projectAccess(args,ctx){
  const p=(await projectRead(i.client,'getProject',{path:{project_id:projectId}}))?.project;
  if(p?.id!==projectId||p.org_id!==i.org)throw Error('Project identity mismatch');
  const data=await projectRead(i.client,'listProjectPermissions',{path:{project_id:projectId}});
- if(!Array.isArray(data?.permissions)||data.permissions.length>500)
+ if(!Array.isArray(data?.project_permissions)||data.project_permissions.length>500)
   throw Error('Project access inventory incomplete');
- const permissions=data.permissions.map(x=>{
+ const permissions=data.project_permissions.map(x=>{
   const email=x?.granted_to_email??x?.email;
   if(typeof x?.id!=='string'||!x.id||typeof email!=='string')
    throw Error('Unverified project share');
