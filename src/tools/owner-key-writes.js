@@ -210,23 +210,3 @@ export const handlers=Object.fromEntries(defs.map(([d])=>[d.tool.name,
   }
   return result;
  }]));
-}},
-  ['kind','keyId']]
-];
-export const tools=defs.map(([d,fields,required])=>({...d.tool,profiles:['full'],
- area:'owner',audience:['owner'],
- description:d===create?'Create a verified scoped Neon API key with one-time owner delivery or encrypted server rotation.':
-  'Revoke one exact provider API key only after checking active server credentials and replacement.',
- secretRoute:d===create?'/api/neon/setup':undefined,oneTimeOnly:d===create,
- inputSchema:props(fields,required)}));
-export const handlers=Object.fromEntries(defs.map(([d])=>[d.tool.name,
- async(a,ctx)=>{
-  const trusted=await contextFor(ctx);
-  const result=await d.handler(a,trusted);
-  if(d===create&&trusted.ownerKeyOneTime){
-   const body=JSON.parse(result.content[0].text);
-   if(body.confirmed===true)
-    result.content[0].text=JSON.stringify({...body,oneTimeSecretLink:trusted.ownerKeyOneTime});
-  }
-  return result;
- }]));
