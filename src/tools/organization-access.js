@@ -41,7 +41,8 @@ async function orgClient(ctx,getClient){
  }
  if(selected?.scope?.org!==org||selected?.scope?.scoped)
   throw Error('Neon organization credential scope could not be verified');
- return {org,client:selected.client};
+ return {org,client:selected.client,credentialKind:selected.credentialKind,
+  ownerUserId:selected.credentialOwnerUserId??null};
 }
 function collection(value,key){
  if(!value||!Array.isArray(value[key]))throw Error('Incomplete Neon '+key+' inventory');
@@ -64,13 +65,13 @@ function invitationInfo(row,org){
  return {id:row.id,email:row.email,role:row.role,
   invitedAt:row.invited_at??null,acceptedAt:row.accepted_at??null};
 }
-async function members(client,org,limit){
+export async function members(client,org,limit,{read=projectRead}={}){
  const all=[],seenIds=new Set(),seenCursors=new Set();
  let cursor=null;
  for(let i=0;i<MAX_PAGES;i++){
   const query={limit:Math.min(500,limit-all.length)};
   if(cursor)query.cursor=cursor;
-  const data=await projectRead(client,'getOrganizationMembers',{
+  const data=await read(client,'getOrganizationMembers',{
    path:{org_id:org},query});
   for(const row of collection(data,'members')){
    const m=memberInfo(row,org);
@@ -89,9 +90,10 @@ async function members(client,org,limit){
 }
 function permissionInfo(row){
  if(!row||typeof row!=='object'||typeof row.id!=='string'||!row.id||
-   typeof row.email!=='string'||!row.email.includes('@'))
+   typeof (row.granted_to_email??row.email)!=='string'||
+   !(row.granted_to_email??row.email).includes('@'))
   throw Error('Invalid project share identity');
- return {id:row.id,email:row.email,grantedAt:row.granted_at??null,
+ return {id:row.id,email:row.granted_to_email??row.email,grantedAt:row.granted_at??null,
   // Legacy permission is not the new project-role API: don't invent a role.
   role:row.role??null};
 }
@@ -114,7 +116,7 @@ export function createOrganizationAccessReadHandlers({
    if(!Number.isInteger(max)||max<1||max>MAX_MEMBERS)
     throw Error('Invalid member list limit');
    // The helper's real data path uses projectRead to preserve error shaping.
-   const list=await members(client,org,max);
+   const list=await members(client,org,max,{read});
    let invitations=null;
    if(args.includeInvitations===true){
     const data=await read(client,'getOrganizationInvitations',{path:{org_id:org}});
