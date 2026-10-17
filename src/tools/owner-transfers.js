@@ -45,7 +45,7 @@ async function projectFacts(ctx,projectId,selectedClient){
   query:{org_id:org,search:projectId,limit:100}});
  const projects=discover?.projects??[];
  if(!Array.isArray(projects)||discover?.pagination?.cursor||
-   discover?.unavailable?.length||projects.filter(x=>x.id===projectId&&x.org_id===org).length!==1)
+   discover?.unavailable_project_ids?.length||projects.filter(x=>x.id===projectId&&x.org_id===org).length!==1)
   throw Error('Project inventory incomplete before ownership transfer');
  const integrations=discover.integrations?.[projectId];
  const applications=discover.applications?.[projectId];
@@ -70,7 +70,7 @@ async function verifyDestination(ctx,dest,neon){
  if(!members.members.some(x=>{
   const member=x.member??x;
   return member.org_id===dest&&member.user_id===user.id&&
-    ['admin','editor','member'].includes(member.role);
+    member.role==='admin';
  }))throw Error('Personal administrator does not have verified destination membership');
  return dest;
 }
@@ -165,9 +165,9 @@ const between=defineWrite({name:'neon_transfer_projects_between_orgs',
  key:'org',projectWide:true,access:true,destructive:true,
  plan:async(a,c)=>{
   if(!Array.isArray(a.projectIds)||a.projectIds.length<1||
-    a.projectIds.length>25||new Set(a.projectIds).size!==a.projectIds.length||
+    a.projectIds.length>8||new Set(a.projectIds).size!==a.projectIds.length||
     a.projectIds.some(x=>!ID.test(x??'')))
-   throw Error('Select 1–25 distinct projects from this organization');
+   throw Error('Select 1–8 distinct projects from this organization');
   const neon=await client(c,'personal');
   const destination=await verifyDestination(c,a.destinationOrgId,neon);
   const projects=[];
@@ -207,7 +207,7 @@ const between=defineWrite({name:'neon_transfer_projects_between_orgs',
 });
 const defs=[
  [request,{projectId:id,ttlSeconds:{type:'integer',minimum:60,maximum:604800}},['projectId']],
- [between,{projectIds:{type:'array',minItems:1,maxItems:25,uniqueItems:true,
+ [between,{projectIds:{type:'array',minItems:1,maxItems:8,uniqueItems:true,
   items:id},destinationOrgId:id},['projectIds','destinationOrgId']]
 ];
 export const tools=defs.map(([d,fields,required])=>({...d.tool,

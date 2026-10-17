@@ -30,8 +30,8 @@ async function selected(ctx,kind){
   throw Error('Verified administrator credential unavailable for this key scope');
  return {org,client:result.client};
 }
-async function providerInventory(ctx,kind){
- const {org,client}=await selected(ctx,kind);
+async function providerInventory(ctx,kind,{adminWrite=false}={}){
+ const {org,client}=await selected(ctx,adminWrite?'personal':kind);
  const result=await projectRead(client,kind==='personal'?'listApiKeys':'listOrgApiKeys',
   kind==='personal'?{}:{path:{org_id:org}});
  if(!Array.isArray(result)||result.length>1000||
@@ -84,7 +84,7 @@ const create=defineWrite({name:'neon_apikey_create',key:'org',access:true,secret
    const p=(await projectRead(client,'getProject',{path:{project_id:a.projectId}}))?.project;
    if(p?.id!==a.projectId||p.org_id!==org)throw Error('Key target outside organization');
   }
-  const keys=await providerInventory(c,a.kind);
+  const keys=await providerInventory(c,a.kind,{adminWrite:true});
   const name='robinson-neon-mcp-'+a.purpose+'-'+new Date().toISOString().slice(0,10);
   if(name.length>64)throw Error('Generated key name exceeds provider limit');
   return {target:'org:'+org+':create-key:'+a.kind+':'+name+':'+(a.projectId??'all'),
@@ -96,7 +96,7 @@ const create=defineWrite({name:'neon_apikey_create',key:'org',access:true,secret
     '. API keys grant ongoing access until revoked.'};
  },
  apply:async(a,c,{before,requestKey})=>{
-  const inv=await providerInventory(c,a.kind);
+  const inv=await providerInventory(c,a.kind,{adminWrite:true});
   if(inv.rows.length!==before.count||inv.org!==before.org)
    throw Error('Key inventory changed since preview');
   const params=a.kind==='personal'?{body:{key_name:before.name}}:
@@ -109,7 +109,7 @@ const create=defineWrite({name:'neon_apikey_create',key:'org',access:true,secret
   if(!Number.isSafeInteger(created?.id)||created.id<1||
      typeof created.key!=='string'||!created.key.startsWith('napi_'))
    return {confirmed:'pending'};
-  const after=await providerInventory(c,a.kind);
+  const after=await providerInventory(c,a.kind,{adminWrite:true});
   if(!after.rows.some(x=>x.id===created.id && x.name===before.name))
    return {confirmed:'pending'};
   if(a.storeAsServerKey===true){
@@ -127,7 +127,7 @@ const create=defineWrite({name:'neon_apikey_create',key:'org',access:true,secret
   c.createdProviderKeyId=created.id;
   return {confirmed:true};
  },
- readAfter:async(a,c)=>providerInventory(c,a.kind),
+ readAfter:async(a,c)=>providerInventory(c,a.kind,{adminWrite:true}),
  verify:(b,after,_a,c)=>after.org===b.org&&after.rows.some(x=>
   x.id===c.createdProviderKeyId&&x.name===b.name)
 });
@@ -143,6 +143,11 @@ const revoke=defineWrite({name:'neon_apikey_revoke',key:'org',access:true,
   if(active.some(x=>x.reach?.providerKeyId===a.keyId &&
        (a.kind==='personal'?x.kind==='personal':x.kind!=='personal')))
    throw Error('Cannot revoke an API key actively used by this server');
+  // Legacy server credentials lack provider IDs. Never guess their identity:
+  // revocation is denied until they are rotated to an independently tracked key.
+  if(active.some(x=>!Number.isSafeInteger(x.reach?.providerKeyId)&&
+    (a.kind==='personal'?x.kind==='personal':x.kind!=='personal')))
+   throw Error('A server key of this kind has unknown provider identity; rotate it to a verified tracked replacement before revocation');
   if(key.name.startsWith('robinson-neon-mcp-')){
    if(!Number.isSafeInteger(a.replacementVaultId)||
      !active.some(x=>x.id===a.replacementVaultId&&
@@ -162,7 +167,10 @@ const revoke=defineWrite({name:'neon_apikey_revoke',key:'org',access:true,
   if(inv.org!==before.org||inv.rows.find(x=>x.id===before.id)?.name!==before.name)
    throw Error('API key changed since approval');
   const active=await localKeys(c,inv.org);
-  if(active.some(x=>x.reach?.providerKeyId===before.id))throw Error('Server uses key');
+  if(active.some(x=>x.reach?.providerKeyId===before.id||
+    (!Number.isSafeInteger(x.reach?.providerKeyId)&&
+     (a.kind==='personal'?x.kind==='personal':x.kind!=='personal'))))
+   throw Error('Server key identity is active or unknown; refusing potential lockout');
   if(before.name.startsWith('robinson-neon-mcp-')&&
    !active.some(x=>x.id===before.replacementVaultId&&
     x.reach?.verified===true&&x.reach?.providerKeyId!==before.id))
