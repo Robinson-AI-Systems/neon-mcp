@@ -139,7 +139,7 @@ export function createOrganizationAccessReadHandlers({
     throw Error('Project identity could not be verified');
    const result=await read(client,'listProjectPermissions',{path:{project_id:projectId}});
    const seen=new Set();
-   const permissions=collection(result,'permissions').map(row=>{
+   const permissions=collection(result,'project_permissions').map(row=>{
     const p=permissionInfo(row);
     if(seen.has(p.id))throw Error('Duplicate project share');
     seen.add(p.id);return p;
