@@ -115,6 +115,15 @@ export function createFakeDb({ clock = () => Date.now(), orgs = [] } = {}) {
        checked_at:new Date()});
       return true;
     },
+    async hasActiveServerProviderKey({orgId,kind,providerKeyId}) {
+      if(!orgId||!['personal','organization'].includes(kind)||
+       !Number.isSafeInteger(providerKeyId)||providerKeyId<1)
+       throw TypeError('Invalid provider key check');
+      return keys.some(k=>!k.revoked_at &&
+       (kind==='personal'?k.kind==='personal':
+        k.org_id===orgId&&['org','project'].includes(k.kind)) &&
+       (k.reach?.providerKeyId==null||k.reach.providerKeyId===providerKeyId));
+    },
     async listNeonKeySummaries(orgId) {
       return structuredClone(keys.filter(v=>v.org_id===orgId).map(({key_enc:_cipher,...rest})=>rest));
     },

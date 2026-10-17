@@ -235,6 +235,27 @@ export function createDb(sql = productionSql()) {
         AND key_enc=${expectedKeyEnc} AND revoked_at IS NULL RETURNING id`;
       return rows.length===1;
     },
+    // Personal API keys can be enrolled for several organizations. An account-wide
+    // provider revoke must search all stored personal scopes, not only one org.
+    // Legacy rows lack providerKeyId and are therefore ambiguous, never safe to revoke.
+    async hasActiveServerProviderKey({orgId,kind,providerKeyId}) {
+      if(!orgId||!['personal','organization'].includes(kind)||
+        !Number.isSafeInteger(providerKeyId)||providerKeyId<1)
+        throw new TypeError('Invalid provider-key identity verification');
+      const scope=kind==='personal'?'personal':'org';
+      const rows=kind==='personal'
+        ? await sql`SELECT id FROM neon_keys WHERE kind = 'personal'
+             AND revoked_at IS NULL AND (
+             reach->>'providerKeyId' IS NULL OR
+             reach->>'providerKeyId' = ${String(providerKeyId)})
+             LIMIT 1`
+        : await sql`SELECT id FROM neon_keys WHERE org_id=${orgId}
+             AND kind IN ('org','project') AND revoked_at IS NULL AND (
+             reach->>'providerKeyId' IS NULL OR
+             reach->>'providerKeyId' = ${String(providerKeyId)})
+             LIMIT 1`;
+      return rows.length>0;
+    },
     async listNeonKeySummaries(orgId) {
       return await sql`SELECT id, org_id, kind, project_id, last4, label, reach,
         added_at, checked_at, revoked_at FROM neon_keys WHERE org_id = ${orgId}

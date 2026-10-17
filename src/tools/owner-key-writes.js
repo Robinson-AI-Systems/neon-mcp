@@ -52,9 +52,13 @@ async function contextFor(ctx){
  const trusted=await createProjectWriteContext(ctx,{keyNeed:'org'});
  const guard=trusted.guards;
  return {...trusted,guards:{
-  checkProtected:async()=>true,
-  checkApp:async()=>true,
-  checkProduction:async()=>({allowed:true,production:false}),
+  checkProtected:async(target,c)=>target.projectId?
+   guard.checkProtected(target,c):true,
+  checkApp:async(target,c,args)=>target.projectId?
+   guard.checkApp(target,c,args):true,
+  checkProduction:async(target,c,tool)=>target.projectId?
+   guard.checkProduction(target,c,{...tool,projectWide:true}):
+    {allowed:true,production:false},
   checkSpend:guard.checkSpend
  }};
 }
@@ -88,6 +92,7 @@ const create=defineWrite({name:'neon_apikey_create',key:'org',access:true,secret
   const name='robinson-neon-mcp-'+a.purpose+'-'+new Date().toISOString().slice(0,10);
   if(name.length>64)throw Error('Generated key name exceeds provider limit');
   return {target:'org:'+org+':create-key:'+a.kind+':'+name+':'+(a.projectId??'all'),
+   projectId:a.projectId??null,
    before:{org,name,scope,projectId:a.projectId??null,count:keys.rows.length},
    summary:'Create '+a.kind+' API key '+name+' for '+org+
     (a.projectId?' limited to '+a.projectId:'')+
@@ -140,6 +145,10 @@ const revoke=defineWrite({name:'neon_apikey_revoke',key:'org',access:true,
   const key=inv.rows.find(x=>x.id===a.keyId);
   if(!key)throw Error('Provider key does not exist');
   const active=await localKeys(c,inv.org);
+  if(typeof c.db.hasActiveServerProviderKey!=='function'||
+     await c.db.hasActiveServerProviderKey({orgId:inv.org,kind:a.kind,
+      providerKeyId:a.keyId}))
+   throw Error('Provider key is active or unverified anywhere in the server credential vault');
   if(active.some(x=>x.reach?.providerKeyId===a.keyId &&
        (a.kind==='personal'?x.kind==='personal':x.kind!=='personal')))
    throw Error('Cannot revoke an API key actively used by this server');
@@ -167,6 +176,10 @@ const revoke=defineWrite({name:'neon_apikey_revoke',key:'org',access:true,
   if(inv.org!==before.org||inv.rows.find(x=>x.id===before.id)?.name!==before.name)
    throw Error('API key changed since approval');
   const active=await localKeys(c,inv.org);
+  if(typeof c.db.hasActiveServerProviderKey!=='function'||
+     await c.db.hasActiveServerProviderKey({orgId:inv.org,kind:a.kind,
+      providerKeyId:before.id}))
+   throw Error('Potential server credential revocation is refused');
   if(active.some(x=>x.reach?.providerKeyId===before.id||
     (!Number.isSafeInteger(x.reach?.providerKeyId)&&
      (a.kind==='personal'?x.kind==='personal':x.kind!=='personal'))))

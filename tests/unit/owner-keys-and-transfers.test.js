@@ -163,6 +163,27 @@ describe('O-2 verified scoped owner keys',()=>{
   expect(reply.done).toBe(false);
   expect(f.events.filter(x=>x[0]==='write')).toHaveLength(0);
  });
+ it('blocks account-wide revoke when another organization uses the same personal key',async()=>{
+  const f=fixture();
+  f.stats.personal.push({id:39,name:'cross-org-personal',
+   created_at:'2026-02-01T00:00:00Z'});
+  await f.db.saveEncryptedNeonKey({orgId:'org-other',kind:'personal',
+   keyEnc:'synthetic-ciphertext',last4:'1234',label:'some other organization',
+   reach:{verified:true,providerKeyId:39}});
+  const result=output(await keys.neon_apikey_revoke({kind:'personal',keyId:39,
+   confirm:true,requestKey:'crossorg01'},f.ctx));
+  expect(result.done).toBe(false);
+  expect(f.events.filter(x=>x[0]==='write')).toHaveLength(0);
+ });
+ it('refuses project-scoped key creation on protected or app-managed projects',async()=>{
+  const f=fixture();
+  for(const projectId of ['proj-blocked','proj-app']){
+   const result=output(await keys.neon_apikey_create({kind:'organization',
+    purpose:'controlled',projectId,confirm:true,requestKey:'protected01'},f.ctx));
+   expect(result.done).toBe(false);
+  }
+  expect(f.events.filter(x=>x[0]==='write')).toHaveLength(0);
+ });
  it('rechecks verified provider ID, audits confirmed revoke, never replays',async()=>{
   const f=fixture();f.stats.organization.push({id:18,name:'external-key',
    created_at:'2026-01-01T00:00:00Z'});
