@@ -125,7 +125,7 @@ export function createKeyVault({db,env=process.env,fetch}={}) {
       row=await db.getEncryptedNeonKey({orgId,kind:'personal'});
     if(!row) return {missing:'Add a scoped Neon key for this project on the setup page.'};
     return {key:decryptSecret(row.key_enc,{env,context:aad(row.org_id,row.kind,row.project_id)}),
-      kind:row.kind,ownerUserId:row.reach?.ownerUserId??null};
+      kind:row.kind,...(row.kind==='personal'?{ownerUserId:row.reach?.ownerUserId??null}:{})};
   }
   async function listKeys(orgId) { return db.listNeonKeySummaries(orgId); }
   async function revokeKey({orgId,id}) {return db.revokeNeonKey({orgId,id});}
