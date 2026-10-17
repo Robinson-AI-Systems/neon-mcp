@@ -1,17 +1,17 @@
 // O-1: provider-supported organization membership and legacy access writes.
 // Account-level effects use B-1 durable audit/confirmation, not a guessed production flag.
 import {defineWrite} from '../core/write.js';
-import {requestKey,call} from '../neon/client.js';
+import {call} from '../neon/client.js';
+import {createProjectWriteContext} from '../neon/project-write-context.js';
 import {projectClient,projectRead,projectScope} from './project-context.js';
 import {members,projectRoles} from './organization-access.js';
-import {configuredSelfResource} from '../core/self-resource.js';
-import {checkProtectedTarget} from '../core/protected-resources.js';
 
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const orgId=/^[a-z0-9-]{1,60}$/;
 const roles=new Set(['admin','editor','member','viewer','collaborator']);
 const schema=(properties,required=[])=>({type:'object',properties,required,additionalProperties:false});
-const base={dryRun:{type:'boolean'},confirm:{type:'boolean'},requestKey:{type:'string',minLength:8,maxLength:128}};
+const base={dryRun:{type:'boolean'},confirm:{type:'boolean'},outsideApp:{type:'boolean'},
+ requestKey:{type:'string',minLength:8,maxLength:128}};
 const id={type:'string',pattern:'^[a-z0-9-]{1,60}$'};
 const uid={type:'string',format:'uuid'};
 const emailProp={type:'string',format:'email',maxLength:256};
@@ -110,21 +110,22 @@ async function change(operationId,params,ctx,requestKeyValue){
  if(result.error)return {confirmed:result.error.code==='unknown_outcome'?'pending':false};
  return {confirmed:result.confirmed===true?true:'pending'};
 }
-function writeContext(ctx){
+async function writeContext(ctx){
+ // Project access modifies an entire project's permissions. Delegate B-2,
+ // protected-target, app-ownership (including outsideApp), and B-4 guards to
+ // the repository's canonical server-owned context. No Boolean stubs.
  selection(ctx);
- return {...ctx,deploymentEnv:ctx.env?.VERCEL_ENV,
-  connectionId:ctx.connection?.clientId??ctx.connection?.client_id??null,
-  selfProject:configuredSelfResource(ctx.env),
-  writeKey:(name,args)=>requestKey({neonOrg:selection(ctx)},name,args),
-  guards:{
-   checkProtected:async(target,c)=>target.projectId?
-     checkProtectedTarget(target,c):true,
-   // O-1 ACL changes do not themselves mutate database data. They still
-   // require the independent B-1 access confirmation and current identity proof.
-   checkProduction:async()=>({allowed:true,production:false}),
-   checkApp:async()=>true,
-   checkSpend:async()=>true
-  }};
+ const canonical=await createProjectWriteContext(ctx,{keyNeed:'org'});
+ const projectGuards=canonical.guards;
+ return {...canonical,guards:{
+  checkProtected:(target,c)=>target.projectId?
+    projectGuards.checkProtected(target,c):true,
+  checkProduction:(target,c,tool)=>target.projectId?
+    projectGuards.checkProduction(target,c,tool):{allowed:true,production:false},
+  checkApp:(target,c,args)=>target.projectId?
+    projectGuards.checkApp(target,c,args):true,
+  checkSpend:projectGuards.checkSpend
+ }};
 }
 const memberRole=defineWrite({
  name:'neon_member_set_role',key:'org',access:true,productionEffect:'none',
@@ -194,7 +195,8 @@ const memberInvite=defineWrite({
     after.invites.some(i=>i.email.toLowerCase()===v.email&&i.role===v.role))
 });
 const share=defineWrite({
- name:'neon_access_share_project',key:'org',access:true,productionEffect:'none',
+ name:'neon_access_share_project',key:'org',access:true,projectWide:true,
+ productionEffect:'none',
  plan:async(a,c)=>{
   const i=await projectAccess(a,c),email=safeEmail(a.email);
   if(i.permissions.some(p=>p.email===email))throw Error('Project share already exists');
@@ -215,7 +217,8 @@ const share=defineWrite({
   after.permissions.length===before.permissions.length+1
 });
 const revokeShare=defineWrite({
- name:'neon_access_revoke_share',key:'org',access:true,destructive:true,productionEffect:'none',
+ name:'neon_access_revoke_share',key:'org',access:true,destructive:true,
+ projectWide:true,productionEffect:'none',
  plan:async(a,c)=>{
   const i=await projectAccess(a,c);
   const p=i.permissions.find(p=>p.id===a.permissionId);
@@ -308,5 +311,5 @@ export const tools=defs.map(([d,fields,required])=>({...d.tool,profiles,area:'ow
   neon_access_set_project_role:'Preview and confirm exact per-project member role or return to organization defaults.'
  }[d.tool.name],inputSchema:schema({...fields,...base},required)}));
 export const handlers=Object.fromEntries(defs.map(([d])=>[
- d.tool.name,(a,c)=>d.handler(a,writeContext(c))
+ d.tool.name,async(a,c)=>d.handler(a,await writeContext(c))
 ]));
