@@ -5,8 +5,8 @@ import {createKeyVault} from '../../src/neon/keys.js';
 const org='org-fake-000001';
 const me='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 const key='napi_FAKE_personal_admin_key_payload_abcdefg';
-const env={VERCEL_ENV:'production',
- TOKEN_ENCRYPTION_KEY:Buffer.alloc(32,19).toString('base64url')};
+const fakeKey=n=>Buffer.alloc(32,n).toString('base64url');
+const env={VERCEL_ENV:'production',TOKEN_ENCRYPTION_KEY:fakeKey(19)};
 function userInfo(){return {
  active_seconds_limit:100,id:me,email:'owner@example.test',login:'owner',
  name:'owner',last_name:'test',image:'',projects_limit:10,branches_limit:10,
