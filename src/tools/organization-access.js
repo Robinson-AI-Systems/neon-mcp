@@ -110,7 +110,8 @@ export async function projectRoles(client,projectId,{read=projectRead}={}){
   if(typeof memberId!=='string'||!memberId||typeof x?.user_id!=='string'||
      !['admin','editor','member','viewer','collaborator'].includes(x.org_role)||
      (x.project_role!=null&&!['admin','editor','viewer'].includes(x.project_role))||
-     !['VIEWER','EDITOR','ADMIN'].includes(x.effective_project_permission)||
+     (x.effective_project_permission!=null&&
+      !['VIEWER','EDITOR','ADMIN'].includes(x.effective_project_permission))||
      seen.has(memberId))
     throw Error('Neon project member permissions could not be verified');
   seen.add(memberId);
