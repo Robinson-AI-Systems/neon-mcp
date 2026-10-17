@@ -239,11 +239,11 @@ here need the organization key unless marked otherwise.
 | `neon_access_set_project_role` | Give a member an explicit role on one project, or clear it | C A | Ow | F | O-1 |
 | `neon_access_share_project` | Share a project with someone by email (legacy sharing) | C A | Ow | F | O-1 |
 | `neon_access_revoke_share` | Remove an email share | C | Ow | F | O-1 |
-| `neon_apikey_list` | Personal and organization API keys: names, kind, project, created, last used (never the key) | — | Ow | R | O-2 (source pending verification) |
-| `neon_apikey_create` | New personal, organization or project-scoped key; shown once on the setup page, or stored directly as one of this server's keys | C A S | Ow | F | O-2 (source pending verification) |
-| `neon_apikey_revoke` | Revoke a key at once (refused for a key this server itself uses, unless replaced first) | C D | Ow | F | O-2 (source pending verification) |
-| `neon_transfer_request_create` | Create a request to hand a project to another Neon account (transfer request ID and official recipient instructions on the one-time page; API returns no verified claim URL) | C A Pr S | Ow | F | O-2 (source pending verification) |
-| `neon_transfer_projects_between_orgs` | Move projects from one of your organizations to another | C A Pr | Ow | F | O-2 (source pending verification) |
+| `neon_apikey_list` | Personal and organization API keys: names, kind, project, created, last used (never the key) | — | Ow | R | O-2 (source CI verified in #186; hosted acceptance pending) |
+| `neon_apikey_create` | New personal, organization or project-scoped key; shown once on the setup page, or stored directly as one of this server's keys | C A S | Ow | F | O-2 (source CI verified in #186; hosted acceptance pending) |
+| `neon_apikey_revoke` | Revoke a key at once (refused for a key this server itself uses, unless replaced first) | C D | Ow | F | O-2 (source CI verified in #186; hosted acceptance pending) |
+| `neon_transfer_request_create` | Create a request to hand a project to another Neon account (transfer request ID and official recipient instructions on the one-time page; API returns no verified claim URL) | C A Pr S | Ow | F | O-2 (source CI verified in #186; hosted acceptance pending) |
+| `neon_transfer_projects_between_orgs` | Move projects from one of your organizations to another | C A Pr | Ow | F | O-2 (source CI verified in #186; hosted acceptance pending) |
 | `neon_billing_usage` | Consumption by project or branch for a period (compute hours, storage, history, transfer, extra branches, snapshots) with dollars from the price table and a month-end projection | — | Ow Op | R | O-3 |
 | `neon_billing_get_spending_alert` | The organization's monthly spending alert (Neon emails at 80% and 100%; computes keep running) | — | Ow | R | O-3 |
 | `neon_billing_set_spending_alert` | Set, change or remove the spending alert amount | C | Ow | F | O-3 |
