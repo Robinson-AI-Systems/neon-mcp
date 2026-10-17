@@ -225,7 +225,7 @@ export function createDb(sql = productionSql()) {
         ORDER BY added_at DESC`;
     },
     async getEncryptedNeonKey({ orgId, kind, projectId = null }) {
-      const rows = await sql`SELECT id, key_enc, kind, org_id, project_id FROM neon_keys
+      const rows = await sql`SELECT id, key_enc, kind, org_id, project_id, reach FROM neon_keys
         WHERE org_id = ${orgId} AND kind = ${kind} AND
           COALESCE(project_id, '') = COALESCE(${projectId}, '') AND revoked_at IS NULL
         LIMIT 1`;
