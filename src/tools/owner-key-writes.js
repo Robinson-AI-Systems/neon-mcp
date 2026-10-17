@@ -107,7 +107,7 @@ const create=defineWrite({name:'neon_apikey_create',key:'org',access:true,secret
   if(reply.error)return {confirmed:reply.error.code==='unknown_outcome'?'pending':false};
   const created=reply.data?.api_key??reply.data;
   if(!Number.isSafeInteger(created?.id)||created.id<1||
-     typeof created.key!=='string'||!created.key.startsWith('napi_'))
+     typeof created.key!=='string'||created.key.length<24||created.key.length>512||/\s/.test(created.key))
    return {confirmed:'pending'};
   const after=await providerInventory(c,a.kind,{adminWrite:true});
   if(!after.rows.some(x=>x.id===created.id && x.name===before.name))
@@ -149,8 +149,8 @@ const revoke=defineWrite({name:'neon_apikey_revoke',key:'org',access:true,
     (a.kind==='personal'?x.kind==='personal':x.kind!=='personal')))
    throw Error('A server key of this kind has unknown provider identity; rotate it to a verified tracked replacement before revocation');
   if(key.name.startsWith('robinson-neon-mcp-')){
-   if(!Number.isSafeInteger(a.replacementVaultId)||
-     !active.some(x=>x.id===a.replacementVaultId&&
+   if(!(typeof a.replacementVaultId==='string'&&/^[1-9][0-9]{0,18}$/.test(a.replacementVaultId))||
+     !active.some(x=>String(x.id)===a.replacementVaultId&&
       x.reach?.verified===true&&
       x.reach?.providerKeyId!==a.keyId&&
       (a.kind==='personal'?x.kind==='personal':x.kind!=='personal')))
@@ -172,7 +172,7 @@ const revoke=defineWrite({name:'neon_apikey_revoke',key:'org',access:true,
      (a.kind==='personal'?x.kind==='personal':x.kind!=='personal'))))
    throw Error('Server key identity is active or unknown; refusing potential lockout');
   if(before.name.startsWith('robinson-neon-mcp-')&&
-   !active.some(x=>x.id===before.replacementVaultId&&
+   !active.some(x=>String(x.id)===before.replacementVaultId&&
     x.reach?.verified===true&&x.reach?.providerKeyId!==before.id))
    throw Error('Replacement server key missing');
   const op=a.kind==='personal'?'revokeApiKey':'revokeOrgApiKey';
@@ -190,7 +190,27 @@ const defs=[
   purpose:{type:'string',pattern:'^[a-z][a-z0-9-]{0,24}$'},
   projectId:id,storeAsServerKey:{type:'boolean'}},['kind','purpose']],
  [revoke,{kind:{type:'string',enum:kindValues},
-  keyId:{type:'integer',minimum:1},replacementVaultId:{type:'integer',minimum:1}},
+  keyId:{type:'integer',minimum:1},replacementVaultId:{type:'string',pattern:'^[1-9][0-9]{0,18}},
+  ['kind','keyId']]
+];
+export const tools=defs.map(([d,fields,required])=>({...d.tool,profiles:['full'],
+ area:'owner',audience:['owner'],
+ description:d===create?'Create a verified scoped Neon API key with one-time owner delivery or encrypted server rotation.':
+  'Revoke one exact provider API key only after checking active server credentials and replacement.',
+ secretRoute:d===create?'/api/neon/setup':undefined,oneTimeOnly:d===create,
+ inputSchema:props(fields,required)}));
+export const handlers=Object.fromEntries(defs.map(([d])=>[d.tool.name,
+ async(a,ctx)=>{
+  const trusted=await contextFor(ctx);
+  const result=await d.handler(a,trusted);
+  if(d===create&&trusted.ownerKeyOneTime){
+   const body=JSON.parse(result.content[0].text);
+   if(body.confirmed===true)
+    result.content[0].text=JSON.stringify({...body,oneTimeSecretLink:trusted.ownerKeyOneTime});
+  }
+  return result;
+ }]));
+}},
   ['kind','keyId']]
 ];
 export const tools=defs.map(([d,fields,required])=>({...d.tool,profiles:['full'],
