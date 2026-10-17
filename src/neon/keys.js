@@ -122,7 +122,8 @@ export function createKeyVault({db,env=process.env,fetch}={}) {
       throw new KeySetupError('invalid_scope');
     if(isPreview()&&kind!=='project')
       throw Error('Owner key enrollment is unavailable on preview');
-    if(typeof key!=='string'||!key.startsWith('napi_')||key.length<24)
+    // Verify provider-generated keys rather than assuming one textual prefix.
+    if(typeof key!=='string'||key.length<24||key.length>512||/\s/.test(key))
       throw new KeySetupError('invalid_key');
     const reach=await verify({key,orgId,projectId,kind});
     const storedReach={...reach,providerKeyId};
