@@ -30,6 +30,31 @@ it does not work yet. This file is updated as features ship.
 | "Make a 24-hour read-only pass for Codex." | A pass shown once on your setup page; the agent uses it through Robinson's Toolkit (`rtool`) or the HTTPS API | R |
 | Anything else in Neon | The universal tools find the right Neon operation and run it with the same safety | U |
 
+## Organization membership and project access (O-1 source checkpoint)
+
+Once O-1 is merged **and released**, use a `full` owner connection with
+an organization-scoped or verified personal administrator key to ask your
+connected coding agent to list your members, see invitations and compare
+explicit project member roles with legacy email shares. Project-only keys
+cannot perform organization administration. To allow access changes, enroll
+the elevated key yourself using the passphrase-protected owner setup page;
+the key is encrypted, and the agent never sees it.
+
+To invite or remove organization members, Neon requires a **personal
+administrator API key** verified against that specific organization. Invites
+can cause Neon to send email and existing users may join without a separate
+email. The agent must preview the exact recipients, roles, affected projects,
+and requested change, then receive explicit confirmation. Changing a role,
+sharing a project, and revoking access use the same audited confirmation.
+Last-administrator and verified personal-key-owner self-removal are refused.
+Changes to an app-owned project must also pass existing project/app protection,
+with `outsideApp` never overruling protected infrastructure.
+
+**Not yet live or provider-accepted:** source and synthetic checks do not prove
+the currently released service supports these operations. Do not paste API
+keys into a chat or use this as a claim that real invitation, self-lockout or
+project ACL acceptance has run.
+
 ## Reading large results
 
 When a read result is too large for the default 8KB response, retain the returned `res_...` handle. Call `neon_get_result` with that handle and `page: 0`, following `nextPage`. Each handle expires after 24 hours and only the same scoped connection can read it. Oversized items may use base64 JSON fragments: decode and concatenate fragments in page order, then parse the JSON. No Neon production access is enabled by this feature.
