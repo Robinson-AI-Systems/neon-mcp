@@ -6,6 +6,12 @@
 
 **C-2 listing modes (#44):** Connections default to compact except Claude-identified clients (catalog); authenticated `?listing=` override affects display only, never authorization. Compact includes guarded meta tools, identity and stored-result retrieval.
 
+**O-1 source checkpoint (October 16, unverified):** Nine original owner and
+access tool names are integrated on a development branch with verified personal-admin
+setup, audited confirmation, project-role API coverage and regression fixtures.
+The Card column below remains O-1 until full CI/review/merge; deployed provider
+acceptance is separate. No real organization invitation or modification sent.
+
 # Tool catalog
 
 Every tool this server will have, by area — the product scope. The implementing model builds exactly these; anything
@@ -363,7 +369,7 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #160 (source tooling only; deployed acceptance separate):** `read_only` 50; `everyday` 58; `full` 99. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
+**Implemented registry at #160 (source tooling only; deployed acceptance separate):** `read_only` 50; `everyday` 58; `full` 102. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
 
 ## Totals
 

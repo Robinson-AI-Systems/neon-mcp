@@ -17,15 +17,16 @@ export function projectScope(ctx,projectId=null) {
 }
 export async function projectClient(ctx,projectId=null,{need=null}={}){
  const s=projectScope(ctx,projectId);
- if(need!==null&&!['project','org'].includes(need))throw new Error('Invalid key requirement');
- if(need==='org'&&s.scoped)throw new Error('Organization key is outside this connection scope');
+ if(need!==null&&!['project','org','personal'].includes(need))throw new Error('Invalid key requirement');
+ if((need==='org'||need==='personal')&&s.scoped)throw new Error('Organization key is outside this connection scope');
  const keyNeed=need||(s.projectId?'project':'org');
  const saved=await createKeyVault({db:ctx.db,env:ctx.env}).keyFor({
-  orgId:s.org,projectId:keyNeed==='org'?null:s.projectId,need:keyNeed});
+  orgId:s.org,projectId:keyNeed==='org'||keyNeed==='personal'?null:s.projectId,need:keyNeed});
  if(!saved.key){const error=new Error('A verified scoped key is unavailable');
   error.code='NEON_KEY_UNAVAILABLE';throw error;}
  return {client:makeNeonClient({key:saved.key,orgId:s.org,
-  budget:makeNeonBudget({db:ctx.db,apiKey:saved.key})}),scope:s};
+  budget:makeNeonBudget({db:ctx.db,apiKey:saved.key})}),scope:s,
+  credentialKind:saved.kind,credentialOwnerUserId:saved.ownerUserId??null};
 }
 export function projectSummary(p){
  return {id:p.id,name:p.name,organizationId:p.org_id||null,region:p.region_id||null,

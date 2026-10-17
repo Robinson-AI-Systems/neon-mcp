@@ -2,8 +2,8 @@
 import { encryptSecret,decryptSecret } from '../core/crypto.js';
 import { makeNeonClient,call } from './client.js';
 import { makeNeonBudget } from './budget.js';
-// Personal keys require a separately verified no-organization account flow; do not admit them by default.
-const VALID_KINDS=new Set(['project','org']);
+// Personal admin keys are explicitly enrolled and verified against the selected org.
+const VALID_KINDS=new Set(['project','org','personal']);
 const SETUP_MESSAGES=Object.freeze({
   invalid_scope:'Organization, kind, and project scope must match.',
   invalid_key:'Enter the complete Neon API key, not its name or last four characters.',
@@ -46,8 +46,24 @@ export function createKeyVault({db,env=process.env,fetch}={}) {
     }
     if(kind==='org' && auth.data.auth_method!=='api_key_org')
       throw new Error('An organization key is required for this access level.');
-    if(kind==='personal' && auth.data.auth_method!=='api_key_user')
-      throw new Error('A personal key is required for this access level.');
+    if(kind==='personal') {
+      if(auth.data.auth_method!=='api_key_user')
+        throw new Error('A personal key is required for this access level.');
+      const account=await call(client,'getCurrentUserInfo');
+      const user=account.data?.user??account.data;
+      if(account.error||typeof user?.id!=='string'||!user.id)
+        throw new KeySetupError('authentication_failed',account.error?.status);
+      const members=await call(client,'getOrganizationMembers',{path:{org_id:orgId},query:{limit:500}});
+      if(members.error||!Array.isArray(members.data?.members)||
+         members.data.pagination?.next)
+        throw new KeySetupError('organization_permissions',members.error?.status);
+      const own=members.data.members.filter(row=>
+        (row.member??row).user_id===user.id && (row.member??row).role==='admin' &&
+        (row.member??row).org_id===orgId);
+      if(own.length!==1)throw new KeySetupError('organization_permissions');
+      return {method:auth.data.auth_method,verified:true,projects:null,
+        organizationAdmin:true,ownerUserId:user.id};
+    }
     if(kind==='project'){
       // Verify only the resource the owner selected. A project-scoped key need
       // not be allowed to enumerate organization-wide project inventory.
@@ -80,7 +96,7 @@ export function createKeyVault({db,env=process.env,fetch}={}) {
   async function storeKey({orgId,orgLabel,projectId=null,kind,key,label=null}) {
     if(!orgId || !VALID_KINDS.has(kind) || (kind==='project')!==Boolean(projectId))
       throw new KeySetupError('invalid_scope');
-    if(isPreview() && kind==='org') throw new Error('Organization-wide keys are refused on preview deployments.');
+    if(isPreview() && kind!=='project') throw new Error('Organization-wide and personal keys are refused on preview deployments.');
     if(typeof key!=='string' || !key.startsWith('napi_') || key.length<24)
       throw new KeySetupError('invalid_key');
     // Encryption configuration must be usable before issuing any Neon calls.
@@ -99,15 +115,17 @@ export function createKeyVault({db,env=process.env,fetch}={}) {
     return {id:saved.id,orgId,kind,projectId,last4:key.slice(-4),reach};
   }
   async function keyFor({orgId,projectId=null,need='project'}) {
-    if(!orgId || !['project','org'].includes(need)) throw new TypeError('Invalid key selection');
-    if(need==='org' && isPreview()) return {missing:'Organization-wide key access is disabled on preview.'};
+    if(!orgId || !['project','org','personal'].includes(need)) throw new TypeError('Invalid key selection');
+    if(need!=='project' && isPreview()) return {missing:'Organization-wide key access is disabled on preview.'};
     let row=need==='project' && projectId
       ? await db.getEncryptedNeonKey({orgId,kind:'project',projectId})
       : null;
-    if(!row && !isPreview()) row=await db.getEncryptedNeonKey({orgId,kind:'org'});
+    if(!row && !isPreview()) row=await db.getEncryptedNeonKey({orgId,kind:need==='personal'?'personal':'org'});
+    if(!row && need==='org' && !isPreview())
+      row=await db.getEncryptedNeonKey({orgId,kind:'personal'});
     if(!row) return {missing:'Add a scoped Neon key for this project on the setup page.'};
     return {key:decryptSecret(row.key_enc,{env,context:aad(row.org_id,row.kind,row.project_id)}),
-      kind:row.kind};
+      kind:row.kind,...(row.kind==='personal'?{ownerUserId:row.reach?.ownerUserId??null}:{})};
   }
   async function listKeys(orgId) { return db.listNeonKeySummaries(orgId); }
   async function revokeKey({orgId,id}) {return db.revokeNeonKey({orgId,id});}
@@ -129,7 +147,8 @@ export function createKeyVault({db,env=process.env,fetch}={}) {
         const reach=await verify({key,orgId,kind:row.kind,projectId:row.project_id||null});
         keys.push({...publicFields,reachable:true,projectCount:reach.projects,
           projectInventoryComplete:reach.projectInventoryComplete??false,
-          organizationActions:row.kind==='org'&&reach.method==='api_key_org'});
+          organizationActions:(row.kind==='org'&&reach.method==='api_key_org')||
+            (row.kind==='personal'&&reach.organizationAdmin===true)});
       }catch{
         keys.push({...publicFields,reachable:false,
           reason:'Access could not be verified. Check this key on the owner setup page.'});

@@ -1,3 +1,23 @@
+## October 16 — O-1 owner organization and project access (source under review)
+
+On the checked `b6350728` main baseline, O-1 is being implemented as **one
+original whole subsection**, not nine artificial bundles. It adds organization,
+member/invitation, legacy project share and per-project member-role reads; six
+independently confirmed, audited mutations; and passphrase/origin-protected
+encrypted organization/personal administrator key enrollment. Neon membership
+invitations and removals require a personal admin key: only verified scoped
+credentials can call them. Project-only keys never gain implicit org access.
+Per-project role API calls use the source-pinned 2026 provider routes and
+durable budget/error guards. B-1 has last-admin/self-lockout, protected-project,
+preview/confirmation, duplicate request and uncertain outcome denials.
+
+**State: IN_PROGRESS.** Source and test fixtures exist, but no exact-head
+verification, independent approval, merge, checked release, owner/provider
+scratch acceptance, production access switch, actual invitation email, money
+or real account mutation is claimed. Current live deployment remains an older
+READY version pending the checked release cadence. Existing D/V acceptance
+backlog is not discharged by this source work. See `docs/pr-cards/O-1.md`.
+
 ### Release-needed owner escalation — October 15
 
 Owner permits manual-release requests only after every independently eligible

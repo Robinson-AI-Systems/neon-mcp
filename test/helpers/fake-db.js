@@ -111,7 +111,7 @@ export function createFakeDb({ clock = () => Date.now(), orgs = [] } = {}) {
     async getEncryptedNeonKey({orgId,kind,projectId=null}) {
       const row=keys.find(v=>v.org_id===orgId&&v.kind===kind&&v.project_id===projectId&&!v.revoked_at);
       return row?structuredClone({id:row.id,org_id:row.org_id,kind:row.kind,
-        project_id:row.project_id,key_enc:row.key_enc}):null;
+        project_id:row.project_id,key_enc:row.key_enc,reach:row.reach}):null;
     },
     async revokeNeonKey({orgId,id}) {
       const row=keys.find(v=>v.org_id===orgId&&v.id===id&&!v.revoked_at);

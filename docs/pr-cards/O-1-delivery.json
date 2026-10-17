@@ -1,0 +1,29 @@
+{
+  "productionAdded": 593,
+  "productionRemoved": 19,
+  "planComparison": "All nine original O-1 tools, verified owner key enrollment, provider-shape fixtures, audited access mutations and actual registry consumers are present; original scope was not split or padded. Deployed-owner/provider acceptance remains a separate source-pinned queue obligation.",
+  "newEngineering": "New organization member and invitation inventory, encrypted personal and organization administrator key setup, verified legacy and explicit project role management, centralized guarded confirmation/one-use replay and comprehensive synthetic cross-tenant and database regression coverage.",
+  "relatedWorkDecision": "Original O-1 is one coherent nine-tool subsection with credential and project permissions tightly coupled. O-2 key issuance/transfers and O-3 billing are separate provider-risk workflows and are reserved for subsequent independently planned bundles.",
+  "decision": "SUBSTANTIAL_EXCEPTION",
+  "exceptionEvidence": [
+    "O-1 is a single indivisible original approved subsection comprising nine distinct usable tool capabilities across org/member/project access, not helper-sized work.",
+    "593 net new production additions and 19 deletions, before tests and documentation, with complete encrypted credential onboarding and six audited mutations.",
+    "Acceptance review must still distinguish exact-head CI, PR self-review, source merge and real deployed provider/user fixture results."
+  ],
+  "subsections": [
+    {
+      "id": "O-1",
+      "remainingEngineering": [],
+      "criteria": [
+        {
+          "criterion": "Tools: neon_org_list, neon_member_list, neon_member_invite, neon_member_set_role, neon_member_remove, neon_access_list, neon_access_set_project_role, neon_access_share_project, neon_access_revoke_share.",
+          "evidence": "src/tools/index.js registers nine full-owner names; src/tools/organization-access.js and organization-access-writes.js provide three scoped inventory reads and six B-1 defineWrite operations. API request-shape and fixture contract tests included, with supplemental post-vendor project-role routes."
+        },
+        {
+          "criterion": "Tests: invite preview shows emails and role; last-admin and self-lockout refused; access widening needs confirm through every door; org-key requirement answered in words when missing.",
+          "evidence": "tests/unit/organization-access-writes.test.js proves previews without calls, last-admin and personal-key owner lockout, explicit confirmation, duplicate/uncertain no resend, foreign-org refusal, app ownership and protected-self denial. tests/unit/organization-access-reads.test.js refuses project-only keys with setup guidance; registry/setup tests cover shared doors and tool profiles. Exact-head Actions CI must pass before merge; real-provider proof separate."
+        }
+      ]
+    }
+  ]
+}

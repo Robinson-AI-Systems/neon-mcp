@@ -2,7 +2,8 @@
 // A fake Neon API reached through a `fetch` function (pass it to @neon/sdk's `fetch` option — A-4).
 // Every request is checked against the vendored Neon API description: an undocumented method + path, an unknown or
 // missing required body field, or an unknown query parameter fails the test with the path and the reason.
-import { loadNeonSpec, validateRequest, validateResponse } from './neon-spec.js';
+import { validateRequest, validateResponse } from './neon-spec.js';
+import { loadFakeNeonSpec } from './o1-project-member-spec.js';
 
 export const NEON_BASE_URL = 'https://console.neon.tech/api/v2';
 
@@ -11,7 +12,7 @@ const json = (status, body, headers = {}) => new Response(
   { status, headers: { ...(body === undefined ? {} : { 'content-type': 'application/json' }), ...headers } }
 );
 
-export function makeFakeNeon({ index = loadNeonSpec(), baseUrl = NEON_BASE_URL, requireAuth = true } = {}) {
+export function makeFakeNeon({ index = loadFakeNeonSpec(), baseUrl = NEON_BASE_URL, requireAuth = true } = {}) {
   const calls = [];
   const problems = [];
   const queues = new Map();
