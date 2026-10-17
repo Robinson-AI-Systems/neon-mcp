@@ -837,6 +837,98 @@ paths:
                 $ref: "#/components/schemas/ProjectPermission"
         default:
           $ref: "#/components/responses/GeneralError"
+  # O-1 per-project organization roles (2026 provider endpoint additions).
+  # Exact endpoints from Neon's developer API documentation; bounded reads and
+  # guarded mutation routes share the existing credential/budget wrapper.
+  /projects/{project_id}/members:
+    parameters:
+    - name: project_id
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: "^[a-z0-9-]{1,60}$"
+    get:
+      summary: List organization member permissions for one project
+      operationId: listProjectMembers
+      tags:
+      - Project
+      responses:
+        200:
+          description: Project member roles and effective access
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  members:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/RmcpProjectMemberPermission"
+                  project_members:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/RmcpProjectMemberPermission"
+        default:
+          $ref: "#/components/responses/GeneralError"
+  /projects/{project_id}/members/{member_id}/role:
+    parameters:
+    - name: project_id
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: "^[a-z0-9-]{1,60}$"
+    - name: member_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    put:
+      summary: Override explicit project member role
+      operationId: setProjectMemberRole
+      tags:
+      - Project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - role
+              properties:
+                role:
+                  type: string
+                  enum:
+                  - viewer
+                  - editor
+                  - admin
+      responses:
+        200:
+          description: Project member role changed
+          content:
+            application/json:
+              schema:
+                type: object
+        default:
+          $ref: "#/components/responses/GeneralError"
+    delete:
+      summary: Restore inherited organization member access
+      operationId: removeProjectMemberRole
+      tags:
+      - Project
+      responses:
+        200:
+          description: Explicit project role cleared
+          content:
+            application/json:
+              schema:
+                type: object
+        default:
+          $ref: "#/components/responses/GeneralError"
   /projects/{project_id}/available_preload_libraries:
     get:
       summary: List available shared preload libraries
@@ -8345,6 +8437,34 @@ components:
           items:
             type: string
             pattern: "^[a-z0-9-]{1,60}$"
+    RmcpProjectMemberPermission:
+      type: object
+      properties:
+        id:
+          type: string
+        member_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+        org_role:
+          type: string
+        project_role:
+          type: string
+          nullable: true
+        org_default_project_permission:
+          type: string
+          nullable: true
+        explicit_project_permission:
+          type: string
+          nullable: true
+        effective_project_permission:
+          type: string
+          nullable: true
+        credential_rotation_recommended:
+          type: boolean
+        org_api_key_rotation_recommended:
+          type: boolean
     ProjectPermission:
       type: object
       required:
