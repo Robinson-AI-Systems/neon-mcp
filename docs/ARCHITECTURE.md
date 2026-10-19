@@ -3,8 +3,9 @@
 This file describes what **exists**, and is updated in the same PR that ships it (DRIFT-PROTOCOL checklist B). What the
 system is designed to become is in `docs/designs/`; do not copy design text here before it is built.
 
-As of 2026-10-11 (A-2, #7): the foundation includes additive internal schema initialization, OAuth primitives and 11 tables
-(defined, not provisioned). OAuth and MCP endpoints exist in code but are not deployed. No registered Neon tools, real API calls, keys or live database yet.
+**Current reconciliation, 2026-10-19:** Native stateless Streamable HTTP `/api/mcp`, OAuth authorization/refresh/revocation and a registered Neon tool catalog exist in source. The Vercel `neon-mcp` project and separate own Neon database were provisioned (IN-02), administrator/encryption secrets configured (IN-03), and seven selected-project keys enrolled (IN-04/05/06). Vercel independently reports READY production from `live` SHA `5589f27de2ebdd7baa55d0139ff0811be22c2dca`, while merged main includes #189 and #190 not evidenced in that deployment. Source/API existence is **not** native desktop/mobile, multi-tenant, scratch-write or provider-side RTC conformance acceptance. See [STATUS](STATUS.md) and [COMPLETION-GATES](COMPLETION-GATES.md).
+
+**Scope note:** The following A/B/C technical sections retain their dated FOUNDATION implementation history; phrases about a tool being "future", "unregistered", "not yet exposed" or a gate being unwired describe that original PR's checkpoint, **not current main**. The current authoritative runtime registry, migrations and tool semantics live in `src/tools/index.js`, `src/core/mcp-server.js`, `src/db.js`, the actual code/tests and [TOOL-CATALOG](TOOL-CATALOG.md). This history is not a go-live assertion. Later O/D/V additions are not exhaustively described here.
 
 ## Infrastructure
 
@@ -12,19 +13,18 @@ As of 2026-10-11 (A-2, #7): the foundation includes additive internal schema ini
 |---|---|
 | GitHub repo `Robinson-AI-Systems/neon-mcp` | Public. Changes reach `main` only through `ai/*` branches and PRs |
 | CI (`.github/workflows/ci.yml`) | On every PR and push to `main`: jobs `check` (secret scan, docs check, work-index validation, lint, write-safety, core imports, token budgets), `unit` (fake Neon), `db` (throwaway Postgres 17 service, image `public.ecr.aws/docker/library/postgres:17`), and the aggregate **`ci`** job — the single merge gate, red unless all three are `success`. Node 24, `npm ci` from the committed lockfile, `permissions: contents: read`, no secrets, never calls Neon |
-| Vercel project | Not created (IN-02) |
-| This server's own Neon database | Not created (IN-02) |
-| Neon API keys | None added (IN-04) |
+| Vercel project | Existing `neon-mcp` project; latest independently observed Production deployment READY, sourced from earlier `live` SHA |
+| This server's own Neon database | Existing dedicated database per completed IN-02; no connection string recorded here |
+| Neon API keys | Seven selected-project key enrollments recorded by IN-04/05/06; actual credential values never in docs |
 
 ## Environment variables
 
 `DATABASE_URL` is read lazily by `src/db.js` on `createDb()`/startup initialization, never at import time.
-No live database or environment values have been configured. Batch A also defines `ADMIN_PASSPHRASE`, `PUBLIC_BASE_URL`
-and `TOKEN_ENCRYPTION_KEY` for later cards. Never record values.
+Required owner secrets were configured under IN-03. `DATABASE_URL`, `ADMIN_PASSPHRASE`, `PUBLIC_BASE_URL` and `TOKEN_ENCRYPTION_KEY` must be checked against the **actual** selected release and origin by the authorized operator; their values are never published or changed merely to reconcile documentation.
 
 ## Database tables
 
-Defined by `src/db.js` using only additive `CREATE ... IF NOT EXISTS`; not provisioned until deployment.
+The following eleven tables are the **A-2 foundation**, not an exhaustive current schema list. Later owner, operation, audit, seed/run and scoped authorization work added migrations; inspect the actual additive `src/db.js` schema for current tables and constraints.
 
 | Table | Purpose |
 |---|---|
@@ -62,17 +62,17 @@ consumed once, with organization scope. A-5c adds `/api/neon/setup`: owner-only 
 passphrase and DB lockout, no-store/CSP/anti-framing headers. It never enables production or accepts org-wide
 keys on preview. Its one-time view is explicitly visible only to the passphrase-authenticated owner.
 
-## Endpoints (A-3b, not deployed)
+## Endpoints (A-3 foundation; current direct MCP deployed at an older live revision)
 
 - `/api/oauth/register`: client registration with hashed client credentials in storage
 - `/api/oauth/authorize`: owner passphrase, organization, mode, profile, listing and currently unscoped projects; forged project scopes rejected until A-5 can list them
 - `/api/oauth/token`: S256 PKCE authorization-code exchange and atomic refresh
 - `/.well-known/oauth-authorization-server`, `/.well-known/oauth-protected-resource`: OAuth discovery
-- `/api/mcp`: bearer-only stateless MCP; zero tools until Batch B
+- `/api/mcp`: bearer-protected stateless Streamable HTTP MCP; current source registers profiled Neon tools. Actual direct desktop/mobile verification remains open (CG-1)
 - `/api/neon/setup`: owner-only key and secret setup page (A-5c)
 - `/api`: service home and tool count
 
-Two scoped read-only MCP tools exist: `neon_whoami` and `neon_list_accounts`.
+Two foundation scoped read-only MCP tools were `neon_whoami` and `neon_list_accounts`; many more tools have since shipped in source.
 They report only metadata for the token's organization, never ciphertext or raw keys.
 Requires `ADMIN_PASSPHRASE`, `PUBLIC_BASE_URL`, and a database before login; `VERCEL_ENV` non-production forces preview. No variable values are committed.
 
@@ -97,7 +97,7 @@ Neither script changes the vendored file. No live Neon account is used in tests.
 | `test/helpers/pg-neon-adapter.js`, `tests/db/local-url.js` | Real `pg` client in a uniquely named throwaway schema; refuses any non-localhost database |
 | `scripts/local-postgres-test.sh` | `npm run test:db`: CI's service, or a throwaway local cluster from `initdb`/`pg_ctl` (found under `/usr/lib/postgresql/*/bin`; runs as `postgres` when root) |
 | `scripts/check-*.mjs` | `npm run check`; each exports its rule and has tests (`tests/unit/check-*.test.js`) |
-| `src/core/registry.js`, `src/tools/index.js` | `mergeNamespaces` (duplicate names and missing handlers throw); the registry is empty |
+| `src/core/registry.js`, `src/tools/index.js` | `mergeNamespaces` (duplicate names and missing handlers throw); registry is now populated and profile-filtered |
 
 ## Target SQL connection layer (A-6)
 
