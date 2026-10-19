@@ -1,5 +1,7 @@
 # Robinson Neon MCP
 
+**Hub compatibility:** This server remains independently usable. Its coding agents should follow the [shared Hub compatibility checklist](docs/HUB-COMPATIBILITY.md) and the linked canonical Hub RTC contract; Hub initiates discovery and keeps provider schemas out of the agent's default tool menu.
+
 A hosted MCP server that lets Chris Robinson's AI agents run his Neon Postgres accounts safely — for building, for
 owning the account, and for day-to-day work on any project, with Appliance Desk as the first real check. Previews before
 changes, production databases off-limits until Chris turns them on, risky SQL tried on a throwaway copy first, dollar
