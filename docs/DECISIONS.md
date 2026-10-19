@@ -155,3 +155,7 @@ design-maintenance exception to routine no-docs-only implementation work, not a
 feature PR or completed subsection. Existing owner-specific missing inputs,
 spending/production/credential/cleanup authority remain gated; this entry does
 not mark them answered. The original Toolkit stays reference-only.
+
+## 2026-10-19 — Owner clarification: independent RTC conformance, not Hub LIVE connection, gates Neon completion
+
+Neon MCP is an independently usable RTC 1 provider. Its completion requires implementing and proving its own server-side contract, direct transport, provider identity/permissions and applicable real-provider acceptance. The Hub discovers, enrolls, authorizes and routes to compliant servers; actual Hub LIVE registration, relay, discovery and end-to-end routing are Hub-owned acceptance, not blockers for this Neon repository. This does not waive R-1/R-2/R-3 conformance, direct LIVE provider proof, security, CI, review, release or owner gates, and it does not mark any queue row PASSED. The same separation was already documented for Google Workspace MCP. See `HUB-COMPATIBILITY.md` and the R batch in `PLAN.md`.
