@@ -120,7 +120,9 @@ describe('RTC 1 read-only HTTPS route interop against hub contract',()=>{
     const settings=await run(f,req('POST','tools',{name:'neon_get_settings'},{}));
     expect(settings.body.ok).toBe(true);
     for(const name of ['neon_role_delete','neon_database_create','neon_call',
-      'neon_batch','neon_project_list']){
+      'neon_batch','neon_project_list',
+      'neon_security_set_public_access','neon_security_set_ip_allow',
+      'neon_security_set_jwks','neon_security_set_audit_log_level']){
       const denied=await run(f,req('POST','tools',{name},{dryRun:true,confirm:true}));
       expect(denied.statusCode).toBe(403);
       expect(denied.body.error.code).toBe('refused_by_guard');
