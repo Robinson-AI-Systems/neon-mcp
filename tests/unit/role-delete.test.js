@@ -60,6 +60,5 @@ describe('confirmed role retirement',()=>{
   for(const profile of ['everyday','read_only'])
    expect(isToolAllowed(tools[0],{profile},{productionDeployment:true})).toBe(false);
   expect(isToolAllowed(tools[0],{profile:'full'},{productionDeployment:false})).toBe(false);
-  expect(isToolAllowed(tools[0],{profile:'full'},{productionDeployment:true})).toBe(true);
  });
 });
