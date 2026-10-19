@@ -1,3 +1,5 @@
+**2026-10-19 — D-7 native MCP product-authority correction (source only):** Five previously implemented, independently guarded `neon_snapshot_create/update/delete/restore/set_schedule` tools are now visible to eligible `full` owners through the production direct MCP catalog and invocable through its same B-1/B-2/B-4 handler path. Preview/read_only/everyday access remains denied and the temporary read-only RTC pass is unchanged. Provider success, real client sign-in, paid snapshot approval and deployment remain separate unverified acceptance; the prior count 113 below described source *before this change*.
+
 **D-4 owner-approved retirement (IN-16):** Canonical role deletion is registered under full-owner B-1 gates with one-use durable exact preview and explicit interruption acknowledgement. No claim of idle pooled-client absence. Legacy nondisruptive proof remains unavailable; source/CI/deployed/provider acceptance are separate. Earlier unregistered notes below describe historical checkpoints.
 
 **D-4 private role-deletion inventory (#85):** Before opening any role-dependency SQL, provider endpoint IDs, branch database names and role names must each be unique; repeated identities make the full inventory untrusted. `neon_role_delete` is still NOT registered; pooled-client safety remains unverified.
@@ -369,7 +371,7 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #160 (source tooling only; deployed acceptance separate):** `read_only` 50; `everyday` 58; `full` 113. These are implemented tools, not the 177-tool planned catalog; verified by exact-head CI.
+**Implemented source registry after 2026-10-19 D-7 visibility correction (external acceptance separate):** `read_only` 50; `everyday` 58; `full` 118. These are implemented/visible tools, not the 177-tool planned catalog; verify with exact-head CI.
 
 ## Totals
 
