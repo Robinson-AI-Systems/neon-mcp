@@ -57,6 +57,10 @@ the currently released service supports these operations. Do not paste API
 keys into a chat or use this as a claim that real invitation, self-lockout or
 project ACL acceptance has run.
 
+## D-8 verified owner security controls (source integration checkpoint, not live acceptance)
+
+An appropriately authorized `full` direct MCP connection on a production server deployment may discover `neon_security_set_public_access`, `neon_security_set_ip_allow`, `neon_security_set_jwks` and `neon_security_set_audit_log_level`. They remain independently guarded; an agent must show the exact scoped provider project, affected network/auth/audit behavior, existing Scale entitlement for IP allowance, irreversible lockout risk, and receive required owner confirmation. A preview deployment, lower-profile connection, protected target or restricted temporary RTC pass does **not** gain these writes. Only a lower audit level is implemented; adding paid logging or enabling irreversible logical replication is **not** unlocked. No live provider effectiveness was proven by the source change. Read [D-8](pr-cards/D-8.md) and [the restriction audit](audits/2026-10-19-universal-mcp-directive.md).
+
 ## Reading large results
 
 When a read result is too large for the default 8KB response, retain the returned `res_...` handle. Call `neon_get_result` with that handle and `page: 0`, following `nextPage`. Each handle expires after 24 hours and only the same scoped connection can read it. Oversized items may use base64 JSON fragments: decode and concatenate fragments in page order, then parse the JSON. No Neon production access is enabled by this feature.
