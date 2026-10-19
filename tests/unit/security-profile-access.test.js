@@ -15,14 +15,15 @@ const preview={VERCEL_ENV:'preview'};
 describe('D-8 user-delegated source-guarded owner security access',()=>{
  it('registers only the four reviewed D-8 project-security writes for a full owner on a production deployment',()=>{
   const listed=listVisibleToolMetadata({registry,connection:full,env:prod,listing:'catalog'});
-  const catalog=rtcCatalog(registry,full,{listing:'catalog',limit:100},prod);
   for(const name of approved){
    const item=registry.tools.find(t=>t.name===name);
    expect(item).toMatchObject({name,writes:true,writeContract:'defineWrite-v1',
     profiles:['full'],area:'security'});
    expect(typeof registry.handlers[name]).toBe('function');
    expect(listed.some(t=>t.name===name)).toBe(true);
-   expect(catalog.some(t=>t.name===name)).toBe(true);
+   const exactCatalog=rtcCatalog(registry,full,
+    {listing:'catalog',q:name,limit:1},prod);
+   expect(exactCatalog.map(t=>t.name)).toEqual([name]);
    expect(isToolAllowed(item,full,{productionDeployment:true})).toBe(true);
   }
   expect(listed.some(t=>t.name==='neon_security_set_logical_replication')).toBe(false);
