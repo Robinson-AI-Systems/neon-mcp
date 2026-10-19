@@ -70,7 +70,7 @@ next bounded implementation.
 ## Batch R — Hub-ready doors, RTC 1 (`designs/BATCH-R.md`)
 - [ ] Passes per RTC §2 (preview mode, read-only, 24 h, 60 calls/minute by default).
 - [ ] HTTPS tool API, manifest (`modes: ['preview','production']`, `devTools: true`) and OpenAPI per RTC §1/§7; rate limits shared across instances (overlapping-request test).
-- [ ] Same nine write-contract checks through MCP, `neon_call` and HTTPS; RTC 1 conformance green in CI when the hub's package exists.
+- [ ] Same nine write-contract checks through MCP, `neon_call` and HTTPS; independently repeatable provider-side RTC 1 conformance green in CI against the frozen contract, including source/deployed direct behavior as applicable. Hub LIVE enrollment, discovery, relay or routed call is verified by the Hub project, **not** a Neon completion prerequisite.
 
 ## Batch E — Neon backend services (`designs/BATCH-E.md`)
 - [ ] Every listed tool built; profiled apps' auth choice respected; OAuth client secrets typed on the setup page only; no object bytes or presigned URLs in results.
