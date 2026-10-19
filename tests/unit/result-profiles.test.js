@@ -40,7 +40,18 @@ describe('B-6 display and connection profiles',()=>{
     expect(isToolAllowed({name:'neon_org_read',writes:false,key:'org',profiles:['read_only','full']},
       {profile:'read_only'})).toBe(false);
     const counts=profileToolCounts(registry.tools,{productionDeployment:true});
-    expect(counts).toEqual({read_only:50,everyday:58,full:114});
+    expect(counts).toEqual({read_only:50,everyday:58,full:118});
+    const snapshots=['neon_snapshot_create','neon_snapshot_update',
+      'neon_snapshot_delete','neon_snapshot_restore','neon_snapshot_set_schedule'];
+    for(const name of snapshots){
+      const item=registry.tools.find(t=>t.name===name);
+      expect(item).toMatchObject({writes:true,writeContract:'defineWrite-v1',
+        profiles:['full'],area:'snapshots'});
+      expect(isToolAllowed(item,{profile:'full'},{productionDeployment:true})).toBe(true);
+      for(const profile of ['everyday','read_only'])
+        expect(isToolAllowed(item,{profile},{productionDeployment:true})).toBe(false);
+      expect(isToolAllowed(item,{profile:'full'},{productionDeployment:false})).toBe(false);
+    }
     const denied=await dispatchReadOnlyTool({registry,name:'neon_disable_production',args:{},
       connection:{profile:'read_only',mode:'preview',neonOrg:'org-fake'},db:{},env:{VERCEL_ENV:'production'}});
     expect(denied.isError).toBe(true);
