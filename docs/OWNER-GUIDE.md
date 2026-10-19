@@ -1,6 +1,8 @@
-# Owner guide — what you can ask for
+# Neon by Robinson AI Systems — owner guide
 
-Plain-English things to say to Claude once each part is built. Each line names the batch that delivers it; until then
+This is an independent integration, not an official Neon product or endorsed connector. Use the [direct remote MCP setup guide](DIRECT-MCP-CONNECTION.md) from any compatible desktop/mobile coding agent; Hub is optional. Real client/provider acceptance is tracked separately.
+
+Plain-English things to say to a compatible authorized coding agent once each part is built. Each line names the batch that delivers it; until then
 it does not work yet. This file is updated as features ship.
 
 | Say something like… | What happens | Batch |
