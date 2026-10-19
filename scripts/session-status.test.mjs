@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { acceptanceSnapshot, acceptanceSummary, reviewAcceptance as reviewWithAncestry, readQueue, planQueue, summarizeRoadmap, run } from './session-status.mjs';
+import { acceptanceSnapshot, acceptanceSummary, reviewAcceptance as reviewWithAncestry, readQueue, planQueue, summarizeRoadmap, summarizeCompletionGates, run } from './session-status.mjs';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -12,6 +12,7 @@ const block = rows => '<!-- release-acceptance:start -->\n```json\n' + JSON.stri
 const obs = { main: c, live: b, deployed: b, deploymentState: 'READY' };
 const fixtureRoadmap = {
   order: ['K', 'H', 'S'],
+  completionGates: Array.from({ length: 6 }, (_, i) => ({ id: `CG-${i + 1}`, title: `Gate ${i + 1}`, owners: ['K-1'], status: 'OPEN', criteria: 'docs/COMPLETION-GATES.md' })),
   cards: [
     { id: 'K-1', batch: 'K', units: ['K-1', 'K-1-extra'], status: 'MERGED' },
     { id: 'H-1', batch: 'H', units: ['H-1'], status: 'IN_PROGRESS' },
@@ -80,6 +81,8 @@ test('real git refs and ancestry drive the offline CLI without network/mutations
     assert.match(output, /PR work unit = one whole predefined batch subsection/);
     assert.match(output, /Partial subsection = zero completed batch subsections/);
     assert.match(output, /remaining approved/);
+    assert.match(output, /Cross-cutting product completion gates.*6 OPEN/);
+    assert.match(output, /CG-1 OPEN: Gate 1/);
     assert.match(output, /PR planning averages: 400–800 changed production lines and 2–5/);
     assert.match(output, /FIRST DEPLOYED_CANDIDATE_CHECK_GATES/); assert.match(output, /SECOND WAIT_RELEASE_OR_FETCH_HISTORY/); assert.match(output, /Latest observed PR: #104 \(informational only/); assert.doesNotMatch(output, /Next session boundary/);
     assert.match(run(root, ['--deployed', first, '--state', 'READY', '--acceptance-review', 'acceptance.json']), /accounting checked/);
@@ -91,6 +94,18 @@ test('real git refs and ancestry drive the offline CLI without network/mutations
     assert.doesNotMatch(run(root, ['--limit', '12']), /additional tasks/);
     assert.throws(() => run(root, ['--limit', '0']));
   } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('cross-cutting gates are mandatory, independent of original card totals, and refuse unproved passes', () => {
+  const first = summarizeCompletionGates(fixtureRoadmap);
+  assert.equal(first.length, 6);
+  assert.equal(first.every(g => g.status === 'OPEN'), true);
+  assert.equal(summarizeRoadmap(fixtureRoadmap).total, 6);
+  assert.throws(() => summarizeCompletionGates({ ...fixtureRoadmap, completionGates: [] }));
+  assert.throws(() => summarizeCompletionGates({ ...fixtureRoadmap, completionGates: [...first.slice(0, 5), { ...first[0] }] }));
+  assert.throws(() => summarizeCompletionGates({ ...fixtureRoadmap, completionGates: [{ ...first[0], status: 'PASSED' }, ...first.slice(1)] }));
+  assert.throws(() => summarizeCompletionGates({ ...fixtureRoadmap, completionGates: [{ ...first[0], owners: ['UNKNOWN'] }, ...first.slice(1)] }));
+  assert.equal(summarizeCompletionGates({ ...fixtureRoadmap, completionGates: [{ ...first[0], status: 'PASSED', evidence: 'Independently reviewable acceptance report' }, ...first.slice(1)] })[0].status, 'PASSED');
 });
 
 test('roadmap progress counts coarse indexed units without promoting in-progress or blocked work', () => {
