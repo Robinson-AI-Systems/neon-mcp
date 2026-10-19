@@ -166,6 +166,10 @@ do not repeat a speculative fix. Run full gates on the final complete
 outcome, not after every helper. No budget, security, branch, production,
 review, hosting or owner gate may be weakened to shorten this cycle.
 
+## Cross-cutting product gates at every completion checkpoint
+
+`docs/COMPLETION-GATES.md` defines CG-1..CG-6; they are indexed separately under `completionGates` and displayed by `npm run session:status`. At session start, when selecting whole original cards, during handoff and when claiming project completion, examine every OPEN gate, its assigned original owners and evidence. Carry matching real client/tenant/delegation/provider/RTC tests into related card acceptance; do not postpone all direct/authority/security remediation until after an otherwise artificial batch completion. No live Hub enrollment requirement, no public listing without separate CG-6 approval. CG statuses never count toward the number of merged engineering subsections or override eligible original acceptance.
+
 ## 0. Reconcile and recover
 
 Read the governing instructions and the current permanent handoff, not historical
