@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-10-14",
+  "updated": "2026-10-19",
   "order": [
     "A",
     "B",
@@ -15,7 +15,7 @@
     "E",
     "X"
   ],
-  "process": "Just-in-time cards from approved designs; each card runs the drift protocol and updates this index as if merged. Session execution and queued deployed acceptance follow docs/SESSION-START.md. Owner-approved execution: combine adjacent small roadmap slices into cohesive PRs; use only the current owner prompt for session PR count. See docs/SESSION-START.md. Owner-requested throughput measurement: average 400–800 changed production-code lines and 2–5 fully completed slices per substantive PR; record actual diffs/slice evidence and use session:status for remaining indexed units. These are advisory averages, never padding or acceptance claims. Owner clarification 2026-10-14: PR workload accounting counts whole predefined batch subsections in the authoritative roadmap/design, never a function, UI hookup, guard, helper or execution-packet subtask. Partial subsections count zero completed batch subsections; count each subsection once with full eligible engineering and pre-merge evidence. Group related subsections into substantial PRs; use focused checks during work and full required gates on the coherent PR. Existing acceptance and safety gates remain.",
+  "process": "Just-in-time cards from approved designs; each card runs the drift protocol and updates this index as if merged. Session execution and queued deployed acceptance follow docs/SESSION-START.md. Owner-approved execution: combine adjacent small roadmap slices into cohesive PRs; use only the current owner prompt for session PR count. See docs/SESSION-START.md. Owner-requested throughput measurement: average 400–800 changed production-code lines and 2–5 fully completed slices per substantive PR; record actual diffs/slice evidence and use session:status for remaining indexed units. These are advisory averages, never padding or acceptance claims. Owner clarification 2026-10-14: PR workload accounting counts whole predefined batch subsections in the authoritative roadmap/design, never a function, UI hookup, guard, helper or execution-packet subtask. Partial subsections count zero completed batch subsections; count each subsection once with full eligible engineering and pre-merge evidence. Group related subsections into substantial PRs; use focused checks during work and full required gates on the coherent PR. Existing acceptance and safety gates remain. Six noncountable universal MCP closeout gates CG-1..CG-6 are machine-tracked in completionGates; they are NOT extra batch subsections and never affect subsection count. Evidence and requirements: docs/COMPLETION-GATES.md. Project closeout requires tracking them alongside original cards and STATUS release queue.",
   "cards": [
     {
       "id": "A-1",
@@ -1220,5 +1220,121 @@
     ],
     "gatewayOwnership": "Hub broker/routing/grant mapping; separately issued scoped service pass",
     "acceptance": "Existing service-owned isolation and deployed TEST route/denial/revocation gates remain OPEN"
-  }
+  },
+  "completionGates": [
+    {
+      "id": "CG-1",
+      "title": "Native direct desktop/mobile MCP",
+      "status": "OPEN",
+      "owners": [
+        "A-3",
+        "R-2",
+        "X-2"
+      ],
+      "criteria": "docs/COMPLETION-GATES.md",
+      "note": "Noncountable cross-cutting owner-approved acceptance; requires independently reviewable evidence before PASSED."
+    },
+    {
+      "id": "CG-2",
+      "title": "Consent lifecycle and tenant isolation",
+      "status": "OPEN",
+      "owners": [
+        "A-3",
+        "B-1",
+        "B-6",
+        "O-1",
+        "O-2",
+        "R-1",
+        "R-3",
+        "X-2",
+        "X-3"
+      ],
+      "criteria": "docs/COMPLETION-GATES.md",
+      "note": "Noncountable cross-cutting owner-approved acceptance; requires independently reviewable evidence before PASSED."
+    },
+    {
+      "id": "CG-3",
+      "title": "End-user configured authority and guarded execution",
+      "status": "OPEN",
+      "owners": [
+        "B-1",
+        "B-2",
+        "B-4",
+        "B-8",
+        "O-1",
+        "O-3",
+        "O-4",
+        "U-1",
+        "X-3"
+      ],
+      "criteria": "docs/COMPLETION-GATES.md",
+      "note": "Noncountable cross-cutting owner-approved acceptance; requires independently reviewable evidence before PASSED."
+    },
+    {
+      "id": "CG-4",
+      "title": "Independent provider-side RTC 1 conformance",
+      "status": "OPEN",
+      "owners": [
+        "R-1",
+        "R-2",
+        "R-3",
+        "X-2",
+        "X-3"
+      ],
+      "criteria": "docs/COMPLETION-GATES.md",
+      "note": "Noncountable cross-cutting owner-approved acceptance; requires independently reviewable evidence before PASSED."
+    },
+    {
+      "id": "CG-5",
+      "title": "Released real-provider and scratch acceptance",
+      "status": "OPEN",
+      "owners": [
+        "D-4",
+        "D-5",
+        "D-6",
+        "D-7",
+        "D-8",
+        "D-9",
+        "V-1",
+        "V-2",
+        "V-3",
+        "V-4",
+        "O-1",
+        "O-2",
+        "O-3",
+        "O-4",
+        "P-1",
+        "P-2",
+        "P-3",
+        "W-1",
+        "W-2",
+        "W-3",
+        "W-4",
+        "W-5",
+        "W-6",
+        "W-7",
+        "U-1",
+        "R-3",
+        "E-1",
+        "E-2",
+        "X-1",
+        "X-2",
+        "X-3"
+      ],
+      "criteria": "docs/COMPLETION-GATES.md",
+      "note": "Noncountable cross-cutting owner-approved acceptance; requires independently reviewable evidence before PASSED."
+    },
+    {
+      "id": "CG-6",
+      "title": "Branding, privacy, scale and public-distribution approval",
+      "status": "OPEN",
+      "owners": [
+        "A-7",
+        "O-4",
+        "R-2"
+      ],
+      "criteria": "docs/COMPLETION-GATES.md",
+      "note": "Noncountable cross-cutting owner-approved acceptance; requires independently reviewable evidence before PASSED."
+    }
+  ]
 }
