@@ -1,17 +1,19 @@
 # Deploy Neon MCP — owner checklist
 
-This guide is for the owner. **Writing this guide does not authorize deployment.** The Vercel project, the server's own Neon database, and Neon credentials have **not** been provisioned. Stop until owner decisions **IN-02, IN-03 and IN-04** in [OWNER-INPUTS](OWNER-INPUTS.md) are resolved. Never paste a password, API key, database URL, or encryption key into AI chat, a GitHub issue, a pull request, CI output, or a repository file.
+This guide is for the owner. **Writing this guide does not authorize deployment.** On 2026-10-19, the existing Vercel `neon-mcp` project was verified with a READY production deployment sourced from `live` SHA `5589f27de2ebdd7baa55d0139ff0811be22c2dca`. This proves a Vercel deployment, **not** that its own database, owner secrets, source-current MCP calls or provider credentials were independently accepted. Do **not** create another project or overwrite existing credentials. Reconcile actual saved owner inputs **IN-02, IN-03 and IN-04** against deployed configuration before changing anything; the historical setup steps below apply only to genuinely missing infrastructure. Never paste a password, API key, database URL, or encryption key into AI chat, a GitHub issue, a pull request, CI output, or a repository file.
+
+**Current direct-client guide:** [DIRECT-MCP-CONNECTION.md](DIRECT-MCP-CONNECTION.md). The displayed product name is **Neon by Robinson AI Systems** (an unofficial independent service); `/api/mcp`, the OAuth issuer and stored client technical identifiers are unchanged. The optional Hub is neither required for direct access nor a prerequisite for provider-side completion.
 
 ## 1. Get permission and stay on free resources
 
-1. Review [the go-live checklist](GO-LIVE-CHECKLIST.md) and decide whether to authorize **IN-02**: create a separate Neon project/database **for this server only** and a Vercel project called `neon-mcp`. These must be distinct from your applications' databases. Do **not** repurpose Appliance Desk's database.
+1. Review the existing Vercel project and [go-live checklist](GO-LIVE-CHECKLIST.md); only if genuinely missing, decide whether to authorize **IN-02**: create a separate Neon project/database **for this server only** and a Vercel project called `neon-mcp`. These must be distinct from your applications' databases. Do **not** repurpose Appliance Desk's database.
 2. Use only existing/free-tier allowances after verifying actual limits in the Neon and Vercel dashboards. If a paid plan, extra branch, compute, domain, or capacity is required, **stop and ask the owner**; never enable it automatically.
 3. Keep the deployed server inaccessible to agents until setup and the approved checks below are complete. A deployment is not permission to operate real Neon projects.
 
 ## 2. Prepare the separate database and Vercel project (only after IN-02)
 
 1. In the Neon dashboard, create a **new, separate project** for Neon MCP, using an approved free allowance. Copy its connection string into your password manager. Treat it as a secret.
-2. In Vercel, import this GitHub repository into a new `neon-mcp` project. Set **Node.js 24.x** (matching `package.json`), and use the checked-in build configuration. Do not set a production domain or launch a production deployment without separate approval.
+2. **Only if a separate approved Vercel project is genuinely missing:** import this GitHub repository into a new `neon-mcp` project. The existing production Vercel project must be reused rather than recreated. Set **Node.js 24.x** (matching `package.json`), and use the checked-in build configuration. Do not set a production domain or launch a production deployment without separate approval.
 3. Check that Vercel Preview and Production environments are **separately selected** for each variable. Preview runs are forced to **preview mode** by code. Previews may share this server's own storage database, so they are **not** a safe place for live-account experiments.
 4. Protect the Vercel project and its deployment access. Do not store variables in `.env` files committed to GitHub, deployment descriptions, or logs.
 
@@ -51,7 +53,7 @@ A project key's reach depends on Neon's actual permissions. Until X-2/X-3 are ap
 1. Check that `/api` responds and `/api/mcp` is the MCP resource. OAuth discovery and authorization are implemented, but a successful response alone does **not** prove the connection is ready for production.
 2. In Claude's connector settings, add the HTTPS connector address for the server (`/api/mcp`), using OAuth discovery and its browser authorization flow. Choose the approved organization, scoped project and **preview** mode. A live Neon key must be added through the secure setup page before authorizing a connector.
 3. Ask the connector only its currently implemented **read** questions: `neon_whoami` and `neon_list_accounts`. Verify the account and narrow scope. Do not treat planned tools or a documentation example as implemented functionality.
-4. Do not attempt SQL writes, project creation, branch changes, production operations or paid provisioning. The production-permission switch and safety layer are future Batch B work, not a feature of A-7. Follow [go-live gates](GO-LIVE-CHECKLIST.md) before considering any real-account write.
+4. Do not attempt SQL writes, project creation, branch changes, production operations or paid provisioning merely to test onboarding. Production permission and the guarded write layer now exist in source but owner activation and real provider acceptance remain separately gated.  Follow [go-live gates](GO-LIVE-CHECKLIST.md) before considering any real-account write.
 
 ## 6. If something goes wrong
 
@@ -62,7 +64,7 @@ A project key's reach depends on Neon's actual permissions. Until X-2/X-3 are ap
 - **Encrypted keys inaccessible:** verify the original `TOKEN_ENCRYPTION_KEY` from your password manager. Do not rotate it casually; rotation requires an explicit re-key plan.
 - **Unwanted deployment / regression:** disable connector access, roll back Vercel to the last approved deployment, and revoke affected Neon API keys in Neon's dashboard if needed. **Do not drop, reset or restore any database as a rollback shortcut.** If an operation might have reached production, stop and ask the owner before doing anything further.
 
-Deployment and all production resources remain **not configured** until checked and approved by the owner. Completion of this guide closes **documentation card A-7**, not IN-02/IN-03/IN-04 or the go-live checklist.
+The deployed project has a READY production revision; whether all required configuration and real-provider acceptance are complete remains **unverified** until independently checked by the owner and acceptance procedure. Completion of this guide closes **documentation card A-7**, not IN-02/IN-03/IN-04 or the go-live checklist.
 
 ## Owner-only future write-safety configuration (B-2b)
 

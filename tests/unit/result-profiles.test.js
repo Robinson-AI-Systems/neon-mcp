@@ -2,7 +2,7 @@ import {describe,it,expect} from 'vitest';
 import {scrubNeonResult,scrubAuditRow,redactNeonText} from '../../src/neon/scrub.js';
 import {localTime,shapeResult} from '../../src/core/result-rules.js';
 import {isToolAllowed,profileToolCounts} from '../../src/core/profiles.js';
-import {dispatchReadOnlyTool} from '../../src/core/mcp-server.js';
+import {dispatchReadOnlyTool,listVisibleToolMetadata} from '../../src/core/mcp-server.js';
 import {registry} from '../../src/tools/index.js';
 describe('B-6 deep secret removal',()=>{
   it('drops secret fields across project/branch/role/key/credential provider shapes and protects text',()=>{
@@ -40,7 +40,44 @@ describe('B-6 display and connection profiles',()=>{
     expect(isToolAllowed({name:'neon_org_read',writes:false,key:'org',profiles:['read_only','full']},
       {profile:'read_only'})).toBe(false);
     const counts=profileToolCounts(registry.tools,{productionDeployment:true});
-    expect(counts).toEqual({read_only:50,everyday:58,full:113});
+    expect(counts).toEqual({read_only:50,everyday:58,full:118});
+    const snapshots=['neon_snapshot_create','neon_snapshot_update',
+      'neon_snapshot_delete','neon_snapshot_restore','neon_snapshot_set_schedule'];
+    for(const name of snapshots){
+      const item=registry.tools.find(t=>t.name===name);
+      expect(item).toMatchObject({writes:true,writeContract:'defineWrite-v1',
+        profiles:['full'],area:'snapshots'});
+      expect(isToolAllowed(item,{profile:'full'},{productionDeployment:true})).toBe(true);
+      for(const profile of ['everyday','read_only'])
+        expect(isToolAllowed(item,{profile},{productionDeployment:true})).toBe(false);
+      expect(isToolAllowed(item,{profile:'full'},{productionDeployment:false})).toBe(false);
+    }
+    const full={profile:'full',neonOrg:'org-fake',listing:'catalog'};
+    const visible=listVisibleToolMetadata({registry,connection:full,
+      listing:'catalog',env:{VERCEL_ENV:'production'}});
+    for(const name of snapshots)expect(visible.some(t=>t.name===name)).toBe(true);
+    for(const name of snapshots){
+      let invoked=0;
+      const item=registry.tools.find(t=>t.name===name);
+      const scoped={tools:[item],handlers:{[name]:async()=>{
+        invoked++;return {content:[{type:'text',text:JSON.stringify({done:false,
+          preview:'Owner guarded operation; no provider mutation'})}]};
+      }}};
+      const allowed=await dispatchReadOnlyTool({registry:scoped,name,
+        connection:full,db:{},env:{VERCEL_ENV:'production'}});
+      expect(allowed.isError).toBe(false);
+      expect(invoked).toBe(1);
+      for(const options of [
+        {connection:{...full,profile:'everyday'},env:{VERCEL_ENV:'production'}},
+        {connection:{...full,profile:'read_only'},env:{VERCEL_ENV:'production'}},
+        {connection:full,env:{VERCEL_ENV:'preview'}}
+      ]){
+        const blocked=await dispatchReadOnlyTool({registry:scoped,name,
+          connection:options.connection,env:options.env,db:{}});
+        expect(blocked.isError).toBe(true);
+        expect(invoked).toBe(1);
+      }
+    }
     const denied=await dispatchReadOnlyTool({registry,name:'neon_disable_production',args:{},
       connection:{profile:'read_only',mode:'preview',neonOrg:'org-fake'},db:{},env:{VERCEL_ENV:'production'}});
     expect(denied.isError).toBe(true);

@@ -4,6 +4,7 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { requireMcpToken } from './mcp-auth.js';
+import { PRODUCT_DISPLAY_NAME, MCP_TECHNICAL_ID } from './product-identity.js';
 import { SelfResourceConfigurationError } from './self-resource.js';
 import { isToolAllowed } from './profiles.js';
 import { scrubNeonResult, redactNeonText } from './scrub.js';
@@ -91,7 +92,7 @@ export function createMcpHandler({ db, registry, env = process.env }) {
   return async function mcp(req, res) {
     const connection = await requireMcpToken(req,res,db,env);
     if (!connection) return;
-    const server = new Server({name:'robinson-neon-mcp',version:'0.1.0'},
+    const server = new Server({name:MCP_TECHNICAL_ID,title:PRODUCT_DISPLAY_NAME,version:'0.1.0'},
       {capabilities:{tools:{}}});
     server.setRequestHandler(ListToolsRequestSchema,async()=>({tools:listVisibleToolMetadata({
       registry,connection,env,listing:req.query?.listing})}));

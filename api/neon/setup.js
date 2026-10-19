@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { PRODUCT_DISPLAY_NAME, PRODUCT_ATTRIBUTION } from '../../src/core/product-identity.js';
 // The setup page is the ONLY place where an owner types or views secrets.
 import { createDb } from '../../src/db.js';
 import { createKeyVault,keySetupMessage } from '../../src/neon/keys.js';
@@ -86,7 +87,7 @@ function page(message='',p={}) {
   const revokeRtc=form('revoke_read_only_rtc_pass',org()+input('passId'));
   return '<!doctype html><html lang="en"><head><meta charset="utf-8">'+
     '<meta name="viewport" content="width=device-width,initial-scale=1">'+
-    '<title>Neon MCP secure setup</title><style>'+styles+'</style></head><body><main><h1>Neon MCP secure setup</h1>'+
+    '<title>'+escapeHtml(PRODUCT_DISPLAY_NAME)+' secure setup</title><style>'+styles+'</style></head><body><main><h1>'+escapeHtml(PRODUCT_DISPLAY_NAME)+' secure setup</h1><p>'+escapeHtml(PRODUCT_ATTRIBUTION)+'</p>'+
     '<p>The owner passphrase is required for every operation. AI tools never accept keys.</p>'+
     (message?'<p role="status">'+escapeHtml(message)+'</p>':'')+
     '<h2>List keys</h2>'+list+'<h2>Add scoped key</h2>'+

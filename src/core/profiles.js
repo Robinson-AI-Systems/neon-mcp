@@ -14,6 +14,9 @@ const externalProjectWrites=new Set(['neon_project_create','neon_project_rename'
  'neon_database_create','neon_database_update','neon_database_delete',
  'neon_role_create','neon_role_create_read_only',
  'neon_role_delete','neon_role_reset_password','neon_connection_show_once',
+ // D-7 owner snapshot lifecycle: existing audited B-1 and B-4 operations.
+ 'neon_snapshot_create','neon_snapshot_update','neon_snapshot_delete',
+ 'neon_snapshot_restore','neon_snapshot_set_schedule',
  'neon_sql_stop_query','neon_schema_enable_extension','neon_schema_disable_extension','neon_schema_create_index','neon_schema_drop_index','neon_health_reindex','neon_health_vacuum_analyze','neon_dev_branch_create','neon_dev_cleanup','neon_dev_seed',
  // O-1 and O-2 are user-facing writes: allow only these audited known contracts,
  // while profile/deployment and each tool's guards still apply.

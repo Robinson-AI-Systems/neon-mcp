@@ -2,6 +2,7 @@
 // Contract-generic OAuth HTTP handlers. No Neon-specific imports.
 import { randomToken, hashToken, secretsMatch, verifyPkce, validRedirectUri, evaluateLogin, clientIp, LOCKOUT_WINDOW_MINUTES } from './oauth.js';
 import { publicOrigin, send, escapeHtml, paramsOf, only } from './http.js';
+import { PRODUCT_DISPLAY_NAME, PRODUCT_ATTRIBUTION } from './product-identity.js';
 
 const PROFILES = ['read_only', 'everyday', 'full'];
 const LISTINGS = ['catalog', 'compact'];
@@ -55,8 +56,8 @@ export function createOAuthHandlers({ db, env = process.env }) {
     const modeList = '<option value="preview">Preview — production changes disabled</option>' +
       (canProduction ? '<option value="production"' + (p.mode === 'production' ? ' selected' : '') + '>Production access enabled</option>' : '');
     return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
-      '<title>Connect Robinson Neon MCP</title><style>body{font:16px system-ui,sans-serif;max-width:460px;margin:6vh auto;padding:20px}form{display:grid;gap:14px}input,select,button{font:inherit;padding:10px}button{cursor:pointer}p{line-height:1.5}</style></head><body>' +
-      '<h1>Connect Neon MCP</h1>' + (error ? '<p role="alert">' + escapeHtml(error) + '</p>' : '') +
+      '<title>Connect ' + escapeHtml(PRODUCT_DISPLAY_NAME) + '</title><style>body{font:16px system-ui,sans-serif;max-width:460px;margin:6vh auto;padding:20px}form{display:grid;gap:14px}input,select,button{font:inherit;padding:10px}button{cursor:pointer}p{line-height:1.5}</style></head><body>' +
+      '<h1>Connect ' + escapeHtml(PRODUCT_DISPLAY_NAME) + '</h1><p>' + escapeHtml(PRODUCT_ATTRIBUTION) + '</p>' + (error ? '<p role="alert">' + escapeHtml(error) + '</p>' : '') +
       (orgs.length ? '<p>Choose the Neon organization and access level for this AI connection.</p>' :
         '<p>Add a Neon key on the setup page first. You cannot authorize an agent until an organization is configured.</p>') +
       (!env.ADMIN_PASSPHRASE ? '<p>Administrator passphrase has not been configured.</p>' : '') +
