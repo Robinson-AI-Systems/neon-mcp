@@ -3,7 +3,7 @@
 This is an independent integration, not an official Neon product or endorsed connector. Use the [direct remote MCP setup guide](DIRECT-MCP-CONNECTION.md) from any compatible desktop/mobile coding agent; Hub is optional. Real client/provider acceptance is tracked separately.
 
 Plain-English things to say to a compatible authorized coding agent once each part is built. Each line names the batch that delivers it; until then
-it does not work yet. This file is updated as features ship.
+it may not work yet or may require a checked released revision, approved user delegation and separate provider acceptance. This file is updated as features ship; see [completion gates](COMPLETION-GATES.md) for the six cross-cutting prerequisites.
 
 | Say something like… | What happens | Batch |
 |---|---|---|
@@ -22,7 +22,7 @@ it does not work yet. This file is updated as features ship.
 | "What is Neon costing me this month?" | Month so far, projected total, by project and branch, and what to change to save money | O/W |
 | "Review my Neon account." | Members, keys and their ages, protected branches, usage and bill estimate, security, settings — ok or needs attention | O |
 | "Add Sam to my Neon organization." | Shows the email and role, asks you, sends Neon's invitation | O |
-| "Change my Neon plan." / "Turn on SSO." | Neon has no way to do these by API, so you get exact steps (or a browser walk-through), then it checks the result where it can. It never buys anything | O |
+| "Change my Neon plan." / "Turn on SSO." | Use provider-supported authorized action if one actually exists; otherwise show exact verified manual console steps. **Current developer agent cannot purchase/upgrade.** End-user financial/admin execution and cost-disclosure parity remain CG-3/U-1/O-4 completion work, not a global product prohibition | O/U |
 | "Clean up old branches." | Lists stale branches (never production or the app's), asks you, deletes them (recoverable for 7 days) | W |
 | "Rotate the database password for Appliance Desk." | New password shown once on your setup page, the list of places to update, then checks it works | W |
 | "Is Neon ready for Appliance Desk?" | Every item the app needs: done, fixed with your OK, or exactly what you need to click | P |
@@ -31,6 +31,10 @@ it does not work yet. This file is updated as features ship.
 | "Undo that." | Reverses the last change when it has a clean opposite (including a SQL change, by rolling the branch back to just before it while keeping today's state on the side); says plainly when it can't | X |
 | "Make a 24-hour read-only pass for Codex." | A pass shown once on your setup page; the agent uses it through Robinson's Toolkit (`rtool`) or the HTTPS API | R |
 | Anything else in Neon | The universal tools find the right Neon operation and run it with the same safety | U |
+
+## Independent client and end-user readiness
+
+The private source-supported remote MCP is **not** evidence of verified third-party desktop or mobile behavior. CG-1 requires an actual compatible independent desktop client and a supported mobile client to initialize, authorize and perform a true Neon read; CG-2 checks revocation and account separation. CG-3 requires safely configurable end-user delegation policies instead of copying the implementing agent's $0 budget/production rules to customers. Full provider-owned RTC conformance is CG-4; real checked release, provider/scratch cleanup is CG-5. Public onboarding/marketplace distribution remains private until security/privacy/scale and separate provider/platform/owner approval CG-6. The optional Hub is never required for independent Neon completion. See [COMPLETION-GATES](COMPLETION-GATES.md) and [DIRECT-MCP-CONNECTION](DIRECT-MCP-CONNECTION.md).
 
 ## Organization membership and project access (O-1 source checkpoint)
 
