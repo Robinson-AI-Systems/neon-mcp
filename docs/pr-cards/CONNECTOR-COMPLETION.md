@@ -52,3 +52,7 @@ Owner directive: 2026-10-19. This is **a scoped contribution to existing D-4 and
 ## Prior evidence / external completion separation
 
 Current main baseline above, no open PR at branch start. Direct MCP code-level availability is not a real desktop/mobile client result; RTC 1 HTTP exists but its pass route remains intentionally limited. Existing provider and actual deployment evidence must be revalidated against source/live revisions, not inferred from this plan. All implementation and full acceptance not listed above remain open.
+
+## Source reconciliation / plan drift correction (2026-10-19)
+
+**Do not rewrite the frozen plan above.** Its early `neon_role_delete` missing-write-list premise was incorrect: at baseline `src/core/profiles.js` already included `neon_role_delete`, and the existing D-4 handler has exact owner consent/verification. Therefore no role-delete source/rights change was justified or made, and D-4 cannot be credited as newly completed. The *verified* problem is that the already implemented, owner-guarded five D-7 snapshot handlers were all omitted by the B-6 write-list. The existing original `D-7` card separately froze that exact full original subsection's scoped acceptance **before this source repair**, at commit `77ee34c2d49a408554cb033e216b74324cc411a6`. The implemented branch work is a truthful partial D-7 contribution and recognizable connection identity, not the original D-4 outcome, a whole new subsection, completed R-2 or a counted product bundle. Retain both cards' frozen plans and all original external checks.
