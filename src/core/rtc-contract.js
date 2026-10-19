@@ -1,6 +1,7 @@
 // RTC 1 compatibility metadata. This is not a credential/authorization boundary.
 // The public contract remains unadvertised until the authenticated HTTPS doors land.
 import {isToolAllowed} from './profiles.js';
+import {PRODUCT_DISPLAY_NAME,PRODUCT_ATTRIBUTION,MCP_TECHNICAL_ID} from './product-identity.js';
 
 export const RTC_PREFIX='neon';
 const LISTINGS=new Set(['catalog','compact']);
@@ -41,7 +42,8 @@ export function rtcManifest(registry,{version='0.1.0'}={}){
   const items=registry.tools.map(rtcToolMetadata);
   const names=new Set(items.map(t=>t.name));
   if(names.size!==items.length)throw new TypeError('Duplicate RTC tool');
-  return {rtc:1,server:'robinson-neon-mcp',prefix:RTC_PREFIX,version,
+  return {rtc:1,server:MCP_TECHNICAL_ID,displayName:PRODUCT_DISPLAY_NAME,
+    description:PRODUCT_ATTRIBUTION,prefix:RTC_PREFIX,version,
     apiVersion:'neon-sdk-7.0.1',
     areas:[...new Set(items.map(t=>t.area))].sort(),
     counts:{tools:items.length,writes:items.filter(t=>t.writes).length,
@@ -81,7 +83,7 @@ export function rtcOpenApi(){
   const entry=(method,description,auth=true)=>({[method]:{
     summary:description,...auth?secured:{},responses:{200:{description:'RTC response'}}}});
   return {openapi:'3.1.0',
-    info:{title:'Robinson Neon MCP RTC HTTPS tools',version:'1.0.0'},
+    info:{title:PRODUCT_DISPLAY_NAME+' RTC HTTPS tools',version:'1.0.0'},
     components:{securitySchemes:{rtcPass:{type:'http',scheme:'bearer'}}},
     paths:{
       '/api/contract':entry('get','Public RTC 1 service manifest',false),
