@@ -25,6 +25,8 @@ not another planning document, invented subsection or separate approval ceremony
 - Commands to run (with `set -o pipefail` when piping).
 - Done when: observable conditions; what the successor inherits.
 
+Every implemented card must also reconcile the applicable [six cross-cutting completion gates](../COMPLETION-GATES.md) inherited from its original ID. Record positive and refusal tests and deployed/client/provider evidence where relevant; do not promote a gate from OPEN merely because one card has a green fake-provider test. `work-index.json` lists CG-1..CG-6 outside `cards`, so they do not inflate subsection counts. Standalone native clients and provider RTC conformance remain independent of any Hub enrollment.
+
 Validate coverage with `python3 docs/pr-cards/validate-index.py`.
 
 ## Concrete implementation packet

@@ -1,7 +1,6 @@
 # START HERE — Robinson Neon MCP
 
-A hosted MCP server (Node 24, plain ES modules, Vercel serverless + its own Neon Postgres database) that gives Chris's AI
-agents safe, almost-complete control of his Neon accounts. Same family and conventions as
+An independent hosted MCP server (Node 24, plain ES modules, Vercel serverless + its own Neon Postgres database) intended to give appropriately authorized users and agents broad control of their own Neon accounts. Source features are substantially implemented; **complete native-client, user-tenant, real-provider and public distribution acceptance is not yet proved**. Same family and conventions as
 `Robinson-AI-Systems/stripe-mcp` and `Robinson-AI-Systems/google-workspace-mcp` (reused code is named in
 `docs/designs/BATCH-A.md`). General-purpose across Chris's projects; apps that manage part of their own Neon project get
 a project profile (Batch P), the first being the Appliance Desk rental app (`docs/APP-NEEDS-APPLIANCE-DESK.md`). Chris
@@ -14,7 +13,7 @@ operates mostly from a phone; everything he reads must be plain language.
 3. [MASTER-ROADMAP](MASTER-ROADMAP.md) — order of batches and work coverage.
 4. Next card, then its named design headings and code. If JIT, write the short card from the design first;
    [drift protocol](implementation-contracts/DRIFT-PROTOCOL.md) applies every time.
-5. PLAN's acceptance for the batch and PLAYBOOK's verification commands.
+5. PLAN's acceptance for the batch, the six [COMPLETION-GATES](COMPLETION-GATES.md) cross-cutting acceptance overlays, and PLAYBOOK's verification commands. `npm run session:status` separately reports original work units, six OPEN gates and deployed release acceptance.
 
 ## Code map (target; confirm the actual path before editing)
 
@@ -33,7 +32,7 @@ date and hash.
 |---|---|
 | Workflow / hard limits | AGENTS; PLAYBOOK for command recipes |
 | Current state / ordered work | STATUS / MASTER-ROADMAP / `pr-cards/work-index.json` |
-| Remaining acceptance | PLAN |
+| Remaining acceptance | PLAN, COMPLETION-GATES and STATUS release queue (three complementary obligations, no double-counted subsections) |
 | How each batch works | `designs/BATCH-*.md` (targeted headings); the card for exact execution |
 | Every tool and its flags | TOOL-CATALOG |
 | What each profiled app needs | `APP-NEEDS-<APP>.md` (first: APP-NEEDS-APPLIANCE-DESK), `designs/BATCH-P.md` |

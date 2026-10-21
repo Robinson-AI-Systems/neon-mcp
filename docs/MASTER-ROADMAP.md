@@ -21,8 +21,11 @@ Written 2026-10-10 for an empty repository. [STATUS](STATUS.md) holds current st
 
 ## What is next
 
-**Done:** A-1 (#1), A-2 (#7), A-3 (#8/#9), A-4 (#10/#11), A-5 (#12/#13/#14), A-6 (#15), A-7 (#16).
-**Current milestone:** independently eligible D-8 security reads: #89 scoped JWKS trust metadata and #90 observed-vs-unknown project security posture; protected branch/network/JWKS summaries are implemented offline, while five guarded security mutations and full live acceptance remain. D-7 #87 supports read-only snapshot metadata, not paid restore/schedule mutations. D-4 role deletion stays unregistered because independently reliable pooled-client evidence is absent; D-5 remains blocked by index dependency and requires a narrowly approved amendment to proceed separately. D-3 offline tooling is complete, but connected scratch acceptance remains gated (X-3). Production and RTC live activation stay OFF; only scheduled checked main-to-live promotion is permitted. See STATUS actionable blocker ledger for re-eligibility triggers.
+**Current checked source checkpoint (2026-10-19):** PR #189 merged (`7c23b2805d4137286c6d58dc031be8368b789096`), adding consistent unofficial product display attribution and exposing five already-guarded D-7 writes to appropriately authorized full-profile direct MCP clients. PR #190 merged (`79507e0ead617e85b7f678ddbe6011dbdeb1729b`), exposing four already-guarded D-8 security writes on the same narrow path. Their exact PR-head CI and release-policy checks passed; **neither original D-7 nor D-8 subsection is fully accepted**. The most recent independently observed READY production deployment is from `live` SHA `5589f27de2ebdd7baa55d0139ff0811be22c2dca`, older than these merges. Do not infer source is deployed. Recheck GitHub, deployment, cards and accepted evidence every session.
+
+**Next engineering and acceptance:** Reconcile and execute all eligible deployed queue rows from STATUS, particularly previously approved scratch classification/guarded write evidence; advance still-IN_PROGRESS original D/V/O cards by genuine whole outcomes; proceed through the remaining P/W/U/R/E/X cards in the index. Real **native desktop/mobile direct MCP**, multi-user identity/isolation, user-owned delegated permissions, full RTC 1 provider-side conformance and independently proved provider operations must not be lost behind hand-built tool milestones. Their six explicit noncountable completion gates are in [COMPLETION-GATES.md](COMPLETION-GATES.md); [PLAN](PLAN.md) makes them acceptance requirements. Hub registration/relay is Hub-owned, not a Neon completion criterion. Public distribution is separately gated and not approved.
+
+**Historical roadmap notes:** Earlier D-8-read-only, D-4-unregistered and D-5-blocked descriptions have been superseded by later code/cards and owner decisions IN-15/IN-16; review current work-index/card/STATUS rather than reusing them as present facts. Do not mark unfinished cards merged to improve counts, or interpret a READY deployment or adapter success as direct-MCP acceptance.
 
 ## Order and why
 
@@ -54,7 +57,7 @@ Written 2026-10-10 for an empty repository. [STATUS](STATUS.md) holds current st
 
 ## Work coverage
 
-`docs/pr-cards/work-index.json` is the machine-readable list (`python3 docs/pr-cards/validate-index.py`). **JIT** =
+`docs/pr-cards/work-index.json` is the machine-readable list of the ORIGINAL roadmap subsections (`python3 docs/pr-cards/validate-index.py`); the noncountable [cross-cutting completion gates](COMPLETION-GATES.md) supplement those cards, not replace or inflate them. **JIT** =
 covered by the design; write the card when its predecessor is real.
 
 | Batch | Cards | Card status |

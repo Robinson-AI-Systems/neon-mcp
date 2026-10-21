@@ -4,12 +4,12 @@
 
 An independent, **unofficial** remote Neon MCP service by Robinson AI Systems, designed for authorized coding agents and owners — for building, for
 owning the account, and for day-to-day work on any project, with Appliance Desk as the first real check. Previews before
-changes, production databases off-limits until Chris turns them on, risky SQL tried on a throwaway copy first, dollar
+changes, protected production databases off-limits to the builder until the account's authorized owner enables delegated access, risky SQL tried on a throwaway copy first, dollar
 previews before anything raises the bill, passwords and keys that never pass through an AI, and small results that don't
 burn an agent's context. It follows the Robinson Tool Contract, so Robinson's Toolkit (the hub) can offer it alongside
 Chris's other servers — but it works fully on its own.
 
-**Status (2026-10-19):** a Vercel production deployment exists, but deployed-source and genuine provider/client acceptance are distinct from code completion. Verified source includes multiple batches beyond A-1 through A-7, with remaining R/owner/backend/acceptance work tracked separately. See [`docs/STATUS.md`](docs/STATUS.md) and the [owner deployment guide](docs/DEPLOY.md). AI agents: read [`AGENTS.md`](AGENTS.md) first.
+**Status (2026-10-19):** a READY Vercel Production deployment exists on older `live` source, while merged PRs #189/#190 have not been observed deployed. Source includes many implemented Neon capabilities, but native client, full user-admin authority, RTC, provider and commercial acceptance remain incomplete. The [six universal completion gates](docs/COMPLETION-GATES.md) are machine-tracked alongside the original [53 roadmap cards](docs/pr-cards/work-index.json), **not** counted as extra engineering batches. See [`docs/STATUS.md`](docs/STATUS.md) and the [owner deployment guide](docs/DEPLOY.md). AI agents: read [`AGENTS.md`](AGENTS.md) first.
 
 **Direct remote MCP:** verified production HTTPS origin + `/api/mcp`, where the remote client actually supports Streamable HTTP + OAuth; **no Hub is required**. See [connection steps, scoped authorization, mobile/desktop limitations and pending real-client acceptance](docs/DIRECT-MCP-CONNECTION.md). Technical identifier `robinson-neon-mcp` remains stable. We are not affiliated with or endorsed by Neon. Private integrations are not authorized for public directory publication.
 

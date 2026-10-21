@@ -40,13 +40,13 @@ The HTTPS origin in `PUBLIC_BASE_URL` must be correct for **each** environment r
 
 ## 4. Add only approved, narrowly scoped Neon API keys (IN-04, IN-05)
 
-1. Decide with the owner which Neon organization and **scratch or otherwise approved** project can be visible. Start with **project-scoped keys**, not a personal all-access key. Do not add a production project's key just to smoke-test the server.
-2. In Neon's dashboard, issue a key scoped only to the approved project. Give it a recognizable purpose-specific name such as `robinson-neon-mcp-scratch` and store it in a password manager.
-3. Open `https://<your-approved-deployment-origin>/api/neon/setup` yourself in your browser. The current page accepts project-scoped keys only; **organization-wide key administration is not yet implemented**, so do not try to force an organization key into the project-key form.
+1. Reuse the owner's **already enrolled** keys and projects (IN-04/IN-05: seven selected-project keys, including approved IN-06 scratch). These numbered steps are for missing or separately authorized NEW access only; never rotate or duplicate an enrolled key merely to recheck a released build. Project-scoped keys remain recommended for narrow access. Elevated organization/personal keys require independent owner and provider authorization.
+2. Only when an additional owner-approved project genuinely needs enrollment, issue a correctly scoped key in Neon's dashboard; name it for its purpose, use the passphrase-controlled setup form and store the secret in your password manager. Never copy it into chat or source.
+3. Open `https://<your-approved-deployment-origin>/api/neon/setup` yourself in your browser. The owner setup now has separately verified administrator key enrollment and O-1/O-2 key management paths in source; **do not put an organization/personal key in the project-scoped field**. Inspect the checked released form and select its correctly scoped owner/admin enrollment operation. Real provider admin rights and release-specific behavior must be independently verified.
 4. Fill in the organization ID, organization label, scoped project ID, key, label and owner passphrase. Submit from the **same HTTPS origin** as `PUBLIC_BASE_URL`. The page verifies key reach before encrypted storage.
 5. Use **List keys** to confirm a safe label/last-four display, or **Revoke a key** to disable a stored key. Never copy the raw key into a conversation or tool argument. The **View secret once** and **Supply requested secret** forms also require the owner passphrase; treat their output as sensitive.
 
-A project key's reach depends on Neon's actual permissions. Until X-2/X-3 are approved and completed, use only mock tests and owner-authorized read-only checks. **Adding a key never grants permission to modify production.**
+A project key's reach depends on Neon's actual permissions. The owner already approved the isolated scratch fixture (IN-06), but original X-2/X-3 and queued real-provider write acceptance are not passed. Only separately allowed read tests and guarded owner scratch acceptance may proceed; ordinary production writes remain forbidden for the implementing agent. **Adding a key never grants permission to modify production.**
 
 ## 5. Connector discovery and first checks (preview/read-only only)
 
@@ -71,6 +71,10 @@ The deployed project has a READY production revision; whether all required confi
 **Do not do this unless you have separately approved the relevant real setup.** Before the future guarded write tools may operate, the owner must identify **this server's own Neon project**, using only Vercel environment variables (never chat or GitHub): `NEON_MCP_SELF_ORG_ID`, `NEON_MCP_SELF_PROJECT_ID`, and `NEON_MCP_SELF_ENDPOINT_HOST`. Read the project and organization IDs from Neon's dashboard; the endpoint host must exactly equal the hostname in the dedicated `DATABASE_URL` (never copy the password here). If any value is missing or the host differs, the guard refuses writes. The extra values are not required for today's read-only startup.
 
 The owner can use **Protected resources** at `/api/neon/setup` after entering their passphrase. Enter an array of objects such as `[{"kind":"other","org":"org-fake","project_id":"prj-fake","label":"Other private database"}]` using IDs from your private dashboard, never source code. This list is an owner decision (IN-07). The server's own project is added automatically and cannot be removed via the editor. If you are unsure which project belongs to Neon MCP, **do not enable writes**.
+
+## Completion and public distribution are separate
+
+Consult [COMPLETION-GATES.md](COMPLETION-GATES.md) and [GO-LIVE-CHECKLIST.md](GO-LIVE-CHECKLIST.md). Existing private-owner connection does not demonstrate independent desktop/mobile native client compatibility, full multi-tenant end-user authority, all real-provider scenarios or public-commercial readiness. No public sign-up, listing, paid activation or extra deployment is authorized by this guide; CG-6 requires a separate distribution decision.
 
 ## B-2 production approval remains disabled
 

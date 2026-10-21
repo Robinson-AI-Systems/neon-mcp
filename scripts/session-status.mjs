@@ -114,6 +114,30 @@ export function summarizeRoadmap(index) {
 
 
 
+/** Cross-cutting gates never count as original batch subsections.
+ * Missing/unproved gates are errors, not successful acceptance. */
+export function summarizeCompletionGates(index) {
+  const gates = index?.completionGates;
+  if (!Array.isArray(gates) || gates.length !== 6) throw new Error('Six universal completion gates must be indexed.');
+  const expected = new Set(Array.from({ length: 6 }, (_, i) => `CG-${i + 1}`));
+  const originalCards = new Set((index.cards || []).map(card => card.id));
+  const ids = new Set();
+  for (const gate of gates) {
+    if (!gate || !expected.has(gate.id) || ids.has(gate.id) ||
+        !['OPEN', 'PASSED'].includes(gate.status) || !gate.title?.trim() ||
+        gate.criteria !== 'docs/COMPLETION-GATES.md' ||
+        !Array.isArray(gate.owners) || !gate.owners.length ||
+        gate.owners.some(id => !originalCards.has(id)) ||
+        new Set(gate.owners).size !== gate.owners.length ||
+        (gate.status === 'PASSED' && !gate.evidence?.trim())) {
+      throw new Error('Invalid cross-cutting completion gate or evidence.');
+    }
+    ids.add(gate.id);
+  }
+  if (ids.size !== expected.size) throw new Error('Missing universal completion gate.');
+  return [...gates].sort((a, b) => a.id.localeCompare(b.id));
+}
+
 /** Bind accounting to every queue field and planner disposition, not just identity. */
 export function acceptanceSnapshot(plan) {
   const canonical = [...plan].sort((a, b) => a.id.localeCompare(b.id)).map(row =>
@@ -187,7 +211,9 @@ export function run(root, args) {
   const policy = JSON.parse(readFileSync(resolve(root, 'docs/session-policy.json'), 'utf8'));
   if (!/^[\w.-]+\/[\w.-]+$/.test(policy.repository) || !/^docs\/[\w/.-]+\.md$/.test(policy.ledger) || policy.ledger.includes('..')) throw new Error('Invalid repository/ledger policy.');
   const rows = readQueue(readFileSync(resolve(root, policy.ledger), 'utf8'));
-  const roadmap = summarizeRoadmap(JSON.parse(readFileSync(resolve(root, 'docs/pr-cards/work-index.json'), 'utf8')));
+  const index = JSON.parse(readFileSync(resolve(root, 'docs/pr-cards/work-index.json'), 'utf8'));
+  const roadmap = summarizeRoadmap(index);
+  const completion = summarizeCompletionGates(index);
   const observation = {
     main: git(root, 'rev-parse', '--verify', 'refs/remotes/origin/main^{commit}'),
     live: git(root, 'rev-parse', '--verify', 'refs/remotes/origin/live^{commit}'),
@@ -230,6 +256,10 @@ export function run(root, args) {
     if (batch.planned.length) lines.push('Planned ' + batch.batch + ' (' + batch.planned.length + '): ' + batch.planned.join(', '));
     if (batch.blocked.length) lines.push('Blocked ' + batch.batch + ': ' + batch.blocked.join(', '));
   }
+  lines.push('Cross-cutting product completion gates (separate from original batch counts; source/CI is NOT real acceptance): ' +
+    completion.filter(gate => gate.status === 'OPEN').length + ' OPEN, ' +
+    completion.filter(gate => gate.status === 'PASSED').length + ' PASSED.');
+  for (const gate of completion) lines.push(`${gate.id} ${gate.status}: ${gate.title}; original owners: ${gate.owners.join(', ')}; ${gate.criteria}`);
   lines.push('ENGINEERING PR planning averages: 400–800 changed production lines and 2–5 fully completed predefined batch subsections; count only whole predefined batch subsections with evidence, never helpers or packet subtasks.');
   lines.push('PR work unit = one whole predefined batch subsection (such as H-3 or B-5). Technical slices, functions, tools, UI wiring, guards and packet tasks do not count separately. Partial subsection = zero completed batch subsections.');
   lines.push(`Queue: ${plan.length} total; ${rows.filter(row => row.status === 'PASSED').length} recorded passes; ${active.length} tasks require planner consideration.`);

@@ -309,6 +309,8 @@ it (context and tokens). 4. Simplicity. 5. Features.
 
 ## Definition of Done (non-negotiable)
 
+**Cross-cutting universal completion tracking (owner directive, 2026-10-19):** In addition to the original batch/card acceptance, inspect [docs/COMPLETION-GATES.md](docs/COMPLETION-GATES.md), the machine-tracked CG-1..CG-6 in `docs/pr-cards/work-index.json`, and the existing STATUS release queue. `npm run session:status` must surface these separately. The gates are **not new countable subsections**, and source/CI/deploy/adapter results never pass real native-client/Neon-provider acceptance. No completed-project claim while any required CG gate or original subsection/acceptance remains open. Native standalone MCP and provider-owned RTC evidence must not depend on live Hub enrollment; public distribution remains separately owner/platform-approved. Do not count documentation as a finished implementation bundle. Keep existing builder $0/no-production/secret/review rules even when designing user-delegated capabilities.
+
 1. No placeholders, stubs, TODO-as-implementation, or mock data presented as real. A tool either calls the real Neon
    operation (or runs the real SQL) it claims to, or it does not exist.
 2. Tests exercise real behavior: every write tool passes the nine write-contract checks (`docs/designs/BATCH-B.md` §3);

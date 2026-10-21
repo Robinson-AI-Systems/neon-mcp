@@ -25,6 +25,33 @@ W-1 W-2 W-3 W-4 W-5 W-6 W-7 U-1 R-1 R-2 R-3 E-1 E-2 X-1 X-2 X-3
 CAP-1 CAP-2 CAP-3 CAP-4 CAP-5
 """.split())
 
+# Universal owner directive completion overlays must never be silently omitted,
+# counted as batch subsections or marked passed without a documented evidence link.
+REQUIRED_COMPLETION_GATES = {f'CG-{i}' for i in range(1, 7)}
+GATES = DATA.get('completionGates')
+if not isinstance(GATES, list):
+    errors.append('completionGates must be a list')
+else:
+    ids = [g.get('id') if isinstance(g, dict) else None for g in GATES]
+    if len(ids) != len(set(ids)) or set(ids) != REQUIRED_COMPLETION_GATES:
+        errors.append('completion gate identities changed; reconcile CG-1..CG-6 deliberately')
+    for gate in GATES:
+        if not isinstance(gate, dict):
+            errors.append('invalid completion gate')
+            continue
+        gid = gate.get('id', '?')
+        if gate.get('status') not in ('OPEN', 'PASSED'):
+            errors.append(f'{gid}: invalid completion gate status')
+        if not isinstance(gate.get('title'), str) or not gate['title'].strip():
+            errors.append(f'{gid}: missing title')
+        owners = gate.get('owners')
+        if not isinstance(owners, list) or not owners or len(set(owners)) != len(owners) or set(owners) - set(BY_ID):
+            errors.append(f'{gid}: missing or invalid original roadmap owners')
+        if gate.get('criteria') != 'docs/COMPLETION-GATES.md' or not (ROOT / 'docs/COMPLETION-GATES.md').is_file():
+            errors.append(f'{gid}: missing canonical completion criteria')
+        if gate.get('status') == 'PASSED' and not gate.get('evidence'):
+            errors.append(f'{gid}: PASSED requires independent evidence')
+
 if len(BY_ID) != len(CARDS):
     errors.append('duplicate card IDs')
 if DATA.get('order') != REQUIRED_BATCHES:
@@ -82,4 +109,4 @@ for name in changed:
 if errors:
     print('\n'.join(errors))
     sys.exit(1)
-print(f"work-index OK: {len(CARDS)} cards, {len(REQUIRED_BATCHES)} batches")
+print(f"work-index OK: {len(CARDS)} original cards, {len(REQUIRED_BATCHES)} batches; {len(GATES) if isinstance(GATES, list) else 0} separate completion gates")

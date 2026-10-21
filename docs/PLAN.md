@@ -13,6 +13,12 @@ Written 2026-10-10 for an empty repository. Order is in [MASTER-ROADMAP](MASTER-
 [STATUS](STATUS.md). AGENTS owns workflow rules. This file owns acceptance; designs own semantic decisions; cards own the
 next bounded implementation.
 
+## Cross-cutting completion and direct client acceptance (owner directive, 2026-10-19)
+
+The six OPEN gates in [COMPLETION-GATES.md](COMPLETION-GATES.md) are mandatory acceptance overlays on the original A/B/D/V/O/P/W/U/R/E/X cards, **not** six invented roadmap subsections or claims of implementation. Each assigned owner card must add both positive and refusal tests and link actual evidence; source implementation, exact-head CI, `live` promotion, service-owned direct-client/provider acceptance and distribution approval remain distinct. Do not close a card's remaining real-world acceptance or project completion by showing just a manifest, a green mock, OAuth consent, optional adapter response or a Hub-provided read.
+
+Minimum evidence: direct independent desktop and supported mobile coding-agent initialize/tool discovery/provider read (CG-1); user/tenant identity separation, consent, expiry/refresh/revoke/downgrade, replay and result-handle isolation (CG-2); actual end-user-controlled approvals, budgets, protected resources and authorized positive/negative execution without developer-policy leakage (CG-3); independently verified provider-side RTC 1, no Hub enrollment dependency (CG-4); checked released revision with eligible real read and owner-approved isolated scratch write/readback/cleanup and complete release-acceptance ledger (CG-5); honest brand attribution, public self-service security/privacy/scale and separate provider/platform/owner distribution eligibility (CG-6). Keep public distribution private and production mutations off pending their independent gates.
+
 ## Rules that apply to every batch
 
 - Every write tool passes the nine write-contract checks (`docs/designs/BATCH-B.md` §3) through every door that exists.
