@@ -1,3 +1,17 @@
+## 2026-10-21 — owner-requested maximum-authority planning (source only)
+
+Inspected main `79507e0ead617e85b7f678ddbe6011dbdeb1729b` and existing open work before editing. Added
+[MAXIMUM-AUTHORITY](designs/MAXIMUM-AUTHORITY.md) and indexed CAP-1..CAP-5 as
+APPROVED / NOT IMPLEMENTED. Existing provider acceptance evidence is unchanged;
+no new live pass, deployment, paid action, credential, grant or production effect.
+This is explicitly requested planning maintenance: zero production lines and zero
+completed implementation subsections. Ordinary supported authorization gets every
+operation it can perform; God Mode only simplifies genuinely necessary additional
+authority. Separate developer/operator/customer contexts explicitly. Existing original
+unfinished cards keep ownership; no work is counted twice. Next: existing eligible
+acceptance/implementation first, then CAP-1 inventory and its dependency-ordered work.
+Exact-head checks/self-review and any existing reviews remain mandatory before merge.
+
 ## October 19 — Source-completed native MCP attribution and guarded D-7 tools; D-8 owner authority source contribution underway
 
 Merged [PR #189](https://github.com/Robinson-AI-Systems/neon-mcp/pull/189) at commit `7c23b2805d4137286c6d58dc031be8368b789096` (head `5f04436b2266d1464d19dbda9e36c94c710f2a84`). Exact-head CI run `39269885202` passed secrets/docs/index/lint/write-safety/budgets, 1,075 fake-provider unit tests, disposable PostgreSQL, RTC subset and aggregate CI. PR release-policy success and an exact-head self-review were recorded; two earlier red cycles were corrected for the exact TOOL-CATALOG count contract, not bypassed. Current deployed production/live is **still** earlier SHA `5589f27de2ebdd7baa55d0139ff0811be22c2dca` at most recent independent Vercel check. Push-to-main CI beyond PR is not independently available through this connector. Do not claim the change released, live provider-tested or direct desktop/mobile client-accepted.
