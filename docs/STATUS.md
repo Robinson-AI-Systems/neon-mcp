@@ -1,3 +1,25 @@
+
+## 2026-10-21 — client-owned native OAuth revocation source implementation
+
+Confirmed missing standard client disconnect despite internal token revocation. Added RFC7009
+POST /api/oauth/revoke and issuer discovery, bound to the client's persisted authentication method
+and atomic current grant ownership. Access or refresh revocation stops both on the selected row;
+foreign-client, unknown and already-revoked inputs do not leak existence or affect other grants.
+RTC/provider credentials, independent money-out protections, production flags and releases remain
+unchanged. See [frozen acceptance](pr-cards/A-3-CLIENT-REVOCATION.md). Source tests and exact-head
+CI are required before merge; actual released-client disconnect/refresh refusal remains OPEN.
+Independent customer enrollment and complete tenant/role separation remain unfinished engineering
+on CAP-2/CAP-3/CAP-5, not an external blocker or completed bundle.
+
+## 2026-10-21 — native public-client authorization source correction
+
+A-3 now supports explicit public-client registration with S256 PKCE and no artificial
+shared secret. Persisted authentication method, original confidential/legacy clients,
+exact resource/redirect, owner consent, refresh ownership and revocation remain enforced.
+Source-only: see [frozen scope](pr-cards/A-3-PUBLIC-CLIENTS.md). Full local/CI proof and merge
+are required; this does not provide independent customer enrollment or real client acceptance.
+No provider credentials, user permissions, production flags or release changed.
+
 ## 2026-10-21 — deployment-bound credential security correction
 
 Confirmed that production OAuth credentials were silently downgraded to preview on a

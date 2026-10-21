@@ -52,7 +52,7 @@ describe('personal-use OAuth HTTP endpoints', () => {
     expect(auth.code_challenge_methods_supported).toEqual(['S256']);
     expect(json(await call(h.resourceMetadata, request('GET', {}))).resource).toBe(resource);
   });
-  it('rejects insecure redirect URIs and unsupported public-client auth', async () => {
+  it('rejects insecure redirect URIs', async () => {
     const { h } = createFixture();
     const res = await call(h.register, request('POST', { redirect_uris: ['http://evil.example.test/cb'] }));
     expect(res.statusCode).toBe(400);
@@ -239,5 +239,75 @@ describe('hosted MCP bearer transport failure containment',()=>{
     expect(called).toBe(0);
     expect(res.statusCode).toBe(503);
     expect(json(res)).toEqual({error:'service_unavailable'});
+  });
+});
+
+
+describe('native public-client OAuth ownership',()=>{
+  async function publicClient(h){
+    const r=await call(h.register,request('POST',{redirect_uris:[callback],
+      token_endpoint_auth_method:'none',client_name:'Native client'}));
+    expect(r.statusCode).toBe(201);
+    expect(json(r)).not.toHaveProperty('client_secret');
+    return json(r);
+  }
+  async function authorize(h,client){
+    const r=await call(h.authorize,request('POST',{
+      ...authorizeArgs(client),passphrase:env.ADMIN_PASSPHRASE}));
+    expect(r.statusCode).toBe(302);
+    return new URL(r.headers.Location).searchParams.get('code');
+  }
+  it('preserves independent client scope through PKCE, rotation, wrong-client refusal and revocation',async()=>{
+    const {h,db}=createFixture();
+    const a=await publicClient(h),b=await publicClient(h);
+    expect(a.client_id).not.toBe(b.client_id);
+    expect(await db.getOAuthClient(a.client_id)).toMatchObject({
+      token_endpoint_auth_method:'none',client_secret_hash:null});
+    const code=await authorize(h,a);
+    const tokenArgs={grant_type:'authorization_code',client_id:a.client_id,
+      redirect_uri:callback,resource,code,code_verifier:verifier};
+    // Mixed credentials cannot consume the legitimate public client's code.
+    for(const extra of [{client_secret:''},{client_secret:'FAKE-not-a-secret'}]){
+      expect((await call(h.token,request('POST',{...tokenArgs,...extra}))).statusCode).toBe(401);
+    }
+    expect((await call(h.token,request('POST',tokenArgs,{authorization:'Basic FAKE'}))).statusCode).toBe(401);
+    expect((await call(h.token,request('POST',{...tokenArgs,client_id:b.client_id}))).statusCode).toBe(400);
+    const granted=await call(h.token,request('POST',tokenArgs));
+    expect(granted.statusCode).toBe(200);
+    const first=json(granted);
+    expect(await db.getAccessToken(first.access_token)).toMatchObject({client_id:a.client_id,
+      neon_org:'org-fake-one',mode:'preview',profile:'full',listing:'compact'});
+    const refresh={grant_type:'refresh_token',resource,refresh_token:first.refresh_token};
+    expect((await call(h.token,request('POST',{...refresh,client_id:b.client_id}))).statusCode).toBe(400);
+    const renewed=await call(h.token,request('POST',{...refresh,client_id:a.client_id}));
+    expect(renewed.statusCode).toBe(200);
+    const second=json(renewed);
+    expect(await db.getAccessToken(second.access_token)).toMatchObject({client_id:a.client_id,
+      neon_org:'org-fake-one',project_scope:null,profile:'full',listing:'compact'});
+    expect(await db.getAccessToken(first.access_token)).toBeNull();
+    expect((await call(h.token,request('POST',{...refresh,client_id:a.client_id}))).statusCode).toBe(400);
+    await db.revokeAccessToken(second.access_token);
+    expect((await call(h.token,request('POST',{...refresh,client_id:a.client_id,
+      refresh_token:second.refresh_token}))).statusCode).toBe(400);
+  });
+  it('does not let a public registration or claimed method downgrade a confidential grant',async()=>{
+    const {h}=createFixture(),secret=await register(h);
+    const code=await authorize(h,secret);
+    const args={grant_type:'authorization_code',resource,redirect_uri:callback,code,
+      code_verifier:verifier,client_id:secret.client_id,token_endpoint_auth_method:'none'};
+    expect((await call(h.token,request('POST',args))).statusCode).toBe(401);
+    expect((await call(h.token,request('POST',{...args,client_secret:secret.client_secret}))).statusCode).toBe(200);
+  });
+  it('requires actual S256 proof and rejects unsupported registration methods',async()=>{
+    const {h}=createFixture(),a=await publicClient(h);
+    for(const method of ['client_secret_basic','unknown','',null]){
+      expect((await call(h.register,request('POST',{redirect_uris:[callback],
+        token_endpoint_auth_method:method}))).statusCode).toBe(400);
+    }
+    const code=await authorize(h,a);
+    expect((await call(h.token,request('POST',{grant_type:'authorization_code',resource,
+      redirect_uri:callback,client_id:a.client_id,code,code_verifier:'z'.repeat(43)}))).statusCode).toBe(400);
+    expect(json(await call(h.metadata,request('GET',{}))).token_endpoint_auth_methods_supported)
+      .toEqual(['client_secret_post','none']);
   });
 });

@@ -32,11 +32,16 @@ export function createDb(sql = productionSql()) {
     ...checkpointStore(sql),
 
     // OAuth client registration and authentication (always persist token and client secret hashes).
-    async createOAuthClient({ clientId, clientSecret, redirectUris, clientName }) {
-      if (!clientId || !clientSecret || !Array.isArray(redirectUris) || !redirectUris.length)
+    async createOAuthClient({ clientId, clientSecret, redirectUris, clientName,
+      tokenEndpointAuthMethod = 'client_secret_post' }) {
+      if (!clientId || !['client_secret_post','none'].includes(tokenEndpointAuthMethod) ||
+        (tokenEndpointAuthMethod === 'none' ? clientSecret != null :
+          typeof clientSecret !== 'string' || !clientSecret) ||
+        !Array.isArray(redirectUris) || !redirectUris.length)
         throw new TypeError('Missing OAuth client registration fields');
       const data = JSON.stringify({
-        client_secret_hash: hashToken(clientSecret), redirect_uris: redirectUris,
+        client_secret_hash: clientSecret ? hashToken(clientSecret) : null,
+        token_endpoint_auth_method: tokenEndpointAuthMethod, redirect_uris: redirectUris,
         client_name: clientName || null
       });
       await sql`INSERT INTO oauth_clients (client_id, data) VALUES (${clientId}, ${data}::jsonb)`;
@@ -57,10 +62,13 @@ export function createDb(sql = productionSql()) {
         VALUES (${hashToken(code)}, ${clientId}, ${data}::jsonb, ${neonOrg}, ${projectScope},
           ${mode}, ${profile}, ${listing}, ${expiresAt})`;
     },
-    async consumeAuthCode(code) {
+    async consumeAuthCode(code, { clientId = null, redirectUri = null } = {}) {
       if (typeof code !== 'string' || !code) return null;
       const rows = await sql`DELETE FROM oauth_codes WHERE code = ${hashToken(code)}
-        AND expires_at > now() RETURNING client_id, data, neon_org, project_scope, mode, profile, listing`;
+        AND expires_at > now()
+        AND (${clientId}::text IS NULL OR client_id = ${clientId})
+        AND (${redirectUri}::text IS NULL OR data->>'redirect_uri' = ${redirectUri})
+        RETURNING client_id, data, neon_org, project_scope, mode, profile, listing`;
       const row = rows[0];
       return row ? { client_id: row.client_id, ...row.data, ...connectionSettings(row) } : null;
     },
@@ -151,6 +159,16 @@ export function createDb(sql = productionSql()) {
       return sql`SELECT client_id AS pass_id,project_scope,expires_at,revoked_at
         FROM oauth_tokens WHERE neon_org=${orgId} AND kind='pass'
         ORDER BY created_at DESC LIMIT 50`;
+    },
+    // Client disconnect must never revoke another caller or an RTC pass.
+    async revokeOAuthToken({token,clientId}) {
+      if(typeof token!=='string'||!token||typeof clientId!=='string'||!clientId)
+        throw new TypeError('Token and authenticated OAuth client required');
+      const rows=await sql`UPDATE oauth_tokens SET revoked_at=now()
+        WHERE client_id=${clientId} AND kind='connector' AND revoked_at IS NULL
+          AND (token_hash=${hashToken(token)} OR refresh_hash=${hashToken(token)})
+        RETURNING token_hash`;
+      return rows.length>0;
     },
     async revokeAccessToken(accessToken) {
       if (typeof accessToken !== 'string' || !accessToken) return false;

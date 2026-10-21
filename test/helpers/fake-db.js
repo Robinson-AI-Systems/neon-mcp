@@ -12,11 +12,16 @@ export function createFakeDb({ clock = () => Date.now(), orgs = [] } = {}) {
     async listTables() { return [...tables]; },
     async put(key, value) { rows.set(key, structuredClone(value)); },
     async get(key) { return rows.has(key) ? structuredClone(rows.get(key)) : null; },
-    async createOAuthClient({ clientId, clientSecret, redirectUris, clientName }) {
-      if (!clientId || !clientSecret || !Array.isArray(redirectUris) || !redirectUris.length)
+    async createOAuthClient({ clientId, clientSecret, redirectUris, clientName,
+      tokenEndpointAuthMethod = 'client_secret_post' }) {
+      if (!clientId || !['client_secret_post','none'].includes(tokenEndpointAuthMethod) ||
+        (tokenEndpointAuthMethod === 'none' ? clientSecret != null :
+          typeof clientSecret !== 'string' || !clientSecret) ||
+        !Array.isArray(redirectUris) || !redirectUris.length)
         throw new TypeError('Missing OAuth client registration fields');
       if (clients.has(clientId)) throw new Error('duplicate client');
-      clients.set(clientId, { client_id: clientId, client_secret_hash: hashToken(clientSecret),
+      clients.set(clientId, { client_id: clientId, client_secret_hash: clientSecret ? hashToken(clientSecret) : null,
+        token_endpoint_auth_method: tokenEndpointAuthMethod,
         redirect_uris: structuredClone(redirectUris), client_name: clientName || null });
     },
     async getOAuthClient(clientId) { return structuredClone(clients.get(clientId) || null); },
@@ -28,10 +33,12 @@ export function createFakeDb({ clock = () => Date.now(), orgs = [] } = {}) {
         neon_org: neonOrg, project_scope: projectScope, mode, profile, listing,
         expires_at: clock() + ttlSeconds * 1000 });
     },
-    async consumeAuthCode(code) {
+    async consumeAuthCode(code, { clientId = null, redirectUri = null } = {}) {
       if (typeof code !== 'string' || !code) return null;
       const key = hashToken(code);
       const row = codes.get(key);
+      if (row && ((clientId !== null && row.client_id !== clientId) ||
+        (redirectUri !== null && row.redirect_uri !== redirectUri))) return null;
       codes.delete(key);
       return row && row.expires_at > clock()
         ? structuredClone(Object.fromEntries(Object.entries(row).filter(([name]) => name !== 'expires_at')))
@@ -67,6 +74,16 @@ export function createFakeDb({ clock = () => Date.now(), orgs = [] } = {}) {
       row.expires_at = clock() + ttlSeconds * 1000;
       tokens.set(row.token_hash, row);
       return structuredClone({ client_id: row.client_id, ...connectionSettings(row) });
+    },
+    async revokeOAuthToken({token,clientId}) {
+      if(typeof token!=='string'||!token||typeof clientId!=='string'||!clientId)
+        throw new TypeError('Token and authenticated OAuth client required');
+      const hash=hashToken(token);
+      const row=[...tokens.values()].find(x=>x.client_id===clientId&&
+        x.kind==='connector'&&!x.revoked_at&&(x.token_hash===hash||x.refresh_hash===hash));
+      if(!row)return false;
+      row.revoked_at=clock()||1;
+      return true;
     },
     async revokeAccessToken(accessToken) {
       if (typeof accessToken !== 'string' || !accessToken) return false;
