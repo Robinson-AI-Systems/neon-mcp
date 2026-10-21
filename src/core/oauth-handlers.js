@@ -1,3 +1,4 @@
+import {createOAuthRevocation} from './oauth-revocation.js';
 // Copied and adapted from Robinson-AI-Systems/stripe-mcp src/core/oauth-handlers.js @ e2f90e8
 // Contract-generic OAuth HTTP handlers. No Neon-specific imports.
 import { randomToken, hashToken, secretsMatch, verifyPkce, validRedirectUri, evaluateLogin, clientIp, LOCKOUT_WINDOW_MINUTES } from './oauth.js';
@@ -31,14 +32,16 @@ export function createOAuthHandlers({ db, env = process.env }) {
       new Set(p.redirect_uris).size !== p.redirect_uris.length) {
       return bad(res, 400, 'invalid_client_metadata', 'One to eight valid, distinct redirect URIs required');
     }
-    if (p.token_endpoint_auth_method && p.token_endpoint_auth_method !== 'client_secret_post') {
-      return bad(res, 400, 'invalid_client_metadata', 'Only client_secret_post is supported');
+    const method = p.token_endpoint_auth_method === undefined ? 'client_secret_post' : p.token_endpoint_auth_method;
+    if (!['client_secret_post','none'].includes(method)) {
+      return bad(res, 400, 'invalid_client_metadata', 'Supported authentication: client_secret_post or none with S256 PKCE');
     }
-    const id = randomToken(24), secret = randomToken(32);
+    const id = randomToken(24), secret = method === 'none' ? null : randomToken(32);
     await db.createOAuthClient({ clientId: id, clientSecret: secret, redirectUris: p.redirect_uris,
-      clientName: str(p.client_name).slice(0,100) });
-    return send(res, 201, { client_id: id, client_secret: secret, client_secret_expires_at: 0,
-      redirect_uris: p.redirect_uris, token_endpoint_auth_method: 'client_secret_post',
+      clientName: str(p.client_name).slice(0,100), tokenEndpointAuthMethod: method });
+    return send(res, 201, { client_id: id,
+      ...(secret ? { client_secret: secret, client_secret_expires_at: 0 } : {}),
+      redirect_uris: p.redirect_uris, token_endpoint_auth_method: method,
       grant_types: ['authorization_code','refresh_token'], response_types: ['code'] });
   }
   function authorizePage(p, orgs, error = '', scopes = []) {
@@ -127,15 +130,22 @@ export function createOAuthHandlers({ db, env = process.env }) {
     try { p = paramsOf(req); } catch { return bad(res, 400, 'invalid_request', 'Malformed token request'); }
     if (!validateResource(p.resource)) return bad(res, 400, 'invalid_target', 'Token resource must be this MCP');
     const client = await db.getOAuthClient(str(p.client_id));
-    if (!client || typeof p.client_secret !== 'string' || !p.client_secret ||
-      !secretsMatch(hashToken(p.client_secret), client.client_secret_hash)) {
+    // Old registrations remain confidential. A request cannot downgrade a
+    // persisted client by choosing its own authentication method.
+    const method = client?.token_endpoint_auth_method ?? 'client_secret_post';
+    const header = req.headers?.authorization;
+    const validPublic = method === 'none' && client?.client_secret_hash === null &&
+      p.client_secret === undefined;
+    const validSecret = method === 'client_secret_post' && typeof p.client_secret === 'string' &&
+      !!p.client_secret && secretsMatch(hashToken(p.client_secret), client?.client_secret_hash);
+    if (!client || header !== undefined || !(validPublic || validSecret)) {
       return bad(res, 401, 'invalid_client', 'Client credentials rejected');
     }
     if (p.grant_type === 'authorization_code') {
       if (!p.code || !client.redirect_uris.includes(p.redirect_uri) || !p.code_verifier) {
         return bad(res, 400, 'invalid_grant', 'Missing or invalid authorization details');
       }
-      const record = await db.consumeAuthCode(p.code);
+      const record = await db.consumeAuthCode(p.code, { clientId: p.client_id, redirectUri: p.redirect_uri });
       if (!record || record.client_id !== p.client_id || record.redirect_uri !== p.redirect_uri ||
         !verifyPkce(p.code_verifier, record.code_challenge, record.code_challenge_method) ||
         (record.mode === 'production' && env.VERCEL_ENV !== 'production')) {
@@ -167,13 +177,16 @@ export function createOAuthHandlers({ db, env = process.env }) {
     const { origin } = urls();
     return send(res, 200, { issuer: origin, authorization_endpoint: origin + '/api/oauth/authorize',
       token_endpoint: origin + '/api/oauth/token', registration_endpoint: origin + '/api/oauth/register',
+      revocation_endpoint:origin+'/api/oauth/revoke',
+      revocation_endpoint_auth_methods_supported:['client_secret_post','none'],
       response_types_supported: ['code'], grant_types_supported: ['authorization_code','refresh_token'],
-      code_challenge_methods_supported: ['S256'], token_endpoint_auth_methods_supported: ['client_secret_post'] });
+      code_challenge_methods_supported: ['S256'], token_endpoint_auth_methods_supported: ['client_secret_post','none'] });
   }
   function resourceMetadata(req, res) {
     if (!only(res, req, ['GET'])) return;
     const { origin, resource } = urls();
     return send(res, 200, { resource, authorization_servers: [origin] });
   }
-  return { register, authorize, token, metadata, resourceMetadata };
+  return { register, authorize, token, metadata, resourceMetadata,
+    revoke:createOAuthRevocation({db,env}) };
 }
