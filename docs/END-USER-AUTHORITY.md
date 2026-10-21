@@ -23,3 +23,27 @@ Audit implementation, design, tool catalog, setup defaults, test fixtures and ro
 Regression checks must prove both: developer/test agents remain unable to spend/activate without *their* separate authorization; a properly entitled end user's delegated agent can complete the same provider-supported operations after the required user risk disclosure/authorization, and can verify the results. These are independent assertions.
 
 **Cross-repository decision:** apply the same actor distinction in GitHub MCP, Stripe MCP, Vercel MCP, Neon MCP, Google Workspace MCP, Robinson's Toolkit Hub and other active user-facing projects; retain service-specific access controls and provider limitations.
+## Maximum legitimate authority — 2026-10-21
+
+[MAXIMUM-AUTHORITY](designs/MAXIMUM-AUTHORITY.md) and CAP-1..CAP-5 are the approved
+inventory, setup, additional-grant and coverage work. Standard includes the fullest
+ordinary supported authorization; God Mode is optional enrollment, never a provider
+or tenant bypass. Robinson AI Systems may act as developer/operator/customer in
+separately authorized contexts; company identity alone decides none of those roles.
+Provider-specific explicit approval rules remain as stated in the design.
+
+## Organizational identity and multi-user authority — owner 2026-10-21
+
+Robinson AI Systems can act as developer/operator, explicitly appointed product administrator,
+or ordinary production customer. Bind each operation to environment, authenticated principal,
+tenant/workspace, active role, owned provider connection and requested operation. Email/domain
+and organization membership alone confer neither global administration nor developer-only
+restrictions. Secure role/context switching must reauthorize; never borrow an operator's provider
+key for another user. Preserve legitimate existing grants through a reviewed migration.
+
+This is required unfinished engineering on CAP-2/CAP-3/CAP-5 and the completion gates: independent
+users/businesses, scoped admin, multiple provider accounts, credential ownership, switching,
+refresh/revoke/reconnect, migration and real direct-client proof. Owner-passphrase setup does not
+satisfy independent customer authentication. Developer no-spend/production/release protections
+and user-chosen policies remain. Upcoming native-client fixes are separate source work, not a
+completed multi-user architecture or passed external acceptance.

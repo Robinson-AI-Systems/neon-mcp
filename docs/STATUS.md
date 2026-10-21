@@ -1,3 +1,26 @@
+## 2026-10-21 — deployment-bound credential security correction
+
+Confirmed that production OAuth credentials were silently downgraded to preview on a
+non-production host. A-3/B-2 now rejects them before MCP dispatch and preserves the stored
+mode on accepted grants. See [security card](pr-cards/A-3-B-2-ENVIRONMENT-ISOLATION.md).
+Focused OAuth suite: 12 passed locally. Full checks and exact-head CI are required before
+merge. No deployment, real-provider acceptance, independent customer login or whole new
+subsection completion is claimed. Original acceptance and CAP-1..CAP-5 remain open.
+
+## 2026-10-21 — owner-requested maximum-authority planning (source only)
+
+Inspected main `79507e0ead617e85b7f678ddbe6011dbdeb1729b` and existing open work before editing. Added
+[MAXIMUM-AUTHORITY](designs/MAXIMUM-AUTHORITY.md) and indexed CAP-1..CAP-5 as
+APPROVED / NOT IMPLEMENTED. Existing provider acceptance evidence is unchanged;
+no new live pass, deployment, paid action, credential, grant or production effect.
+This is explicitly requested planning maintenance: zero production lines and zero
+completed implementation subsections. Ordinary supported authorization gets every
+operation it can perform; God Mode only simplifies genuinely necessary additional
+authority. Separate developer/operator/customer contexts explicitly. Existing original
+unfinished cards keep ownership; no work is counted twice. Next: existing eligible
+acceptance/implementation first, then CAP-1 inventory and its dependency-ordered work.
+Exact-head checks/self-review and any existing reviews remain mandatory before merge.
+
 ## October 19 — Completion-gate coverage and documentation reconciliation (current)
 
 Owner-approved universal directive gaps are now explicitly mapped to six **OPEN, noncountable** [product completion gates](COMPLETION-GATES.md) and [PLAN](PLAN.md): native independent desktop/mobile connection; identity/consent/revoke and cross-tenant isolation; authorized end-user-controlled policy distinct from developer $0 limits; independently proven RTC 1 provider-side doors without requiring Hub enrollment; live source/provider/scratch acceptance; and honest independent branding plus separately approved public/scale/security readiness. These are **planned acceptance and remediation**, not implemented features, completed batch subsections or production/public authorization. This repository documentation correction does not change any provider credentials, runtime permissions, paid operation, live branch or queued acceptance result.

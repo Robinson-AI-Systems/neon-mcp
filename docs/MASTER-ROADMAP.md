@@ -1,5 +1,14 @@
 **Owner-approved D-4 update (IN-16):** Confirmed role retirement is now implemented with exact one-use consent, dependency checks and explicit unknown-pooled-client interruption acknowledgement. Known application migration evidence and actual checked-deployment/provider/idle-pool acceptance remain OPEN; do not treat historical unregistered notes below as a current implementation blocker. D-5 remains independently approved.
 
+## Maximum legitimate authority — owner-approved 2026-10-21
+
+[MAXIMUM-AUTHORITY](designs/MAXIMUM-AUTHORITY.md) adds five indexed APPROVED,
+NOT IMPLEMENTED units CAP-1..CAP-5: operation inventory; ordinary fullest authority;
+secure additional credential lifecycle; advanced functional gaps; independent proof.
+Existing acceptance and unfinished original cards retain priority. Named-tool counts
+do not establish provider API coverage. No runtime grant or release change is implied.
+
+
 # MASTER ROADMAP — the one handoff
 
 ## Gateway dependency correction — 2026-10-12
