@@ -145,9 +145,14 @@ describe('personal-use OAuth HTTP endpoints', () => {
     expect(denied.statusCode).toBe(400);
     await db.createAccessToken({ accessToken: 'q'.repeat(60), clientId: c.client_id,
       neonOrg: 'org-fake-one', mode: 'production', profile: 'full', listing: 'catalog' });
-    const preview = await requireMcpToken(request('POST', {}, { authorization: 'Bearer ' + 'q'.repeat(60) }),
-      response(), db, { ...env, VERCEL_ENV: 'preview' });
-    expect(preview?.mode).toBe('preview');
+    for (const deployment of ['preview', 'development', undefined]) {
+      const res = response();
+      const preview = await requireMcpToken(request('POST', {}, { authorization: 'Bearer ' + 'q'.repeat(60) }),
+        res, db, { ...env, VERCEL_ENV: deployment });
+      expect(preview).toBeNull();
+      expect(res.statusCode).toBe(401);
+      expect(json(res).error).toBe('invalid_token');
+    }
   });
   it('locks the user after five wrong passwords; valid password cannot bypass it', async () => {
     const { h } = createFixture();
