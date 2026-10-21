@@ -1,3 +1,12 @@
+## 2026-10-21 — deployment-bound credential security correction
+
+Confirmed that production OAuth credentials were silently downgraded to preview on a
+non-production host. A-3/B-2 now rejects them before MCP dispatch and preserves the stored
+mode on accepted grants. See [security card](pr-cards/A-3-B-2-ENVIRONMENT-ISOLATION.md).
+Focused OAuth suite: 12 passed locally. Full checks and exact-head CI are required before
+merge. No deployment, real-provider acceptance, independent customer login or whole new
+subsection completion is claimed. Original acceptance and CAP-1..CAP-5 remain open.
+
 ## 2026-10-21 — owner-requested maximum-authority planning (source only)
 
 Inspected main `79507e0ead617e85b7f678ddbe6011dbdeb1729b` and existing open work before editing. Added
