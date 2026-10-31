@@ -30,3 +30,17 @@ Reviewed Hub main specification revision for this clarification: `3cc7f4ad433215
 This is a **documentation/implementation reference**, not a deployment, a new token, a registry enrollment or a successful live connection. Existing source and hosted service remain unchanged. Inspect the actual source and real issuer before claiming any checklist row passed.
 
 When implementing a future tool or modifying authorization, include this contract compatibility check in the existing repository roadmap/card and tests, rather than duplicating the Hub's provider-independent router here.
+
+## RTC 2 adoption — owner decision, 2026-10-31
+
+**Owner decision, 2026-10-31:** RTC 2 is adopted as RTC 1's §9 successor, by Chris's dated decision ruling all five open decisions as recommended. The primary record is the Hub repo's `docs/DECISIONS.md` (2026-10-31 entry); the adopted normative text is the Hub's `docs/RTC-2-SPEC.md`. The five rulings:
+
+- **D1 — Result recovery = content pages.** Oversized results are recovered as content pages under the RTC 2 §7 shape, superseding the RTC 1 record-page result dialect at contract level.
+- **D2 — OAuth is optional-but-specified.** Where a server offers OAuth, RTC 2 specifies it; scoped passes remain the required baseline connection credential.
+- **D3 — Handle lifetime = 24 hours**, carried from RTC 1.
+- **D4 — The health path is included in the advertisement** as a SHOULD-level manifest field.
+- **D5 — The RTC 1 freeze holds.** No shipped dialect is amended to chase the Hub suite's unversioned post-freeze drift; RTC 2 is the versioned successor adopted by this decision instead.
+
+At contract level, RTC 2 supersedes RTC 1 on this server's discovery/connection surface: the advertisement (manifest fields, dialect declarations, the SHOULD-level health field), result recovery (content pages) and result-handle lifetime (24 hours); the connection floor is unchanged and passes remain the baseline. **This section records the adoption only: it changes no current behavior of this server, and this server's conformance claims remain RTC 1 claims until its adoption work lands.**
+
+This server's own RTC 2 adoption and conformance proceed through its own card as a follow-on. One honesty note, on its face: this server's RTC depth was classified from repository shape in the owner's 2026-10-31 GitHub census, not from live probing — the adoption card verifies conformance when it runs.
