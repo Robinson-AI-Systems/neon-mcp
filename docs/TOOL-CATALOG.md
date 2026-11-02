@@ -1,3 +1,5 @@
+**2026-11-01 RELEASE CHECKPOINT:** The catalog below describes both the ultimate planned tool scope and a smaller implemented profile-filtered registry. The most recent verified `main`/`live` READY source is `1c810cb0ca69fffc9be088d4c8e9834d2dd7d720`, including the D-7/D-8 guarded external visibility corrections and subsequent native OAuth fixes. Earlier dated source-only/unregistered headings below are **historical PR checkpoints**, not current capability denials. Implemented-source/profile counts are not proof of provider authorization, real client acceptance, paid operations or RTC 2 conformance. For current work and open gates, see [STATUS](STATUS.md) and [COMPLETION-GATES](COMPLETION-GATES.md).
+
 **2026-10-19 D-8 follow-up — four previously implemented full-owner guarded project security writes (`neon_security_set_public_access`, `neon_security_set_ip_allow`, `neon_security_set_jwks`, `neon_security_set_audit_log_level`) are now visible to appropriately scoped full-profile direct MCP connections on production server deployments. Existing project/organization, Scale-plan entitlement where applicable, live production, protected/app, B-1 confirmations and provider readback remain independently enforced. Unimplemented or unpriced security mutations stay unavailable; real client/provider acceptance and production activation are OPEN.**
 
 **2026-10-19 — D-7 native MCP product-authority correction (source only):** Five previously implemented, independently guarded `neon_snapshot_create/update/delete/restore/set_schedule` tools are now visible to eligible `full` owners through the production direct MCP catalog and invocable through its same B-1/B-2/B-4 handler path. Preview/read_only/everyday access remains denied and the temporary read-only RTC pass is unchanged. Provider success, real client sign-in, paid snapshot approval and deployment remain separate unverified acceptance; the prior count 113 below described source *before this change*.
@@ -373,7 +375,7 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #160 (updated 2026-10-19 D-7/D-8 owner visibility; source only):** `read_only` 50; `everyday` 58; `full` 122. These are implemented/visible tools, not the 177-tool planned catalog; verify with exact-head CI.
+**Implemented registry at #160 (updated with 2026-10-19 D-7/D-8 owner visibility; now included in 2026-11-01 READY release):** `read_only` 50; `everyday` 58; `full` 122. These are implemented/visible tools, not the 177-tool planned catalog; verify with exact-head CI.
 
 ## Totals
 

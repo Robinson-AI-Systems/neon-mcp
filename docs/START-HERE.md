@@ -17,8 +17,7 @@ operates mostly from a phone; everything he reads must be plain language.
 
 ## Code map (target; confirm the actual path before editing)
 
-`api/` Vercel functions (`mcp.js` connector, `oauth/*` login, `neon/setup.js` key page, protected resources, one-time
-secrets and secret requests, `tools/*` HTTPS API, `contract.js` RTC manifest) · `src/core/` contract-generic code (no Neon
+`api/` Vercel functions (`mcp.js` native connector, `oauth/{register,authorize,token,revoke}.js` client lifecycle, `well-known/*` discovery, `neon/setup.js` owner key page, `rtc.js` RTC HTTPS tool door, `contract.js` manifest and `openapi.json.js` machine contract) · `src/core/` contract-generic code (no Neon
 imports; extracted later into `robinson-mcp-core`) · `src/neon/` the only Neon client, operations waiter, SQL connection
 layer, SQL guard, production classifier, spend estimator, scrubber, OpenAPI index · `src/tools/` one module per area
 (`projects.js`, `branches.js`, `sql.js`, …) plus `server.js`, `summaries.js`, `universal.js`, `index.js` (registry
