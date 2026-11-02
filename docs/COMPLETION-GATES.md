@@ -1,16 +1,16 @@
 # Cross-cutting completion gates — owner-approved scope, not new batch subsections
 
-**Plan frozen 2026-10-19 before editing the roadmap or release documentation.**
+**Original plan frozen 2026-10-19 before that roadmap reconciliation. The documentation-only changes were subsequently merged in #191. The checklist immediately below records the original PR acceptance, not a second current unstarted task.**
 Authority: the owner's universal standalone MCP, branding and end-user authority directive; `AGENTS.md`, `docs/END-USER-AUTHORITY.md`, `docs/HUB-COMPATIBILITY.md`, `docs/PLAN.md` and existing roadmap cards remain binding. This reconciliation is explicitly requested documentation/acceptance maintenance, **zero product bundles**, not completion of any D/V/O/R/X subsection or permission for production writes, spending or publishing.
 
 ## Acceptance for this documentation/reconciliation change
 
-- [ ] All previously audit-only product gaps are assigned a stable, testable cross-cutting gate below, with an **existing roadmap owner**, objective positive/negative test, a live/client evidence standard and a status of **OPEN** until proved. No invented mini-subsections or double-counted work.
-- [ ] `docs/MASTER-ROADMAP.md` and `docs/PLAN.md` reference these gates and define final product closeout; `docs/STATUS.md` gives the true merged #189/#190 vs older deployed SHA without retaining an already-merged branch as in flight.
-- [ ] `docs/GO-LIVE-CHECKLIST.md`, `docs/DEPLOY.md`, owner-facing documentation and discovery guidance do not claim infrastructure/keys are absent when owner inputs say enrolled; preserve activation, release and provider restrictions.
-- [ ] Documentation accurately distinguishes: implemented source, exact-head CI, deployed `live` revision, actual service-owned hosted direct-client tests, provider reads/writes and distribution authorization.
-- [ ] Preserve complete existing release-acceptance JSON and `work-index.json` identities/statuses; do not silently mark unresolved cards or queue rows complete.
-- [ ] Run repository's full exact-head PR CI and release-policy, inspect review, and merge only if permitted. Follow normal daily promotion. Do not count this docs-only reconciliation as an engineering bundle.
+- [x] All previously audit-only product gaps are assigned a stable, testable cross-cutting gate below, with an **existing roadmap owner**, objective positive/negative test, a live/client evidence standard and a status of **OPEN** until proved. No invented mini-subsections or double-counted work.
+- [x] `docs/MASTER-ROADMAP.md` and `docs/PLAN.md` reference these gates and define final product closeout; `docs/STATUS.md` gives the true merged #189/#190 vs older deployed SHA without retaining an already-merged branch as in flight.
+- [x] `docs/GO-LIVE-CHECKLIST.md`, `docs/DEPLOY.md`, owner-facing documentation and discovery guidance do not claim infrastructure/keys are absent when owner inputs say enrolled; preserve activation, release and provider restrictions.
+- [x] Documentation accurately distinguishes: implemented source, exact-head CI, deployed `live` revision, actual service-owned hosted direct-client tests, provider reads/writes and distribution authorization.
+- [x] Preserve complete existing release-acceptance JSON and `work-index.json` identities/statuses; do not silently mark unresolved cards or queue rows complete.
+- [x] Run repository's full exact-head PR CI and release-policy, inspect review, and merge only if permitted. Follow normal daily promotion. Do not count this docs-only reconciliation as an engineering bundle.
 
 ## Gates tracked through the existing batch roadmap
 
@@ -30,3 +30,5 @@ A gate is an **additional acceptance overlay** on an original batch/card and is 
 **Engineering-ready** = all applicable feature-card code/tests and cross-gate positive/refusal paths implemented and PR-merged. **Deployed** = exact eligible SHA observed READY on normal checked `live` promotion. **Standalone accepted** = CG-1 through CG-5 plus applicable card/X acceptance positively verified on that deployment; a client-specific unsupported mobile platform must be explicitly documented and must not be represented as supported. **Public distribution ready** = CG-6, with approvals independent of engineering; distribution remains PRIVATE unless separately approved. **Project fully complete** requires honest disposition and recorded proof for every applicable gate and all original roadmap scope; public listing is not silently required or authorized for private functionality.
 
 Machine-readable gate identities, owner card links and OPEN/PASSED evidence are held **separately** in `docs/pr-cards/work-index.json` `completionGates`; `docs/pr-cards/validate-index.py` refuses missing gates, and `npm run session:status` reports them without inflating batch subsection counts. A PASSED state requires linked independent evidence, reviewed per the original scope. Evidence is kept in original cards/STATUS release-acceptance queue and `docs/developer-evidence.json` where specified. This file is the cross-cutting gate **index**, not an alternate claim of passed acceptance. Update gate state only alongside linked independently reviewable exact-source/provider evidence. Do not overwrite the original queued scenarios.
+
+**2026-11-01 checkpoint:** Previous planning PR #191 is merged; these six actual *product* acceptance gates remain OPEN and are not completed by source rollout or RTC 2 documentation adoption. Current checked READY deployment `1c810cb0ca69fffc9be088d4c8e9834d2dd7d720`.

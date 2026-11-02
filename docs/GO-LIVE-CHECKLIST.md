@@ -7,7 +7,7 @@ know it worked" check is done. Every PR that adds a switch adds a line here.
 
 Legend: **Owner** = the currently authorized account administrator (for this privately controlled deployment, the repository owner) · **Agent** = a coding agent with the applicable real delegated grant and approval. This is a deployment/acceptance checklist, **not** a permanent universal end-user rights policy. It never authorizes implementing agents to spend, change production or onboard the public.
 
-**Verified documentation checkpoint, 2026-10-19:** Owner inputs record the server's Vercel project and dedicated Neon database (IN-02), encrypted administrator secrets (IN-03), seven selected project-scoped keys and isolated scratch enrollment (IN-04/05/06). Vercel independently reports READY production from `live` SHA `5589f27de2ebdd7baa55d0139ff0811be22c2dca`, behind merged main PRs #189/#190. Historical “not created/not set/none” entries below have been reconciled; saved configuration is not a new runtime secret audit. Production mutation and public listing remain OFF/unapproved. [The six OPEN cross-cutting completion gates](COMPLETION-GATES.md) apply in addition to original X-2/X-3 and the queue in STATUS.
+**Verified documentation checkpoint, 2026-11-01:** Owner inputs record the server's Vercel project and dedicated Neon database (IN-02), encrypted administrator secrets (IN-03), seven selected project-scoped keys and isolated scratch enrollment (IN-04/05/06). Vercel independently reports READY production at current `main`/`live` SHA `1c810cb0ca69fffc9be088d4c8e9834d2dd7d720`. Historical “not created/not set/none” entries below have been reconciled; saved configuration is not a new runtime secret audit. Production mutation and public listing remain OFF/unapproved. [The six OPEN cross-cutting completion gates](COMPLETION-GATES.md) apply in addition to original X-2/X-3 and the queue in STATUS.
 
 ## 1. The server itself
 
@@ -57,7 +57,7 @@ authority for the app.
 | [ ] | Profile facts confirmed and IDs entered on the setup page (IN-13) | Not entered |
 | [ ] | Production branch protected | Done in the app's project on 2026-09-29 (readiness re-checks it) |
 | [ ] | History (restore window) long enough for your comfort, on your current plan | Not checked by this server yet |
-| [ ] | Snapshot before risky migrations (the app's own runbook asks for one) | Available as `neon_snapshot_create` once D-7 is built |
+| [ ] | Snapshot before risky migrations (the app's own runbook asks for one) | `neon_snapshot_create` is registered in released source for an authorized full owner; app/snapshot approval, paid operation and real provider readback remain separately gated |
 | [ ] | Optional: one fresh database branch per preview deployment (the app's ROADMAP; your call on timing) | Not turned on |
 
 ## B-2 production permission release (still OFF)
@@ -72,7 +72,7 @@ authority for the app.
 ## Cross-cutting standalone/commercial completion (no public activation)
 
 - [ ] **CG-1/CG-2:** Independently tested direct desktop/mobile clients and secure OAuth/tenant token lifecycle, including wrong-principal/resource and revoked token refusals.
-- [ ] **CG-3/CG-4:** User-owned production/spend/approval delegation with separate developer $0 protection; independent provider-owned RTC 1 conformance, with no Hub enrollment as a prerequisite.
+- [ ] **CG-3/CG-4:** User-owned production/spend/approval delegation with separate developer $0 protection; independent provider-owned RTC conformance (RTC 1 compatibility and the adopted RTC 2 successor), with no Hub enrollment as a prerequisite.
 - [ ] **CG-5:** Every original card and authorized live/isolated acceptance queue scenario closed with source/deployment/provider evidence, cleanup and no false mock attribution.
 - [ ] **CG-6:** Independent branding/attribution, multi-tenant security/privacy/retention/support/load and provider/platform public eligibility reviewed; **separate owner approval** before any public sign-up, discoverability or listing. This gate does not authorize publication.
 

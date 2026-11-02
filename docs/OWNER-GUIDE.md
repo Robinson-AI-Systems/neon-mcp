@@ -36,9 +36,9 @@ it may not work yet or may require a checked released revision, approved user de
 
 The private source-supported remote MCP is **not** evidence of verified third-party desktop or mobile behavior. CG-1 requires an actual compatible independent desktop client and a supported mobile client to initialize, authorize and perform a true Neon read; CG-2 checks revocation and account separation. CG-3 requires safely configurable end-user delegation policies instead of copying the implementing agent's $0 budget/production rules to customers. Full provider-owned RTC conformance is CG-4; real checked release, provider/scratch cleanup is CG-5. Public onboarding/marketplace distribution remains private until security/privacy/scale and separate provider/platform/owner approval CG-6. The optional Hub is never required for independent Neon completion. See [COMPLETION-GATES](COMPLETION-GATES.md) and [DIRECT-MCP-CONNECTION](DIRECT-MCP-CONNECTION.md).
 
-## Organization membership and project access (O-1 source checkpoint)
+## Organization membership and project access (O-1 merged source, separate live provider acceptance)
 
-Once O-1 is merged **and released**, use a `full` owner connection with
+O-1 is merged and included in the checked READY release. If you have an independently authorized `full` owner connection, you can request the following implemented tools with
 an organization-scoped or verified personal administrator key to ask your
 connected coding agent to list your members, see invitations and compare
 explicit project member roles with legacy email shares. Project-only keys
@@ -56,12 +56,11 @@ Last-administrator and verified personal-key-owner self-removal are refused.
 Changes to an app-owned project must also pass existing project/app protection,
 with `outsideApp` never overruling protected infrastructure.
 
-**Not yet live or provider-accepted:** source and synthetic checks do not prove
-the currently released service supports these operations. Do not paste API
+**Not yet provider-effect-accepted:** source and synthetic checks on the currently released service do not independently prove actual Neon organization invitation/removal or role-change effects. Do not paste API
 keys into a chat or use this as a claim that real invitation, self-lockout or
 project ACL acceptance has run.
 
-## D-8 verified owner security controls (source integration checkpoint, not live acceptance)
+## D-8 guarded owner security tools (released source; provider-effect acceptance pending)
 
 An appropriately authorized `full` direct MCP connection on a production server deployment may discover `neon_security_set_public_access`, `neon_security_set_ip_allow`, `neon_security_set_jwks` and `neon_security_set_audit_log_level`. They remain independently guarded; an agent must show the exact scoped provider project, affected network/auth/audit behavior, existing Scale entitlement for IP allowance, irreversible lockout risk, and receive required owner confirmation. A preview deployment, lower-profile connection, protected target or restricted temporary RTC pass does **not** gain these writes. Only a lower audit level is implemented; adding paid logging or enabling irreversible logical replication is **not** unlocked. No live provider effectiveness was proven by the source change. Read [D-8](pr-cards/D-8.md) and [the restriction audit](audits/2026-10-19-universal-mcp-directive.md).
 

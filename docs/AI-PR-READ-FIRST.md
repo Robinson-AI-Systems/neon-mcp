@@ -86,7 +86,7 @@ applicable item in the PR description saying how it is honored. **Authority dist
 20. A token refresh copies every connection setting (organization, project scope, mode, profile, listing) from the
     issuing row — never defaults. Rate limits live in the database (shared by every serverless instance), never in
     memory.
-21. Contract behavior (RTC 1) unchanged unless the PR moves to a newer contract version; conformance stays green.
+21. Keep the frozen RTC 1 source dialect behavior and conformance intact until the owner-adopted RTC 2 successor is deliberately implemented in its approved R cards. Do not label a docs-only RTC 2 adoption as runtime conformance; test both compatibility and current required RTC 2-specific semantics on actual signed-off source before claiming acceptance.
 
 ## Context
 22. New tools keep listing descriptions ≤160 characters and default results ≤8 KB or a handle (budget check green).

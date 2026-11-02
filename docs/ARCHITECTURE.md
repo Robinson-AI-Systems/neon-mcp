@@ -1,6 +1,6 @@
 ## 2026-10-21 source: client-owned OAuth disconnect
 
-The native issuer exposes POST /api/oauth/revoke in source and advertises it through issuer
+The merged native issuer exposes POST /api/oauth/revoke on the checked READY release and advertises it through issuer
 metadata. core/oauth-revocation.js validates the registered client authentication method and
 atomically revokes only that client's matching connector row via revokeOAuthToken. It searches
 access and refresh hashes, ignores advisory type hints and returns an empty 200 for known,
@@ -15,9 +15,11 @@ client disconnect or proof of full multi-user customer enrollment. See STATUS an
 This file describes what **exists**, and is updated in the same PR that ships it (DRIFT-PROTOCOL checklist B). What the
 system is designed to become is in `docs/designs/`; do not copy design text here before it is built.
 
-**Current reconciliation, 2026-10-19:** Native stateless Streamable HTTP `/api/mcp`, OAuth authorization/refresh/revocation and a registered Neon tool catalog exist in source. The Vercel `neon-mcp` project and separate own Neon database were provisioned (IN-02), administrator/encryption secrets configured (IN-03), and seven selected-project keys enrolled (IN-04/05/06). Vercel independently reports READY production from `live` SHA `5589f27de2ebdd7baa55d0139ff0811be22c2dca`, while merged main includes #189 and #190 not evidenced in that deployment. Source/API existence is **not** native desktop/mobile, multi-tenant, scratch-write or provider-side RTC conformance acceptance. See [STATUS](STATUS.md) and [COMPLETION-GATES](COMPLETION-GATES.md).
+**Historical reconciliation, 2026-10-19:** Native stateless Streamable HTTP `/api/mcp`, OAuth authorization/refresh/revocation and a registered Neon tool catalog exist in source. The Vercel `neon-mcp` project and separate own Neon database were provisioned (IN-02), administrator/encryption secrets configured (IN-03), and seven selected-project keys enrolled (IN-04/05/06). Vercel independently reports READY production from `live` SHA `5589f27de2ebdd7baa55d0139ff0811be22c2dca`, while merged main includes #189 and #190 not evidenced in that deployment. Source/API existence is **not** native desktop/mobile, multi-tenant, scratch-write or provider-side RTC conformance acceptance. See [STATUS](STATUS.md) and [COMPLETION-GATES](COMPLETION-GATES.md).
 
 **Scope note:** The following A/B/C technical sections retain their dated FOUNDATION implementation history; phrases about a tool being "future", "unregistered", "not yet exposed" or a gate being unwired describe that original PR's checkpoint, **not current main**. The current authoritative runtime registry, migrations and tool semantics live in `src/tools/index.js`, `src/core/mcp-server.js`, `src/db.js`, the actual code/tests and [TOOL-CATALOG](TOOL-CATALOG.md). This history is not a go-live assertion. Later O/D/V additions are not exhaustively described here.
+
+**2026-11-01 verified deployment addendum:** Vercel Production READY at `1c810cb0ca69fffc9be088d4c8e9834d2dd7d720`, identical to `main`/`live`. Merged #193/#194 provide environment-bound OAuth, public PKCE clients and `POST /api/oauth/revoke`; verify the implementation in `api/oauth/revoke.js`, `src/core/oauth-revocation.js`, the OAuth handler/DB modules and their unit/disposable-PG tests. The older A-3 endpoint notes below describe foundation implementation, not the present complete route inventory. RTC 2 has been adopted in policy, not implemented or conformance-verified in server code.
 
 ## Infrastructure
 
@@ -74,7 +76,7 @@ consumed once, with organization scope. A-5c adds `/api/neon/setup`: owner-only 
 passphrase and DB lockout, no-store/CSP/anti-framing headers. It never enables production or accepts org-wide
 keys on preview. Its one-time view is explicitly visible only to the passphrase-authenticated owner.
 
-## Endpoints (A-3 foundation; current direct MCP deployed at an older live revision)
+## Endpoints (A-3 foundation history; current release includes later OAuth extensions)
 
 - `/api/oauth/register`: client registration with hashed client credentials in storage
 - `/api/oauth/authorize`: owner passphrase, organization, mode, profile, listing and currently unscoped projects; forged project scopes rejected until A-5 can list them

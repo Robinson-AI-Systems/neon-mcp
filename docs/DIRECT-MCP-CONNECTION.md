@@ -4,10 +4,10 @@ This is an **independent integration by Robinson AI Systems, not an official Neo
 
 ## Current support status
 
-- **Implemented in source:** remote, stateless Streamable HTTP MCP at `/api/mcp`, OAuth metadata at `/.well-known/oauth-authorization-server` and `/.well-known/oauth-protected-resource`, PKCE S256, scoped org/project authorization, expiring/refreshable/revocable tokens, compact/catalog tool lists and protected tool invocation.
+- **Implemented and included in the checked 2026-11-01 READY source:** remote stateless Streamable HTTP MCP at `/api/mcp`, OAuth issuer/resource metadata, S256 PKCE for public and confidential clients, bound consent/resource/redirect/profile, token refresh, scoped client-owned `POST /api/oauth/revoke`, and profiled protected tools. The exact released revision is `1c810cb0ca69fffc9be088d4c8e9834d2dd7d720`. Independent desktop/mobile clients and actual revoked-token behavior on that release are **not yet externally accepted**.
 - **Not yet externally accepted:** the latest released revision's genuine provider operations, direct desktop client behavior, direct mobile client behavior and owner-controlled fresh reconnect/refresh/revocation. Do not treat successful OAuth login, a returned manifest, an installed plugin or a connection URL as a verified provider interaction.
 - **Scope:** remote desktop or mobile coding agents **only where that actual client offers custom remote MCP/OAuth support**. A mobile ChatGPT plugin connection is not equivalent to independent mobile coding-agent MCP support. Clients without remote MCP support cannot connect directly until their platform supports it; do not require a local IDE as a substitute.
-- **RTC Hub-compatible HTTP** `/api/contract`, `/api/tools` and passes are separate optional interfaces and are not substitutes for remote MCP at `/api/mcp`. RTC1's independently authorized owner pass remains limited and not full provider-side conformance at this stage.
+- **RTC Hub-compatible HTTP** `/api/contract`, `/api/tools` and passes are separate optional interfaces and are not substitutes for remote MCP at `/api/mcp`. The current server exposes legacy RTC 1-shaped provider doors; RTC 2 is the owner-adopted successor **not yet implemented or independently conformance-tested**. Existing safe temporary RTC pass limits remain in force.
 
 ## Verify your own origin first
 

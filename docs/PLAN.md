@@ -13,6 +13,10 @@ Written 2026-10-10 for an empty repository. Order is in [MASTER-ROADMAP](MASTER-
 [STATUS](STATUS.md). AGENTS owns workflow rules. This file owns acceptance; designs own semantic decisions; cards own the
 next bounded implementation.
 
+## RTC 2 successor status (owner decision 2026-10-31; server conformance OPEN)
+
+The [Hub compatibility addendum](HUB-COMPATIBILITY.md) adopted RTC 2 as the normative successor to frozen RTC 1. Original Batch R-1/R-2/R-3 requirements and tests stay outstanding; current source/manifest remains RTC 1 until a reviewed RTC 2 implementation and real deployed acceptance prove the newer protocol. Update the original R cards and CG-4 when implementing (not merely documenting) RTC 2, with content-page handle recovery, the 24-hour lifetime, normative advertisement/health and independent provider authorization. No Hub enrollment is required to complete the standalone Neon provider.
+
 ## Cross-cutting completion and direct client acceptance (owner directive, 2026-10-19)
 
 The six OPEN gates in [COMPLETION-GATES.md](COMPLETION-GATES.md) are mandatory acceptance overlays on the original A/B/D/V/O/P/W/U/R/E/X cards, **not** six invented roadmap subsections or claims of implementation. Each assigned owner card must add both positive and refusal tests and link actual evidence; source implementation, exact-head CI, `live` promotion, service-owned direct-client/provider acceptance and distribution approval remain distinct. Do not close a card's remaining real-world acceptance or project completion by showing just a manifest, a green mock, OAuth consent, optional adapter response or a Hub-provided read.
