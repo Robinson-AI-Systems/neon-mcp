@@ -1,4 +1,10 @@
 
+### Server release provenance for connected coding agents — 2026-11-02 design
+
+The RAS Standard now adopts the GitHub MCP VER-1 pattern: `initialize.serverInfo.version` and `neon_whoami.server_release` tell agents the current deployed version and SHA, with safe current-release change-history directions. Design lives in [the adoption crosswalk](designs/RAS-MCP-D001-ADOPTION.md). Implement within A-3/A-7/R-2/O-4 and verify via CG-1/4/5 and checked released source, not from main's latest commit. Keep missing SHA visibly unknown. Documentation alone grants no implementation credit.
+
+
+
 ### Developer-only sign-in/grants must not bleed into customer sign-in
 
 The 2026-11-02 owner clarification places developer sign-in and test-grant creation behind separately authenticated **backend developer-only** access, never the public user login, public client onboarding or customer-facing menus. Existing `/api/developer/connect` is a real *mobile OAuth handoff* and must be inventoried and given a customer-appropriate route before `/api/developer/*` is locked down; avoid breaking legitimate mobile clients. Handle through existing A-3 / CAP-2/3/5 / R-2 and CG-1/2/6, not a new invented subsection. No code or access policy is switched by this roadmap note.

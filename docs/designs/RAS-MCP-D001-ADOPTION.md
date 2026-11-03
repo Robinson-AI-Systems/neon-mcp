@@ -1,5 +1,17 @@
 # Design — Neon Unleashed adoption of the RAS MCP Standard (D-001)
 
+## Agent-visible release identity — GitHub MCP VER-1 fleet adoption (design only, 2026-11-02)
+
+The [living D-001 standard](https://github.com/Robinson-AI-Systems/library/blob/ai/gpt6/ras-d001-fleet-merits-auth-version-20261102/designs/ras-mcp-standard.md) now explicitly requires that a coding agent can identify **the exact deployed server revision it is connected to** and discover recent updates. This is inspired by GitHub MCP's `serverRelease()`, `github_whoami.server_release`, and native MCP `initialize.serverInfo.version`; the implementation in GitHub's source is not a substitute for Neon's deployed acceptance.
+
+**Neon target** (A-3/A-7/R-2/O-4, CG-1/CG-4/CG-5):
+- Derive the package version from `package.json` and verified deployment SHA from one build-time source (`VERCEL_GIT_COMMIT_SHA` on Vercel where available), not `main`, `live` guesses or request Host. Effective version uses `<package-version>+<commit12>` only when a valid deployed commit exists. Never invent an SHA; mark missing revision as `null`.
+- Native MCP `initialize.serverInfo.version` (the server actually running), a small authenticated `neon_whoami.server_release` and RTC 2 public manifest `version` + `revision` must agree. The planned `/api/health` and branded front door take the *same* version data source. Maintain existing technical ID, prefix and tool names.
+- The whoami release object includes `version`, `commit`, `source` (a stable safely public commit URL if accessible, otherwise `null`) and `what_changed` (instructions to inspect the actual released `live` branch history or a maintained changelog); `release_notes_url` optional. Show the true source-versus-live distinction. No secret/internal account metadata and no claim an upcoming merge is already deployed.
+- Test consistency across initialize, whoami, manifest, health, front door at one exact deployed SHA; test missing/malformed revision, stale main-vs-live and backward-compatible client upgrade without reauthorization. Real remote whoami/client evidence remains separately OPEN. No version-affecting code changed by this design-only note.
+
+
+
 ## Critical identity boundary — developer sign-in and test grants are backend-only (owner clarification, 2026-11-02)
 
 **Two distinct workflows, not two public login choices.** A user reaches **one** normal public-facing sign-in, chooses their own account/organization and completes service-owned OAuth consent. Read-only, production permission, profile and areas are *post-login user delegation settings*, not alternative developer or "test" login modes. Public-facing landing, `/connection`, onboarding, public OAuth authorization, account settings, client app discovery and any sign-in UI MUST NOT display, mention as an option, link to, auto-enter or redirect into a developer sign-in/test-grant portal. Public users cannot self-assert developer identity, operator authority, test mode, special preview permissions or another person's account grants.

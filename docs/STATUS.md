@@ -4,7 +4,13 @@
 
 **Open roadmap at this checkpoint:** 58 original and CAP cards: 20 MERGED, 12 IN_PROGRESS, 21 PLANNED, 5 APPROVED; six CG acceptance overlays remain OPEN. Preserve older dated entries as historical evidence; they do not override this current snapshot. Do not manually promote `live`, reveal credentials, relax money-out policy, or declare product completion from an apparently healthy deployment.
 
-### 2026-11-02 — owner follow-up: developer login and test grants are internal-only (design)
+#
+### 2026-11-02 — RAS fleet review adds GitHub VER-1 release identity (design only)
+
+Reviewed GitHub source implementation of agent-visible `server_release` (package version plus deployed SHA, safe commit reference and how to see current live changes) alongside Vercel's protected operator route, Dokploy's per-user provider-native authority and Workspace's TEST/P9/P10 principal migration. The Library D-001 specification has a corresponding **open** design PR #1; Neon adoption on `ai/gpt6/ras-d001-neon-design-20261102` now includes release identity and keeps customer OAuth distinct from developer backend TEST grants. No Neon version metadata behavior, live issuer, permissions, client onboarding, provider keys or production operation was changed. Independently tested source/deployment/client/provider gates remain OPEN.
+
+
+## 2026-11-02 — owner follow-up: developer login and test grants are internal-only (design)
 
 Additional decision applied to the RAS D-001 design branch: internal developer sign-in and developer/test-grant management must be isolated from the public customer sign-in and ordinary OAuth consent. Current source inspection found that `/api/developer/connect` actually implements a mobile OAuth handoff; future implementation **must migrate the legitimate public handshake without breaking clients** before restricting the developer namespace. Backend enforcement, public UI absence, multi-tenant/role negative tests and real mobile proof are still **OPEN** under A-3, CAP-2/3/5, R-2, CG-1/2/6. No route, grant, token, login behavior, deployment or production setting changed in the design-only PR.
 

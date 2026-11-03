@@ -1,5 +1,14 @@
 # RAS MCP Standard adoption — design-maintenance plan (2026-11-02)
 
+## Fleet merit review continuation — 2026-11-02
+
+- [x] Confirm GitHub VER-1 source `src/brand/brand.js` and `github_whoami` expose agent-facing deployed version/commit and current-live-branch update instructions.
+- [x] Compare Vercel protected operator route (passphrase-gate limitation), Dokploy provider-native per-user credential authority and direct key sign-in, Workspace P9/P10 tenant/TEST principal architecture and GitHub capability diagnostics on their own merits; source evidence and remaining gaps are in Library `designs/ras-mcp-fleet-review-2026-11-02.md` (PR #1, still subject to review).
+- [x] Add agent-visible release identity to Neon's existing A-3/A-7/R-2/O-4 design and CG acceptance, preserving backend dev/public customer sign-in isolation.
+- [ ] Implement, CI-test and independently verify these new requirements on any live Neon or sibling MCP; no runtime changes in this design PR.
+
+
+
 Status: **DESIGN WORK ONLY**. This is not a new countable roadmap subsection, a release, a provider operation, a promotion of an acceptance gate, or authorization to change another repository.
 
 ## Pinned sources and inspected baseline
