@@ -4,17 +4,29 @@ import {parse} from 'yaml';
 import {registry} from '../../src/tools/index.js';
 import {generateCoverage,runCoverage} from '../../scripts/cap-coverage.mjs';
 import {pinnedOperations,verifiedSourcePin,buildCapabilityInventory,
-  validateCapabilityInventory,capabilityGapReport,formatCapabilityGapReport
+  validateCapabilityInventory,capabilityGapReport,formatCapabilityGapReport,
+  officialSdkOperations,verifyOfficialSdkRaw,sha256
 } from '../../src/core/cap-coverage.js';
 
 const spec=parse(readFileSync('vendor/neon-openapi/v2.yaml','utf8'));
 const specText=readFileSync('vendor/neon-openapi/v2.yaml','utf8');
 const sourceText=readFileSync('vendor/neon-openapi/SOURCE.md','utf8');
 const productSurfaces=JSON.parse(readFileSync('docs/capabilities/neon-product-surfaces.json','utf8'));
+const currentControlPlane=JSON.parse(readFileSync('docs/capabilities/current-control-plane.json','utf8'));
+function fakeSdk(operations){
+  const revision='1'.repeat(40);
+  return {schemaVersion:1,version:'v2',host:'https://console.neon.tech/api/v2',
+    source:{revision,repository:'neondatabase/neon-pkgs',
+      path:'packages/sdk/spec/neon-openapi.json',
+      url:'https://raw.githubusercontent.com/neondatabase/neon-pkgs/'+revision+
+        '/packages/sdk/spec/neon-openapi.json',
+      sha256:'a'.repeat(64)},
+    operations,operationDigest:sha256(JSON.stringify(operations))};
+}
 const sourcePin=verifiedSourcePin({specText,sourceText});
 function inventory(){return structuredClone(generateCoverage().inventory);}
 function validate(x){return validateCapabilityInventory({
-  inventory:x,spec,sourcePin,registry,productSurfaces});}
+  inventory:x,spec,sourcePin,registry,productSurfaces,currentControlPlane});}
 describe('CAP-1 complete but conservative operation inventory',()=>{
   it('checks all pinned real API methods with their exact source hash and distinct newer products',()=>{
     const map=inventory(),expected=pinnedOperations(spec);
@@ -22,8 +34,13 @@ describe('CAP-1 complete but conservative operation inventory',()=>{
     expect(map.controlPlane.sha256).toBe(sourcePin.sha256);
     expect(map.externalSurfaces.count).toBe(15);
     expect(map.registry.registeredTools).toBe(registry.tools.length);
-    expect(map.rows).toHaveLength(178);
-    expect(validate(map)).toEqual({controlPlane:163,advanced:15,total:178});
+    expect(map.currentControlPlane.expectedOperations).toBe(193);
+    expect(map.currentControlPlane.newToPinned).toBe(31);
+    expect(map.currentControlPlane.pinnedOnly).toBe(1);
+    expect(map.rows).toHaveLength(209);
+    expect(validate(map)).toEqual({
+      controlPlane:163,currentControlPlane:193,newSdkOperations:31,
+      pinnedOnly:1,advanced:15,total:209});
     expect(map.rows.map(x=>x.key)).toEqual([...new Set(map.rows.map(x=>x.key))].sort((a,b)=>a.localeCompare(b)));
   });
   it('keeps real operation references distinct from verified execution and live proof',()=>{
@@ -33,6 +50,11 @@ describe('CAP-1 complete but conservative operation inventory',()=>{
     expect(map.rows.every(x=>x.live.status==='unverified')).toBe(true);
     expect(map.rows.some(x=>x.origin==='documented-advanced-product'&&
       x.family==='object_storage')).toBe(true);
+    expect(map.rows.filter(x=>x.origin==='official-sdk-reference')).toHaveLength(31);
+    expect(map.rows.filter(x=>x.origin==='vendored-openapi'&&
+      x.currentSdkState==='not-in-sdk-reference')).toHaveLength(1);
+    expect(map.rows.find(x=>x.operationId==='listNeonAuthOAuthClients')?.ownerUnit)
+      .toBe('E-1');
     const storage=map.rows.find(x=>x.operationId==='object-storage:put');
     expect(storage.credentials.product_scoped_credential.status).toBe('supported');
     expect(storage.requiredPermissions).toBe('storage:write');
@@ -50,6 +72,42 @@ describe('CAP-1 complete but conservative operation inventory',()=>{
     second.operationId='duplicate_operation';
     expect(()=>pinnedOperations(fake)).toThrow(/duplicate/i);
   });
+  it('rejects reference-only API drift, duplicate SDK records and stale snapshot hashes',()=>{
+    const all=officialSdkOperations(currentControlPlane);
+    expect(all).toHaveLength(193);
+    expect(new Set(all.map(x=>x.operationId)).size).toBe(193);
+    const bad=structuredClone(currentControlPlane);
+    bad.operations[0].operationId='forged-id';
+    expect(()=>officialSdkOperations(bad)).toThrow(/digest/i);
+    const duplicate=structuredClone(currentControlPlane);
+    duplicate.operations.push({...duplicate.operations[0]});
+    duplicate.operationDigest=sha256(JSON.stringify(duplicate.operations));
+    expect(()=>officialSdkOperations(duplicate)).toThrow(/duplicate/i);
+    const map=inventory();
+    map.currentControlPlane.sourceSha256='b'.repeat(64);
+    expect(()=>validate(map)).toThrow(/SDK source pin/i);
+    const map2=inventory();
+    const newOnly=map2.rows.find(x=>x.origin==='official-sdk-reference');
+    newOnly.ownerUnit='U-1';
+    expect(()=>validate(map2)).toThrow(/SDK-only operation/i);
+    const map3=inventory();
+    map3.rows.find(x=>x.origin==='vendored-openapi').currentSdkState='present-but-magic';
+    expect(()=>validate(map3)).toThrow(/current reference/i);
+  });
+  it('can reverify the full exact SDK source bytes offline, without provider credentials',()=>{
+    const rawSpec={info:{version:'v2'},servers:[{url:'https://console.neon.tech/api/v2'}],
+      paths:{'/things':{get:{operationId:'getThings',tags:['Things']}}}};
+    const raw=JSON.stringify(rawSpec);
+    const ref=fakeSdk([{method:'GET',path:'/things',operationId:'getThings',family:'Things'}]);
+    ref.source.sha256=sha256(raw);
+    expect(verifyOfficialSdkRaw(ref,raw)).toEqual({
+      operations:1,sourceSha256:ref.source.sha256});
+    expect(()=>verifyOfficialSdkRaw(ref,raw+' ')).toThrow(/SHA-256/i);
+    const modified=structuredClone(ref);
+    modified.operations[0].family='Different';
+    modified.operationDigest=sha256(JSON.stringify(modified.operations));
+    expect(()=>verifyOfficialSdkRaw(modified,raw)).toThrow(/projection/i);
+  });
   it('refuses missing, orphan and duplicate rows, including crafted aliases',()=>{
     const a=inventory();a.rows.pop();expect(()=>validate(a)).toThrow(/missing|orphan/i);
     const b=inventory();b.rows.push({...b.rows[0],key:'foreign|GET|/private'});
@@ -64,9 +122,16 @@ describe('CAP-1 complete but conservative operation inventory',()=>{
     const b=inventory();b.rows[0].credentials.sql_login.status='magical';
     expect(()=>validate(b)).toThrow(/credential/i);
     const c=inventory();c.rows.find(x=>x.origin==='vendored-openapi').host='https://evil.test';
-    expect(()=>validate(c)).toThrow(/source|host/i);
+    expect(()=>validate(c)).toThrow(/source|host|reference/i);
     const d=inventory();d.rows[0].effect='everything';
     expect(()=>validate(d)).toThrow(/disposition/i);
+    const e=inventory();e.rows.find(x=>x.origin==='vendored-openapi')
+      .resourceSelectors=['wrong_resource'];
+    expect(()=>validate(e)).toThrow(/selector/i);
+    const f=inventory();f.rows.find(x=>x.origin==='vendored-openapi')
+      .credentials.project_api_key={status:'supported',
+        evidence:'https://neon.com/docs/manage/api-keys',scope:'all'};
+    expect(()=>validate(f)).toThrow(/scope drift|credential/i);
   });
   it('refuses orphan tool handlers, forged live acceptance and unsupported source proof',()=>{
     const a=inventory(),candidate=a.rows.find(x=>x.source.candidates.length);
@@ -89,29 +154,37 @@ describe('CAP-1 complete but conservative operation inventory',()=>{
       protocol:'https',method:'GET',path:'/example',host:'https://example.test',
       version:'unverified',reference:'https://neon.com/docs/example',
       access:'unknown',effect:'read',authority:'unknown'}]};
+    const fakeCurrent=fakeSdk([{method:'GET',path:'/widgets',
+      operationId:'getWidgets',family:'Widget'}]);
     const found=buildCapabilityInventory({
       spec:fakeSpec,sourcePin,registry:fakeRegistry,productSurfaces:fakeProducts,
+      currentControlPlane:fakeCurrent,
       checkedDate:'2026-11-03',sourceFiles:{
         'src/tools/widgets.js':"export const tools=[{name:'neon_widgets'}]; const x='getWidgets';"
       },testFiles:{}});
     expect(found.rows).toHaveLength(2);
     expect(found.rows.find(x=>x.operationId==='getWidgets').source.status).toBe('candidate');
     validateCapabilityInventory({inventory:found,spec:fakeSpec,sourcePin,
-      registry:fakeRegistry,productSurfaces:fakeProducts});
+      registry:fakeRegistry,productSurfaces:fakeProducts,currentControlPlane:fakeCurrent});
     found.rows.find(x=>x.operationId==='example:read').providerDocumentationState='unknown';
     expect(()=>validateCapabilityInventory({inventory:found,spec:fakeSpec,sourcePin,
-      registry:fakeRegistry,productSurfaces:fakeProducts})).toThrow();
+      registry:fakeRegistry,productSurfaces:fakeProducts,
+      currentControlPlane:fakeCurrent})).toThrow();
   });
   it('has reproducible family denominators and no invented percentages',()=>{
     const map=inventory(),gaps=capabilityGapReport(map);
-    expect(gaps.reduce((sum,x)=>sum+x.operations,0)).toBe(178);
+    expect(gaps.reduce((sum,x)=>sum+x.operations,0)).toBe(209);
     const report=formatCapabilityGapReport(map);
     expect(report).toContain('Object Storage');
     expect(report).toContain('163 unique operations');
+    expect(report).toContain('193 unique operations');
+    expect(report).toContain('31 SDK-only methods');
+    expect(report).toContain('1 pinned-only methods');
     expect(report).not.toMatch(/[0-9]+(?:\.[0-9]+)?%/);
   });
   it('enforces checked generated outputs and does not contact provider',()=>{
-    expect(runCoverage('--check')).toEqual({checked:true,api:163,advanced:15,
+    expect(runCoverage('--check')).toEqual({
+      checked:true,api:163,sdk:193,sdkNew:31,sdkOld:1,advanced:15,
       tools:registry.tools.length});
   });
 });

@@ -29,6 +29,19 @@ decision records and deployment notes as affected, distinguishing merged,
 unmerged, released and independently accepted evidence.
 
 
+### 2026-11-03 — READY production source now corroborated via Vercel metadata
+
+Read-only checks independently matched GitHub remote main and live at
+69c46b71b6ab35e483f42338618146d1a377d074 to the newest Vercel
+READY production deployment's exact reported commit and all three
+project-owned alias mappings, including neon-mcp.vercel.app.
+This resolves the prior Vercel commit-null *metadata provenance*
+uncertainty for this particular release: the mapped deployment is now
+corroborated at the merged PR #201 baseline. It does not assert that
+a native client connected successfully, confirm a real Neon provider
+operation, or establish any CG gate. Neither draft PR #202 nor #203
+is merged, deployed or independently accepted.
+
 ### 2026-11-03 CAP-1 source implementation checkpoint — incomplete original unit
 
 The separate CAP-1 branch has its original acceptance frozen at planning commit
@@ -49,6 +62,28 @@ provider operation, release or billing configuration was changed. See
 [CAP-1 card](pr-cards/CAP-1.md) and
 [generated source gap report](capabilities/CAP-1-REPORT.md).
 The older R-2 draft PR #202 remains independent.
+
+
+Official current-SDK drift evidence on the SAME unmerged PR #203 (source
+only): retrieved Neon's public SDK OpenAPI JSON at exact
+neondatabase/neon-pkgs commit 167229f949438fb942809b72dd410888c70943a9
+(2026-11-03 UTC; raw SHA-256
+fcc7b2c39f15df03adedf90aa7cde7f1f5e7729ae50b10fd9c7a959f3fb1f82d).
+It contains 193 REST control-plane method signatures. Against the immutable
+163-method runtime vendor: 162 shared signatures, 31 official SDK-only
+operations and one pinned-only operation. The report now lists EVERY new
+operation by path/method/id and provisionally routes its original card,
+plus the lone pinned-only method and all 15 advanced workflows.
+The attached Playground publication preflight still fails Git fetch,
+while its Node/tests and the distinct native Git path work; the runtime
+Git-key handoff was refused/uncertain and no credential was exposed.
+The checked repository now includes an offline full-upstream byte verifier
+and deterministic 193-operation snapshot; the runtime Neon client still uses
+the old vendored contract. This SDK-source snapshot is not a Neon
+live-provider probe, customer credential test or public-client acceptance.
+Current interface inventory, permission/handler/execution proof and real-world
+acceptance remain incomplete, so CAP-1 and all six CG gates stay OPEN.
+
 
 **Checked Git main and live:** `1c810cb0ca69fffc9be088d4c8e9834d2dd7d720` (identical). **Checked Vercel Production:** READY at the same commit (deployment `dpl_9Mwm4LGqpQajD4cSD9DrnmuWgj4U`). No Neon MCP PR was open at the start of this documentation audit. Merged PRs #191–#197 include the six completion gates and CAP planning, OAuth environment isolation, public-client PKCE and client-owned token revocation, the rights-reserved LICENSE and RTC 2 *adoption documentation*. The OAuth routes exist in `api/oauth/` and their active handlers; the supported native MCP route exists at `api/mcp.js`. These are **source/READY deployment** observations, not independent client/provider acceptance. In particular, independent multi-tenant self-onboarding, all CAP-1–CAP-5 work, production mutation, scratch end-to-end acceptance and RTC 2 conformance remain open under the original roadmap/gates. The RTC 2 owner decision is normative from October 31, but PR #197 deliberately changed **documentation only**, not the service's wire dialect.
 

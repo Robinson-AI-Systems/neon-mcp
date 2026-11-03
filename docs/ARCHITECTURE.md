@@ -1,3 +1,15 @@
+## 2026-11-03 CAP-1 provider-reference boundary
+
+The running source retains its 163-operation, 2026-07 vendored Neon v2
+OpenAPI. CAP-1 additionally records a read-only, commit-pinned official
+Neon SDK v2 source reference (193 operations; 31 SDK-only and one
+runtime-vendor-only). The SDK reference is used ONLY by offline inventory,
+gap reporting and tests in docs/capabilities and src/core/cap-coverage.js;
+it does not alter src/neon/openapi-index.js, the Neon client, credential
+routing, app authentication, operation dispatch or deployment.
+Advanced SQL, storage, Functions, Auth and AI hosts remain separate;
+all new operation permission/execution and released-client evidence is open.
+
 ## 2026-10-21 source: client-owned OAuth disconnect
 
 The merged native issuer exposes POST /api/oauth/revoke on the checked READY release and advertises it through issuer

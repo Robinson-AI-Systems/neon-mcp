@@ -1,6 +1,13 @@
 
 ### 2026-11-03 authoritative merged-tree documentation baseline
 
+Read-only Vercel project/deployment/alias records subsequently verified
+a READY production deployment on the same exact merged main/live SHA
+69c46b71b6ab35e483f42338618146d1a377d074; the prior commit-null
+uncertainty for this particular deployment is resolved. Direct native
+client/Neon provider acceptance remains unverified.
+
+
 Latest independently checked remote \`main\` and \`live\`:
 \`69c46b71b6ab35e483f42338618146d1a377d074\`, merged Neon PR
 **#201** (custom GitHub native Git + Playground and Vercel fast-path process
@@ -26,6 +33,18 @@ generated docs/capabilities/CAP-1-REPORT.md. The full current-provider
 operation/credential proof is still pending. This milestone adds **zero**
 completed roadmap items; CAP-2/CAP-3 remain dependent. Draft PR #202 / R-2
 is unaffected.
+
+
+The subsequent source-only reference comparison in draft PR #203 checks
+Neon's official SDK OpenAPI revision
+167229f949438fb942809b72dd410888c70943a9 with 193 operations
+against the existing runtime's 163, locating 31 SDK-only and one
+pinned-only methods (162 shared signatures). These are explicit
+unimplemented/unverified CAP-1 operation rows, mapped in the generated
+gap report and a 193-signature reference file. This does NOT re-vendor
+the runtime spec, complete CAP-1/CAP-2/CAP-3, merge PR #203, deploy
+a release or grant live provider permissions.
+
 
 ### Current development execution route — custom GitHub native Git + Playground and Vercel (2026-11-02)
 

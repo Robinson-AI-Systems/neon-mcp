@@ -26,11 +26,13 @@ export function generateCoverage(){
   const sourceText=file('vendor/neon-openapi/SOURCE.md');
   const spec=parse(specText),sourcePin=verifiedSourcePin({specText,sourceText});
   const productSurfaces=JSON.parse(file('docs/capabilities/neon-product-surfaces.json'));
+  const currentControlPlane=JSON.parse(file('docs/capabilities/current-control-plane.json'));
   const testFiles={...sources('tests/unit'),...sources('tests/db'),...sources('tests/integration')};
   const inventory=buildCapabilityInventory({spec,sourcePin,
     sourceFiles:sources('src/tools'),testFiles,registry,productSurfaces,
-    checkedDate:productSurfaces.checkedDate});
-  validateCapabilityInventory({inventory,spec,sourcePin,registry,productSurfaces});
+    currentControlPlane,checkedDate:productSurfaces.checkedDate});
+  validateCapabilityInventory({inventory,spec,sourcePin,registry,productSurfaces,
+    currentControlPlane});
   // One record per line: reviewable and machine-readable, without a huge
   // pretty-printed six-way credential matrix per operation.
   const skeleton=JSON.stringify({...inventory,rows:[]},null,2);
@@ -51,6 +53,9 @@ export function runCoverage(mode){
       throw new TypeError('CAP-1 schema, registry or coverage artifacts drifted: regenerate and review');
   }
   return {checked:mode==='--check',api:generated.inventory.controlPlane.expectedOperations,
+    sdk:generated.inventory.currentControlPlane.expectedOperations,
+    sdkNew:generated.inventory.currentControlPlane.newToPinned,
+    sdkOld:generated.inventory.currentControlPlane.pinnedOnly,
     advanced:generated.inventory.externalSurfaces.count,
     tools:generated.inventory.registry.registeredTools};
 }

@@ -9,6 +9,90 @@ const unique=a=>[...new Set(a)].sort();
 export const sha256=x=>createHash('sha256').update(x).digest('hex');
 const apiKey=(m,p,v)=>['api',v,m.toUpperCase(),p].join('|');
 const extraKey=x=>'advanced|'+x.key+'|'+x.version;
+const sdkKey=x=>'sdk|'+x.version+'|'+x.method+'|'+x.path;
+const signature=x=>x.method+' '+x.path;
+const rawSdkUrl=revision=>
+  'https://raw.githubusercontent.com/neondatabase/neon-pkgs/'+revision+
+  '/packages/sdk/spec/neon-openapi.json';
+const methods=new Set(['GET','POST','PUT','PATCH','DELETE','HEAD','OPTIONS']);
+
+// A dated, official SDK OpenAPI snapshot is a reference, NOT a replacement
+// for the runtime-vendored API or evidence of a live Neon permission.
+export function officialSdkOperations(reference){
+  const source=reference?.source;
+  if(reference?.schemaVersion!==1||!defined(reference.version)||
+     !defined(reference.host)||!reference.host.startsWith('https://')||
+     !Array.isArray(reference.operations)||
+     !/^[a-f0-9]{40}$/.test(source?.revision||'')||
+     source?.repository!=='neondatabase/neon-pkgs'||
+     source?.path!=='packages/sdk/spec/neon-openapi.json'||
+     source?.url!==rawSdkUrl(source.revision)||
+     !/^[a-f0-9]{64}$/.test(source?.sha256||'')||
+     !/^[a-f0-9]{64}$/.test(reference.operationDigest||'')||
+     sha256(JSON.stringify(reference.operations))!==reference.operationDigest)
+    throw new TypeError('Official SDK source provenance or snapshot digest invalid');
+  const ids=new Set(),keys=new Set(),rows=[];
+  for(const x of reference.operations){
+    if(!isObject(x)||!methods.has(x.method)||!defined(x.path)||
+       !x.path.startsWith('/')||!defined(x.operationId)||!defined(x.family))
+      throw new TypeError('Malformed SDK API method');
+    const key=sdkKey({...x,version:reference.version});
+    if(ids.has(x.operationId)||keys.has(key))
+      throw new TypeError('Duplicate SDK operation or operation ID');
+    ids.add(x.operationId);keys.add(key);
+    rows.push({...x,version:reference.version,key});
+  }
+  if(JSON.stringify([...keys])!==JSON.stringify([...keys].sort()))
+    throw new TypeError('SDK operation signatures not in canonical order');
+  return rows;
+}
+
+// This optional offline verifier checks the SHA-pinned *full* upstream bytes;
+// normal CI never downloads provider metadata and uses only the checked snapshot.
+export function verifyOfficialSdkRaw(reference,raw){
+  officialSdkOperations(reference);
+  if(sha256(raw)!==reference.source.sha256)
+    throw new TypeError('Official SDK full OpenAPI SHA-256 mismatch');
+  const spec=JSON.parse(raw);
+  if(spec.info?.version!==reference.version||
+     spec.servers?.[0]?.url!==reference.host)
+    throw new TypeError('Official SDK version or host drift');
+  const actual=[];
+  for(const [path,entries] of Object.entries(spec.paths||{}))
+    for(const [method,operation] of Object.entries(entries))
+      if(methods.has(method.toUpperCase())&&method===method.toLowerCase())
+        actual.push({method:method.toUpperCase(),path,
+          operationId:operation.operationId,
+          family:operation.tags?.[0]||'unclassified'});
+  actual.sort((a,b)=>signature(a)<signature(b)?-1:signature(a)>signature(b)?1:0);
+  if(JSON.stringify(actual)!==JSON.stringify(reference.operations))
+    throw new TypeError('Official SDK projection differs from checked snapshot');
+  return {operations:actual.length,sourceSha256:reference.source.sha256};
+}
+
+// Existing original-card owners are only source routing, not acceptance.
+function ownerFor(op){
+  const p=op.path||'',f=op.family;
+  if(p.includes('/members')||p.includes('/invitations'))return 'O-1';
+  if(p.includes('/data-api')||p.includes('/auth'))return 'E-1';
+  if(p.includes('/functions')||p.includes('/triggers')||
+     p.includes('/storage')||p.includes('/buckets'))return 'E-2';
+  if(p.includes('/snapshots')||p.includes('/restore'))return 'D-7';
+  if(p.includes('/databases')||p.includes('/roles'))return 'D-4';
+  if(p.includes('/endpoints'))return 'D-3';
+  if(p.includes('/keys')||f==='API Key')return 'O-2';
+  if(f==='Consumption')return 'O-3';
+  if(f==='Functions'||f==='Buckets'||f==='Storage')return 'E-2';
+  if(f==='Auth'||f==='Auth (legacy)'||f==='DataAPI')return 'E-1';
+  if(f==='Organizations'||f==='Users')return 'O-1';
+  if(f==='Project'||f==='Operation'||f==='Region')return 'D-1';
+  if(f==='Branch')return 'D-2';
+  if(f==='Endpoint')return 'D-3';
+  if(f==='Snapshot')return 'D-7';
+  if(f==='Credentials')return 'CAP-3';
+  if(f==='Logs')return 'O-4';
+  return 'CAP-4'; // New provider surfaces need original-card reconciliation.
+}
 
 export function pinnedOperations(spec){
   if(!isObject(spec)||!isObject(spec.paths)||!defined(spec.info?.version)||
@@ -65,7 +149,7 @@ function candidates(id,files,toolNames){
   return hits.sort((a,b)=>a.path.localeCompare(b.path));
 }
 export function buildCapabilityInventory({spec,sourcePin,sourceFiles={},testFiles={},
-  registry,productSurfaces,checkedDate}={}){
+  registry,productSurfaces,currentControlPlane,checkedDate}={}){
   if(!defined(checkedDate)||!isObject(sourcePin)||!Array.isArray(registry?.tools)||
       !isObject(registry?.handlers)||!Array.isArray(productSurfaces?.operations))
     throw new TypeError('CAP-1 sources, registry and product list required');
@@ -74,6 +158,18 @@ export function buildCapabilityInventory({spec,sourcePin,sourceFiles={},testFile
      registry.tools.some(t=>typeof registry.handlers[t.name]!=='function'))
     throw new TypeError('Tool registry invalid');
   const api=pinnedOperations(spec),host=spec.servers[0].url;
+  const sdk=officialSdkOperations(currentControlPlane);
+  if(currentControlPlane.version!==spec.info.version||
+     currentControlPlane.host!==host)
+    throw new TypeError('SDK and runtime OpenAPI are different control planes');
+  const bySignature=new Map(api.map(x=>[signature(x),x]));
+  const sdkBySignature=new Map(sdk.map(x=>[signature(x),x]));
+  const changed=sdk.filter(x=>bySignature.has(signature(x))&&
+    bySignature.get(signature(x)).operationId!==x.operationId);
+  if(changed.length)
+    throw new TypeError('SDK operation ID changes require explicit reconciliation');
+  const newSdk=sdk.filter(x=>!bySignature.has(signature(x)));
+  const pinnedOnly=api.filter(x=>!sdkBySignature.has(signature(x)));
   const rows=api.map(op=>{
     const hits=candidates(op.operationId,sourceFiles,known);
     return {...op,origin:'vendored-openapi',host,providerSourceSha:sourcePin.sha256,
@@ -81,11 +177,29 @@ export function buildCapabilityInventory({spec,sourcePin,sourceFiles={},testFile
         op.method==='DELETE'?'destructive':'write',
       credentials:credentials('api'),requiredPermissions:'unknown',entitlement:'unknown',
       resourceSelectors:unique([...op.path.matchAll(/\{([^}]+)\}/g)].map(m=>m[1])),
-      ownerUnit:'U-1',ownerUnitEvidence:'Universal fallback; direct owner mapping needs audit',
+      currentSdkState:sdkBySignature.has(signature(op))?'present':'not-in-sdk-reference',
+      ownerUnit:ownerFor(op),
+      ownerUnitEvidence:'Source family/path routed to existing card; direct acceptance unverified',
       source:{status:hits.length?'candidate':'missing',candidates:hits,
         tests:Object.keys(testFiles).filter(p=>references(testFiles[p],op.operationId)).sort(),
         guardedExecutionVerified:false},live:{status:'unverified',evidence:null}};
   });
+  for(const op of newSdk){
+    const hits=candidates(op.operationId,sourceFiles,known);
+    rows.push({...op,origin:'official-sdk-reference',host,
+      providerSourceSha:currentControlPlane.source.sha256,
+      sourceCheckedDate:checkedDate,
+      effect:op.method==='GET'?'read':op.method==='DELETE'?'destructive':'write',
+      currentSdkState:'new-in-sdk-reference',credentials:credentials('api'),
+      requiredPermissions:'unknown',entitlement:'unknown',
+      resourceSelectors:unique([...op.path.matchAll(/\{([^}]+)\}/g)].map(m=>m[1])),
+      ownerUnit:ownerFor(op),
+      ownerUnitEvidence:'Official SDK source route; per-operation permission and engineering unverified',
+      source:{status:hits.length?'candidate':'missing',candidates:hits,
+        tests:Object.keys(testFiles).filter(p=>references(testFiles[p],op.operationId)).sort(),
+        guardedExecutionVerified:false},
+      live:{status:'unverified',evidence:null}});
+  }
   for(const item of productSurfaces.operations)rows.push({
     key:extraKey(item),operationId:item.key,origin:'documented-advanced-product',
     family:item.family,method:item.method,path:item.path??null,
@@ -98,7 +212,15 @@ export function buildCapabilityInventory({spec,sourcePin,sourceFiles={},testFile
     source:{status:'missing',candidates:[],tests:[],guardedExecutionVerified:false},
     live:{status:'unverified',evidence:null}
   });
-  return {schemaVersion:1,checkedDate,controlPlane:{version:spec.info.version,
+  return {schemaVersion:2,checkedDate,currentControlPlane:{
+    version:currentControlPlane.version,host:currentControlPlane.host,
+    source:currentControlPlane.source.url,
+    revision:currentControlPlane.source.revision,
+    sourceSha256:currentControlPlane.source.sha256,
+    operationDigest:currentControlPlane.operationDigest,
+    expectedOperations:sdk.length,newToPinned:newSdk.length,
+    pinnedOnly:pinnedOnly.length,shared:api.length-pinnedOnly.length},
+    controlPlane:{version:spec.info.version,
     host,source:sourcePin.source,sha256:sourcePin.sha256,expectedOperations:api.length},
     externalSurfaces:{count:productSurfaces.operations.length,
       sourceStatus:'Official docs; advanced wire and version not pinned'},
@@ -106,11 +228,20 @@ export function buildCapabilityInventory({spec,sourcePin,sourceFiles={},testFile
     rows:rows.sort((a,b)=>a.key.localeCompare(b.key))};
 }
 
-export function validateCapabilityInventory({inventory,spec,sourcePin,registry,productSurfaces}={}){
+export function validateCapabilityInventory({inventory,spec,sourcePin,registry,productSurfaces,currentControlPlane}={}){
   if(!isObject(inventory)||!Array.isArray(inventory.rows)||
      !Array.isArray(productSurfaces?.operations))throw new TypeError('Inventory and sources required');
-  const control=pinnedOperations(spec);
-  const expected=control.map(x=>x.key).concat(productSurfaces.operations.map(extraKey)).sort();
+  if(inventory.schemaVersion!==2)throw new TypeError('CAP-1 inventory schema version drift');
+  const control=pinnedOperations(spec),sdk=officialSdkOperations(currentControlPlane);
+  const controlBySignature=new Map(control.map(x=>[signature(x),x]));
+  const sdkBySignature=new Map(sdk.map(x=>[signature(x),x]));
+  const added=sdk.filter(x=>!controlBySignature.has(signature(x)));
+  const removed=control.filter(x=>!sdkBySignature.has(signature(x)));
+  if(sdk.some(x=>controlBySignature.has(signature(x))&&
+     x.operationId!==controlBySignature.get(signature(x)).operationId))
+    throw new TypeError('SDK operation ID conflict');
+  const expected=control.map(x=>x.key).concat(added.map(x=>x.key),
+    productSurfaces.operations.map(extraKey)).sort();
   const keys=inventory.rows.map(row=>row.key);
   if(new Set(keys).size!==keys.length)throw new TypeError('Duplicate inventory row');
   if(JSON.stringify([...keys].sort())!==JSON.stringify(expected))
@@ -119,12 +250,24 @@ export function validateCapabilityInventory({inventory,spec,sourcePin,registry,p
      inventory.controlPlane?.expectedOperations!==control.length||
      inventory.controlPlane?.host!==spec.servers[0].url)
     throw new TypeError('Control-plane source pin, host or denominator drift');
+  if(inventory.currentControlPlane?.expectedOperations!==sdk.length||
+     inventory.currentControlPlane?.newToPinned!==added.length||
+     inventory.currentControlPlane?.pinnedOnly!==removed.length||
+     inventory.currentControlPlane?.shared!==control.length-removed.length||
+     inventory.currentControlPlane?.sourceSha256!==currentControlPlane.source.sha256||
+     inventory.currentControlPlane?.operationDigest!==currentControlPlane.operationDigest||
+     inventory.currentControlPlane?.revision!==currentControlPlane.source.revision||
+     inventory.currentControlPlane?.source!==currentControlPlane.source.url||
+     inventory.currentControlPlane?.host!==currentControlPlane.host||
+     inventory.currentControlPlane?.version!==currentControlPlane.version)
+    throw new TypeError('Official SDK source pin or coverage drift');
   if(inventory.externalSurfaces?.count!==productSurfaces.operations.length||
      inventory.registry?.registeredTools!==registry.tools.length)
     throw new TypeError('Provider surface or registry denominator drift');
   const names=new Set(registry.tools.map(t=>t.name));
   const controlMap=new Map(control.map(op=>[op.key,op]));
   const productMap=new Map(productSurfaces.operations.map(x=>[extraKey(x),x]));
+  const addedMap=new Map(added.map(x=>[x.key,x]));
   for(const row of inventory.rows){
     if(!defined(row.method)||!defined(row.operationId)||!defined(row.family)||
        !defined(row.version)||!defined(row.host)||!defined(row.ownerUnit)||
@@ -137,8 +280,21 @@ export function validateCapabilityInventory({inventory,spec,sourcePin,registry,p
       if(!schema||row.path!==schema.path||row.method!==schema.method||
          row.operationId!==schema.operationId||row.family!==schema.family||
          row.providerSourceSha!==sourcePin.sha256||
-         row.host!==spec.servers[0].url)
-        throw new TypeError('OpenAPI operation or source has drifted: '+row.key);
+         row.host!==spec.servers[0].url||
+         row.currentSdkState!==(sdkBySignature.has(signature(schema))?
+           'present':'not-in-sdk-reference')||
+         row.ownerUnit!==ownerFor(schema))
+        throw new TypeError('OpenAPI operation, current reference or owner has drifted: '+row.key);
+    }else if(row.origin==='official-sdk-reference'){
+      const original=addedMap.get(row.key);
+      if(!original||row.operationId!==original.operationId||
+         row.path!==original.path||row.method!==original.method||
+         row.family!==original.family||row.version!==currentControlPlane.version||
+         row.host!==currentControlPlane.host||
+         row.providerSourceSha!==currentControlPlane.source.sha256||
+         row.currentSdkState!=='new-in-sdk-reference'||
+         row.ownerUnit!==ownerFor(original))
+        throw new TypeError('Official SDK-only operation or owner has drifted: '+row.key);
     }else if(row.origin==='documented-advanced-product'){
       const documented=productMap.get(row.key);
       if(!documented||row.operationId!==documented.key||
@@ -167,6 +323,16 @@ export function validateCapabilityInventory({inventory,spec,sourcePin,registry,p
            typeof registry.handlers[name]!=='function'))
         throw new TypeError('Orphan handler reference: '+row.key);
     }
+    const expectedCredentialMatrix=row.origin==='documented-advanced-product'?
+      credentials('advanced',productMap.get(row.key)?.reference,
+        productMap.get(row.key)?.access):credentials('api');
+    if(JSON.stringify(row.credentials)!==JSON.stringify(expectedCredentialMatrix))
+      throw new TypeError('Credential source evidence or scope drift: '+row.key);
+    if(row.origin!=='documented-advanced-product'){
+      const selectors=unique([...row.path.matchAll(/\{([^}]+)\}/g)].map(m=>m[1]));
+      if(JSON.stringify(row.resourceSelectors)!==JSON.stringify(selectors))
+        throw new TypeError('Operation resource selector drift: '+row.key);
+    }
     if(Object.keys(row.credentials).length!==CREDENTIAL_KINDS.length)
       throw new TypeError('Missing credential dimension: '+row.key);
     for(const name of CREDENTIAL_KINDS){
@@ -180,13 +346,16 @@ export function validateCapabilityInventory({inventory,spec,sourcePin,registry,p
         throw new TypeError('Unknown credential cannot imply proof: '+row.key+'/'+name);
     }
   }
-  return {controlPlane:control.length,advanced:productSurfaces.operations.length,
-    total:inventory.rows.length};
+  return {controlPlane:control.length,currentControlPlane:sdk.length,
+    newSdkOperations:added.length,pinnedOnly:removed.length,
+    advanced:productSurfaces.operations.length,total:inventory.rows.length};
 }
 export function capabilityGapReport(inventory){
   const groups=new Map();
   for(const row of inventory.rows){
-    const family=(row.origin==='vendored-openapi'?'api/':'advanced/')+row.family;
+    const prefix=row.origin==='vendored-openapi'?'api/':
+      row.origin==='official-sdk-reference'?'sdk-new/':'advanced/';
+    const family=prefix+row.family;
     const g=groups.get(family)??{family,operations:0,verifiedSource:0,
       candidateSource:0,missingSource:0,verifiedLive:0};
     g.operations++;
@@ -206,7 +375,15 @@ export function formatCapabilityGapReport(inventory){
     '',
     '- Pinned control-plane API: '+inventory.controlPlane.expectedOperations+
       ' unique operations, version '+inventory.controlPlane.version+'.',
-    '- OpenAPI SHA-256: '+inventory.controlPlane.sha256+'.',
+    '- Runtime-vendored OpenAPI SHA-256: '+inventory.controlPlane.sha256+'.',
+    '- Commit-pinned official Neon SDK API: '+inventory.currentControlPlane.expectedOperations+
+      ' unique operations at revision '+inventory.currentControlPlane.revision+
+      ' (full upstream SHA-256 '+inventory.currentControlPlane.sourceSha256+').',
+    '- Compared with runtime-vendored API: '+
+      inventory.currentControlPlane.newToPinned+' SDK-only methods, '+
+      inventory.currentControlPlane.pinnedOnly+' pinned-only methods, '+
+      inventory.currentControlPlane.shared+' shared signatures; method names were checked for drift.',
+    '- SDK source is a dated published contract, not evidence that each method is live or authorized.',
     '- Separately documented advanced product workflows: '+inventory.externalSurfaces.count+
       '; different protocols, hosts and unpinned wire interfaces are not control-plane parity.',
     '- Registered named MCP tools: '+inventory.registry.registeredTools+
@@ -220,12 +397,35 @@ export function formatCapabilityGapReport(inventory){
   for(const g of capabilityGapReport(inventory))
     lines.push('| '+g.family+' | '+g.operations+' | '+g.verifiedSource+' | '+
       g.candidateSource+' | '+g.missingSource+' | '+g.verifiedLive+' |');
+  lines.push('','## Official SDK-only control-plane operations (explicit gaps)','',
+    'These methods appear in the dated official SDK OpenAPI but not in the runtime-vendored schema.',
+    'No SDK-only method is reported as executable, provider-authorized or released without separate evidence.','',
+    '| Method | Path | Operation ID | Existing-card route | Source state |',
+    '| --- | --- | --- | --- | --- |');
+  for(const row of inventory.rows.filter(x=>x.origin==='official-sdk-reference'))
+    lines.push('| '+row.method+' | '+row.path+' | '+row.operationId+' | '+
+      row.ownerUnit+' | '+row.source.status+' |');
+  lines.push('','## Pinned-only methods requiring provider reconciliation','',
+    'Absence from the official SDK snapshot does NOT by itself establish a retired live API.','',
+    '| Method | Path | Operation ID | Source state |',
+    '| --- | --- | --- | --- |');
+  for(const row of inventory.rows.filter(x=>x.origin==='vendored-openapi'&&
+    x.currentSdkState==='not-in-sdk-reference'))
+    lines.push('| '+row.method+' | '+row.path+' | '+row.operationId+
+      ' | '+row.source.status+' |');
+  lines.push('','## Other-host product workflow uncertainties','',
+    '| Product workflow | Protocol / method | Host or target | Authority state |',
+    '| --- | --- | --- | --- |');
+  for(const row of inventory.rows.filter(x=>x.origin==='documented-advanced-product'))
+    lines.push('| '+row.operationId+' | '+row.protocol+' / '+row.method+
+      ' | '+row.host+' | '+row.requiredPermissions+' (unverified runtime) |');
   lines.push('','## Explicit exclusions and required follow-up','',
-    '- OpenAPI is the pinned July 2026 contract; newer live methods may be missing. Re-vendoring is a separate governed A-4 decision.',
+    '- Runtime OpenAPI remains the pinned July 2026 contract; the official SDK snapshot is read-only comparison, not re-vendored runtime source or a live API probe.',
+    '- The SDK-reference-only family rows lack verified handlers/credentials/provider reads; do not treat SDK exposure as MCP feature availability.',
     '- Advanced Functions, Object Storage, Data API, Auth, SQL and AI Gateway methods come from official product docs, not pinned wire specs. Unsupported or unverified method/host/permission fields remain labeled unknown.',
     '- API keys, SQL role credentials and product-scoped tokens are different credential types; never substitute one for another.',
     '- HTTP method effect labels are conservative, not measured prices, authorization or permission to execute.',
-    '- Operation owner U-1 is a universal fallback pending reconciliation of direct tool cards; advanced work is assigned to CAP-4 subject to existing card ownership.',
+    '- Original owner routing is derived from documented path/family and remains provisional; each existing card and tested handler requires direct reconciliation.',
     '- No fabricated percentage or live parity is computed while authorization routing, guards, readback and client/provider acceptance are unproven.',
     '');
   return lines.join('\n');

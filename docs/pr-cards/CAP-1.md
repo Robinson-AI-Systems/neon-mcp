@@ -1,6 +1,6 @@
 # CAP-1 — Operation and credential coverage inventory
 
-Status: IN_PROGRESS (planning freeze only; no engineering completed, no original unit credited).
+Status: IN_PROGRESS (source inventory engineering in draft PR #203; original unit incomplete and uncredited).
 Design: docs/designs/MAXIMUM-AUTHORITY.md; dependent CAP-2/CAP-3 require complete evidence first.
 Owner acceptance: no live permission, compute, provider, credential or production actions authorized.
 
@@ -42,7 +42,7 @@ Owner acceptance: no live permission, compute, provider, credential or productio
 
 ## Delivery and provenance
 
-Pending source edits, real fake-provider/regression tests, checked exact-head CI and independent release proof. All seven frozen acceptance lines remain open until individually evidenced.
+Source-stage changes are present on the unmerged CAP-1 draft branch. Earlier exact-head CI was green before the current SDK-reference extension; recheck after a new push. Current-method, permission, registered-handler and real released/provider proof are not complete. All seven original criteria remain open. All seven frozen acceptance lines remain open until individually evidenced.
 
 ## 2026-11-03 implementation and truthful acceptance accounting
 
@@ -111,3 +111,38 @@ That is a concrete developer-tool inconsistency, NOT proof that repository
 read/write grants are missing; use the native Git fetch/push path and actual
 GitHub exact-head Actions to verify publication. Record the failure without
 weakening the repo publication check or claiming it passed.
+
+
+## 2026-11-03 — official SDK control-plane gap reconciliation (unmerged)
+
+The publicly accessible official neondatabase/neon-pkgs OpenAPI JSON is
+pinned to commit 167229f949438fb942809b72dd410888c70943a9
+(2026-11-03T00:12:00Z), checked byte-for-byte at SHA-256
+fcc7b2c39f15df03adedf90aa7cde7f1f5e7729ae50b10fd9c7a959f3fb1f82d.
+Its 193 current SDK operation signatures were directly compared with the
+163-method runtime vendored OpenAPI: 162 common method/path signatures,
+31 newly present SDK-only and one vendored-only signature. No known
+operationId renaming on a common signature. The SDK version is evidence
+of official published documentation, NOT an independently attested live
+API schema or an entitlement for any user credential.
+
+Implementation: docs/capabilities/current-control-plane.json records all
+193 official method/path/id/family signatures, immutable upstream origin,
+source SHA and a checked projection digest. The generator includes each
+of the 31 SDK-only methods in operation-coverage.json, preserving distinct
+old runtime, official SDK-only and separately documented product-workflow
+denominators; CAP-1-REPORT.md identifies every new/pinned-only operation
+and cross-host uncertain workflow. The offline command
+node scripts/verify-cap-1-upstream.mjs PATH_TO_PINNED_JSON verifies the
+entire downloaded official source's byte hash, host, version and full
+method projection. The source validator also rejects signature drift,
+duplicate IDs, unverifiable credential changes, resource-selector changes,
+incorrect direct owner routing and forged live status claims.
+
+The current SDK evidence does not upgrade src/neon/openapi-index.js,
+enable missing handlers, authenticate any new credential, authorize
+provider execution, migrate production, or close the original CAP-1.
+Existing D/O/E/CAP cards still require exact operation-level request/response
+and guard evidence, and the currently untrusted deployed/provider/client
+acceptance remains separate. The full reference is a bounded, offline,
+reviewable SDK-source artifact, not a substitute for actual Neon validation.

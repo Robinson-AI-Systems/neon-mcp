@@ -1,3 +1,30 @@
+### 2026-11-03 — merged-tree documentation preflight is mandatory
+
+**Owner clarification:** At the beginning of every Neon engineering/continuation
+session, verify the exact latest merged main and live SHA and most recent merged
+PR; reconcile the status, roadmap, active card/index, technical/owner guides and
+deployment/database records with the merged source BEFORE new feature edits.
+Record open PR implementation and its CI as unmerged evidence separately.
+Keep documentation synchronized during the work, validate it against the final
+diff before pushing, and reconcile verified post-merge main without committing
+directly to main. The routine is now explicit in SESSION-START §0; nothing about
+an unmerged or green PR constitutes provider/production acceptance. At this
+decision checkpoint merged Neon PR #201 / main and live
+69c46b71b6ab35e483f42338618146d1a377d074 are the last merged
+baseline; drafts #202 and #203 are excluded.
+
+### 2026-11-03 — official SDK OpenAPI is a distinct reference, not runtime authority
+
+CAP-1 may pin and independently byte-check the public official Neon SDK
+OpenAPI at a fixed upstream commit, list differences from the existing runtime
+vendored specification and route missing operations to original cards. This
+documentation and inventory verification is source-only; the runtime API
+schema, user credential resolver, service permission, deployment and live
+provider authority remain unchanged. SDK-only operations cannot count as
+implemented or accepted until handler, policy and real provider evidence
+is separately established. Initial official SDK reference has 193 methods,
+31 absent from runtime vendor and one vendor-only method.
+
 
 ### 2026-11-02 — use custom GitHub's real Git/runtime and Vercel's deployment evidence to accelerate Neon
 
