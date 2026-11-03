@@ -4,6 +4,22 @@
 
 **Open roadmap at this checkpoint:** 58 original and CAP cards: 20 MERGED, 12 IN_PROGRESS, 21 PLANNED, 5 APPROVED; six CG acceptance overlays remain OPEN. Preserve older dated entries as historical evidence; they do not override this current snapshot. Do not manually promote `live`, reveal credentials, relax money-out policy, or declare product completion from an apparently healthy deployment.
 
+#
+### 2026-11-02 — RAS fleet review adds GitHub VER-1 release identity (design only)
+
+Reviewed GitHub source implementation of agent-visible `server_release` (package version plus deployed SHA, safe commit reference and how to see current live changes) alongside Vercel's protected operator route, Dokploy's per-user provider-native authority and Workspace's TEST/P9/P10 principal migration. The Library D-001 specification was **merged** via PR #1 (`a653347072c398c8f1c34a878064383cdf115e07`); Neon adoption on `ai/gpt6/ras-d001-neon-design-20261102` now includes release identity and keeps customer OAuth distinct from developer backend TEST grants. No Neon version metadata behavior, live issuer, permissions, client onboarding, provider keys or production operation was changed. Independently tested source/deployment/client/provider gates remain OPEN.
+
+
+## 2026-11-02 — owner follow-up: developer login and test grants are internal-only (design)
+
+Additional decision applied to the RAS D-001 design branch: internal developer sign-in and developer/test-grant management must be isolated from the public customer sign-in and ordinary OAuth consent. Current source inspection found that `/api/developer/connect` actually implements a mobile OAuth handoff; future implementation **must migrate the legitimate public handshake without breaking clients** before restricting the developer namespace. Backend enforcement, public UI absence, multi-tenant/role negative tests and real mobile proof are still **OPEN** under A-3, CAP-2/3/5, R-2, CG-1/2/6. No route, grant, token, login behavior, deployment or production setting changed in the design-only PR.
+
+
+
+## 2026-11-02 — RAS D-001 / RTC 2 design alignment (source-only; PR verification pending)
+
+Owner-directed specification lookup identified Library `designs/ras-mcp-standard.md` (D-001), the Hub's adopted `docs/RTC-2-SPEC.md`, the canonical website blueprint and Library D-005's existing Neon Unleashed Coral claim. Against Neon `main` `f4e2f5b6de11ccfca1d8a8b08fcd801ed7ea333c`, wrote a noncountable [design adoption crosswalk](designs/RAS-MCP-D001-ADOPTION.md) and amended original R, PLAN, master roadmap, Hub compatibility, decisions, completion and go-live references on `ai/gpt6/ras-d001-neon-design-20261102`. **No application code or current as-built claims changed; no runtime features are implemented by these documents.** RTC 2 migration, branded OAuth origin and fleet pages, client matrix, health/retention/monitoring/protection gates, real provider acceptance and original roadmap work remain OPEN. Do not assume production DNS, client acceptance or provider behavior. CI/review/merge require exact PR head and are separately tracked; scheduled live promotion remains unaffected.
+
 ## 2026-11-01 — repository documentation/source audit and merged-branch housekeeping (PR pending)
 
 Owner-directed code/documentation audit on source baseline `1c810cb0ca69fffc9be088d4c8e9834d2dd7d720`: checked Git main/live equality and READY Production provenance, inspected actual native MCP/RTC/OAuth route files, repaired stale current source/RTC 2/onboarding/catalog guidance and added a persistent drift check to `npm run check`. Original documentation snapshots remain dated historical evidence. Two fully merged and redundant documentation branches were removed remotely via native custom Git workspace; all diverged feature and archival branches were preserved. Local isolated Playground `npm run check`, `npm test`, and `npm run test:db` passed; exact PR-head CI/review/merge are separate pending obligations. Full engineering completion/CG-1..CG-6/CAP-1..CAP-5, independent desktop/mobile and Neon provider/scratch acceptance are **NOT** claimed. Detailed findings: [2026-11-01 code/documentation audit](audits/2026-11-01-source-documentation-audit.md).

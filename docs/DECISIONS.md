@@ -1,3 +1,19 @@
+
+### 2026-11-02 — user clarified backend developer login and grant isolation
+
+**Decision:** developer sign-in and the developer **test-grant** management system exist only at an independently protected backend developer control-plane access point for testing/development. They must not be part of, selectable within, advertised by or confused with public-facing customer login. Public OAuth consented grants are a separate user-owned feature; read-only/production rights are choices under the ordinary user session, not extra login modes. Staff acting as users do not inherit developer authority. Scope through original A-3, CAP-2/3/5, R-2 and CG-1/2/6; preserve all existing release/permission gates.
+
+**Code caveat:** `/api/developer/connect` currently implements a genuine mobile OAuth client handoff. Its name misrepresents its function; future code must migrate public mobile onboarding to a customer path *without loss of supported clients*, then strictly protect or retire the developer namespace. A documentation change cannot safely switch off that route or certify backend isolation.
+
+
+
+## 2026-11-02 — existing RAS Standard applied to Neon design (no runtime change)
+
+Owner requested finding and adopting the RAS MCP Specification for Neon. Located the authoritative **Library D-001 RAS MCP Standard** (reviewed file blob `cf619ca715b03c56f32f9a450886a07e085a5a9c`), already-adopted Hub RTC 2 (blob `83fab62166c33bd27f4cd5494b47bdae97f415bd`), website blueprint and Library D-005 already-claimed Neon Unleashed identifiers. Ruling is *design alignment*, not a new owner approval to change production, grants, DNS, release, another repository or the RTC 1 wire dialect.
+
+Design consequence: [Neon D-001 adoption](designs/RAS-MCP-D001-ADOPTION.md) governs future existing-card work, canonical `neon.robinsonaisystems.com` identity is a proposed verified-at-release target, and RTC 2 is advertised only after full implementation and conformance. Where D-001's real-client resource-omission lesson intersects RTC 2's explicit Hub `resource` requirement, retain exact RTC 2 Hub compliance and design a narrowly resource-bound *native client* compatibility path, proven or honestly reported incompatible; no unrestricted grants. Fleet site listing and watcher remain external owners, so no changes to them in this repo.
+
+
 ## 2026-10-21 — approved maximum-authority expansion
 
 Owner requested adapting the completed GitHub planning job to all active custom MCPs.

@@ -1,3 +1,25 @@
+
+### Server release provenance for connected coding agents — 2026-11-02 design
+
+The RAS Standard now adopts the GitHub MCP VER-1 pattern: `initialize.serverInfo.version` and `neon_whoami.server_release` tell agents the current deployed version and SHA, with safe current-release change-history directions. Design lives in [the adoption crosswalk](designs/RAS-MCP-D001-ADOPTION.md). Implement within A-3/A-7/R-2/O-4 and verify via CG-1/4/5 and checked released source, not from main's latest commit. Keep missing SHA visibly unknown. Documentation alone grants no implementation credit.
+
+
+
+### Developer-only sign-in/grants must not bleed into customer sign-in
+
+The 2026-11-02 owner clarification places developer sign-in and test-grant creation behind separately authenticated **backend developer-only** access, never the public user login, public client onboarding or customer-facing menus. Existing `/api/developer/connect` is a real *mobile OAuth handoff* and must be inventoried and given a customer-appropriate route before `/api/developer/*` is locked down; avoid breaking legitimate mobile clients. Handle through existing A-3 / CAP-2/3/5 / R-2 and CG-1/2/6, not a new invented subsection. No code or access policy is switched by this roadmap note.
+
+
+
+## RAS MCP Standard D-001 alignment — design accepted for implementation planning, 2026-11-02
+
+See [the design crosswalk](designs/RAS-MCP-D001-ADOPTION.md) and [adoption acceptance plan](audits/2026-11-02-ras-standard-adoption-plan.md). The living Standard is in Library D-001; RTC 2 is the frozen, adopted discovery/connection wire specification. These **do not** add a new product bundle, rearrange the original D/V/O/P/W/U/R/E/X priority or mark any card complete.
+
+Implementation owners: A-3/A-7 for native client/public+confidential PKCE, protected client setup, canonical branded issuer and pages; B/O/C for scoped write confirmation, retention/journaling, two-store parity, health posture, bounded lazy listing and result storage; R-1/R-2/R-3 for exact RTC 2 pass/HTTPS manifest/cursor/content-page, cross-door guard and fixture-backed conformance; X-2/X-3 and CG-1..CG-6 for genuine client/provider/source-vs-deployment/release and nine-section RAS production readiness. Existing CAP-1..CAP-5 preserve full user-owned provider authority, not implementation-agent developer restrictions. External website `/tools` publication and fleet watcher remain owned by their respective repositories; this repo supplies truthful manifest/health and page proof. No live Hub integration required for Neon completion.
+
+**Status now:** design-only; current RTC 1 and OAuth source remain as built. Neon Unleashed name/Coral accent/slug are already claimed in Library D-005; canonical branded issuer is a **target**, not verified live. Migration to it requires separate release/owner timing and protection for old connections; public/paid operation remains separately gated.
+
+
 **Owner-approved D-4 update (IN-16):** Confirmed role retirement is now implemented with exact one-use consent, dependency checks and explicit unknown-pooled-client interruption acknowledgement. Known application migration evidence and actual checked-deployment/provider/idle-pool acceptance remain OPEN; do not treat historical unregistered notes below as a current implementation blocker. D-5 remains independently approved.
 
 ## Maximum legitimate authority — owner-approved 2026-10-21
