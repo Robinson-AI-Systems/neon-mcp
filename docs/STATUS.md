@@ -1,5 +1,9 @@
 ## Verified source and deployment checkpoint — 2026-11-01
 
+### 2026-11-03 CAP-1 inventory engineering plan (no delivery yet)
+
+Full original CAP-1 scope is frozen on a new isolated branch before source edits; the derived schema-based operation inventory and provider authority matrix are not yet implemented. All seven planned criteria, original completion accounting and live acceptance remain open. See [CAP-1 execution card](pr-cards/CAP-1.md). Existing R-2 draft PR #202 is unaffected.
+
 **Checked Git main and live:** `1c810cb0ca69fffc9be088d4c8e9834d2dd7d720` (identical). **Checked Vercel Production:** READY at the same commit (deployment `dpl_9Mwm4LGqpQajD4cSD9DrnmuWgj4U`). No Neon MCP PR was open at the start of this documentation audit. Merged PRs #191–#197 include the six completion gates and CAP planning, OAuth environment isolation, public-client PKCE and client-owned token revocation, the rights-reserved LICENSE and RTC 2 *adoption documentation*. The OAuth routes exist in `api/oauth/` and their active handlers; the supported native MCP route exists at `api/mcp.js`. These are **source/READY deployment** observations, not independent client/provider acceptance. In particular, independent multi-tenant self-onboarding, all CAP-1–CAP-5 work, production mutation, scratch end-to-end acceptance and RTC 2 conformance remain open under the original roadmap/gates. The RTC 2 owner decision is normative from October 31, but PR #197 deliberately changed **documentation only**, not the service's wire dialect.
 
 **Open roadmap at this checkpoint:** 58 original and CAP cards: 20 MERGED, 12 IN_PROGRESS, 21 PLANNED, 5 APPROVED; six CG acceptance overlays remain OPEN. Preserve older dated entries as historical evidence; they do not override this current snapshot. Do not manually promote `live`, reveal credentials, relax money-out policy, or declare product completion from an apparently healthy deployment.
