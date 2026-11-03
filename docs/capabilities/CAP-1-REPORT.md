@@ -9,7 +9,7 @@ Source inventory checked 2026-11-03. This is source accounting, not proof of a l
 - SDK source is a dated published contract, not evidence that each method is live or authorized.
 - Separately documented advanced product workflows: 15; different protocols, hosts and unpinned wire interfaces are not control-plane parity.
 - Registered named MCP tools: 131; named-tool counts are not operation coverage.
-- Candidate source means a quoted operation ID appears in a tool module. It is not proof of guarded execution.
+- Candidate source means a parsed provider-call operation ID appears in a tool module, with file and source line. Only the enclosing named handler is attributed; shared helpers remain unassigned. It is not proof of guarded execution.
 - Live operation evidence remains unverified until tied to the exact checked deployed source and client.
 
 | Family | Operations | Verified source | Candidate source | Missing/unverified source | Live verified |
@@ -21,19 +21,19 @@ Source inventory checked 2026-11-03. This is source accounting, not proof of a l
 | advanced/object_storage | 6 | 0 | 0 | 6 | 0 |
 | advanced/sql | 1 | 0 | 0 | 1 | 0 |
 | api/AI Gateway | 1 | 0 | 0 | 1 | 0 |
-| api/API Key | 3 | 0 | 3 | 0 | 0 |
-| api/Auth | 28 | 0 | 1 | 27 | 0 |
+| api/API Key | 3 | 0 | 0 | 3 | 0 |
+| api/Auth | 28 | 0 | 0 | 28 | 0 |
 | api/Auth (legacy) | 16 | 0 | 0 | 16 | 0 |
-| api/Branch | 29 | 0 | 23 | 6 | 0 |
+| api/Branch | 29 | 0 | 18 | 11 | 0 |
 | api/Buckets | 8 | 0 | 0 | 8 | 0 |
 | api/Consumption | 3 | 0 | 0 | 3 | 0 |
 | api/Credentials | 3 | 0 | 0 | 3 | 0 |
-| api/DataAPI | 4 | 0 | 1 | 3 | 0 |
-| api/Endpoint | 8 | 0 | 8 | 0 | 0 |
+| api/DataAPI | 4 | 0 | 0 | 4 | 0 |
+| api/Endpoint | 8 | 0 | 4 | 4 | 0 |
 | api/Functions | 5 | 0 | 0 | 5 | 0 |
 | api/Operation | 2 | 0 | 2 | 0 | 0 |
-| api/Organizations | 19 | 0 | 10 | 9 | 0 |
-| api/Project | 21 | 0 | 13 | 8 | 0 |
+| api/Organizations | 19 | 0 | 4 | 15 | 0 |
+| api/Project | 21 | 0 | 7 | 14 | 0 |
 | api/Region | 1 | 0 | 1 | 0 | 0 |
 | api/Snapshot | 7 | 0 | 7 | 0 | 0 |
 | api/Storage | 1 | 0 | 0 | 1 | 0 |
@@ -42,7 +42,7 @@ Source inventory checked 2026-11-03. This is source accounting, not proof of a l
 | sdk-new/Credentials | 2 | 0 | 0 | 2 | 0 |
 | sdk-new/Functions | 8 | 0 | 0 | 8 | 0 |
 | sdk-new/Logs | 3 | 0 | 0 | 3 | 0 |
-| sdk-new/Project | 4 | 0 | 3 | 1 | 0 |
+| sdk-new/Project | 4 | 0 | 0 | 4 | 0 |
 | sdk-new/Realtime | 5 | 0 | 0 | 5 | 0 |
 
 ## Official SDK-only control-plane operations (explicit gaps)
@@ -56,7 +56,7 @@ No SDK-only method is reported as executable, provider-authorized or released wi
 | DELETE | /projects/{project_id}/branches/{branch_id}/custom-domains/{domain} | deleteProjectBranchCustomDomain | E-2 | missing |
 | DELETE | /projects/{project_id}/branches/{branch_id}/realtime | disableProjectBranchRealtime | CAP-4 | missing |
 | DELETE | /projects/{project_id}/branches/{branch_id}/triggers/{trigger_id} | deleteProjectBranchTrigger | E-2 | missing |
-| DELETE | /projects/{project_id}/members/{member_id}/role | removeProjectMemberRole | O-1 | candidate |
+| DELETE | /projects/{project_id}/members/{member_id}/role | removeProjectMemberRole | O-1 | missing |
 | GET | /projects/{project_id}/branches/{branch_id}/auth/oauth-provider/clients | listNeonAuthOAuthClients | E-1 | missing |
 | GET | /projects/{project_id}/branches/{branch_id}/auth/oauth-provider/clients/{client_id} | getNeonAuthOAuthClient | E-1 | missing |
 | GET | /projects/{project_id}/branches/{branch_id}/auth/plugins/oauth-provider | getNeonAuthOAuthProviderPlugin | E-1 | missing |
@@ -67,7 +67,7 @@ No SDK-only method is reported as executable, provider-authorized or released wi
 | GET | /projects/{project_id}/branches/{branch_id}/realtime/secret | getProjectBranchRealtimeSecret | CAP-4 | missing |
 | GET | /projects/{project_id}/branches/{branch_id}/triggers | listProjectBranchTriggers | E-2 | missing |
 | GET | /projects/{project_id}/branches/{branch_id}/triggers/{trigger_id} | getProjectBranchTrigger | E-2 | missing |
-| GET | /projects/{project_id}/members | listProjectMembers | O-1 | candidate |
+| GET | /projects/{project_id}/members | listProjectMembers | O-1 | missing |
 | GET | /projects/count | countProjects | D-1 | missing |
 | PATCH | /projects/{project_id}/branches/{branch_id}/auth/oauth-provider/clients/{client_id} | updateNeonAuthOAuthClient | E-1 | missing |
 | PATCH | /projects/{project_id}/branches/{branch_id}/auth/plugins/oauth-provider | updateNeonAuthOAuthProviderPlugin | E-1 | missing |
@@ -82,7 +82,7 @@ No SDK-only method is reported as executable, provider-authorized or released wi
 | POST | /projects/{project_id}/branches/{branch_id}/realtime | enableProjectBranchRealtime | CAP-4 | missing |
 | POST | /projects/{project_id}/branches/{branch_id}/realtime/rotate_secret | rotateProjectBranchRealtimeSecret | CAP-4 | missing |
 | POST | /projects/{project_id}/branches/{branch_id}/triggers | createProjectBranchTrigger | E-2 | missing |
-| PUT | /projects/{project_id}/members/{member_id}/role | setProjectMemberRole | O-1 | candidate |
+| PUT | /projects/{project_id}/members/{member_id}/role | setProjectMemberRole | O-1 | missing |
 
 ## Pinned-only methods requiring provider reconciliation
 
@@ -90,7 +90,7 @@ Absence from the official SDK snapshot does NOT by itself establish a retired li
 
 | Method | Path | Operation ID | Source state |
 | --- | --- | --- | --- |
-| POST | /projects/{project_id}/branches/{branch_id}/recover | recoverProjectBranch | candidate |
+| POST | /projects/{project_id}/branches/{branch_id}/recover | recoverProjectBranch | missing |
 
 ## Other-host product workflow uncertainties
 
@@ -119,5 +119,6 @@ Absence from the official SDK snapshot does NOT by itself establish a retired li
 - Advanced Functions, Object Storage, Data API, Auth, SQL and AI Gateway methods come from official product docs, not pinned wire specs. Unsupported or unverified method/host/permission fields remain labeled unknown.
 - API keys, SQL role credentials and product-scoped tokens are different credential types; never substitute one for another.
 - HTTP method effect labels are conservative, not measured prices, authorization or permission to execute.
+- Source call sites are parsed, not executed. Unattributed shared helper references and missing behavioral test cases cannot be counted as handler implementation.
 - Original owner routing is derived from documented path/family and remains provisional; each existing card and tested handler requires direct reconciliation.
 - No fabricated percentage or live parity is computed while authorization routing, guards, readback and client/provider acceptance are unproven.

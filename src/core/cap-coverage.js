@@ -1,5 +1,6 @@
 // CAP-1 — conservative source inventory; references are not execution proof.
 import {createHash} from 'node:crypto';
+import {collectSourceOperationReferences} from './cap-source-references.js';
 export const CREDENTIAL_KINDS=['personal_api_key','organization_api_key','project_api_key','sql_login','delegated_oauth','product_scoped_credential'];
 const states=new Set(['unknown','supported','unsupported']);
 const effects=new Set(['read','write','destructive','costed-unknown','unknown']);
@@ -139,14 +140,15 @@ function credentials(kind,reference,access){
   return all;
 }
 const references=(text,id)=>text.includes("'"+id+"'")||text.includes('"'+id+'"');
-function candidates(id,files,toolNames){
-  const hits=[];
-  for(const [path,text] of Object.entries(files)){
-    if(!/^src\/tools\/[^/]+\.js$/.test(path)||!references(text,id))continue;
-    hits.push({path,candidateTools:unique((text.match(/\bneon_[a-z0-9_]+\b/g)||[])
-      .filter(name=>toolNames.has(name))),proof:'source_reference_not_executed'});
-  }
-  return hits.sort((a,b)=>a.path.localeCompare(b.path));
+function candidates(id,sourceIndex){
+  const entries=sourceIndex.get(id)??[];
+  const paths=unique(entries.map(x=>x.path));
+  return paths.map(path=>{
+    const sites=entries.filter(x=>x.path===path);
+    return {path,candidateTools:unique(sites.map(x=>x.handler).filter(Boolean)),
+      callSites:sites.map(({line,via,handler})=>({line,via,handler})),
+      proof:'parsed_provider_call_reference_not_executed'};
+  });
 }
 export function buildCapabilityInventory({spec,sourcePin,sourceFiles={},testFiles={},
   registry,productSurfaces,currentControlPlane,checkedDate}={}){
@@ -158,6 +160,7 @@ export function buildCapabilityInventory({spec,sourcePin,sourceFiles={},testFile
      registry.tools.some(t=>typeof registry.handlers[t.name]!=='function'))
     throw new TypeError('Tool registry invalid');
   const api=pinnedOperations(spec),host=spec.servers[0].url;
+  const sourceIndex=collectSourceOperationReferences(sourceFiles,known);
   const sdk=officialSdkOperations(currentControlPlane);
   if(currentControlPlane.version!==spec.info.version||
      currentControlPlane.host!==host)
@@ -171,7 +174,7 @@ export function buildCapabilityInventory({spec,sourcePin,sourceFiles={},testFile
   const newSdk=sdk.filter(x=>!bySignature.has(signature(x)));
   const pinnedOnly=api.filter(x=>!sdkBySignature.has(signature(x)));
   const rows=api.map(op=>{
-    const hits=candidates(op.operationId,sourceFiles,known);
+    const hits=candidates(op.operationId,sourceIndex);
     return {...op,origin:'vendored-openapi',host,providerSourceSha:sourcePin.sha256,
       sourceCheckedDate:checkedDate,effect:op.method==='GET'?'read':
         op.method==='DELETE'?'destructive':'write',
@@ -185,7 +188,7 @@ export function buildCapabilityInventory({spec,sourcePin,sourceFiles={},testFile
         guardedExecutionVerified:false},live:{status:'unverified',evidence:null}};
   });
   for(const op of newSdk){
-    const hits=candidates(op.operationId,sourceFiles,known);
+    const hits=candidates(op.operationId,sourceIndex);
     rows.push({...op,origin:'official-sdk-reference',host,
       providerSourceSha:currentControlPlane.source.sha256,
       sourceCheckedDate:checkedDate,
@@ -228,9 +231,10 @@ export function buildCapabilityInventory({spec,sourcePin,sourceFiles={},testFile
     rows:rows.sort((a,b)=>a.key.localeCompare(b.key))};
 }
 
-export function validateCapabilityInventory({inventory,spec,sourcePin,registry,productSurfaces,currentControlPlane}={}){
+export function validateCapabilityInventory({inventory,spec,sourcePin,registry,productSurfaces,currentControlPlane,sourceFiles}={}){
   if(!isObject(inventory)||!Array.isArray(inventory.rows)||
-     !Array.isArray(productSurfaces?.operations))throw new TypeError('Inventory and sources required');
+     !Array.isArray(productSurfaces?.operations)||!isObject(sourceFiles))
+    throw new TypeError('Inventory and independently checked source files required');
   if(inventory.schemaVersion!==2)throw new TypeError('CAP-1 inventory schema version drift');
   const control=pinnedOperations(spec),sdk=officialSdkOperations(currentControlPlane);
   const controlBySignature=new Map(control.map(x=>[signature(x),x]));
@@ -265,6 +269,7 @@ export function validateCapabilityInventory({inventory,spec,sourcePin,registry,p
      inventory.registry?.registeredTools!==registry.tools.length)
     throw new TypeError('Provider surface or registry denominator drift');
   const names=new Set(registry.tools.map(t=>t.name));
+  const sourceIndex=collectSourceOperationReferences(sourceFiles,names);
   const controlMap=new Map(control.map(op=>[op.key,op]));
   const productMap=new Map(productSurfaces.operations.map(x=>[extraKey(x),x]));
   const addedMap=new Map(added.map(x=>[x.key,x]));
@@ -314,8 +319,11 @@ export function validateCapabilityInventory({inventory,spec,sourcePin,registry,p
     if(row.source.status==='verified'&&
        (!row.source.guardedExecutionVerified||!row.source.tests.length))
       throw new TypeError('Unproven guarded execution: '+row.key);
-    if(row.source.status==='missing'&&row.source.candidates.length)
-      throw new TypeError('Candidate source cannot be missing: '+row.key);
+    const expectedCandidates=candidates(row.operationId,sourceIndex);
+    if(JSON.stringify(row.source.candidates)!==JSON.stringify(expectedCandidates)||
+       (row.source.status==='candidate')!==(expectedCandidates.length>0)||
+       (row.source.status==='missing'&&expectedCandidates.length>0))
+      throw new TypeError('Forged, missing or mismatched source call site: '+row.key);
     for(const candidate of row.source.candidates){
       if(!/^src\/tools\/[^/]+\.js$/.test(candidate.path)||
          !Array.isArray(candidate.candidateTools)||
@@ -388,7 +396,7 @@ export function formatCapabilityGapReport(inventory){
       '; different protocols, hosts and unpinned wire interfaces are not control-plane parity.',
     '- Registered named MCP tools: '+inventory.registry.registeredTools+
       '; named-tool counts are not operation coverage.',
-    '- Candidate source means a quoted operation ID appears in a tool module. It is not proof of guarded execution.',
+    '- Candidate source means a parsed provider-call operation ID appears in a tool module, with file and source line. Only the enclosing named handler is attributed; shared helpers remain unassigned. It is not proof of guarded execution.',
     '- Live operation evidence remains unverified until tied to the exact checked deployed source and client.',
     '',
     '| Family | Operations | Verified source | Candidate source | Missing/unverified source | Live verified |',
@@ -425,6 +433,7 @@ export function formatCapabilityGapReport(inventory){
     '- Advanced Functions, Object Storage, Data API, Auth, SQL and AI Gateway methods come from official product docs, not pinned wire specs. Unsupported or unverified method/host/permission fields remain labeled unknown.',
     '- API keys, SQL role credentials and product-scoped tokens are different credential types; never substitute one for another.',
     '- HTTP method effect labels are conservative, not measured prices, authorization or permission to execute.',
+    '- Source call sites are parsed, not executed. Unattributed shared helper references and missing behavioral test cases cannot be counted as handler implementation.',
     '- Original owner routing is derived from documented path/family and remains provisional; each existing card and tested handler requires direct reconciliation.',
     '- No fabricated percentage or live parity is computed while authorization routing, guards, readback and client/provider acceptance are unproven.',
     '');

@@ -61,3 +61,18 @@
   "Git fetch failed; reconcile privately. No fresh publication check."
   Do not claim this check passed; native Git fetch/push plus exact-head
   required Actions checks are the separate authenticated verification route.
+
+### 2026-11-03 continuation: CAP-1 false-positive candidate ownership
+
+The original module-wide regex grouped every `neon_*` tool name with any
+operationId literal co-located in a source file, even if the tool never called
+that API. It also indexed CAP-1's own reference tests as if they were operation
+behavioral tests. Replaced the cross-product with parsed provider-call path,
+line and named-handler provenance and rederived/cross-validated artifacts.
+Current source snapshot: 44 operations with parsed call sites, 19 with direct
+handler attribution, 25 from unattributed shared helpers. All 209 remain
+unverified for guarded live execution. New static parser dependency is pinned
+as a dev dependency; no runtime Neon client/provider keys changed. Playground
+command execution and package installation were available. The earlier
+Playground Git-fetch publication preflight failure is still an independent
+unresolved tool integration issue, not permission to skip CI/publish checks.

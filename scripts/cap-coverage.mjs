@@ -28,18 +28,21 @@ export function generateCoverage(){
   const productSurfaces=JSON.parse(file('docs/capabilities/neon-product-surfaces.json'));
   const currentControlPlane=JSON.parse(file('docs/capabilities/current-control-plane.json'));
   const testFiles={...sources('tests/unit'),...sources('tests/db'),...sources('tests/integration')};
+  // Inventory's own assertions mention operation IDs but are not behavioral tests.
+  delete testFiles['tests/unit/cap-coverage.test.js'];
+  const sourceFiles=sources('src/tools');
   const inventory=buildCapabilityInventory({spec,sourcePin,
-    sourceFiles:sources('src/tools'),testFiles,registry,productSurfaces,
+    sourceFiles,testFiles,registry,productSurfaces,
     currentControlPlane,checkedDate:productSurfaces.checkedDate});
   validateCapabilityInventory({inventory,spec,sourcePin,registry,productSurfaces,
-    currentControlPlane});
+    currentControlPlane,sourceFiles});
   // One record per line: reviewable and machine-readable, without a huge
   // pretty-printed six-way credential matrix per operation.
   const skeleton=JSON.stringify({...inventory,rows:[]},null,2);
   const lines=inventory.rows.map(row=>JSON.stringify(row)).join(',\n    ');
   const artifact=skeleton.replace('"rows": []',
     '"rows": [\n    '+lines+'\n  ]')+'\n';
-  return {inventory,artifact,report:formatCapabilityGapReport(inventory)};
+  return {inventory,artifact,report:formatCapabilityGapReport(inventory),sourceFiles};
 }
 export function runCoverage(mode){
   if(!['--check','--write'].includes(mode))

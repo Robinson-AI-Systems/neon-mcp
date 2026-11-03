@@ -146,3 +146,41 @@ Existing D/O/E/CAP cards still require exact operation-level request/response
 and guard evidence, and the currently untrusted deployed/provider/client
 acceptance remains separate. The full reference is a bounded, offline,
 reviewable SDK-source artifact, not a substitute for actual Neon validation.
+
+## 2026-11-03 operation-to-handler provenance hardening (continuation)
+
+The inventory initially associated **every named tool in a module** with an
+operation whenever the module quoted that operation ID. This was an invalid
+operation-to-handler implication. The subsequent CAP-1 source change replaces
+this with Espree-parsed *provider invocation* sites, retaining the actual
+source path and line. A specific MCP tool is associated only when the call is
+inside that registered named handler. Shared helpers remain candidate source
+with **no attributed handler** unless and until their call chains are
+independently traced and behaviorally tested. Documentation comments and
+unrelated string literals are no longer operation evidence.
+
+The validator independently reparses the checked source and rejects forged,
+missing or relocated call sites and tool assignments. The inventory's own
+unit test is excluded from operation-specific behavioral-test references:
+mentioning an operation inside an inventory assertion cannot count as proof
+that its provider request, guard, response and readback were tested. The
+209-row inventory now has 44 parsed-source candidates, **only 19** with a
+directly attributed handler, and 25 sourced from unassigned helpers; none
+are asserted to have executed. The remaining 165 operations have no parsed
+source-call candidate in the current tool modules. These counts are not an
+implementation percentage. New focused attribution, anti-forgery and
+self-reference tests must pass with the existing schema/registry tests.
+
+The newest merged source baseline is still PR #201 at
+69c46b71b6ab35e483f42338618146d1a377d074; PR #202 and this CAP-1
+PR #203 remain drafts until acceptance, reviews and exact-head required CI.
+**No original CAP-1 criterion, CAP-2/3 prerequisite or CG gate has been
+closed.** Per-operation credential, original-card routing, real behavior,
+provider permission and native-client release proof still need independent
+work. The original frozen plan is unchanged.
+
+**Local verification (continuation):** `npm run check` passed; 13 focused
+CAP-1 tests passed, the complete unit suite passed 1,102 tests across 154
+files, and the isolated disposable-Postgres suite passed 125 tests across
+48 files. These are source/CI prerequisites, not real Neon-provider or
+native-client acceptance. Exact-head GitHub CI must be reverified after push.

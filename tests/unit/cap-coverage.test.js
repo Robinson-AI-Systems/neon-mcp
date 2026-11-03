@@ -7,6 +7,7 @@ import {pinnedOperations,verifiedSourcePin,buildCapabilityInventory,
   validateCapabilityInventory,capabilityGapReport,formatCapabilityGapReport,
   officialSdkOperations,verifyOfficialSdkRaw,sha256
 } from '../../src/core/cap-coverage.js';
+import {collectSourceOperationReferences} from '../../src/core/cap-source-references.js';
 
 const spec=parse(readFileSync('vendor/neon-openapi/v2.yaml','utf8'));
 const specText=readFileSync('vendor/neon-openapi/v2.yaml','utf8');
@@ -24,9 +25,10 @@ function fakeSdk(operations){
     operations,operationDigest:sha256(JSON.stringify(operations))};
 }
 const sourcePin=verifiedSourcePin({specText,sourceText});
+const sourceFiles=generateCoverage().sourceFiles;
 function inventory(){return structuredClone(generateCoverage().inventory);}
 function validate(x){return validateCapabilityInventory({
-  inventory:x,spec,sourcePin,registry,productSurfaces,currentControlPlane});}
+  inventory:x,spec,sourcePin,registry,productSurfaces,currentControlPlane,sourceFiles});}
 describe('CAP-1 complete but conservative operation inventory',()=>{
   it('checks all pinned real API methods with their exact source hash and distinct newer products',()=>{
     const map=inventory(),expected=pinnedOperations(spec);
@@ -51,6 +53,7 @@ describe('CAP-1 complete but conservative operation inventory',()=>{
     expect(map.rows.some(x=>x.origin==='documented-advanced-product'&&
       x.family==='object_storage')).toBe(true);
     expect(map.rows.filter(x=>x.origin==='official-sdk-reference')).toHaveLength(31);
+    expect(map.rows.every(x=>!x.source.tests.includes('tests/unit/cap-coverage.test.js'))).toBe(true);
     expect(map.rows.filter(x=>x.origin==='vendored-openapi'&&
       x.currentSdkState==='not-in-sdk-reference')).toHaveLength(1);
     expect(map.rows.find(x=>x.operationId==='listNeonAuthOAuthClients')?.ownerUnit)
@@ -136,7 +139,7 @@ describe('CAP-1 complete but conservative operation inventory',()=>{
   it('refuses orphan tool handlers, forged live acceptance and unsupported source proof',()=>{
     const a=inventory(),candidate=a.rows.find(x=>x.source.candidates.length);
     candidate.source.candidates[0].candidateTools.push('neon_fake_super_admin');
-    expect(()=>validate(a)).toThrow(/handler/i);
+    expect(()=>validate(a)).toThrow(/handler|source call site/i);
     const b=inventory();b.rows[0].live.status='verified';
     expect(()=>validate(b)).toThrow(/live proof/i);
     const c=inventory();c.rows[0].source.status='verified';
@@ -144,6 +147,43 @@ describe('CAP-1 complete but conservative operation inventory',()=>{
     const d=inventory();d.rows.find(x=>x.origin==='documented-advanced-product')
       .providerReference='https://random.example/docs';
     expect(()=>validate(d)).toThrow(/advanced|interface/i);
+  });
+  it('attributes parsed provider operation calls to the correct handler, never adjacent tools',()=>{
+    const source={'src/tools/fixture.js': `
+      // projectRead(null,'getMagic') is only a comment.
+      const note='getMagic';
+      const common=()=>projectRead(null,'getBranch');
+      export const handlers={
+        async neon_a(){return projectRead(null,'getProject')},
+        async neon_b(){return projectRead(null,'listProjects')},
+        async neon_c(){return common()}
+      };
+      const write=()=>applyNeonWrite({operationId:'updateProject'});
+    `};
+    const refs=collectSourceOperationReferences(source,new Set(['neon_a','neon_b','neon_c']));
+    expect(refs.has('getMagic')).toBe(false);
+    expect(refs.get('getProject')).toMatchObject([{handler:'neon_a',via:'projectRead'}]);
+    expect(refs.get('listProjects')).toMatchObject([{handler:'neon_b',via:'projectRead'}]);
+    expect(refs.get('getBranch')).toMatchObject([{handler:null,via:'projectRead'}]);
+    expect(refs.get('updateProject')).toMatchObject([{handler:null,via:'applyNeonWrite'}]);
+    expect(()=>collectSourceOperationReferences({'src/tools/malformed.js':'function ('},new Set()))
+      .toThrow();
+  });
+  it('prevents a nearby tool, a changed line, or a forged call from becoming coverage',()=>{
+    const map=inventory();
+    const candidate=map.rows.find(x=>x.source.candidates.some(c=>c.callSites.length));
+    expect(candidate).toBeTruthy();
+    const site=candidate.source.candidates[0].callSites[0];
+    site.line+=1;
+    expect(()=>validate(map)).toThrow(/source call site/i);
+    const map2=inventory();
+    const candidate2=map2.rows.find(x=>x.source.candidates.length);
+    candidate2.source.candidates[0].candidateTools.push('neon_project_list');
+    expect(()=>validate(map2)).toThrow(/source call site/i);
+    const map3=inventory();
+    const candidate3=map3.rows.find(x=>x.source.status==='candidate');
+    candidate3.source.candidates=[];
+    expect(()=>validate(map3)).toThrow(/source call site/i);
   });
   it('refuses a malformed or undocumented newer product row',()=>{
     const fakeSpec={info:{version:'v2'},servers:[{url:'https://console.neon.tech/api/v2'}],
@@ -160,12 +200,13 @@ describe('CAP-1 complete but conservative operation inventory',()=>{
       spec:fakeSpec,sourcePin,registry:fakeRegistry,productSurfaces:fakeProducts,
       currentControlPlane:fakeCurrent,
       checkedDate:'2026-11-03',sourceFiles:{
-        'src/tools/widgets.js':"export const tools=[{name:'neon_widgets'}]; const x='getWidgets';"
+        'src/tools/widgets.js':"export const handlers={async neon_widgets(){return projectRead(null,'getWidgets')}};"
       },testFiles:{}});
     expect(found.rows).toHaveLength(2);
     expect(found.rows.find(x=>x.operationId==='getWidgets').source.status).toBe('candidate');
     validateCapabilityInventory({inventory:found,spec:fakeSpec,sourcePin,
-      registry:fakeRegistry,productSurfaces:fakeProducts,currentControlPlane:fakeCurrent});
+      registry:fakeRegistry,productSurfaces:fakeProducts,currentControlPlane:fakeCurrent,
+    sourceFiles:{'src/tools/widgets.js':"export const handlers={async neon_widgets(){return projectRead(null,'getWidgets')}};"}});
     found.rows.find(x=>x.operationId==='example:read').providerDocumentationState='unknown';
     expect(()=>validateCapabilityInventory({inventory:found,spec:fakeSpec,sourcePin,
       registry:fakeRegistry,productSurfaces:fakeProducts,

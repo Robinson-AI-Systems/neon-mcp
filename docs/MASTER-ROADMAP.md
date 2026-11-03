@@ -1,3 +1,15 @@
+### 2026-11-03 CAP-1 source evidence refinement — draft #203, not merged
+
+Corrected an operation-to-handler attribution false positive in the original
+CAP-1 draft by parsing actual provider call sites, recording path/line and
+attributing only the enclosing registered handler. Shared helpers and
+self-referential inventory tests no longer inflate evidence. The 209-row
+source inventory now records 44 parsed-source candidates, 19 with direct
+handler attribution and 25 unassigned helper references; none are verified
+executions. CAP-1 and downstream CAP-2/3 remain IN_PROGRESS/unstarted,
+respectively, and every CG gate stays OPEN. Merge/release status remains
+separate from the unchanged PR #201 main/live baseline.
+
 
 ### 2026-11-03 authoritative merged-tree documentation baseline
 

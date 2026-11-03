@@ -1,3 +1,15 @@
+## 2026-11-03 — CAP-1 call-site provenance cannot claim whole-module tool coverage
+
+Decision: attribute an operation candidate only to parsed literal provider
+call sites, with source line and a named registered handler if the reference
+is lexically inside it; do not infer that a shared helper serves every named
+tool in the same module. Leave indirect call-chain links unresolved until
+independent execution-path tests. Exclude CAP-1's own schema/inventory test
+from operation-specific behavioral-test mapping. Cross-check candidates from
+source in the validator so a hand-edited report cannot invent handler reach.
+This source-only evidence refinement grants no client/provider authority,
+original-subsection completion, deployment or new product surface.
+
 ### 2026-11-03 — merged-tree documentation preflight is mandatory
 
 **Owner clarification:** At the beginning of every Neon engineering/continuation

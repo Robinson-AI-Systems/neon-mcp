@@ -29,6 +29,25 @@ decision records and deployment notes as affected, distinguishing merged,
 unmerged, released and independently accepted evidence.
 
 
+### 2026-11-03 — CAP-1 candidate attribution correction (draft PR #203)
+
+A later source inspection found that the CAP-1 draft was linking all tool
+names in a source module to every operation ID mentioned anywhere in that
+module. That cross-product is not valid implementation evidence. The updated
+source-only inventory parses literal provider-call sites and associates the
+nearest actual named handler only; references from shared helpers are left
+unassigned. Of 209 operation rows, 44 have parsed source candidates, only
+19 identify a direct named handler, and 25 are unresolved helpers; no
+operation has independent source execution or live provider proof. Its own
+CAP-1 tests no longer create artificial per-operation behavioral-test hits.
+Parsed call sites and candidate handler ownership are independently validated
+against the current source and cannot be promoted through a forged JSON row.
+Playground source verification: `npm run check` green; 1,102/1,102 unit
+tests and 125/125 disposable Postgres tests green. Required GitHub CI at the
+next pushed exact head must still pass.
+No production keys, data, issuer, runtime tool permissions or deployed source
+were changed. Original CAP-1 remains IN_PROGRESS with zero completion credit.
+
 ### 2026-11-03 — READY production source now corroborated via Vercel metadata
 
 Read-only checks independently matched GitHub remote main and live at

@@ -13,15 +13,15 @@
         },
         {
           "criterion": "For each operation record method, family, source and target host, version, side effect classification, entitlement and scope evidence, existing handler or missing engineering, source tests, original owning roadmap item and separate released/live proof state.",
-          "evidence": "Exact documented method, host, path, family, version, selectors, source pin, provisional D/O/E/CAP card owner and source candidates per operation; real tests/request-response and live proof outstanding"
+          "evidence": "Exact documented method, host, path, family, version, selectors, source pin, provisional D/O/E/CAP card owner and source candidates per operation; real tests/request-response and live proof outstanding; parsed provider-call site path/line for 44 candidate operations, with 19 enclosing named handlers and 25 unattributed shared-helper candidates, none source-verified"
         },
         {
           "criterion": "Guarded universal dispatch counts as implemented for an operation only if actual credential routing, request shape, policy guard, response and retry/readback semantics are verified; duplicate named tools and aliases must not inflate unique-operation coverage.",
-          "evidence": "Candidates are explicitly not verified execution. Offline registry and SDK source validation cannot imply a working guarded universal dispatcher, request/response, retry or provider readback"
+          "evidence": "Candidates are explicitly not verified execution. Offline registry and SDK source validation cannot imply a working guarded universal dispatcher, request/response, retry or provider readback; operation-to-handler trace now refuses file-wide cross-product and preserves unknown indirect call-chain ownership"
         },
         {
           "criterion": "Deterministic validator rejects duplicates, missing or orphan operations, broken schema source pin or drift, invented supported credentials, mismatched handler references, and unsupported disposition values without producing deceptively green coverage.",
-          "evidence": "Byte-pinned official SDK reference verifier; source digest, 193 unique IDs, 31/1 SDK-vendor drift, exact registry/provenance checks and negative duplicate/orphan/credential/scope/source/host tests"
+          "evidence": "Byte-pinned official SDK reference verifier; source digest, 193 unique IDs, 31/1 SDK-vendor drift, exact registry/provenance checks and negative duplicate/orphan/credential/scope/source/host tests; Espree source-call parser and validator independently reparse tool modules, reject forged handler/site/line references, malformed syntax and self-referential inventory test hits"
         },
         {
           "criterion": "Generated family gap report has reproducible denominators and explicit exclusions, separate implementation and released-live evidence, unknown/newer-provider interfaces called out individually, and no invented numerical capability percentages.",
@@ -29,7 +29,7 @@
         },
         {
           "criterion": "Tests exercise the real vendored schema and source registry, fake documented newer product surface records, negative duplicate/orphan/unsupported/incorrect-scope cases, bounded execution and a clean CI consistency check; no real customer data or provider effects.",
-          "evidence": "Real pinned and current SDK source, fake-provider and negative cases in CAP-1 unit tests, full-source SHA verifier and CI drift script; test/CI results must be refreshed at final branch head; on the assembled local source branch 11 focused CAP-1 tests, 1100 full unit tests and 125 disposable PostgreSQL tests passed, npm run check passed; new exact-head GitHub CI/review remain separate"
+          "evidence": "Real pinned and current SDK source, fake-provider and negative cases in CAP-1 unit tests, full-source SHA verifier and CI drift script; test/CI results must be refreshed at final branch head; on the assembled local source branch 11 focused CAP-1 tests, 1100 full unit tests and 125 disposable PostgreSQL tests passed, npm run check passed; new exact-head GitHub CI/review remain separate; 13 CAP-1 focused tests, full 1,102 unit tests / 154 files and 125 isolated real Postgres DB tests / 48 files passed in the attached Playground before this documentation update; GitHub exact-head CI on the new commit not yet available"
         }
       ],
       "remainingEngineering": [
@@ -39,10 +39,10 @@
       ]
     }
   ],
-  "productionAdded": 514,
+  "productionAdded": 581,
   "productionRemoved": 0,
-  "planComparison": "New original planned CAP-1 engineering compares official Nov 3 SDK 193-operation OpenAPI to immutable runtime vendor 163, adds 31 missing reference rows, a SHA byte verifier, 209-row gap report, provisional direct owner routes, strict validation and negative tests. Full original criteria remain unfinished. Current complete source/scripts added lines: 514 (new files against original main).",
-  "newEngineering": "Preserved the existing conservative source generator and added distinct pinned official SDK control-plane reference, path/method drift and missing-operation rows, owner routing, offline verifier, stricter source/credential/scope guards and focused tests.",
+  "planComparison": "New original planned CAP-1 engineering compares official Nov 3 SDK 193-operation OpenAPI to immutable runtime vendor 163, adds 31 missing reference rows, a SHA byte verifier, 209-row gap report, provisional direct owner routes, strict validation and negative tests. Full original criteria remain unfinished. Current complete source/scripts added lines: 514 (new files against original main). Follow-up source/scripts add 581 lines against the frozen main baseline (55 source lines in the new parser); tests/docs/generated excluded. CAP-1 still CONTINUE, zero completed subsections; final required CI and independent provider execution remain separate.",
+  "newEngineering": "Preserved the existing conservative source generator and added distinct pinned official SDK control-plane reference, path/method drift and missing-operation rows, owner routing, offline verifier, stricter source/credential/scope guards and focused tests. Follow-up: replaced all-tool-names-per-module candidate attribution with parsed direct call sites and independently checked exact handler/line, pinned Espree as a dev dependency, excluded CAP-1 self-reference test, and added forged-assignment/line/ambiguous-helper tests.",
   "relatedWorkDecision": "CAP-2 and CAP-3 depend on full CAP-1; neither can be counted or safely widened as part of this partial source milestone.",
   "decision": "CONTINUE"
 }
