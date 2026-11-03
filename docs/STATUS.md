@@ -1,5 +1,22 @@
 ## Verified source and deployment checkpoint — 2026-11-01
 
+### 2026-11-03 — RTC public HTTPS release identity consistency (draft PR #202)
+
+Additional R-2 source work makes public RTC compatibility manifest and
+pass-authenticated HTTPS `whoami` expose `server_release` from the same
+validated active `serverRelease(env)` used by MCP initialize, native
+`neon_whoami`, health and front door. A forged request Host or an
+invalid/missing serving commit never yields a fabricated SHA.
+The RTC1 feature gate and nonproduction pass restriction remain
+unchanged; no RTC2 public activation, provider/customer permission,
+production data, domain, release or DNS was touched. All 1,109 unit tests (156 files), 132 isolated PostgreSQL
+tests (49 files), and repository source/documentation checks passed
+locally after this change. Required GitHub exact-head CI is still
+independently verified only after publishing the new branch head. R-2 remains IN_PROGRESS, zero original
+subsections complete, CG1–6 OPEN.
+
+
+
 ### 2026-11-03 — additional synthetic cross-tenant RTC 2 HTTP/PG conformance
 
 The existing draft #202 original R-2 branch now adds a synthetic

@@ -1,3 +1,15 @@
+## 2026-11-03 — One exact deployment identity across RTC HTTPS doors
+
+Both public RTC manifest and pass-authenticated HTTPS `whoami`
+must derive release version, full commit SHA when known, source link
+and changelog from the identical `serverRelease(env)` contract
+already used by native MCP. Reject inconsistent caller overrides
+instead of fabricating a healthy release; unknown revision remains
+`null` and is not inferred from `main`, Host, cookies or headers.
+The owner-controlled RTC 1 enablement and pass restrictions stay
+unchanged. This is part of original R-2 source engineering, NOT an
+approval to expose RTC 2 publicly or claim deployed acceptance.
+
 ## 2026-11-03 — Persist owner-selected temporary RTC pass rate limit
 
 Decision: the already owner-authorized temporary read_only/preview

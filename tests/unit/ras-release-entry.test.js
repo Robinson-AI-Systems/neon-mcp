@@ -8,6 +8,8 @@ import {createConnectionPage} from '../../api/connection.js';
 import {handlers as serverTools} from '../../src/tools/server.js';
 import {createHandoff,callbackPath} from '../../src/developer/handoff.js';
 import {rtcManifest} from '../../src/core/rtc-contract.js';
+import {createContractHandler} from '../../api/contract.js';
+import {createRtcHttpHandlers} from '../../src/core/rtc-http.js';
 import {mcpServerInfo} from '../../src/core/mcp-server.js';
 import {registry} from '../../src/tools/index.js';
 
@@ -41,9 +43,41 @@ describe('RAS deployed release identity',()=>{
      neonOrg:'org-fake',mode:'preview',profile:'read_only',listing:'compact'
    }})).content[0].text);
    expect(user.server_release).toEqual(rel);
-   expect(rtcManifest(registry,{version:rel.version}).version).toBe(rel.version);
+   expect(rtcManifest(registry,{release:rel}).version).toBe(rel.version);
    expect(mcpServerInfo(env)).toMatchObject({version:rel.version,name:'robinson-neon-mcp'});
    expect(rel.source).toContain(SHA);
+ });
+ it('binds live public RTC manifest and authenticated HTTP whoami to the exact serving release only',async()=>{
+   const source={...env,RTC1_ENABLED:'1',VERCEL_ENV:'production'};
+   const rel=serverRelease(source),pass='rtc_pass_'+'B'.repeat(43);
+   const db={
+     async getRtcPass(){return {client_id:'rtc_'+'A'.repeat(16),
+       neon_org:'org-fake',project_scope:'proj-fake',mode:'preview',
+       profile:'read_only',listing:'catalog',kind:'pass',
+       rtc_areas:['server','discovery'],allow_writes:false,
+       rtc_requests_per_minute:60,
+       expires_at:new Date(Date.now()+3600000),revoked_at:null};},
+     async consumeApiBudget(){return {allowed:true};}
+   };
+   const publicRes=response();
+   createContractHandler({env:source,registry})({method:'GET'},publicRes);
+   expect(publicRes.statusCode).toBe(200);
+   expect(publicRes.body.server_release).toEqual(rel);
+   expect(publicRes.body.version).toBe(rel.version);
+   const whoami=createRtcHttpHandlers({db,registry,env:source}).whoami;
+   const privateRes=response();
+   await whoami({method:'GET',headers:{authorization:'Bearer '+pass}},privateRes);
+   expect(privateRes.statusCode).toBe(200);
+   expect(parse(privateRes).result.server_release).toEqual(rel);
+   expect(mcpServerInfo(source).version).toBe(rel.version);
+   expect(()=>rtcManifest(registry,{release:rel,version:'wrong'})).toThrow(/release/i);
+   const unknown={...source,VERCEL_GIT_COMMIT_SHA:'not-a-deployed-commit'};
+   const noSha=response();
+   createContractHandler({env:unknown,registry})({method:'GET',
+     headers:{host:'malicious.example'}},noSha);
+   expect(noSha.body.server_release).toEqual(serverRelease(unknown));
+   expect(noSha.body.server_release.commit).toBeNull();
+   expect(JSON.stringify(noSha.body)).not.toContain('malicious.example');
  });
  it('probes only when explicitly requested, never exposes storage settings or private origins',async()=>{
    const noProbe=await serviceHealth({env,now:()=>new Date('2026-11-02T12:00:00Z')});

@@ -38,13 +38,18 @@ export function rtcToolMetadata(tool){
       idempotentHint:!writes||tool.writeContract==='defineWrite-v1',
       openWorldHint:tool.productionEffect==='write'}};
 }
-export function rtcManifest(registry,{version=serverRelease().version}={}){
+export function rtcManifest(registry,{release=serverRelease(),
+  version=release.version}={}){
+  if(typeof release?.version!=='string'||release.version!==version||
+     (release.commit!==null&&
+      (typeof release.commit!=='string'||!/^[a-f0-9]{40}$/.test(release.commit))))
+    throw new TypeError('RTC manifest release metadata must share one source');
   if(!Array.isArray(registry?.tools))throw new TypeError('RTC registry required');
   const items=registry.tools.map(rtcToolMetadata);
   const names=new Set(items.map(t=>t.name));
   if(names.size!==items.length)throw new TypeError('Duplicate RTC tool');
   return {rtc:1,server:MCP_TECHNICAL_ID,displayName:PRODUCT_DISPLAY_NAME,
-    description:PRODUCT_ATTRIBUTION,prefix:RTC_PREFIX,version,
+    description:PRODUCT_ATTRIBUTION,prefix:RTC_PREFIX,version,server_release:release,
     apiVersion:'neon-sdk-7.0.1',
     areas:[...new Set(items.map(t=>t.area))].sort(),
     counts:{tools:items.length,writes:items.filter(t=>t.writes).length,

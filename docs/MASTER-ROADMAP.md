@@ -1,3 +1,13 @@
+### 2026-11-03 — public RTC manifest and pass whoami release identity (draft #202)
+
+The RTC 1 compatibility manifest and authenticated HTTPS whoami now
+share the same canonical checked server-release identity as native MCP
+initialize and neon_whoami. The full commit SHA is reported only when
+an actual valid active deployment SHA is available; it is never
+guessed from main or a request Host. This source-only advancement
+does not advertise RTC 2, complete original R-2, establish real
+client/provider operation, or change the live branch.
+
 ### 2026-11-03 — RTC 2 independent-adapter disposable-Postgres contract probe (draft #202)
 
 R-2 local acceptance now covers actual PostgreSQL row ownership

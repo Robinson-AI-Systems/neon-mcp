@@ -4,6 +4,7 @@
 import {send} from './http.js';
 import {rtcCatalog,rtcCatalogAll,rtcToolMetadata,rtcError} from './rtc-contract.js';
 import {rtc2CatalogPage,rtc2ContentPage} from './rtc2-wire.js';
+import {serverRelease} from './server-release.js';
 import {requireRtcPass,rtcNonproductionTool} from './rtc-passes.js';
 import {dispatchReadOnlyTool} from './mcp-server.js';
 import {resultScope} from './result-store.js';
@@ -181,6 +182,7 @@ export function createRtcHttpHandlers({db,registry,env=process.env,wireVersion=1
       prefix:'neon',profile:connection.profile,mode:connection.mode,
       projectScope:connection.projectScope,allowWrites:false,
       requestsPerMinute:connection.requestsPerMinute,
+      server_release:serverRelease(env),
       areas:connection.rtcAreas}});
   }
   async function results(req,res){

@@ -225,3 +225,14 @@ fail-closed `requireRtcPass` admission. The existing PostgreSQL
 limiter per hashed pass and UTC minute, independent of app process.
 Old pass rows use default 60. This is a pending migration, not an
 observed production schema change or live source claim.
+
+### RTC compatibility manifest/HTTPS serving identity (draft #202)
+
+The public `/api/contract` handler checks the RTC 1 feature gate
+and generates its manifest through `rtcManifest(...,
+{release:serverRelease(env)})`. Authenticated RTC HTTPS `whoami`
+uses the same `serverRelease(env)` as native MCP serverInfo and
+`neon_whoami`. The deployment SHA is included only when the
+hosting environment supplies a strict lowercase 40-character SHA.
+No Host-derived identity, remote dependency, SDK change, credential
+or privilege upgrade is involved; RTC 2 remains unadvertised.
