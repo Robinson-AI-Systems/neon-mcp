@@ -112,3 +112,13 @@ explicitly marked unverified; ambiguous writes are never automatically replayed.
 **Source implementation does not mean live acceptance.** No real account key or
 project was mutated during developer tests. Release and owner/provider testing remain
 separate repository obligations.
+
+### Customer connection and release identity (R-2 source work, 2026-11-02)
+The planned \`/connection\` public instructions and \`/api/health\` public
+posture page do not provide credentials or grant permissions. \`neon_whoami\`
+exposes the active packaged version and verified deployed commit if available;
+\`main\` can be ahead of the deployed \`live\` branch. Health defaults to
+degraded unless the database probe is independently enabled, so no one can
+infer a live database merely from configured environment variables. Do not
+activate public release, change identity domains or grant developer access
+based on these pending source changes.

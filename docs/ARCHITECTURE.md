@@ -180,3 +180,20 @@ sql_scope_hash, sql_preview_expires_at and sql_preview_used_at columns with an
 explicit neon_role_delete tool discriminator and exact owner/connection/role target.
 Only hashes are stored. SQL execution claims require neon_sql_execute so a role
 retirement consent can never be interpreted as an SQL preview. No migration.
+
+## R-2 source integration under review — 2026-11-02 (not independently released)
+
+\`src/core/server-release.js\` derives the package version and only a valid observed
+40-character \`VERCEL_GIT_COMMIT_SHA\`, used in native MCP initialize and
+\`neon_whoami.server_release\`. It never infers a deployed commit from main,
+live, Host or readiness of a Vercel deployment. \`/api/health\` and \`/\`
+share this release value; health remains degraded by default unless a separately
+configured \`HEALTH_DB_PROBE_ENABLED=1\` performs a successful real database
+SELECT 1. Public \`/connection\` is a nonsecret documentation-only customer page,
+using \`PUBLIC_BASE_URL\`, not request headers, to state the endpoint and issuer.
+The new normal mobile callback \`/api/connect/handoff\` uses the same authenticated,
+encrypted and PKCE/redirect-bound code handoff as the original public callback
+\`/api/developer/connect\`; the latter remains for registered legacy clients.
+The current RTC 1 HTTPS pass implementation and the adopted RTC 2 target are
+distinct. There is still no backend-only developer test-grant login implementation;
+no claim of release/tenant/provider/client or RTC 2 conformance acceptance.

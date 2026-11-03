@@ -4,6 +4,32 @@
 
 **Open roadmap at this checkpoint:** 58 original and CAP cards: 20 MERGED, 12 IN_PROGRESS, 21 PLANNED, 5 APPROVED; six CG acceptance overlays remain OPEN. Preserve older dated entries as historical evidence; they do not override this current snapshot. Do not manually promote `live`, reveal credentials, relax money-out policy, or declare product completion from an apparently healthy deployment.
 
+### 2026-11-02 — R-2 agent-visible release/customer entry integration (source-only PR in progress)
+
+Branch \`ai/gpt6/neon-ras-client-entry-release\` started at
+\`69c46b71b6ab35e483f42338618146d1a377d074\`, frozen plan
+\`53657f02e6774c448a264cc8e09fefddaeda2003\`.
+New source reports truthful packaged version and verified deployed SHA (or null);
+keeps the native OAuth issuer bound to \`PUBLIC_BASE_URL\`; adds public, safely
+degraded-by-default \`/api/health\`, accessible \`/\` and customer
+\`/connection\` pages; provides customer-oriented \`/api/connect/handoff\`
+while preserving registered legacy mobile callback security and handling.
+Focused tests \`tests/unit/ras-release-entry.test.js\`,
+\`product-identity.test.js\` and \`developer-handoff.test.js\` passed
+17/17 before connection-page addition; expanded focused 9/9 later passed.
+These are **local source tests only**, not exact-head CI or a released client
+or actual Neon provider observation. No production deployment, DNS, env,
+provider write or spend. R-2 remains **IN_PROGRESS**; RTC 2 HTTPS pass/full
+writes/list/results, backend-only dev principal, production-source/client/
+tenant acceptance and all six CG gates remain OPEN.
+
+Native Git/Playground observations for a later operator tooling audit:
+the Git workspace was cloned, branch and planning commit worked; runtime
+required explicit provision/attach/resume before execution, then returned
+verified command exit statuses. Local check, 1,098 unit tests and disposable PostgreSQL suite passed before the later shared-adapter refactor; the refactor then passed 16 focused tests. The final PR head still needs exact CI. Playground publication prepare failed to fetch with its runtime Git credentials while native Git fetch succeeded. Vercel deployment READY lacked a commit SHA;
+a project-name deployment query failed but exact ID worked. These do not
+prove a broken deployment; improve tool diagnostics and provenance.
+
 ### 2026-11-02 — native Git/Playground + Vercel fast-path workflow, maintenance only
 
 The owner requested use of the **actual custom GitHub native Git workspace and Robinson Playground** as Neon's primary implementation/test route, with Vercel Unleashed as a read-only deployment evidence and diagnosis route. [Fast-path instructions](runbooks/CUSTOM-GITHUB-VERCEL-FAST-PATH.md) and [frozen acceptance](audits/2026-11-02-native-git-vercel-workflow-plan.md) were created, and entry/runbooks/playbook were reconciled; this is **zero application code and zero original-card/CAP/CG acceptance credit**. At the inspection point, GitHub `main` was `72bc36b0236f0f6849ccf37178a069ade0fd3ab5`, `live` was `f4e2f5b6de11ccfca1d8a8b08fcd801ed7ea333c`. Vercel showed a newer READY production deployment, but its read response `commit` was null; high-level Neon health/release workflows errored while low-level project/deploy/alias reads worked. **The latest running source SHA was not independently verified from that Vercel response**; the dated 2026-11-01 checkpoint above is historic, not today's serving-source attestation. No manual promotion or live Neon/provider operation was run.

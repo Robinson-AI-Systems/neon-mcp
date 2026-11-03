@@ -16,7 +16,7 @@
     "X",
     "CAP"
   ],
-  "process": "Just-in-time cards from approved designs; each card runs the drift protocol and updates this index as if merged. Session execution and queued deployed acceptance follow docs/SESSION-START.md. Owner-approved execution: combine adjacent small roadmap slices into cohesive PRs; use only the current owner prompt for session PR count. See docs/SESSION-START.md. Owner-requested throughput measurement: average 400\u2013800 changed production-code lines and 2\u20135 fully completed slices per substantive PR; record actual diffs/slice evidence and use session:status for remaining indexed units. These are advisory averages, never padding or acceptance claims. Owner clarification 2026-10-14: PR workload accounting counts whole predefined batch subsections in the authoritative roadmap/design, never a function, UI hookup, guard, helper or execution-packet subtask. Partial subsections count zero completed batch subsections; count each subsection once with full eligible engineering and pre-merge evidence. Group related subsections into substantial PRs; use focused checks during work and full required gates on the coherent PR. Existing acceptance and safety gates remain. Six noncountable universal MCP closeout gates CG-1..CG-6 are machine-tracked in completionGates; they are NOT extra batch subsections and never affect subsection count. Evidence and requirements: docs/COMPLETION-GATES.md. Project closeout requires tracking them alongside original cards and STATUS release queue. Code/documentation audit follow-through (2026-11-01): scripts/check-doc-code-truth.mjs and its script tests are read-only drift validators for implemented native HTTP routes, currently documented roadmap card/CAP/CG counts and the distinction between adopted RTC 2 and unimplemented provider-side runtime conformance. docs/audits/2026-11-01-source-documentation-audit.md holds the code-to-guide reconciliation, local proof and remaining owner gates. Original card units, approvals and live provider acceptance are unchanged.",
+  "process": "Just-in-time cards from approved designs; each card runs the drift protocol and updates this index as if merged. Session execution and queued deployed acceptance follow docs/SESSION-START.md. Owner-approved execution: combine adjacent small roadmap slices into cohesive PRs; use only the current owner prompt for session PR count. See docs/SESSION-START.md. Owner-requested throughput measurement: average 400–800 changed production-code lines and 2–5 fully completed slices per substantive PR; record actual diffs/slice evidence and use session:status for remaining indexed units. These are advisory averages, never padding or acceptance claims. Owner clarification 2026-10-14: PR workload accounting counts whole predefined batch subsections in the authoritative roadmap/design, never a function, UI hookup, guard, helper or execution-packet subtask. Partial subsections count zero completed batch subsections; count each subsection once with full eligible engineering and pre-merge evidence. Group related subsections into substantial PRs; use focused checks during work and full required gates on the coherent PR. Existing acceptance and safety gates remain. Six noncountable universal MCP closeout gates CG-1..CG-6 are machine-tracked in completionGates; they are NOT extra batch subsections and never affect subsection count. Evidence and requirements: docs/COMPLETION-GATES.md. Project closeout requires tracking them alongside original cards and STATUS release queue. Code/documentation audit follow-through (2026-11-01): scripts/check-doc-code-truth.mjs and its script tests are read-only drift validators for implemented native HTTP routes, currently documented roadmap card/CAP/CG counts and the distinction between adopted RTC 2 and unimplemented provider-side runtime conformance. docs/audits/2026-11-01-source-documentation-audit.md holds the code-to-guide reconciliation, local proof and remaining owner gates. Original card units, approvals and live provider acceptance are unchanged.",
   "cards": [
     {
       "id": "A-1",
@@ -1084,17 +1084,17 @@
         "R-1"
       ],
       "card": "docs/pr-cards/R-2.md",
-      "status": "PLANNED",
+      "status": "IN_PROGRESS",
       "migration": "none",
       "budget": 450,
       "units": [
         "R-2"
       ],
-      "readiness": "WRITE_CARD_AT_START",
+      "readiness": "READY",
       "ownerInputs": [
         "IN-11"
       ],
-      "note": "Owner-requested early, strictly read_only non-production Hub RTC track: #77 gated manifest/OpenAPI/metadata; #78 owner pass issuance, revocation and atomic limit; #80 bounded guarded HTTPS routes, subset wire tests, host-cost handoff. This does NOT mark R-1/R-2/R-3 complete or waive IN-11: full pass/write tools, upstream full conformance, two-instance harness, production activation and real three-route Hub acceptance remain gated. See docs/runbooks/RTC1-HUB-ADOPTION.md. #81 fixes partial RTC scoped tool-discovery pagination by applying the three-tool allowlist before search/limit, with real HTTP wire regression; no full conformance or actual route acceptance claim. #82 applies direct-call field/detail validation to all nested HTTPS read-only batches before any handler runs (atomic malformed-input refusal); no R-series completion or authorization expansion. #84 aligns read-only RTC list/describe schemas to already-supported fields/detail selectors, with registry/HTTP tests; no broad R-2 acceptance claimed."
+      "note": "Full RAS D-001/RTC 2 R-2 scope frozen on 2026-11-02; public release identity and mobile entry source work underway, but no whole R-2 engineering or independent acceptance completed."
     },
     {
       "id": "R-3",

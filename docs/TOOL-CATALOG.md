@@ -404,3 +404,10 @@ EOF
 C-1a (#38): common read tools accept `detail: summary|full` and comma-separated dotted `fields` at MCP registration; selection occurs after secret removal. Large-result handles are C-1b.
 
 C-1b (#39): oversize read responses use 24-hour, same-connection, secret-scrubbed handles; retrieval is exposed only in C-1c (#40).
+
+### Release provenance on neon_whoami (R-2 source-only, 2026-11-02)
+The existing \`neon_whoami\` read gains an additive \`server_release\`
+object: \`version\`, \`commit\` (null when unknown), \`source\` (null without
+a verifiable SHA), \`what_changed\` and \`release_notes_url\`. It describes
+the active serving binary, not the most recent commit on main. No customer
+rights or developer profile is granted by this metadata.

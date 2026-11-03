@@ -1,6 +1,7 @@
 // RTC 1 compatibility metadata. This is not a credential/authorization boundary.
 // The public contract remains unadvertised until the authenticated HTTPS doors land.
 import {isToolAllowed} from './profiles.js';
+import {serverRelease} from './server-release.js';
 import {PRODUCT_DISPLAY_NAME,PRODUCT_ATTRIBUTION,MCP_TECHNICAL_ID} from './product-identity.js';
 
 export const RTC_PREFIX='neon';
@@ -37,7 +38,7 @@ export function rtcToolMetadata(tool){
       idempotentHint:!writes||tool.writeContract==='defineWrite-v1',
       openWorldHint:tool.productionEffect==='write'}};
 }
-export function rtcManifest(registry,{version='0.1.0'}={}){
+export function rtcManifest(registry,{version=serverRelease().version}={}){
   if(!Array.isArray(registry?.tools))throw new TypeError('RTC registry required');
   const items=registry.tools.map(rtcToolMetadata);
   const names=new Set(items.map(t=>t.name));

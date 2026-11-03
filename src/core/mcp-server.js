@@ -5,6 +5,7 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { requireMcpToken } from './mcp-auth.js';
 import { PRODUCT_DISPLAY_NAME, MCP_TECHNICAL_ID } from './product-identity.js';
+import {serverRelease} from './server-release.js';
 import { SelfResourceConfigurationError } from './self-resource.js';
 import { isToolAllowed } from './profiles.js';
 import { scrubNeonResult, redactNeonText } from './scrub.js';
@@ -28,6 +29,9 @@ export const publicToolMetadata=item=>{
 };
 const allowedTool=(item,connection,env)=>isToolAllowed(item,connection,
   {productionDeployment:env?.VERCEL_ENV==='production'});
+export const mcpServerInfo=(env=process.env)=>({
+ name:MCP_TECHNICAL_ID,title:PRODUCT_DISPLAY_NAME,version:serverRelease(env).version
+});
 const compactCore=new Set(['neon_search_tools','neon_describe_tool','neon_call',
  'neon_batch','neon_get_result','neon_whoami','neon_api_search']);
 export function listVisibleToolMetadata({registry,connection,env,listing}) {
@@ -92,7 +96,7 @@ export function createMcpHandler({ db, registry, env = process.env }) {
   return async function mcp(req, res) {
     const connection = await requireMcpToken(req,res,db,env);
     if (!connection) return;
-    const server = new Server({name:MCP_TECHNICAL_ID,title:PRODUCT_DISPLAY_NAME,version:'0.1.0'},
+    const server = new Server(mcpServerInfo(env),
       {capabilities:{tools:{}}});
     server.setRequestHandler(ListToolsRequestSchema,async()=>({tools:listVisibleToolMetadata({
       registry,connection,env,listing:req.query?.listing})}));
