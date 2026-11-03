@@ -4,6 +4,11 @@
 
 **Open roadmap at this checkpoint:** 58 original and CAP cards: 20 MERGED, 12 IN_PROGRESS, 21 PLANNED, 5 APPROVED; six CG acceptance overlays remain OPEN. Preserve older dated entries as historical evidence; they do not override this current snapshot. Do not manually promote `live`, reveal credentials, relax money-out policy, or declare product completion from an apparently healthy deployment.
 
+### 2026-11-02 — native Git/Playground + Vercel fast-path workflow, maintenance only
+
+The owner requested use of the **actual custom GitHub native Git workspace and Robinson Playground** as Neon's primary implementation/test route, with Vercel Unleashed as a read-only deployment evidence and diagnosis route. [Fast-path instructions](runbooks/CUSTOM-GITHUB-VERCEL-FAST-PATH.md) and [frozen acceptance](audits/2026-11-02-native-git-vercel-workflow-plan.md) were created, and entry/runbooks/playbook were reconciled; this is **zero application code and zero original-card/CAP/CG acceptance credit**. At the inspection point, GitHub `main` was `72bc36b0236f0f6849ccf37178a069ade0fd3ab5`, `live` was `f4e2f5b6de11ccfca1d8a8b08fcd801ed7ea333c`. Vercel showed a newer READY production deployment, but its read response `commit` was null; high-level Neon health/release workflows errored while low-level project/deploy/alias reads worked. **The latest running source SHA was not independently verified from that Vercel response**; the dated 2026-11-01 checkpoint above is historic, not today's serving-source attestation. No manual promotion or live Neon/provider operation was run.
+
+
 #
 ### 2026-11-02 — RAS fleet review adds GitHub VER-1 release identity (design only)
 

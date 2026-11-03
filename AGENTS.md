@@ -1,5 +1,12 @@
 # AGENTS.md — the rules. Read this first, every session.
 
+## Preferred custom GitHub/Vercel engineering tools — owner-approved 2026-11-02
+
+**Use [the native-Git/Playground/Vercel fast path](docs/runbooks/CUSTOM-GITHUB-VERCEL-FAST-PATH.md) for all subsequent eligible Neon implementation work.** The custom GitHub MCP offers a real, persistent native Git workspace and attached Robinson Playground shell/runtime; **use it as the primary way to inspect, edit, build, run tests, commit and push**, including phone-based sessions. For one-off checks, use its isolated SHA-pinned Playground run; for short authenticated GitHub reads/PR/CI use its batch and workflow tools. The **old REST-only/no-shell recovery is a last fallback** when verified runtime attachment or execution is unavailable, not a justification to skip local testing. Atomic GitHub multi-file commits require exact ancestry/head and complete manifest verification. One shared local Postgres test run at a time; existing independent CI jobs stay parallel. Confirm actual exit codes, remote head and required exact-head gates; a tool's acknowledgement does not mean a test passed.
+
+**Use custom Vercel Unleashed primarily for read-only project/deployment/alias/env-name and build-failure evidence**, checking the actual Neon project and `main` versus `live`. Its higher-level project health/release workflows may error even when low-level project/deployment reads work; fall back to the latter, never fabricate a serving commit from a null response. Vercel deploy, promote, rollback, domain, variable and paid operations remain gated by the existing release and owner rules. The code/release/real-Neon-provider/direct-client layers are distinct; Vercel or GitHub connector success does not satisfy this server's CG gates. This is owner-requested process maintenance, **not a completed original roadmap subsection**.
+
+
 ## Remaining universal permissions and identity implementation
 
 Owner-requested Sol 5.6 preparation (2026-10-21): read [the concrete implementation handoff](docs/UNIVERSAL-IDENTITY-HANDOFF.md) with the existing session workflow and selected cards. It maps remaining code, storage/migration contracts, regression fixtures, dependencies and source-versus-live acceptance to existing units. Reuse merged work; this documentation update implements no runtime feature and changes no release/security approval.
