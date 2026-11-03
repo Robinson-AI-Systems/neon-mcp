@@ -73,5 +73,5 @@ export async function requireRtcPass(req,res,db,{now=()=>Date.now()}={}){
   return Object.freeze({clientId:row.client_id,neonOrg:row.neon_org,
     projectScope:row.project_scope,mode:'preview',profile:'read_only',
     listing:'catalog',rtcAreas:Object.freeze([...row.rtc_areas]),
-    rtcSafeTools:true});
+    passBinding:hashToken('rtc2-cursor:'+token),rtcSafeTools:true});
 }

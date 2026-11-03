@@ -52,11 +52,10 @@ export function rtcManifest(registry,{version=serverRelease().version}={}){
     profiles:['read_only','everyday','full'],
     listingModes:['catalog','compact'],modes:['preview','production'],devTools:false};
 }
-export function rtcCatalog(registry,connection,{listing,q,area,audience,limit=20}={},env={}){
+export function rtcCatalogAll(registry,connection,{listing,q,area,audience}={},env={}){
   const listingMode=LISTINGS.has(listing)?listing:
     LISTINGS.has(connection?.listing)?connection.listing:'compact';
-  if(!Number.isInteger(limit)||limit<1||limit>100 ||
-    (q!==undefined&&(typeof q!=='string'||q.length>160))||
+  if((q!==undefined&&(typeof q!=='string'||q.length>160))||
     (area!==undefined&&(typeof area!=='string'||area.length>80))||
     (audience!==undefined&&!audienceSet.has(audience)))
     throw new TypeError('Invalid scoped RTC discovery arguments');
@@ -67,8 +66,12 @@ export function rtcCatalog(registry,connection,{listing,q,area,audience,limit=20
        t.name.startsWith('neon_workflow_')&&t.writes===false))
     .map(rtcToolMetadata)
     .filter(t=>(!area||t.area===area)&&(!audience||t.audience.includes(audience))&&
-      (!query||`${t.name} ${t.description} ${t.area}`.toLowerCase().includes(query)))
-    .slice(0,limit);
+      (!query||([t.name,t.description].join(' ').toLowerCase().includes(query))));
+}
+export function rtcCatalog(registry,connection,{limit=20,...filters}={},env={}){
+  if(!Number.isInteger(limit)||limit<1||limit>100)
+    throw new TypeError('Invalid scoped RTC discovery arguments');
+  return rtcCatalogAll(registry,connection,filters,env).slice(0,limit);
 }
 export function rtcError(code,{status=400}={}){
   const allowed=new Set(['needs_confirmation','refused_by_guard','not_found',

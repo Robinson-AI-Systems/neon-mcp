@@ -2,7 +2,8 @@
 // Early owner-approved adoption is intentionally limited to verified, harmless,
 // project-scoped read_only metadata; generic write/pass expansion remains gated.
 import {send} from './http.js';
-import {rtcCatalog,rtcToolMetadata,rtcError} from './rtc-contract.js';
+import {rtcCatalog,rtcCatalogAll,rtcToolMetadata,rtcError} from './rtc-contract.js';
+import {rtc2CatalogPage,rtc2ContentPage} from './rtc2-wire.js';
 import {requireRtcPass,rtcNonproductionTool} from './rtc-passes.js';
 import {dispatchReadOnlyTool} from './mcp-server.js';
 import {resultScope} from './result-store.js';
@@ -61,8 +62,11 @@ function safeInvocation(name,args){
   }
   return entries.every(k=>shared.includes(k));
 }
-async function invoke({db,registry,connection,env,name,args}){
-  const reply=await dispatchReadOnlyTool({db,registry,connection,env,name,args});
+async function invoke({db,registry,connection,env,name,args,wireVersion=1}){
+  const dispatchConnection=wireVersion===2?
+    {...connection,rtcResultGrant:connection.passBinding}:connection;
+  const reply=await dispatchReadOnlyTool({db,registry,connection:dispatchConnection,
+    env,name,args});
   if(reply?.isError===true||!Array.isArray(reply?.content)||
     reply.content.length!==1||reply.content[0]?.type!=='text')
     return {error:'service_error'};
@@ -76,7 +80,11 @@ async function invoke({db,registry,connection,env,name,args}){
     return {result};
   }catch{return {error:'service_error'};}
 }
-export function createRtcHttpHandlers({db,registry,env=process.env}={}){
+export function createRtcHttpHandlers({db,registry,env=process.env,wireVersion=1}={}){
+  // Version 2 is explicitly injectable for conformance until all R-1/R-2
+  // authorization, write and deployment requirements are met. The live door
+  // still serves RTC 1 and MUST NOT advertise RTC 2 prematurely.
+  if(wireVersion!==1&&wireVersion!==2)throw new TypeError('Unsupported RTC wire version');
   if(!db||!registry?.tools||!registry?.handlers)
     throw new TypeError('RTC HTTP runtime needs a validated registry and database');
   async function authorized(req,res){
@@ -105,6 +113,17 @@ export function createRtcHttpHandlers({db,registry,env=process.env}={}){
         const scoped={tools:registry.tools.filter(t=>
           rtcNonproductionTool(t.name)&&t.writes===false&&
           t.profiles?.includes(connection.profile))};
+        if(wireVersion===2){
+          const filters={q:q.q??'',area:q.area??'',audience:q.audience??'',
+            listing:q.listing??connection.listing,profile:connection.profile,
+            mode:connection.mode,areas:connection.rtcAreas,
+            project:connection.projectScope,principal:connection.clientId};
+          const visible=rtcCatalogAll(scoped,connection,
+            {listing:filters.listing,q:q.q,area:q.area,audience:q.audience},env);
+          const reply=rtc2CatalogPage({items:visible,passBinding:connection.passBinding,
+            filters,limit,cursor:q.cursor});
+          return send(res,200,reply);
+        }
         const visible=rtcCatalog(scoped,connection,{
           q:q.q,area:q.area,audience:q.audience,listing:q.listing,limit},env);
         return send(res,200,{ok:true,result:{tools:visible,
@@ -134,7 +153,7 @@ export function createRtcHttpHandlers({db,registry,env=process.env}={}){
       // Full preflight is complete before any handler executes.
       const results=[];
       for(const c of calls){
-        const output=await invoke({db,registry,env,connection,name:c.name,args:c.args??{}});
+        const output=await invoke({db,registry,env,connection,name:c.name,args:c.args??{},wireVersion});
         if(output.error)return error(res,output.error,503);
         results.push(output.result);
       }
@@ -150,7 +169,7 @@ export function createRtcHttpHandlers({db,registry,env=process.env}={}){
     let args;
     try {args=argsFrom(req);}catch{return error(res,'invalid_args',400);}
     if(!safeInvocation(name,args))return error(res,'invalid_args',400);
-    const output=await invoke({db,registry,env,connection,name,args});
+    const output=await invoke({db,registry,env,connection,name,args,wireVersion});
     if(output.error)return error(res,output.error,503);
     return send(res,200,{ok:true,...output});
   }
@@ -170,6 +189,21 @@ export function createRtcHttpHandlers({db,registry,env=process.env}={}){
     const handle=req.query?.handle;
     if(typeof handle!=='string'||!handlePattern.test(handle))
       return error(res,'not_found',404);
+    if(wireVersion===2){
+      const rawPage=req.query?.page??'1';
+      if(typeof rawPage!=='string'||!/^[1-9][0-9]{0,5}$/.test(rawPage)||
+         req.query?.fields!==undefined||req.query?.pageSize!==undefined)
+        return error(res,'invalid_args',400);
+      try{
+        const stored=await db.readResultHandle({handle,connection:resultScope({...connection,rtcResultGrant:connection.passBinding})});
+        // Old RTC 1 handles never claim byte-exact recovery without the
+        // canonical serialized text retained at result production.
+        if(!stored||typeof stored.canonical_text!=='string')
+          return error(res,'not_found',404);
+        return send(res,200,rtc2ContentPage({handle,text:stored.canonical_text,
+          page:Number(rawPage)}));
+      }catch{return error(res,'invalid_args',400);}
+    }
     const rawPage=req.query?.page??'0',rawSize=req.query?.pageSize??'10';
     if(typeof rawPage!=='string'||!/^\d{1,6}$/.test(rawPage)||
        typeof rawSize!=='string'||!/^\d{1,2}$/.test(rawSize))

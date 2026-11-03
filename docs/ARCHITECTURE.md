@@ -197,3 +197,19 @@ encrypted and PKCE/redirect-bound code handoff as the original public callback
 The current RTC 1 HTTPS pass implementation and the adopted RTC 2 target are
 distinct. There is still no backend-only developer test-grant login implementation;
 no claim of release/tenant/provider/client or RTC 2 conformance acceptance.
+
+### RTC 2 compatibility-safe staging (2026-11-03)
+
+The isolated RTC 2 wire implementation lives in src/core/rtc2-wire.js.
+src/core/rtc-http.js accepts wireVersion:2 for test injection only. Actual
+api/rtc.js and public api/contract.js continue the frozen RTC 1 routing and
+manifest under their existing enable guard; no version cutover occurred.
+
+The result_store table gains nullable canonical_text TEXT through additive,
+idempotent ALTER TABLE. New oversized results persist already-scrubbed
+canonical JSON text alongside prior JSONB and existing expiry. Old rows and
+RTC 1/MCP 0-based result formats are unaffected. RTC 2 exact page recovery
+requires canonical text and adds a server-derived, per-pass scope component
+to its new result handle hash. This is not broader Neon provider access,
+production activation or a permission change. R-1/R-2 authorization and
+verified deployed conformance remain separate unfinished work.

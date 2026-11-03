@@ -1,0 +1,107 @@
+import {describe,it,expect} from 'vitest';
+import {registry} from '../../src/tools/index.js';
+import {createRtcHttpHandlers} from '../../src/core/rtc-http.js';
+import {resultScope} from '../../src/core/result-store.js';
+import {hashToken} from '../../src/core/oauth.js';
+
+const pass='rtc_pass_'+'A'.repeat(43);
+const secondPass='rtc_pass_'+'C'.repeat(43);
+const client='rtc_'+'B'.repeat(16);
+const base={client_id:client,neon_org:'org-fake-one',project_scope:'proj-fake-one',
+  mode:'preview',profile:'read_only',listing:'catalog',kind:'pass',
+  rtc_areas:['server','discovery'],allow_writes:false,
+  expires_at:new Date(Date.now()+3600000),revoked_at:null};
+const connection={clientId:client,neonOrg:base.neon_org,projectScope:base.project_scope,
+  mode:'preview',profile:'read_only',
+  rtcResultGrant:hashToken('rtc2-cursor:'+pass)};
+function response(){return {headers:{},statusCode:200,body:null,headersSent:false,
+  setHeader(k,v){this.headers[k]=v;return this;},
+  status(n){this.statusCode=n;return this;},
+  json(v){this.body=v;this.headersSent=true;return this;},
+  send(v){this.body=typeof v==='string'?JSON.parse(v):v;this.headersSent=true;return this;}};}
+const request=(door,query={},authorization=pass)=>({
+  method:'GET',query,headers:{authorization:'Bearer '+authorization}});
+function fixture(overrides={}){
+  const counts={read:0,meter:0};
+  const text=JSON.stringify({items:Array.from({length:700},(_,i)=>({i,label:'👍 hello'+i}))});
+  const db={
+    async getRtcPass(){return {...base};},
+    async consumeApiBudget(){counts.meter++;return {allowed:true};},
+    async readResultHandle({connection:scope}){counts.read++;
+      return scope===resultScope(connection)?{canonical_text:text}:null;},
+    ...overrides
+  };
+  const handlers=createRtcHttpHandlers({db,registry,env:{
+    RTC1_ENABLED:'1',VERCEL_ENV:'production'},wireVersion:2});
+  async function call(door,query={},authorization=pass){
+    const res=response();await handlers[door](request(door,query,authorization),res);return res;
+  }
+  return {call,counts,text};
+}
+describe('RTC 2 scoped HTTP dialect (not yet public-advertised)',()=>{
+  it('paginates caller-visible tools with total count, no schemas, bound cursors and terminal null',async()=>{
+    const f=fixture(),names=[];
+    let cursor,steps=0;
+    do{
+      const q={limit:'1',listing:'catalog'};
+      if(cursor!==undefined)q.cursor=cursor;
+      const res=await f.call('tools',q);
+      expect(res.statusCode).toBe(200);
+      expect(Buffer.byteLength(JSON.stringify(res.body))).toBeLessThanOrEqual(8192);
+      expect(res.body.result.count).toBe(3);
+      expect(res.body.result.tools).toHaveLength(1);
+      expect(res.body.result.tools[0]).not.toHaveProperty('inputSchema');
+      names.push(res.body.result.tools[0].name);
+      cursor=res.body.result.next;
+      steps++;
+      expect(steps).toBeLessThan(8);
+    }while(cursor!==null);
+    expect(names.sort()).toEqual(['neon_get_settings','neon_where_is_setting','neon_whoami']);
+  });
+  it('rejects cursors after filter changes, changed passes and invalid forged values',async()=>{
+    const f=fixture();
+    const first=await f.call('tools',{limit:'1',listing:'catalog'});
+    const cursor=first.body.result.next;
+    expect(cursor).toEqual(expect.any(String));
+    for(const q of [
+      {limit:'1',listing:'catalog',cursor,q:'whoami'},
+      {limit:'1',listing:'compact',cursor},
+      {limit:'1',listing:'catalog',cursor:'forged'}
+    ]){
+      const res=await f.call('tools',q);
+      expect(res.statusCode).toBe(400);
+      expect(res.body.error.code).toBe('invalid_args');
+    }
+    const other=await f.call('tools',{limit:'1',listing:'catalog',cursor},secondPass);
+    expect(other.statusCode).toBe(400);
+    expect(other.body.error.code).toBe('invalid_args');
+    expect((await f.call('tools',{limit:'1',listing:'catalog'},'oauth_fake')).statusCode).toBe(401);
+  });
+  it('recovers exact canonical result bytes with 1-based pages and no reprojection',async()=>{
+    const f=fixture(),handle='res_'+'b'.repeat(40),pages=[];
+    let page=1;
+    while(page!==null){
+      const res=await f.call('results',{handle,page:String(page)});
+      expect(res.statusCode).toBe(200);
+      expect(Buffer.byteLength(JSON.stringify(res.body))).toBeLessThanOrEqual(8192);
+      expect(res.body.result.page).toBe(page);
+      expect(res.body.result.bytes).toBe(Buffer.byteLength(f.text));
+      pages.push(res.body.result.content);
+      page=res.body.result.next;
+    }
+    expect(pages.join('')).toBe(f.text);
+    for(const bad of [{handle,page:'0'},{handle,page:'999'},{handle,fields:'items'},
+      {handle,pageSize:'1'}]){
+      const res=await f.call('results',bad);
+      expect(res.statusCode).toBe(400);
+      expect(res.body.error.code).toBe('invalid_args');
+    }
+    const second=await f.call('results',{handle},secondPass);
+    expect(second.statusCode).toBe(404);
+    expect(second.body.error.code).toBe('not_found');
+    const absent=fixture({async readResultHandle(){return null;}});
+    expect((await absent.call('results',{handle})).statusCode).toBe(404);
+    const legacy=fixture({async readResultHandle(){return {body:{items:[1,2]}};}});
+    expect((await legacy.call('results',{handle})).statusCode).toBe(404);
+  });
+});

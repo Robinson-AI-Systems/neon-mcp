@@ -47,3 +47,43 @@ it('retrieves a real stored page through the same authenticated MCP connection o
  const other=await handlers.neon_get_result({handle},{connection:{...connection,clientId:'other-client'},db});
  expect(other.isError).toBe(true);
 });
+
+it('stores the production-time canonical UTF-8 text exactly for RTC 2 recovery',async()=>{
+ const {rtc2ContentPage}=await import('../../src/core/rtc2-wire.js');
+ const handle='res_'+'9'.repeat(40);
+ const body={z:'🙂 e\\u0301',a:[{unicode:'☃',id:1},{unicode:'樹',id:2}]};
+ const canonicalText=JSON.stringify(body);
+ const expiresAt=new Date(Date.now()+60000);
+ await db.saveResultHandle({handle,connection:conn,summary:'UTF8 test',
+   body,canonicalText,expiresAt});
+ const stored=await db.readResultHandle({handle,connection:conn});
+ expect(stored.canonical_text).toBe(canonicalText);
+ const rows=await rawQuery('SELECT canonical_text, body FROM result_store WHERE handle=$1',[handle]);
+ expect(rows[0].canonical_text).toBe(canonicalText);
+ expect(stored.body).toEqual(body);
+ expect(await db.readResultHandle({handle,connection:'f'.repeat(64)})).toBeNull();
+ const page=rtc2ContentPage({handle,text:stored.canonical_text});
+ expect(page.result.content).toBe(canonicalText);
+ await expect(db.saveResultHandle({handle:'res_'+'8'.repeat(40),
+   connection:conn,summary:'wrong',body,
+   canonicalText:JSON.stringify({not:'same'}),expiresAt})).rejects.toThrow(/Canonical/);
+ expect(await rawQuery('SELECT handle FROM result_store WHERE handle=$1',
+   ['res_'+'8'.repeat(40)])).toHaveLength(0);
+});
+
+it('enforces two different RTC 2 passes even with identical client and tenant',async()=>{
+ const identity={clientId:'shared-client',neonOrg:'org-fake',
+   projectScope:'proj-fake',mode:'preview',profile:'read_only'};
+ const first=resultScope({...identity,rtcResultGrant:'a'.repeat(64)});
+ const second=resultScope({...identity,rtcResultGrant:'b'.repeat(64)});
+ const legacy=resultScope(identity);
+ expect(first).not.toEqual(second);
+ expect(first).not.toEqual(legacy);
+ const handle='res_'+'7'.repeat(40);
+ const canonicalText=JSON.stringify({safe:'value'});
+ await db.saveResultHandle({handle,connection:first,summary:'Scoped to pass A',
+   body:{safe:'value'},canonicalText,expiresAt:new Date(Date.now()+60000)});
+ expect((await db.readResultHandle({handle,connection:first})).canonical_text).toBe(canonicalText);
+ expect(await db.readResultHandle({handle,connection:second})).toBeNull();
+ expect(await db.readResultHandle({handle,connection:legacy})).toBeNull();
+});
