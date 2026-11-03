@@ -1,0 +1,48 @@
+{
+  "subsections": [
+    {
+      "id": "CAP-1",
+      "criteria": [
+        {
+          "criterion": "One deterministic machine-readable row per pinned control-plane method/path/version and every separately evidenced advanced Neon product workflow, with checked source revision, canonical host and unique operation key.",
+          "evidence": "163 method/path IDs from vendored pinned SHA plus 15 linked current product workflows; current live API methods not independently exhaustive"
+        },
+        {
+          "criterion": "Every row explicitly distinguishes personal, organization, project API key, SQL login, delegated OAuth and product-specific credential support from unsupported or unknown, with exact resource and permission uncertainty retained.",
+          "evidence": "Six credential classes on every operation with supported/unsupported/unknown status and evidence; unresolved provider permissions remain unknown"
+        },
+        {
+          "criterion": "For each operation record method, family, source and target host, version, side effect classification, entitlement and scope evidence, existing handler or missing engineering, source tests, original owning roadmap item and separate released/live proof state.",
+          "evidence": "Source candidate tool names and paths match exact registered names and quoted operation IDs; precise request/response and original direct-card links remain unresolved"
+        },
+        {
+          "criterion": "Guarded universal dispatch counts as implemented for an operation only if actual credential routing, request shape, policy guard, response and retry/readback semantics are verified; duplicate named tools and aliases must not inflate unique-operation coverage.",
+          "evidence": "Candidate references count as zero proven implementations; universal credential routing, guards and readback still require end-to-end proof"
+        },
+        {
+          "criterion": "Deterministic validator rejects duplicates, missing or orphan operations, broken schema source pin or drift, invented supported credentials, mismatched handler references, and unsupported disposition values without producing deceptively green coverage.",
+          "evidence": "Negative tests cover duplicate/missing/orphan rows, credential claims, forged origin hash, invalid disposition and forged live proof"
+        },
+        {
+          "criterion": "Generated family gap report has reproducible denominators and explicit exclusions, separate implementation and released-live evidence, unknown/newer-provider interfaces called out individually, and no invented numerical capability percentages.",
+          "evidence": "Generated family gap report lists distinct pinned and current-documentation denominators, candidate and live evidence without invented percentages"
+        },
+        {
+          "criterion": "Tests exercise the real vendored schema and source registry, fake documented newer product surface records, negative duplicate/orphan/unsupported/incorrect-scope cases, bounded execution and a clean CI consistency check; no real customer data or provider effects.",
+          "evidence": "Nine focused real-schema and fake-product unit tests passed; full source and disposable Postgres checks passed locally; exact-head CI still required"
+        }
+      ],
+      "remainingEngineering": [
+        "Pin or enumerate current provider API including new product methods, retired methods, separate hosts and drift",
+        "Map every operation to a precise registered handler and real request/response tests or explicit unsupported reason with direct original card owner",
+        "Verify per-credential provider permissions and separate real released-service operation acceptance from checked code evidence"
+      ]
+    }
+  ],
+  "productionAdded": 292,
+  "productionRemoved": 0,
+  "planComparison": "Delivered checked source generator, validator, docs and negative tests; current provider exhaustive mapping and source/credential parity remain pending.",
+  "newEngineering": "Deterministic source coverage and provider credential matrix, provenance pin, read-only report and negative/fake-source tests.",
+  "relatedWorkDecision": "CAP-2 and CAP-3 depend on full CAP-1; neither can be counted or safely widened as part of this partial source milestone.",
+  "decision": "CONTINUE"
+}

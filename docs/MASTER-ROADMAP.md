@@ -1,4 +1,16 @@
 
+### 2026-11-03 CAP-1 source inventory implementation (partial original unit)
+
+A separate approved CAP-1 plan was frozen at native-Git commit
+50342cc66d5b698334b6952c7f1e0f431eb7c7af. Source-stage inventory and
+tests now cross-check pinned Neon control-plane operations, separately documented
+newer product workflows, registered-tool reference candidates, credential
+unknowns, and truthful source/live evidence. See the original CAP-1 card and
+generated docs/capabilities/CAP-1-REPORT.md. The full current-provider
+operation/credential proof is still pending. This milestone adds **zero**
+completed roadmap items; CAP-2/CAP-3 remain dependent. Draft PR #202 / R-2
+is unaffected.
+
 ### Current development execution route — custom GitHub native Git + Playground and Vercel (2026-11-02)
 
 The owner directed every Neon implementing agent to use the [custom-connector native workflow](runbooks/CUSTOM-GITHUB-VERCEL-FAST-PATH.md): persistent Git clone/workspace with attached isolated runtime for full original-card implementation and tests; single SHA-pinned Playground checks; GitHub exact-head PR/CI/merge; and Vercel project/deployment/alias read-only evidence. Unlike the old REST fallback, this route has actual executable commands and local disposable-Postgres capability **when attached and verified**. If capacity/attachment fails, use count-checked atomic GitHub commits plus mandatory Actions DB/CI, not invented local passes. This changes **execution efficiency, not roadmap order, accepted subsection count, release policy, source/live proof, or owner permissions**.

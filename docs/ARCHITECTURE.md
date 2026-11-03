@@ -180,3 +180,24 @@ sql_scope_hash, sql_preview_expires_at and sql_preview_used_at columns with an
 explicit neon_role_delete tool discriminator and exact owner/connection/role target.
 Only hashes are stored. SQL execution claims require neon_sql_execute so a role
 retirement consent can never be interpreted as an SQL preview. No migration.
+
+### CAP-1 operation/credential inventory staging (2026-11-03)
+
+The source-only CAP-1 inventory generator is scripts/cap-coverage.mjs,
+backed by pure validation in src/core/cap-coverage.js. It resolves
+vendor/neon-openapi/v2.yaml against its pinned SHA in SOURCE.md and the actual
+registered tool names/handlers; parses separate documented provider surfaces
+from docs/capabilities/neon-product-surfaces.json; and produces the checked
+JSON inventory and human family report under docs/capabilities. Run
+node scripts/cap-coverage.mjs --check to detect drift, or --write to regenerate
+for reviewed code changes. The normal repository check now includes it.
+
+A literal operation ID in a tool module is a possible implementation *reference*,
+not proof of actual credential routing, request-shape guard, idempotency,
+response/readback or live access. The inventory intentionally assigns zero
+new verified-source or live credits for such references. Credential kinds
+include personal, organization, project API keys, SQL password roles,
+delegated OAuth and product-scoped credentials. Each status has provider
+citation where any support/refusal is asserted, or stays unknown. Newer-product
+methods remain separately sourced and are not folded into the older OpenAPI
+denominator. No new runtime authority or provider API calls are introduced.

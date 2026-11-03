@@ -1,8 +1,25 @@
 ## Verified source and deployment checkpoint — 2026-11-01
 
-### 2026-11-03 CAP-1 inventory engineering plan (no delivery yet)
+### 2026-11-03 CAP-1 source implementation checkpoint — incomplete original unit
 
-Full original CAP-1 scope is frozen on a new isolated branch before source edits; the derived schema-based operation inventory and provider authority matrix are not yet implemented. All seven planned criteria, original completion accounting and live acceptance remain open. See [CAP-1 execution card](pr-cards/CAP-1.md). Existing R-2 draft PR #202 is unaffected.
+The separate CAP-1 branch has its original acceptance frozen at planning commit
+50342cc66d5b698334b6952c7f1e0f431eb7c7af. The machine-readable source
+inventory currently covers 163 unique operations from the exact pinned July 2026
+Neon OpenAPI and 15 independently documented newer-product workflows; the
+registered MCP catalog has 131 named tools. A deterministic source/authority
+inventory, gap report, duplicate/orphan/credential validation and real-schema
+tests have been built. The checked-in report explicitly distinguishes source
+references from tested handlers and current released/provider evidence.
+
+CAP-1 remains IN_PROGRESS with zero original-unit completion credit until
+the full current-interface enumeration and exact operation-level credential,
+handler, request/response and direct-owner mappings are independently proved.
+No newly mapped source candidate is falsely counted as executable or deployed.
+The six cross-cutting gates remain OPEN; no live credential, customer resource,
+provider operation, release or billing configuration was changed. See
+[CAP-1 card](pr-cards/CAP-1.md) and
+[generated source gap report](capabilities/CAP-1-REPORT.md).
+The older R-2 draft PR #202 remains independent.
 
 **Checked Git main and live:** `1c810cb0ca69fffc9be088d4c8e9834d2dd7d720` (identical). **Checked Vercel Production:** READY at the same commit (deployment `dpl_9Mwm4LGqpQajD4cSD9DrnmuWgj4U`). No Neon MCP PR was open at the start of this documentation audit. Merged PRs #191–#197 include the six completion gates and CAP planning, OAuth environment isolation, public-client PKCE and client-owned token revocation, the rights-reserved LICENSE and RTC 2 *adoption documentation*. The OAuth routes exist in `api/oauth/` and their active handlers; the supported native MCP route exists at `api/mcp.js`. These are **source/READY deployment** observations, not independent client/provider acceptance. In particular, independent multi-tenant self-onboarding, all CAP-1–CAP-5 work, production mutation, scratch end-to-end acceptance and RTC 2 conformance remain open under the original roadmap/gates. The RTC 2 owner decision is normative from October 31, but PR #197 deliberately changed **documentation only**, not the service's wire dialect.
 
