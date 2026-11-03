@@ -1,5 +1,11 @@
 # PLAN — remaining scope and acceptance
 
+### Public login versus internal developer test access — 2026-11-02
+
+End users have one public sign-in and their own consented grants. **Developer sign-in and developer/test-grant management are internal backend development functions only**, never a public login mode or path to customer privileges. Read-only and production options are end-user **settings** after identity verification, not extra sign-ins. Acceptance requires public route/nav/OAuth discovery inventory, server-side unauthorized test-grant refusal, developer role/environment isolation, negative cross-tenant/mode tests and preservation of genuine public mobile OAuth handoff. Existing `/api/developer/connect` serves a mobile handoff today; migrate its legitimate function safely before reserving or retiring the misleading namespace. Existing A-3, CAP-2/3/5, R-2, CG-1/2/6 own this; design-only, no evidence yet. See [the exact boundary](designs/RAS-MCP-D001-ADOPTION.md#critical-identity-boundary--developer-sign-in-and-test-grants-are-backend-only-owner-clarification-2026-11-02).
+
+
+
 ## RAS MCP Standard D-001 design overlay — 2026-11-02
 
 The source-pinned [Neon adoption design](designs/RAS-MCP-D001-ADOPTION.md) makes D-001 and the adopted RTC 2 successor actionable through the **existing** A-3, A-7, B/C/O, R-1/R-2/R-3, X-2/X-3, CAP-1..CAP-5 and CG-1..CG-6 criteria. It specifies a branded direct client/connector package, the one-origin issuer, pass and OAuth client-shape proofs, exact RTC 2 manifest and lazy cursor/content-page dialects, health, audit/retention, nine-section production protection and per-client provider acceptance. Design completion cannot satisfy any product acceptance line. Until RTC 2's complete protocol is proved against the real source and checked deployment, the server's RTC claim remains RTC 1, and existing Hub connection is not a prerequisite. No new roadmap subsection or public/paid authorization results.

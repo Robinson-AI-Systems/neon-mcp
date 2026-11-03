@@ -1,4 +1,10 @@
 
+### 2026-11-02 — owner follow-up: developer login and test grants are internal-only (design)
+
+Additional decision applied to the RAS D-001 design branch: internal developer sign-in and developer/test-grant management must be isolated from the public customer sign-in and ordinary OAuth consent. Current source inspection found that `/api/developer/connect` actually implements a mobile OAuth handoff; future implementation **must migrate the legitimate public handshake without breaking clients** before restricting the developer namespace. Backend enforcement, public UI absence, multi-tenant/role negative tests and real mobile proof are still **OPEN** under A-3, CAP-2/3/5, R-2, CG-1/2/6. No route, grant, token, login behavior, deployment or production setting changed in the design-only PR.
+
+
+
 ## 2026-11-02 — RAS D-001 / RTC 2 design alignment (source-only; PR verification pending)
 
 Owner-directed specification lookup identified Library `designs/ras-mcp-standard.md` (D-001), the Hub's adopted `docs/RTC-2-SPEC.md`, the canonical website blueprint and Library D-005's existing Neon Unleashed Coral claim. Against Neon `main` `f4e2f5b6de11ccfca1d8a8b08fcd801ed7ea333c`, wrote a noncountable [design adoption crosswalk](designs/RAS-MCP-D001-ADOPTION.md) and amended original R, PLAN, master roadmap, Hub compatibility, decisions, completion and go-live references on `ai/gpt6/ras-d001-neon-design-20261102`. **No application code or current as-built claims changed; no runtime features are implemented by these documents.** RTC 2 migration, branded OAuth origin and fleet pages, client matrix, health/retention/monitoring/protection gates, real provider acceptance and original roadmap work remain OPEN. Do not assume production DNS, client acceptance or provider behavior. CI/review/merge require exact PR head and are separately tracked; scheduled live promotion remains unaffected.

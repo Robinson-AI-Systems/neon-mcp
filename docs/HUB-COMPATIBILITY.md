@@ -1,5 +1,11 @@
 # Robinson Toolkit Hub compatibility reference
 
+### Developer test access is not a public OAuth transport (2026-11-02)
+
+The provider's customer-facing OAuth issuer and `/connection` flow perform only ordinary user sign-in and user-owned consent. The internal developer sign-in and test-grant system must not appear in Hub discovery, public manifests, menus, client setup or end-user login choices. Developers authenticate and receive separate development-only grants at a protected backend control-plane entry point; they cannot broaden customer principals. Existing `/api/developer/connect` is currently used for **mobile customer OAuth handoff** despite its name, so implementation must first migrate that legitimate client flow safely, then restrict/retire the legacy developer namespace with tested isolation. No Hub-initiated test grant is a substitute for LIVE end-user consent.
+
+
+
 ## RAS MCP Standard reconciliation — 2026-11-02 (design only)
 
 Neon's broader fleet contract is now explicitly planned in [RAS-MCP-D001-ADOPTION.md](designs/RAS-MCP-D001-ADOPTION.md). Source of truth: [Library D-001](https://github.com/Robinson-AI-Systems/library/blob/main/designs/ras-mcp-standard.md); exact adopted wire text: [RTC 2](https://github.com/Robinson-AI-Systems/robinsons-toolkit-hub/blob/main/docs/RTC-2-SPEC.md). The D-001 fleet obligations (dual client auth, branded canonical origin, pages, health, retention, release, no-reinstall and independent acceptance) are **additional** to Hub-ready RTC 2. The historical RTC 1 profile in this file is retained for shipped/current behavior, not a second competing normative RTC 2 dialect. Do not advertise `rtc:2` until exact 2.x conformance is actually implemented. Preserve a fully standalone Neon provider, with the Hub discovering it rather than Neon contacting Hub. This documentation is not a live protocol upgrade.

@@ -29,3 +29,10 @@ This is owner-requested specification adoption **in design**. No runtime changes
 At review, `api/contract.js` returns 503 unless `RTC1_ENABLED=1`; `rtcManifest` advertises RTC 1-shaped fields; `/api/mcp` provides native Streamable HTTP; root `api/index.js` is JSON, not the fleet front door; independent direct-client tests and complete RTC 2 conformance remain unverified. These observations are **source** findings, not proof of the live production configuration. Existing `docs/DIRECT-MCP-CONNECTION.md` still describes the historical verification-dependent origin and older display name. Keep these facts distinct from the target.
 
 **Design acceptance readback:** the six design criteria above are drafted; PR exact-head check, self-review and merge remain separately pending. No live/runtime acceptance is claimed.
+
+## Owner follow-up — developer-only test control plane (2026-11-02)
+
+- [x] Specify a backend-only, separately authenticated developer sign-in and test-grant access point; deny any customer path, role spoofing, or public UI navigation to developer-only operations.
+- [x] Distinguish customer-owned OAuth consented grants and post-login read-only/production settings from developer test grants.
+- [x] Document that `/api/developer/connect` currently serves a genuine mobile OAuth handoff and require backward-compatible public path migration before developer namespace lockdown.
+- [ ] Implement and prove developer isolation, safe mobile migration and real-client tests in existing roadmap cards; not performed in this design-maintenance PR.

@@ -1,4 +1,10 @@
 
+### Developer-only sign-in/grants must not bleed into customer sign-in
+
+The 2026-11-02 owner clarification places developer sign-in and test-grant creation behind separately authenticated **backend developer-only** access, never the public user login, public client onboarding or customer-facing menus. Existing `/api/developer/connect` is a real *mobile OAuth handoff* and must be inventoried and given a customer-appropriate route before `/api/developer/*` is locked down; avoid breaking legitimate mobile clients. Handle through existing A-3 / CAP-2/3/5 / R-2 and CG-1/2/6, not a new invented subsection. No code or access policy is switched by this roadmap note.
+
+
+
 ## RAS MCP Standard D-001 alignment — design accepted for implementation planning, 2026-11-02
 
 See [the design crosswalk](designs/RAS-MCP-D001-ADOPTION.md) and [adoption acceptance plan](audits/2026-11-02-ras-standard-adoption-plan.md). The living Standard is in Library D-001; RTC 2 is the frozen, adopted discovery/connection wire specification. These **do not** add a new product bundle, rearrange the original D/V/O/P/W/U/R/E/X priority or mark any card complete.
