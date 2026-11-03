@@ -2,7 +2,7 @@
 
 ## Agent-visible release identity — GitHub MCP VER-1 fleet adoption (design only, 2026-11-02)
 
-The [living D-001 standard](https://github.com/Robinson-AI-Systems/library/blob/ai/gpt6/ras-d001-fleet-merits-auth-version-20261102/designs/ras-mcp-standard.md) now explicitly requires that a coding agent can identify **the exact deployed server revision it is connected to** and discover recent updates. This is inspired by GitHub MCP's `serverRelease()`, `github_whoami.server_release`, and native MCP `initialize.serverInfo.version`; the implementation in GitHub's source is not a substitute for Neon's deployed acceptance.
+The [living D-001 standard](https://github.com/Robinson-AI-Systems/library/blob/main/designs/ras-mcp-standard.md) now explicitly requires that a coding agent can identify **the exact deployed server revision it is connected to** and discover recent updates. This is inspired by GitHub MCP's `serverRelease()`, `github_whoami.server_release`, and native MCP `initialize.serverInfo.version`; the implementation in GitHub's source is not a substitute for Neon's deployed acceptance.
 
 **Neon target** (A-3/A-7/R-2/O-4, CG-1/CG-4/CG-5):
 - Derive the package version from `package.json` and verified deployment SHA from one build-time source (`VERCEL_GIT_COMMIT_SHA` on Vercel where available), not `main`, `live` guesses or request Host. Effective version uses `<package-version>+<commit12>` only when a valid deployed commit exists. Never invent an SHA; mark missing revision as `null`.

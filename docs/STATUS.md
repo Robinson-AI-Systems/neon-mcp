@@ -7,7 +7,7 @@
 #
 ### 2026-11-02 — RAS fleet review adds GitHub VER-1 release identity (design only)
 
-Reviewed GitHub source implementation of agent-visible `server_release` (package version plus deployed SHA, safe commit reference and how to see current live changes) alongside Vercel's protected operator route, Dokploy's per-user provider-native authority and Workspace's TEST/P9/P10 principal migration. The Library D-001 specification has a corresponding **open** design PR #1; Neon adoption on `ai/gpt6/ras-d001-neon-design-20261102` now includes release identity and keeps customer OAuth distinct from developer backend TEST grants. No Neon version metadata behavior, live issuer, permissions, client onboarding, provider keys or production operation was changed. Independently tested source/deployment/client/provider gates remain OPEN.
+Reviewed GitHub source implementation of agent-visible `server_release` (package version plus deployed SHA, safe commit reference and how to see current live changes) alongside Vercel's protected operator route, Dokploy's per-user provider-native authority and Workspace's TEST/P9/P10 principal migration. The Library D-001 specification was **merged** via PR #1 (`a653347072c398c8f1c34a878064383cdf115e07`); Neon adoption on `ai/gpt6/ras-d001-neon-design-20261102` now includes release identity and keeps customer OAuth distinct from developer backend TEST grants. No Neon version metadata behavior, live issuer, permissions, client onboarding, provider keys or production operation was changed. Independently tested source/deployment/client/provider gates remain OPEN.
 
 
 ## 2026-11-02 — owner follow-up: developer login and test grants are internal-only (design)
