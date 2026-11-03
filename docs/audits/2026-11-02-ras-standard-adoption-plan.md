@@ -12,12 +12,12 @@ Status: **DESIGN WORK ONLY**. This is not a new countable roadmap subsection, a 
 
 ## Acceptance for this design-only change
 
-- [ ] Document explicit D-001 → Neon gap/evidence/roadmap ownership matrix, including additive upgrades, both client auth methods, RAS branded UX, identity, fleet health, watcher, protection, data retention, journaling, secret handling, fixture hygiene and production proof.
-- [ ] Amend existing Batch R design for the **whole** RTC 2 wire surface (manifest, pass/OAuth, cursor, content-page result recovery, tools, budgets, whoami, errors and no-Hub guarantee), retaining frozen RTC 1 support until verified migration.
-- [ ] Reconcile the phone-client `resource` compatibility lesson with RTC 2's required resource-bound Hub flow without ever accepting a token for another resource, silent identity changes, or a security downgrade; demand real matrix evidence.
-- [ ] Map implementation to **existing** A/B/C/R/O/X cards and CG-1–CG-6, not invented completion units; preserve source vs checked deployment vs live client/provider acceptance.
-- [ ] Plan brand identity as the single configured canonical `https://neon.robinsonaisystems.com` (target, **not a claim DNS is live**), no Host-based issuer, while preserving historical connections during a separately approved migration; define truthful public pages and one website listing with its publication gate.
-- [ ] Update Hub reference, PLAN, master roadmap, completion gate, status, decision and go-live design references without rewriting `docs/ARCHITECTURE.md` as if proposed features already exist.
+- [x] Document explicit D-001 → Neon gap/evidence/roadmap ownership matrix, including additive upgrades, both client auth methods, RAS branded UX, identity, fleet health, watcher, protection, data retention, journaling, secret handling, fixture hygiene and production proof.
+- [x] Amend existing Batch R design for the **whole** RTC 2 wire surface (manifest, pass/OAuth, cursor, content-page result recovery, tools, budgets, whoami, errors and no-Hub guarantee), retaining frozen RTC 1 support until verified migration.
+- [x] Reconcile the phone-client `resource` compatibility lesson with RTC 2's required resource-bound Hub flow without ever accepting a token for another resource, silent identity changes, or a security downgrade; demand real matrix evidence.
+- [x] Map implementation to **existing** A/B/C/R/O/X cards and CG-1–CG-6, not invented completion units; preserve source vs checked deployment vs live client/provider acceptance.
+- [x] Plan brand identity as the single configured canonical `https://neon.robinsonaisystems.com` (target, **not a claim DNS is live**), no Host-based issuer, while preserving historical connections during a separately approved migration; define truthful public pages and one website listing with its publication gate.
+- [x] Update Hub reference, PLAN, master roadmap, completion gate, status, decision and go-live design references without rewriting `docs/ARCHITECTURE.md` as if proposed features already exist.
 - [ ] Run available local or exact-head docs/CI checks; self-review for secrets, unintended production/paid effects, backward compatibility and plan drift. Open a PR against `main`, never commit to `main`. No fixture, provider, database, domain, website or production changes.
 
 ## Scope and sequencing
@@ -27,3 +27,5 @@ This is owner-requested specification adoption **in design**. No runtime changes
 ## Baseline risks to address
 
 At review, `api/contract.js` returns 503 unless `RTC1_ENABLED=1`; `rtcManifest` advertises RTC 1-shaped fields; `/api/mcp` provides native Streamable HTTP; root `api/index.js` is JSON, not the fleet front door; independent direct-client tests and complete RTC 2 conformance remain unverified. These observations are **source** findings, not proof of the live production configuration. Existing `docs/DIRECT-MCP-CONNECTION.md` still describes the historical verification-dependent origin and older display name. Keep these facts distinct from the target.
+
+**Design acceptance readback:** the six design criteria above are drafted; PR exact-head check, self-review and merge remain separately pending. No live/runtime acceptance is claimed.

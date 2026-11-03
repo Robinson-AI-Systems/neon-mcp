@@ -1,5 +1,11 @@
 # Cross-cutting completion gates — owner-approved scope, not new batch subsections
 
+## RAS Standard D-001 acceptance additions — 2026-11-02 (all gates stay OPEN)
+
+[Detailed existing-card mapping and negative tests](designs/RAS-MCP-D001-ADOPTION.md) extends, rather than replaces, CG-1..CG-6. **CG-1:** real protocol-version handshakes for both protected bearer and public/confidential OAuth as supported, per named desktop/phone/browser/Muse/Hermes/coding client; explicit failures/untested and server-shipped client configs. **CG-2:** old-version no-reinstall, correct per-user principal/resource binding, safe resource-omission compatibility if demonstrated, per-pass/cursor/content-handle isolation, 24-hour TTL, retention/deletion sweeps. **CG-3:** real owner policy, quotes in cents, confirmations, journaling, no production or money behavior taken from developer-only limits. **CG-4:** actual deployed truthful RTC 2 advertisement + all pinned cursor/content-page/meta-tool/error/pass/OAuth requirements and mapped real-tool conformance probes; no premature `rtc:2` claim and no Hub live prerequisite. **CG-5:** dual-store PG/fake, correct source-to-READY revision, fixture hard expiry, real provider/scratch acceptance and daily release policy. **CG-6:** canonical branded-origin issuer, fleet design/pages/disclaimer, existing Coral brand claim, truthful website listing and gated Connect, nine-section per-evidence readiness, privacy/legal/abuse/health/watcher runbook, public/paid approval. None are satisfied by a design change alone.
+
+
+
 **Original plan frozen 2026-10-19 before that roadmap reconciliation. The documentation-only changes were subsequently merged in #191. The checklist immediately below records the original PR acceptance, not a second current unstarted task.**
 Authority: the owner's universal standalone MCP, branding and end-user authority directive; `AGENTS.md`, `docs/END-USER-AUTHORITY.md`, `docs/HUB-COMPATIBILITY.md`, `docs/PLAN.md` and existing roadmap cards remain binding. This reconciliation is explicitly requested documentation/acceptance maintenance, **zero product bundles**, not completion of any D/V/O/R/X subsection or permission for production writes, spending or publishing.
 

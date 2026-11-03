@@ -1,5 +1,11 @@
 # PLAN — remaining scope and acceptance
 
+## RAS MCP Standard D-001 design overlay — 2026-11-02
+
+The source-pinned [Neon adoption design](designs/RAS-MCP-D001-ADOPTION.md) makes D-001 and the adopted RTC 2 successor actionable through the **existing** A-3, A-7, B/C/O, R-1/R-2/R-3, X-2/X-3, CAP-1..CAP-5 and CG-1..CG-6 criteria. It specifies a branded direct client/connector package, the one-origin issuer, pass and OAuth client-shape proofs, exact RTC 2 manifest and lazy cursor/content-page dialects, health, audit/retention, nine-section production protection and per-client provider acceptance. Design completion cannot satisfy any product acceptance line. Until RTC 2's complete protocol is proved against the real source and checked deployment, the server's RTC claim remains RTC 1, and existing Hub connection is not a prerequisite. No new roadmap subsection or public/paid authorization results.
+
+
+
 ## Maximum legitimate authority — owner-approved 2026-10-21
 
 [MAXIMUM-AUTHORITY](designs/MAXIMUM-AUTHORITY.md) adds five indexed APPROVED,

@@ -1,5 +1,18 @@
 # Design — Batch R: Hub-ready doors (Robinson Tool Contract, RTC 1)
 
+## 2026-11-02 — RAS D-001 and RTC 2 target design amendment (NOT YET IMPLEMENTED)
+
+The owner-directed [RAS Standard adoption design](RAS-MCP-D001-ADOPTION.md) supplies the concrete implementation and proof contract for all existing R-1/R-2/R-3 work. [Library D-001](https://github.com/Robinson-AI-Systems/library/blob/main/designs/ras-mcp-standard.md) governs the fleet; the Hub's [RTC 2](https://github.com/Robinson-AI-Systems/robinsons-toolkit-hub/blob/main/docs/RTC-2-SPEC.md) governs **exact** discovery/connection wire shape. RTC 2 was owner-adopted on 2026-10-31. The RTC 1 sections below remain frozen **historical/current implemented references** until a full provider-side RTC 2 migration passes. The old §0 assumption "check whether RTC 1 is newest" is superseded; it is **not** permission to edit RTC 1 or advertise RTC 2 early.
+
+- **R-1 passes:** preserve pass-only HTTPS vs OAuth-token MCP separation; default least privilege; exact `rtc_pass_` shape, one-time protected creation, 24h/30d/explicit 365d policy, atomic database limits, instant revocation/expiry and profile/tenant refusal.
+- **R-2 contract:** `rtc:2` only after implementation; correct `prefix:'neon_'`; deployed `revision`; actual counts; `listing` cursor dialect, `results` 1-based content pages and 24h credentials-bound handles; `auth` pass+truthful optional OAuth; `connection`, SHOULD `health`; bounded list/describe/call/batch, exact error envelope, 8KiB response budgets and same B write guard on every door. The canonical branded issuer and human front door belong to A-3/A-7/R-2; no Hub dependency.
+- **R-3 conformance:** named real Neon fixtures and each probe mapped to an RTC 2 section; skip ≠ pass; fake provider **and** disposable Postgres; exact-source direct-client and checked-released provider proof remain separate CG gates. A Hub-connected live read is Hub-owned, not required to finish Neon.
+- **Crosscutting:** R/C changes do not bypass B-1/B-2/B-4, CAP user-authority restrictions, end-user policy, resource/tenant isolation or the RAS no-reinstall rule. Document and test real phone client's resource-omission lesson without ever issuing an unbound or cross-resource OAuth token.
+
+Original RTC 1 R work units and criteria below remain owned by their original cards and are **not** marked passed by this design amendment.
+
+
+
 Status: **APPROVED** (Chris, 2026-10-10). Written 2026-10-10. Scope and acceptance: `docs/PLAN.md` →
 Batch R. Cards R-1 … R-3. Depends on Batches B and C. Same design as the Stripe MCP's Batch R (as amended 2026-10-10),
 with Neon's modes.

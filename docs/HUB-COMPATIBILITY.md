@@ -1,5 +1,11 @@
 # Robinson Toolkit Hub compatibility reference
 
+## RAS MCP Standard reconciliation — 2026-11-02 (design only)
+
+Neon's broader fleet contract is now explicitly planned in [RAS-MCP-D001-ADOPTION.md](designs/RAS-MCP-D001-ADOPTION.md). Source of truth: [Library D-001](https://github.com/Robinson-AI-Systems/library/blob/main/designs/ras-mcp-standard.md); exact adopted wire text: [RTC 2](https://github.com/Robinson-AI-Systems/robinsons-toolkit-hub/blob/main/docs/RTC-2-SPEC.md). The D-001 fleet obligations (dual client auth, branded canonical origin, pages, health, retention, release, no-reinstall and independent acceptance) are **additional** to Hub-ready RTC 2. The historical RTC 1 profile in this file is retained for shipped/current behavior, not a second competing normative RTC 2 dialect. Do not advertise `rtc:2` until exact 2.x conformance is actually implemented. Preserve a fully standalone Neon provider, with the Hub discovering it rather than Neon contacting Hub. This documentation is not a live protocol upgrade.
+
+
+
 **Owner decision, 2026-10-19:** This independent MCP server is a Hub-compatible provider, not a Hub client. The **Hub initiates** discovery, authorization and selected tool calls. The coding agent sees **one Hub MCP connection and a fixed, small set of gateway tools**, even as thousands of provider tools become searchable. The human and coding agent do their own planning. **Never create a server-to-Hub callback, brand-specific Hub adapter, unconditional eager `tools/list` expansion or provider-side automated planning.**
 
 **Current contract distinction (2026-11-01):** RTC 2 is the owner-adopted normative successor since 2026-10-31, while the service's source and currently checked READY deployment still implement/claim RTC 1-shaped compatibility. The RTC 2 section at the bottom records the decision, **not completed migration**. The earlier RTC 1 requirements below are frozen legacy implementation/acceptance references, not a contradictory active decision. Implement and verify RTC 2 on the existing R cards and CG-4 before advertising RTC 2 on the wire.

@@ -1,3 +1,13 @@
+
+## RAS MCP Standard D-001 alignment — design accepted for implementation planning, 2026-11-02
+
+See [the design crosswalk](designs/RAS-MCP-D001-ADOPTION.md) and [adoption acceptance plan](audits/2026-11-02-ras-standard-adoption-plan.md). The living Standard is in Library D-001; RTC 2 is the frozen, adopted discovery/connection wire specification. These **do not** add a new product bundle, rearrange the original D/V/O/P/W/U/R/E/X priority or mark any card complete.
+
+Implementation owners: A-3/A-7 for native client/public+confidential PKCE, protected client setup, canonical branded issuer and pages; B/O/C for scoped write confirmation, retention/journaling, two-store parity, health posture, bounded lazy listing and result storage; R-1/R-2/R-3 for exact RTC 2 pass/HTTPS manifest/cursor/content-page, cross-door guard and fixture-backed conformance; X-2/X-3 and CG-1..CG-6 for genuine client/provider/source-vs-deployment/release and nine-section RAS production readiness. Existing CAP-1..CAP-5 preserve full user-owned provider authority, not implementation-agent developer restrictions. External website `/tools` publication and fleet watcher remain owned by their respective repositories; this repo supplies truthful manifest/health and page proof. No live Hub integration required for Neon completion.
+
+**Status now:** design-only; current RTC 1 and OAuth source remain as built. Neon Unleashed name/Coral accent/slug are already claimed in Library D-005; canonical branded issuer is a **target**, not verified live. Migration to it requires separate release/owner timing and protection for old connections; public/paid operation remains separately gated.
+
+
 **Owner-approved D-4 update (IN-16):** Confirmed role retirement is now implemented with exact one-use consent, dependency checks and explicit unknown-pooled-client interruption acknowledgement. Known application migration evidence and actual checked-deployment/provider/idle-pool acceptance remain OPEN; do not treat historical unregistered notes below as a current implementation blocker. D-5 remains independently approved.
 
 ## Maximum legitimate authority — owner-approved 2026-10-21

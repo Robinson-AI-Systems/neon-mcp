@@ -1,5 +1,11 @@
 # Go-live checklist — everything that must be switched on before agents can change production databases
 
+## RAS D-001 fleet readiness overlay — planning only (2026-11-02)
+
+In addition to existing real Neon safety and production access gates, execute the [D-001 adoption design](designs/RAS-MCP-D001-ADOPTION.md) and its **nine evidenced sections** before using the phrase "production ready": public route/backdoor inventory; one user sign-in and credential/log sampling; approved fleet disclaimer/Terms/Privacy with attorney-review flag before charging or launch beyond beta; abuse/cost defenses; verified retention/deletion sweep; real health/posture and journal; 3am runbook and separate watcher (without server callback); rollback/backup posture and hard-expiring fixtures; source-truth/document consistency and one daily release train. Include failed/degraded/untested rows and do not turn them into PASS. This text does **not** turn on RTC 2, attach a domain, change OAuth issuer, enable production writes, publish a new website link, authorize paid use, or modify any other project. Existing CG-1..CG-6 and original acceptance rows remain open.
+
+
+
 Written for Chris (not a developer). Rule: everything is built and tested against a fake Neon server and throwaway
 databases; real-account use starts read-only, writes start in a scratch project, and **anything that changes a
 production database or raises your bill is off until you complete the step here.** Tick a box only after the "how you
