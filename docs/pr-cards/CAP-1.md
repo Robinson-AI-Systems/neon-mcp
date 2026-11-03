@@ -267,3 +267,54 @@ full upstream JSON SHA-256 plus all **193** operation and **193** wire
 projections were independently reverified offline. Exact-head CI is
 required after the new commit, and direct provider/customer acceptance
 is still unverified.
+
+## 2026-11-03 — installed SDK synthetic runtime dispatch proof (draft #203)
+
+The earlier 159 raw-SDK exported operation references have now been
+**actually invoked through the checked-in production `call()` wrapper**,
+but exclusively against an in-process fake HTTP client. The
+deterministic `scripts/cap-runtime-dispatch.mjs` proof emits
+`docs/capabilities/sdk-runtime-dispatch.json` with all **194**
+control-plane operation IDs from the independently sourced inventory:
+
+- **159** installed `@neon/sdk/raw` exported operations: one synthetic
+  budget admitted and one exact HTTP method/path template captured;
+  source-level wrapper return was confirmed by the fake SDK response.
+- **4** guarded fallback-only operations: the specific declared
+  source-client fallback was invoked once through an explicitly injected
+  fake method stub, with exactly one synthetic budget call. These do
+  **not** prove the fallback's internal URI, headers or request/response.
+- **31** newer SDK-reference operation IDs: the installed generic
+  `call()` refused before **any** simulated HTTP request, fallback
+  invocation or API budget consumption. They remain engineering gaps,
+  **not** verified provider denials.
+- **15** documented non-control-plane advanced workflows remain
+  independently unpinned and are excluded from these 194 test calls.
+
+The executable verifier checks count reconciliation against the source
+inventory, exact runtime method/path/param translation for raw exports,
+one-call budget use, missing-route negative cases and source/fallback
+tampering. `npm run check` now replays and compares the committed
+machine-readable dispatch proof; the new unit suite explicitly keeps
+its generic fake-SDK results out of the operation-specific policy,
+guard, request/response and live-test index. No credentials, actual
+Neon resource or network connection were used; **none** of these
+results are independent provider/client acceptance, exact role
+authorization, protection guard verification, retries/readback,
+end-user feature completeness or live performance.
+
+This delivers source-level executable dispatch *feasibility*, not
+full original CAP-1 criterion 4 (actual per-operation authorization,
+request/response, policy guard and retry/readback). All seven frozen
+original CAP-1 criteria are still IN_PROGRESS, zero completed-card
+credit, all six CG gates OPEN. Draft PR #203 has not been merged;
+latest checked merged main/live still PR #201 at
+`69c46b71b6ab35e483f42338618146d1a377d074`.
+
+**Final local checks for this source extension:** `npm run check` passed,
+**1,109/1,109 unit tests** across 155 files and **125/125 isolated
+disposable-PostgreSQL tests** across 48 files passed. The checked
+runtime artifact has 194 synthetic-control-plane rows, and no
+provider network call or credential was used. GitHub exact-head
+required CI still must be verified after publication; CAP-1 is
+not accepted or merged.

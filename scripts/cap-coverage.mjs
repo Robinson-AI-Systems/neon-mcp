@@ -32,6 +32,9 @@ export function generateCoverage(){
   const testFiles={...sources('tests/unit'),...sources('tests/db'),...sources('tests/integration')};
   // Inventory's own assertions mention operation IDs but are not behavioral tests.
   delete testFiles['tests/unit/cap-coverage.test.js'];
+  // The generic fake-SDK route harness tests feasibility, never individual
+  // operation-specific policy/request/readback or external provider behavior.
+  delete testFiles['tests/unit/cap-runtime-dispatch.test.js'];
   const sourceFiles=sources('src/tools');
   const clientSource=file('src/neon/client.js');
   const sdkVersion=JSON.parse(file('package.json')).dependencies['@neon/sdk'];

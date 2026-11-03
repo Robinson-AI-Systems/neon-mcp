@@ -1,3 +1,18 @@
+## 2026-11-03 — distinguish installed SDK fake HTTP execution from real provider proof
+
+A source operation reference, available SDK function, captured
+in-memory method/path, and exercised real provider operation are
+four distinct evidence levels. To verify the generic source seam,
+execute every installed `@neon/sdk/raw` wrapper with a fake
+in-process HTTP transport, assert exactly one expected
+method/path and budget call, explicitly invoke fallback-only
+declared stubs, and refuse unknown operation IDs before budget
+or HTTP. Keep this reproducible `--check` artifact under CAP-1,
+with failure/tamper tests and **no credentials**. Never report a
+fake client return as verified provider authorization, a protected
+write guard, request/response semantics, retry/readback, account
+entitlement, real customer capability or production acceptance.
+
 ## 2026-11-03 — CAP-1 published method names must include actual wire declarations
 
 For CAP-1 capability accounting, a canonical method/path/operationId

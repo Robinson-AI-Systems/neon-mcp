@@ -106,3 +106,17 @@ remain distinct. No real customer credential, provider execution,
 permission enhancement or deployment was used. Synthetic tamper
 tests and exact full-upstream offline verifier are required before
 source completeness can be counted.
+
+### 2026-11-03 executable fake Neon SDK routing proof
+
+The **attached real Playground runtime** executed all 159 SDK
+function exports through the repository's current `call()` wrapper
+without a network connection or provider key. Captured method,
+path template and one in-memory budget admission matched all 159.
+The new checked automated proof additionally invokes four
+guarded fallback stubs and verifies all 31 missing routes fail
+closed before SDK calls/budget. The installed SDK and client
+source were not modified. These checks are local integration of
+runtime-generated wrappers with *fake transport only*, and must
+not be recast as provider permission, policy-guard, readback,
+SDK endpoint responsiveness, or live client success.

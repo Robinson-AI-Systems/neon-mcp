@@ -1,5 +1,29 @@
 ## Verified source and deployment checkpoint — 2026-11-01
 
+### 2026-11-03 — actual installed SDK generic dispatch checked with fake HTTP (draft #203)
+
+The CAP-1 source stage now runs **159** actual installed SDK raw
+wrappers through production `call()` with a synthetic in-memory
+method/path-capturing SDK client (one budget consumed, one expected
+request path/method), plus **four** guarded fallback-only stubs
+and **31** explicit generic missing-route denials before budget or
+request. The deterministic `sdk-runtime-dispatch.json` artifact and
+`cap-runtime-dispatch.mjs --check` are wired into normal consistency
+checks, with negative spoofing tests. All **194** operation-level
+results remain synthetic-only; no provider credentials, customer
+connection, branch, database, policy, authority or live deployment
+was invoked or changed. This is **not** permission/guard/retry,
+readback or independent client/provider acceptance. Original CAP-1
+remains IN_PROGRESS, zero completed units; CG-1 through CG-6 remain
+OPEN; separate R-2 #202 remains draft. Latest merged main/live
+revision is still `69c46b71b6ab35e483f42338618146d1a377d074`.
+Local `npm run check` passed, all **1,109 unit tests** in 155 files
+and **125 disposable-PostgreSQL tests** in 48 files passed. GitHub
+exact-head `ci` and `release-policy` must be independently verified
+after publication; do not count previous heads.
+
+
+
 
 ### 2026-11-03 — verified request/response API declarations; CAP-1 STILL OPEN
 

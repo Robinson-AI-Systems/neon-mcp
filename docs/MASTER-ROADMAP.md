@@ -1,3 +1,17 @@
+### 2026-11-03 — synthetic runtime-checkable installed SDK call paths (draft #203)
+
+CAP-1's source inventory now has a deterministic **real wrapper
+executed against fake HTTP** supplement: 159 raw SDK operations
+called via the installed SDK with exact captured method/path and a
+single fake budget, 4 source-declared fallback stubs invoked, and
+31 missing generic SDK dispatch calls denied before requests. The
+15 advanced product-interface records are not treated as generic
+control-plane operations. Re-run `npm run check` to compare
+`docs/capabilities/sdk-runtime-dispatch.json`. These do NOT
+establish credential authority, real protective guards, response
+shape or actual Neon permission, and no original CAP-1 or CG
+completion credit is granted. Draft #203 remains source-only.
+
 ### 2026-11-03 — CAP-1 declared wire/request/response evidence (draft #203)
 
 The source inventory now pins all 163 runtime-vendored method contracts
