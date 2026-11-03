@@ -1,5 +1,20 @@
 ## Verified source and deployment checkpoint — 2026-11-01
 
+### 2026-11-03 — additional synthetic cross-tenant RTC 2 HTTP/PG conformance
+
+The existing draft #202 original R-2 branch now adds a synthetic
+**two-tenant/three-pass** disposable-Postgres HTTP conformance suite
+(`tests/db/rtc2-pass-isolation.test.js`) that checks cursor and
+one-time result ownership even across independent handlers, exact
+UTF-8 text pages, sensitive-result canonical consistency, revoked
+access and native OAuth-token refusal. This is independent
+**local** proof, not an assertion of a released RTC 2 route, live
+Neon behavior or a successful external desktop/mobile client.
+Original R-2 and all six CG gates remain OPEN. Local npm run check,
+1,108 unit tests (156 files) and 132 disposable-PostgreSQL tests
+(49 files) passed; this extension remains unmerged and its new head
+requires independent exact-head GitHub CI.
+
 ### 2026-11-03 — R-2 persistent per-pass RTC caps, draft PR #202
 
 A substantial R-2 follow-up source update on unmerged draft #202 extends

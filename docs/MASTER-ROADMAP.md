@@ -1,3 +1,13 @@
+### 2026-11-03 — RTC 2 independent-adapter disposable-Postgres contract probe (draft #202)
+
+R-2 local acceptance now covers actual PostgreSQL row ownership
+for three passes across two synthetic tenants, two separately created
+HTTP/DB adapters, HMAC-bound cursor filters, byte-exact Unicode text
+recovery, canonical scrub matching and revoked bearer denial. This
+does not replace independent native client, real provider, direct
+OAuth and release acceptance, and does not authorize production RTC
+2 advertisement or mark R-2 done.
+
 ### 2026-11-03 — R-2 read-only pass cap (draft #202, source only)
 
 Existing owner-created project-scoped preview/read_only RTC passes may

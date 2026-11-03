@@ -40,3 +40,17 @@ calls, denial and immediate revocation. Distinct from accepting
 any higher authority: current preview/read_only/24h/project-key
 scope is unchanged. Neither a live provider account nor a
 production RTC pass was exercised.
+
+### 2026-11-03 full synthetic RTC 2 tenant isolation proof
+
+A third-party client was not connected. Instead, disposable
+PostgreSQL persistence and independent HTTP handler adapters are
+used to check 3 hashed passes/2 synthetic tenants, genuine SQL result
+ownership, exact 1-based UTF-8 recovery, denial of a cursor to a
+different pass even in the same tenant, denial of same-handle reads
+across tenants and same-tenant passes, denial after revocation, and
+no acceptance of MCP OAuth bearer tokens at the RTC door.
+The source test intentionally tries storing forged raw canonical
+text containing a `secret` property and verifies DB refusal
+before persistence. All CG provider/client and deployment probes
+are still separate and unfinished.

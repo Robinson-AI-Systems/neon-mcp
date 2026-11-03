@@ -1,8 +1,8 @@
 {
   "productionAdded": 387,
   "productionRemoved": 74,
-  "planComparison": "Partial original R-2, zero original-card completion credit. This extension preserves existing owner-only preview/read_only project pass constraints while implementing a configurable persisted 1..60 minute quota and accurate 429 Retry-After, including two-adapter PostgreSQL concurrency and revocation proof. R-2 still lacks general RTC 2 authenticated write route, full R-1 pass scope, direct-client and provider acceptance, exact deployed provenance and independent development/customer sign-in validation. Existing frozen original eight criteria are unchanged, and no live provider/production resources were altered. All check, 1,108 unit, 129 disposable DB suites passed locally; required exact-head GitHub CI will be rechecked after publishing.",
-  "newEngineering": "Per-pass owner-selected bounded-rate input, validated issuance and exact persisted grant readback; additive oauth_tokens.rtc_requests_per_minute column with legacy default 60; guarded admission using existing cross-instance atomic Postgres minute meter and accurate Retry-After; safe whoami/one-time receipt; negative and two-adapter race/revocation tests, and current card/status/roadmap/owner/architecture/decisions documentation.",
+  "planComparison": "Partial original R-2, zero original-card completion credit. This extension preserves existing owner-only preview/read_only project pass constraints while implementing a configurable persisted 1..60 minute quota and accurate 429 Retry-After, including two-adapter PostgreSQL concurrency and revocation proof. R-2 still lacks general RTC 2 authenticated write route, full R-1 pass scope, direct-client and provider acceptance, exact deployed provenance and independent development/customer sign-in validation. Existing frozen original eight criteria are unchanged, and no live provider/production resources were altered. All check, 1,108 unit, 132 disposable DB suites passed locally; required exact-head GitHub CI will be rechecked after publishing. Added local direct-HTTP/DB pass-isolation proof without counting external native-client/provider conformance or original R-2 completion. The second local full suite on the new three-test, two-tenant HTTP/PG conformance extension passed 1,108 unit (156 files), 132 disposable PostgreSQL (49 files), and npm run check; the new PR exact-head checks require independent observation after publication.",
+  "newEngineering": "Per-pass owner-selected bounded-rate input, validated issuance and exact persisted grant readback; additive oauth_tokens.rtc_requests_per_minute column with legacy default 60; guarded admission using existing cross-instance atomic Postgres minute meter and accurate Retry-After; safe whoami/one-time receipt; negative and two-adapter race/revocation tests, and current card/status/roadmap/owner/architecture/decisions documentation. Added three-test disposable PostgreSQL RTC 2 direct HTTP conformance fixture across two fake tenants and three independently hashed passes, plus negative canonical-text tampering and cross-pass replay attempts.",
   "relatedWorkDecision": "R-1 pass issuance and R-3 conformance are dependencies, but each remains its own full subsection with separate proof",
   "decision": "CONTINUE",
   "subsections": [
@@ -25,7 +25,7 @@
         },
         {
           "criterion": "Cursor list and 1-based byte-exact bounded result recovery with grant isolation",
-          "evidence": "Existing RTC 2 injected tests cover HMAC-bound discovery cursors and 1-based byte-exact UTF-8 result recovery; real released RTC 2 ingress and all pass scopes unverified."
+          "evidence": "Existing RTC 2 injected tests cover HMAC-bound discovery cursors and 1-based byte-exact UTF-8 result recovery; real released RTC 2 ingress and all pass scopes unverified.; tests/db/rtc2-pass-isolation.test.js now proves exact pass-bound HMAC cursors, 1-based byte-exact multi-page Unicode results and rejection of different-pass/same-tenant and cross-tenant reads against disposable PostgreSQL and two independent HTTP adapters."
         },
         {
           "criterion": "Atomic 429 rate budget across two handlers, revocation, expiry and legacy pass handling",
@@ -45,7 +45,7 @@
         },
         {
           "criterion": "Complete fake-provider/disposable-Postgres/two-tenant/direct-client/deployment conformance proof",
-          "evidence": "Full source checks, 1108 unit tests in 156 files, 129 isolated disposable PostgreSQL tests in 48 files pass after the pass-rate extension. Real fake-provider end-to-end RTC 2 write behavior, independent desktop/mobile clients, authorized deployed/provider acceptance and owner release remain missing."
+          "evidence": "Full source checks, 1108 unit tests in 156 files, 132 isolated disposable PostgreSQL tests in 48 files pass after the pass-rate extension. Real fake-provider end-to-end RTC 2 write behavior, independent desktop/mobile clients, authorized deployed/provider acceptance and owner release remain missing.; added full local synthetic two-tenant/three-pass RTC 2 HTTP-to-Postgres fixture covering same-tenant pass isolation, cross-tenant denial, canonical content scrubbing enforcement, revocation and OAuth-token refusal. This is NOT a direct independently deployed provider/client pass."
         }
       ]
     }
