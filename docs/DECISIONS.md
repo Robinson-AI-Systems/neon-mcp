@@ -1,3 +1,18 @@
+## 2026-11-03 — CAP-1 published method names must include actual wire declarations
+
+For CAP-1 capability accounting, a canonical method/path/operationId
+record alone is insufficient to classify input shape or permission.
+Record actual parameters, request bodies, response status/schema and
+security declarations from exact pinned OpenAPI, with structural
+digests, without exposing upstream example values. Keep the runtime's
+vendor and official SDK source evidence separate and explicitly list
+shared method/path contract changes. SDK schema security alternatives
+are NOT user authorization, credential scope, executable support or
+live provider acceptance. An offline verifier checks both the full
+official upstream bytes and derived wire contracts. This is approved
+source inventory work only, not an authorized runtime API re-vendor,
+new credential, production action, release, or roadmap completion.
+
 ## 2026-11-03 — Distinguish a published SDK method from an installed callable route
 
 CAP-1 reports installed `@neon/sdk/raw` operation function availability

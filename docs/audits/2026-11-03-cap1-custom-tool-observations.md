@@ -90,3 +90,19 @@ proof. Do not call these 31 live-provider denials: a separately guarded
 named-tool implementation could still exist and must be tested on its
 own merits. Missing/unknown statuses remain, and neither CAP-1 nor live
 customer permission/client acceptance is finished.
+
+
+### 2026-11-03 exact official request/response contract reconciliation
+
+Reconfirmed official SDK OpenAPI raw source (193 methods, SHA256
+`fcc7b2c39f15df03adedf90aa7cde7f1f5e7729ae50b10fd9c7a959f3fb1f82d`)
+from pinned upstream commit; source-only declaration projection now
+covers every runtime-vendored method and official SDK method. The
+method-level source comparison identified 17 common signatures with
+different declared request/response, parameter or auth metadata.
+The 31 SDK-only method and generic-dispatch gaps, one vendor-only method
+and 15 separately documented advanced-host workflow records still
+remain distinct. No real customer credential, provider execution,
+permission enhancement or deployment was used. Synthetic tamper
+tests and exact full-upstream offline verifier are required before
+source completeness can be counted.

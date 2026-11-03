@@ -8,12 +8,15 @@ import {pinnedOperations,verifiedSourcePin,buildCapabilityInventory,
   officialSdkOperations,verifyOfficialSdkRaw,sha256
 } from '../../src/core/cap-coverage.js';
 import {collectSourceOperationReferences,collectDeclaredSdkFallbacks} from '../../src/core/cap-source-references.js';
+import {projectOpenApiContracts,projectOperationWire,contractDigest,
+  validateOfficialWireSnapshot,verifiedOfficialWireRaw} from '../../src/core/cap-api-contract.js';
 
 const spec=parse(readFileSync('vendor/neon-openapi/v2.yaml','utf8'));
 const specText=readFileSync('vendor/neon-openapi/v2.yaml','utf8');
 const sourceText=readFileSync('vendor/neon-openapi/SOURCE.md','utf8');
 const productSurfaces=JSON.parse(readFileSync('docs/capabilities/neon-product-surfaces.json','utf8'));
 const currentControlPlane=JSON.parse(readFileSync('docs/capabilities/current-control-plane.json','utf8'));
+const officialWireSnapshot=JSON.parse(readFileSync('docs/capabilities/current-control-plane-contracts.json','utf8'));
 function fakeSdk(operations){
   const revision='1'.repeat(40);
   return {schemaVersion:1,version:'v2',host:'https://console.neon.tech/api/v2',
@@ -24,12 +27,24 @@ function fakeSdk(operations){
       sha256:'a'.repeat(64)},
     operations,operationDigest:sha256(JSON.stringify(operations))};
 }
+function fakeWireSnapshot(reference){
+  const spec={paths:{}};
+  for(const row of reference.operations){
+    spec.paths[row.path]??={};
+    spec.paths[row.path][row.method.toLowerCase()]={operationId:row.operationId,
+      responses:{'200':{description:'OK'}}};
+  }
+  const contracts=projectOpenApiContracts(spec);
+  return {schemaVersion:1,revision:reference.source.revision,
+    sourceSha256:reference.source.sha256,operationDigest:reference.operationDigest,
+    contractDigest:contractDigest(contracts),contracts};
+}
 const sourcePin=verifiedSourcePin({specText,sourceText});
 const {sourceFiles,sdkRawOperationNames,clientSource,sdkVersion}=generateCoverage();
 function inventory(){return structuredClone(generateCoverage().inventory);}
 function validate(x){return validateCapabilityInventory({
   inventory:x,spec,sourcePin,registry,productSurfaces,currentControlPlane,sourceFiles,
-  sdkRawOperationNames,clientSource,sdkVersion});}
+  sdkRawOperationNames,clientSource,sdkVersion,officialWireSnapshot});}
 describe('CAP-1 complete but conservative operation inventory',()=>{
   it('checks all pinned real API methods with their exact source hash and distinct newer products',()=>{
     const map=inventory(),expected=pinnedOperations(spec);
@@ -41,6 +56,14 @@ describe('CAP-1 complete but conservative operation inventory',()=>{
     expect(map.currentControlPlane.newToPinned).toBe(31);
     expect(map.currentControlPlane.pinnedOnly).toBe(1);
     expect(map.rows).toHaveLength(209);
+    expect(map.wireContracts).toMatchObject({vendored:163,official:193,sharedDeclaredDrift:17,
+      officialDigest:officialWireSnapshot.contractDigest});
+    expect(validateOfficialWireSnapshot(currentControlPlane,officialWireSnapshot)).toHaveLength(193);
+    expect(map.rows.filter(x=>x.wireState==='shared-wire-drift')).toHaveLength(17);
+    expect(map.rows.find(x=>x.operationId==='updateProject').wire.request.required).toBe(true);
+    expect(map.rows.find(x=>x.operationId==='listProjects').wire.parameters.some(x=>
+      x.name==='limit'&&x.in==='query')).toBe(true);
+
     expect(map.sdkDispatch).toEqual({version:'7.0.1',total:194,
       rawExport:159,fallbackOnly:4,withoutGenericDispatch:31});
     expect(validate(map)).toEqual({
@@ -196,6 +219,60 @@ describe('CAP-1 complete but conservative operation inventory',()=>{
     candidate3.source.candidates=[];
     expect(()=>validate(map3)).toThrow(/source call site/i);
   });
+  it('captures exact source request/response contracts and does not infer API-key permissions',()=>{
+    const contracts=projectOpenApiContracts(spec);
+    expect(contracts).toHaveLength(163);
+    const project=projectOperationWire(spec,'/projects/{project_id}','PATCH');
+    expect(project.request.required).toBe(true);
+    expect(project.request.content[0].media).toBe('application/json');
+    expect(project.request.content[0].schema.refs).toContain(
+      '#/components/schemas/ProjectUpdateRequest');
+    expect(project.responses.some(x=>x.status==='200')).toBe(true);
+    expect(project.securitySchemes).toContainEqual(['BearerAuth']);
+    const map=inventory().rows.find(x=>x.operationId==='updateProject');
+    expect(map.wire).toEqual(project);
+    expect(map.credentials.personal_api_key.status).toBe('unknown');
+    const official=inventory().rows.find(x=>x.operationId==='listNeonAuthOAuthClients');
+    expect(official.origin).toBe('official-sdk-reference');
+    expect(official.wire.responses.length).toBeGreaterThan(0);
+    expect(official.live.status).toBe('unverified');
+  });
+  it('refuses forged published wire contracts, source drift, orphan parameters and missing refs',()=>{
+    const altered=inventory();
+    altered.rows.find(x=>x.origin==='vendored-openapi').wire.request.required=true;
+    expect(()=>validate(altered)).toThrow(/wire schema/i);
+    const swapped=inventory();
+    swapped.rows.find(x=>x.wireState==='shared-wire-drift').currentWire=null;
+    expect(()=>validate(swapped)).toThrow(/wire schema/i);
+    const badSnapshot=structuredClone(officialWireSnapshot);
+    badSnapshot.contracts[0].responses=[];
+    expect(()=>validateOfficialWireSnapshot(currentControlPlane,badSnapshot)).toThrow(/digest/i);
+    const forgedSummary=inventory();
+    forgedSummary.wireContracts.sharedDeclaredDrift=0;
+    expect(()=>validate(forgedSummary)).toThrow(/wire contract/i);
+    const badSpec={paths:{'/widgets/{widget_id}':{get:{
+      operationId:'getWidget',parameters:[{name:'not_in_path',in:'path',
+        required:true,schema:{type:'string'}}]}}}};
+    expect(()=>projectOperationWire(badSpec,'/widgets/{widget_id}','GET'))
+      .toThrow(/Orphan OpenAPI path parameter/i);
+    const duplicates={paths:{'/widgets':{get:{operationId:'getWidgets',
+      parameters:[{name:'cursor',in:'query',schema:{type:'string'}},
+        {name:'cursor',in:'query',schema:{type:'string'}}]}}}};
+    expect(()=>projectOpenApiContracts(duplicates)).toThrow(/Duplicate operation/i);
+    const refSpec={paths:{'/widgets':{get:{operationId:'getWidgets',
+      responses:{'200':{content:{'application/json':{
+        schema:{$ref:'#/components/schemas/Missing'}}}}}}}}};
+    expect(()=>projectOpenApiContracts(refSpec)).toThrow(/Missing local OpenAPI reference/i);
+    const fakeSpec={info:{version:'v2'},
+      servers:[{url:'https://console.neon.tech/api/v2'}],
+      paths:{'/widgets':{get:{operationId:'getWidgets',responses:{'200':{description:'OK'}}}}}};
+    const raw=JSON.stringify(fakeSpec);
+    const ref=fakeSdk([{method:'GET',path:'/widgets',operationId:'getWidgets',family:'Widget'}]);
+    ref.source.sha256=sha256(raw);
+    const snapshot=fakeWireSnapshot(ref);
+    expect(verifiedOfficialWireRaw(ref,snapshot,raw)).toMatchObject({operations:1});
+    expect(()=>verifiedOfficialWireRaw(ref,snapshot,raw+' ')).toThrow(/checksum/i);
+  });
   it('pins the installed SDK raw export and actual guarded fallback source separately',()=>{
     const map=inventory();
     const absent=map.rows.filter(x=>x.sdkDispatch?.genericClientState==='no-dispatch-path');
@@ -214,7 +291,8 @@ describe('CAP-1 complete but conservative operation inventory',()=>{
     expect(collectDeclaredSdkFallbacks(disguised).has('fake')).toBe(false);
     expect(()=>validateCapabilityInventory({inventory:map,spec,sourcePin,registry,
       productSurfaces,currentControlPlane,sourceFiles,sdkRawOperationNames,
-      clientSource:clientSource.replace("typeof raw.getProjectJWKS !== 'function'","false"),sdkVersion}))
+      clientSource:clientSource.replace("typeof raw.getProjectJWKS !== 'function'","false"),
+      sdkVersion,officialWireSnapshot}))
       .toThrow(/SDK raw export/i);
   });
   it('refuses a malformed or undocumented newer product row',()=>{
@@ -230,7 +308,7 @@ describe('CAP-1 complete but conservative operation inventory',()=>{
       operationId:'getWidgets',family:'Widget'}]);
     const found=buildCapabilityInventory({
       spec:fakeSpec,sourcePin,registry:fakeRegistry,productSurfaces:fakeProducts,
-      currentControlPlane:fakeCurrent,
+      currentControlPlane:fakeCurrent,      officialWireSnapshot:fakeWireSnapshot(fakeCurrent),
       checkedDate:'2026-11-03',sdkRawOperationNames:['getWidgets'],
       sdkVersion:'7.0.1',clientSource:"export const NEON_SDK_VERSION = '7.0.1';",sourceFiles:{
         'src/tools/widgets.js':"export const handlers={async neon_widgets(){return projectRead(null,'getWidgets')}};"
@@ -241,6 +319,7 @@ describe('CAP-1 complete but conservative operation inventory',()=>{
       registry:fakeRegistry,productSurfaces:fakeProducts,currentControlPlane:fakeCurrent,
       sdkRawOperationNames:['getWidgets'],sdkVersion:'7.0.1',
       clientSource:"export const NEON_SDK_VERSION = '7.0.1';",
+      officialWireSnapshot:fakeWireSnapshot(fakeCurrent),
     sourceFiles:{'src/tools/widgets.js':"export const handlers={async neon_widgets(){return projectRead(null,'getWidgets')}};"}});
     found.rows.find(x=>x.operationId==='example:read').providerDocumentationState='unknown';
     expect(()=>validateCapabilityInventory({inventory:found,spec:fakeSpec,sourcePin,
@@ -255,6 +334,7 @@ describe('CAP-1 complete but conservative operation inventory',()=>{
     expect(report).toContain('163 unique operations');
     expect(report).toContain('193 unique operations');
     expect(report).toContain('31 SDK-only methods');
+    expect(report).toContain('17 shared method/path contracts differ');
     expect(report).toContain('31 have no generic client dispatch route');
     expect(report).toContain('1 pinned-only methods');
     expect(report).not.toMatch(/[0-9]+(?:\.[0-9]+)?%/);

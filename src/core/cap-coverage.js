@@ -1,6 +1,7 @@
 // CAP-1 — conservative source inventory; references are not execution proof.
 import {createHash} from 'node:crypto';
 import {collectSourceOperationReferences,collectDeclaredSdkFallbacks} from './cap-source-references.js';
+import {projectOpenApiContracts,contractDigest,validateOfficialWireSnapshot} from './cap-api-contract.js';
 export const CREDENTIAL_KINDS=['personal_api_key','organization_api_key','project_api_key','sql_login','delegated_oauth','product_scoped_credential'];
 const states=new Set(['unknown','supported','unsupported']);
 const effects=new Set(['read','write','destructive','costed-unknown','unknown']);
@@ -172,7 +173,7 @@ function sdkDispatchTotals(rows){
 }
 export function buildCapabilityInventory({spec,sourcePin,sourceFiles={},testFiles={},
   registry,productSurfaces,currentControlPlane,checkedDate,
-  sdkRawOperationNames,clientSource,sdkVersion}={}){
+  sdkRawOperationNames,clientSource,sdkVersion,officialWireSnapshot}={}){
   if(!defined(checkedDate)||!isObject(sourcePin)||!Array.isArray(registry?.tools)||
       !isObject(registry?.handlers)||!Array.isArray(productSurfaces?.operations))
     throw new TypeError('CAP-1 sources, registry and product list required');
@@ -184,6 +185,12 @@ export function buildCapabilityInventory({spec,sourcePin,sourceFiles={},testFile
   const sourceIndex=collectSourceOperationReferences(sourceFiles,known);
   const dispatch=sdkDispatchSources(sdkRawOperationNames,clientSource,sdkVersion);
   const sdk=officialSdkOperations(currentControlPlane);
+  const vendoredWire=projectOpenApiContracts(spec);
+  const officialWire=validateOfficialWireSnapshot(currentControlPlane,officialWireSnapshot);
+  const vendoredBySignature=new Map(vendoredWire.map(x=>[signature(x),x]));
+  const officialBySignature=new Map(officialWire.map(x=>[signature(x),x]));
+  const wireDifferent=(a,b)=>a&&b&&
+    JSON.stringify({...a,operationDigest:null})!==JSON.stringify({...b,operationDigest:null});
   if(currentControlPlane.version!==spec.info.version||
      currentControlPlane.host!==host)
     throw new TypeError('SDK and runtime OpenAPI are different control planes');
@@ -199,6 +206,13 @@ export function buildCapabilityInventory({spec,sourcePin,sourceFiles={},testFile
     const hits=candidates(op.operationId,sourceIndex);
     return {...op,origin:'vendored-openapi',host,providerSourceSha:sourcePin.sha256,
       sdkDispatch:sdkDispatchFor(op.operationId,dispatch),
+      wire:vendoredBySignature.get(signature(op)),
+      currentWire:wireDifferent(vendoredBySignature.get(signature(op)),
+        officialBySignature.get(signature(op)))?officialBySignature.get(signature(op)):null,
+      currentWireDigest:officialBySignature.get(signature(op))?.operationDigest??null,
+      wireState:officialBySignature.has(signature(op))?
+        wireDifferent(vendoredBySignature.get(signature(op)),officialBySignature.get(signature(op)))?
+          'shared-wire-drift':'shared-wire-compatible':'vendored-only',
       sourceCheckedDate:checkedDate,effect:op.method==='GET'?'read':
         op.method==='DELETE'?'destructive':'write',
       credentials:credentials('api'),requiredPermissions:'unknown',entitlement:'unknown',
@@ -216,6 +230,9 @@ export function buildCapabilityInventory({spec,sourcePin,sourceFiles={},testFile
       providerSourceSha:currentControlPlane.source.sha256,
       sourceCheckedDate:checkedDate,
       sdkDispatch:sdkDispatchFor(op.operationId,dispatch),
+      wire:officialBySignature.get(signature(op)),currentWire:null,
+      currentWireDigest:officialBySignature.get(signature(op))?.operationDigest??null,
+      wireState:'sdk-new',
       effect:op.method==='GET'?'read':op.method==='DELETE'?'destructive':'write',
       currentSdkState:'new-in-sdk-reference',credentials:credentials('api'),
       requiredPermissions:'unknown',entitlement:'unknown',
@@ -233,14 +250,20 @@ export function buildCapabilityInventory({spec,sourcePin,sourceFiles={},testFile
     protocol:item.protocol,host:item.host,version:item.version,
     providerReference:item.reference,providerDocumentationState:'documented',
     providerSourceSha:null,sourceCheckedDate:checkedDate,effect:item.effect,
-    sdkDispatch:null,
+    sdkDispatch:null,wire:null,currentWire:null,currentWireDigest:null,
+    wireState:'advanced-unpinned',
     credentials:credentials('advanced',item.reference,item.access),
     requiredPermissions:item.authority,entitlement:'unknown',resourceSelectors:[],
     ownerUnit:'CAP-4',ownerUnitEvidence:'Reconcile direct original cards before adding capability',
     source:{status:'missing',candidates:[],tests:[],guardedExecutionVerified:false},
     live:{status:'unverified',evidence:null}
   });
-  return {schemaVersion:3,checkedDate,sdkDispatch:{
+  return {schemaVersion:4,checkedDate,wireContracts:{
+    vendored:vendoredWire.length,official:officialWire.length,
+    pinnedDigest:contractDigest(vendoredWire),officialDigest:officialWireSnapshot.contractDigest,
+    sharedDeclaredDrift:api.filter(op=>wireDifferent(
+      vendoredBySignature.get(signature(op)),officialBySignature.get(signature(op)))).length},
+    sdkDispatch:{
     version:sdkVersion,...sdkDispatchTotals(rows)},currentControlPlane:{
     version:currentControlPlane.version,host:currentControlPlane.host,
     source:currentControlPlane.source.url,
@@ -258,11 +281,23 @@ export function buildCapabilityInventory({spec,sourcePin,sourceFiles={},testFile
 }
 
 export function validateCapabilityInventory({inventory,spec,sourcePin,registry,productSurfaces,currentControlPlane,sourceFiles,
-  sdkRawOperationNames,clientSource,sdkVersion}={}){
+  sdkRawOperationNames,clientSource,sdkVersion,officialWireSnapshot}={}){
   if(!isObject(inventory)||!Array.isArray(inventory.rows)||
      !Array.isArray(productSurfaces?.operations)||!isObject(sourceFiles))
     throw new TypeError('Inventory and independently checked source files required');
-  if(inventory.schemaVersion!==3)throw new TypeError('CAP-1 inventory schema version drift');
+  if(inventory.schemaVersion!==4)throw new TypeError('CAP-1 inventory schema version drift');
+  const vendoredWire=projectOpenApiContracts(spec);
+  const officialWire=validateOfficialWireSnapshot(currentControlPlane,officialWireSnapshot);
+  const vendoredBySignature=new Map(vendoredWire.map(x=>[signature(x),x]));
+  const officialBySignature=new Map(officialWire.map(x=>[signature(x),x]));
+  const wireDifferent=(a,b)=>a&&b&&
+    JSON.stringify({...a,operationDigest:null})!==JSON.stringify({...b,operationDigest:null});
+  const wireEvidence={vendored:vendoredWire.length,official:officialWire.length,
+    pinnedDigest:contractDigest(vendoredWire),officialDigest:officialWireSnapshot.contractDigest,
+    sharedDeclaredDrift:vendoredWire.filter(op=>wireDifferent(op,
+      officialBySignature.get(signature(op)))).length};
+  if(JSON.stringify(inventory.wireContracts)!==JSON.stringify(wireEvidence))
+    throw new TypeError('Pinned or official wire contract denominator and digest drift');
   const dispatch=sdkDispatchSources(sdkRawOperationNames,clientSource,sdkVersion);
   const control=pinnedOperations(spec),sdk=officialSdkOperations(currentControlPlane);
   const controlBySignature=new Map(control.map(x=>[signature(x),x]));
@@ -343,6 +378,25 @@ export function validateCapabilityInventory({inventory,spec,sourcePin,registry,p
       null:sdkDispatchFor(row.operationId,dispatch);
     if(JSON.stringify(row.sdkDispatch)!==JSON.stringify(expectedDispatch))
       throw new TypeError('Forged SDK raw export or fallback call evidence: '+row.key);
+    let expectedWire=null,expectedCurrentWire=null,expectedCurrentDigest=null,
+      expectedWireState='advanced-unpinned';
+    if(row.origin==='vendored-openapi'){
+      expectedWire=vendoredBySignature.get(signature(row));
+      const newer=officialBySignature.get(signature(row));
+      expectedCurrentWire=wireDifferent(expectedWire,newer)?newer:null;
+      expectedCurrentDigest=newer?.operationDigest??null;
+      expectedWireState=newer?
+        expectedCurrentWire?'shared-wire-drift':'shared-wire-compatible':'vendored-only';
+    }else if(row.origin==='official-sdk-reference'){
+      expectedWire=officialBySignature.get(signature(row));
+      expectedCurrentDigest=expectedWire?.operationDigest??null;
+      expectedWireState='sdk-new';
+    }
+    if(JSON.stringify(row.wire)!==JSON.stringify(expectedWire)||
+       JSON.stringify(row.currentWire)!==JSON.stringify(expectedCurrentWire)||
+       row.currentWireDigest!==expectedCurrentDigest||
+       row.wireState!==expectedWireState)
+      throw new TypeError('Forged wire schema request/response or SDK declaration: '+row.key);
     if(row.live.status==='verified'&&!defined(row.live.evidence))
       throw new TypeError('Claimed live proof has no evidence: '+row.key);
     if(!Array.isArray(row.source.candidates)||!Array.isArray(row.source.tests)||
@@ -433,6 +487,11 @@ export function formatCapabilityGapReport(inventory){
       inventory.sdkDispatch.fallbackOnly+' lack that export but have an explicitly declared fallback, and '+
       inventory.sdkDispatch.withoutGenericDispatch+' have no generic client dispatch route in the checked source.',
     '- Export/fallback declarations are source evidence only, NOT verified API requests, credentials, guards, retries or live behavior.',
+    '- Exact declared request/response/parameter/auth wire contracts: '+
+      inventory.wireContracts.vendored+' runtime-vendored and '+
+      inventory.wireContracts.official+' SHA-checked official SDK references; '+
+      inventory.wireContracts.sharedDeclaredDrift+' shared method/path contracts differ.',
+    '- Declared BearerAuth/CookieAuth/etc are OpenAPI schemes, not permission, key-scope or successful provider execution proof.',
     '- Registered named MCP tools: '+inventory.registry.registeredTools+
       '; named-tool counts are not operation coverage.',
     '- Candidate source means a parsed provider-call operation ID appears in a tool module, with file and source line. Only the enclosing named handler is attributed; shared helpers remain unassigned. It is not proof of guarded execution.',
@@ -444,6 +503,14 @@ export function formatCapabilityGapReport(inventory){
   for(const g of capabilityGapReport(inventory))
     lines.push('| '+g.family+' | '+g.operations+' | '+g.verifiedSource+' | '+
       g.candidateSource+' | '+g.missingSource+' | '+g.verifiedLive+' |');
+  lines.push('','## Shared control-plane wire contract drift (requires engineering review)','',
+    'The old runtime-vendored API and current official SDK declare different parameters, request/response schema or authentication details for these same method/path operations. This is source drift, NOT a demonstrated live breaking change.','',
+    '| Method | Path | Operation ID | Runtime wire digest | SDK wire digest |',
+    '| --- | --- | --- | --- | --- |');
+  for(const row of inventory.rows.filter(x=>x.wireState==='shared-wire-drift'))
+    lines.push('| '+row.method+' | '+row.path+' | '+row.operationId+' | '+
+      row.wire.operationDigest.slice(0,12)+' | '+
+      row.currentWire.operationDigest.slice(0,12)+' |');
   lines.push('','## Generic Neon SDK client dispatch gaps (independent of MCP handler coverage)','',
     'These cataloged operations have neither a callable installed `@neon/sdk/raw` export nor a source-declared fallback. The generic `call()` path rejects such IDs; other independently implemented paths, if any, require separate proof.','',
     '| Method | Path | Operation ID | Origin | Handler source state |',

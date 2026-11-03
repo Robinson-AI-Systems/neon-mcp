@@ -1,6 +1,26 @@
 ## Verified source and deployment checkpoint — 2026-11-01
 
 
+### 2026-11-03 — verified request/response API declarations; CAP-1 STILL OPEN
+
+Additional source-only engineering in **draft PR #203** ties 163
+runtime-vendored and 193 official SDK OpenAPI method/path records to
+explicit parameter, request body, response/status and authentication
+declarations, plus exact schema/operation hashes; the original official
+full-source SHA-256 was reverified against downloaded upstream bytes.
+**17** of the 162 shared operations have different declared wire
+metadata; these are listed in the CAP-1 report and are not presumed to
+be live incompatibilities. Generated snapshots and their 209 source
+rows reject forged methods, request/response forms or source digests.
+The offline full-upstream verifier now checks both method and wire
+projections. No API client implementation, credential authorization,
+Neon account data, production database, domain, billing or deployment
+was changed. This branch remains **unmerged/unreleased** while all
+original CAP-1 and CG acceptance is outstanding. Latest independently
+checked merged main/live remains PR #201 at
+69c46b71b6ab35e483f42338618146d1a377d074.
+Local npm run check, all 1,105 unit tests, 125 disposable-Postgres tests and the byte-exact 193-method/193-wire upstream verifier passed. New exact-head GitHub CI must be independently recorded after publication.
+
 ### 2026-11-03 — documentation preflight: latest **merged** baseline
 
 Checked remote \`main\` and \`live\` both at

@@ -1,3 +1,17 @@
+### 2026-11-03 — CAP-1 declared wire/request/response evidence (draft #203)
+
+The source inventory now pins all 163 runtime-vendored method contracts
+and 193 official SDK contracts to their full OpenAPI source, with
+source checked parameters, required request bodies, statuses, response
+schemas and declared authentication schemes. **17** common operations
+differ in declared wire details and are individually enumerated in the
+generated gap report. This is a CAP-1 original prerequisite engineering
+advance, not completion credit or a production runtime SDK upgrade.
+The separate advanced-host sources and independently accepted client,
+provider authorization, guard and readback tests still need work.
+Draft #202 remains an independent R-2 effort; main/live remains at
+merged #201 until independently verified otherwise.
+
 ### 2026-11-03 CAP-1 installed SDK feasibility checkpoint — draft #203
 
 The checked-in source-only inventory now independently matches the actual

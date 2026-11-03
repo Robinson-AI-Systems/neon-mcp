@@ -28,6 +28,7 @@ export function generateCoverage(){
   const spec=parse(specText),sourcePin=verifiedSourcePin({specText,sourceText});
   const productSurfaces=JSON.parse(file('docs/capabilities/neon-product-surfaces.json'));
   const currentControlPlane=JSON.parse(file('docs/capabilities/current-control-plane.json'));
+  const officialWireSnapshot=JSON.parse(file('docs/capabilities/current-control-plane-contracts.json'));
   const testFiles={...sources('tests/unit'),...sources('tests/db'),...sources('tests/integration')};
   // Inventory's own assertions mention operation IDs but are not behavioral tests.
   delete testFiles['tests/unit/cap-coverage.test.js'];
@@ -39,9 +40,9 @@ export function generateCoverage(){
   const inventory=buildCapabilityInventory({spec,sourcePin,
     sourceFiles,testFiles,registry,productSurfaces,
     currentControlPlane,checkedDate:productSurfaces.checkedDate,
-    sdkRawOperationNames,clientSource,sdkVersion});
+    sdkRawOperationNames,clientSource,sdkVersion,officialWireSnapshot});
   validateCapabilityInventory({inventory,spec,sourcePin,registry,productSurfaces,
-    currentControlPlane,sourceFiles,sdkRawOperationNames,clientSource,sdkVersion});
+    currentControlPlane,sourceFiles,sdkRawOperationNames,clientSource,sdkVersion,officialWireSnapshot});
   // One record per line: reviewable and machine-readable, without a huge
   // pretty-printed six-way credential matrix per operation.
   const skeleton=JSON.stringify({...inventory,rows:[]},null,2);

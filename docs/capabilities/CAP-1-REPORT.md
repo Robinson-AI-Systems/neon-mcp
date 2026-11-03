@@ -10,6 +10,8 @@ Source inventory checked 2026-11-03. This is source accounting, not proof of a l
 - Separately documented advanced product workflows: 15; different protocols, hosts and unpinned wire interfaces are not control-plane parity.
 - SDK `@neon/sdk/raw` static coverage: 159 of 194 control-plane operation IDs have a callable export, 4 lack that export but have an explicitly declared fallback, and 31 have no generic client dispatch route in the checked source.
 - Export/fallback declarations are source evidence only, NOT verified API requests, credentials, guards, retries or live behavior.
+- Exact declared request/response/parameter/auth wire contracts: 163 runtime-vendored and 193 SHA-checked official SDK references; 17 shared method/path contracts differ.
+- Declared BearerAuth/CookieAuth/etc are OpenAPI schemes, not permission, key-scope or successful provider execution proof.
 - Registered named MCP tools: 131; named-tool counts are not operation coverage.
 - Candidate source means a parsed provider-call operation ID appears in a tool module, with file and source line. Only the enclosing named handler is attributed; shared helpers remain unassigned. It is not proof of guarded execution.
 - Live operation evidence remains unverified until tied to the exact checked deployed source and client.
@@ -46,6 +48,30 @@ Source inventory checked 2026-11-03. This is source accounting, not proof of a l
 | sdk-new/Logs | 3 | 0 | 0 | 3 | 0 |
 | sdk-new/Project | 4 | 0 | 0 | 4 | 0 |
 | sdk-new/Realtime | 5 | 0 | 0 | 5 | 0 |
+
+## Shared control-plane wire contract drift (requires engineering review)
+
+The old runtime-vendored API and current official SDK declare different parameters, request/response schema or authentication details for these same method/path operations. This is source drift, NOT a demonstrated live breaking change.
+
+| Method | Path | Operation ID | Runtime wire digest | SDK wire digest |
+| --- | --- | --- | --- | --- |
+| DELETE | /projects/{project_id}/branches/{branch_id} | deleteProjectBranch | 2832f2b344ba | 263c9d653f08 |
+| GET | /projects/{project_id}/auth/email_server | getNeonAuthEmailServer | 2653b2e14bdd | 784732ae977d |
+| GET | /projects/{project_id}/branches/{branch_id}/auth/email_provider | getNeonAuthEmailProvider | 59115d130ba8 | efb897b28bb5 |
+| GET | /projects/{project_id}/branches/{branch_id}/auth/plugins | getNeonAuthPluginConfigs | 86530e8fa5a9 | 86530e8fa5a9 |
+| GET | /projects/{project_id}/branches/{branch_id}/data-api/{database_name} | getProjectBranchDataAPI | 305a7b50eb24 | 305a7b50eb24 |
+| PATCH | /projects/{project_id}/auth/email_server | updateNeonAuthEmailServer | 9f410959484a | 5944f7b550cd |
+| PATCH | /projects/{project_id}/auth/oauth_providers/{oauth_provider_id} | updateNeonAuthOauthProvider | 06b4de97c3bf | f206883a5793 |
+| PATCH | /projects/{project_id}/branches/{branch_id}/auth/email_provider | updateNeonAuthEmailProvider | 62aae195745e | b6167fb9a7fa |
+| PATCH | /projects/{project_id}/branches/{branch_id}/auth/oauth_providers/{oauth_provider_id} | updateBranchNeonAuthOauthProvider | 7de9795e8fa1 | b99a09bab04c |
+| POST | /projects/{project_id}/auth/oauth_providers | addNeonAuthOauthProvider | 9337fb666b38 | ee53cf83b527 |
+| POST | /projects/{project_id}/branches/{branch_id}/auth/oauth_providers | addBranchNeonAuthOauthProvider | 00ba1dcb0c38 | 00ba1dcb0c38 |
+| POST | /projects/{project_id}/branches/{branch_id}/auth/send_test_email | sendNeonAuthTestEmail | f9ac3513236e | 73877ff2e516 |
+| POST | /projects/{project_id}/branches/{branch_id}/finalize_restore | finalizeRestoreBranch | eccddea99547 | 2fcd67b30d3e |
+| POST | /projects/{project_id}/branches/{branch_id}/snapshot | createSnapshot | b4a5ed09d87b | 281ee360038d |
+| POST | /projects/{project_id}/snapshots/{snapshot_id}/restore | restoreSnapshot | 78d05a61b793 | a242ca489a4a |
+| POST | /projects/{project_id}/transfer_requests | createProjectTransferRequest | e49d09320b44 | 8547809f3e74 |
+| PUT | /projects/{project_id}/transfer_requests/{request_id} | acceptProjectTransferRequest | 263ce17494d4 | a4447031b279 |
 
 ## Generic Neon SDK client dispatch gaps (independent of MCP handler coverage)
 

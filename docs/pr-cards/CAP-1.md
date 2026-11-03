@@ -216,3 +216,54 @@ and client acceptance remain unverified; CAP-1 is still IN_PROGRESS with
 Postgres tests** (48 files) pass. These are not direct live Neon-provider
 or released client acceptance. Post-push exact-head GitHub `ci` and
 `release-policy` still require independent verification.
+
+
+## 2026-11-03 operation-level request/response wire projection (draft PR #203)
+
+The source inventory now records deterministic, **non-secret** API wire
+declarations for every control-plane operation, without pretending they
+were exercised: **163** exact pinned runtime method/path records and
+**193** official SDK method/path records derived from the original
+fully SHA-checked 2026-11-03 OpenAPI JSON. It records required path,
+query, header and cookie parameter declarations; request body required
+state, media types and structural SHA/ref/field names; response status,
+media types and schema structure; explicit security-scheme alternatives;
+and the digest of the whole upstream operation. It omits example request
+or response values (which may contain identifiers or credentials).
+It flags source documents that do not declare required path parameters,
+rather than inventing provider inputs. Auth schemes are **not** mapped
+to implied principal permissions or API-key scope.
+
+The **separate official wire snapshot** is at
+`docs/capabilities/current-control-plane-contracts.json` and is bound
+to the existing official method inventory's exact revision, SHA, method
+digest and its own structural digest. An offline full-byte verifier
+(`scripts/verify-cap-1-upstream.mjs`) now independently checks **both**
+the 193-method signature and request/response wire projections against
+the original downloaded JSON. `scripts/snapshot-cap1-wire.mjs` only
+regenerates the snapshot from the exact SHA-checked local upstream file;
+it makes no network or Neon provider call and does not re-vendor the
+production runtime's API. The ordinary CI check validates the snapshot,
+the vendored 163-operation contract and their rows without network access.
+
+**New discrepancy:** 17 of the 162 common method/path signatures have
+*different declared wire metadata* between the runtime vendor and official
+SDK snapshot. The generated CAP-1 report identifies each operation and
+both digests, and keeps its official variant separately when needed.
+These are declaration drift findings, not verified live breaking changes.
+SDK-only operations still lack runtime-vendor contracts, and unpinned
+Data API, Functions, Object Storage, Auth, AI Gateway and SQL host
+interfaces remain independently unknown. The 31 generic dispatch gaps
+identified earlier are unchanged. Per-operation request/response
+**execution tests**, real credential authority and released
+provider/client acceptance remain OPEN. Source artifact completeness
+and even a passing synthetic schema test do not close CAP-1 or any CG
+gate; all seven original frozen criteria retain their acceptance bar.
+
+**Verification of this extension (local, not released):** source consistency
+checks passed; the full **1,105/1,105 unit** suite (154 files) and
+**125/125 disposable PostgreSQL** suite (48 files) passed; the original
+full upstream JSON SHA-256 plus all **193** operation and **193** wire
+projections were independently reverified offline. Exact-head CI is
+required after the new commit, and direct provider/customer acceptance
+is still unverified.
