@@ -184,3 +184,35 @@ CAP-1 tests passed, the complete unit suite passed 1,102 tests across 154
 files, and the isolated disposable-Postgres suite passed 125 tests across
 48 files. These are source/CI prerequisites, not real Neon-provider or
 native-client acceptance. Exact-head GitHub CI must be reverified after push.
+
+## 2026-11-03 installed Neon SDK dispatch verification — source only
+
+The operation inventory now additionally checks the pinned **installed**
+`@neon/sdk` **7.0.1** `@neon/sdk/raw` exports against each of the **194**
+distinct versioned control-plane operation IDs (163 vendored + 31 SDK-only).
+**159** expose a callable raw export. The other **35** include **four**
+explicit, statically recognized `src/neon/client.js` guarded fallback
+routes (`recoverProjectBranch`, `getProjectJWKS`, `addProjectJWKS`,
+`deleteProjectJWKS`); **31** have neither the raw export nor a declared
+generic `call()` fallback and are listed individually in the generated
+CAP-1 report. Seven fallback guards exist in source; three have raw SDK
+exports and therefore do not count as fallback-only. The verifier
+independently parses the runtime's real fallback declarations and checks
+imported SDK function names, pinned package version and per-row summary;
+negative tests reject fabricated export or fallback proof.
+
+This audit is a **source-level dispatch feasibility map**. It does not prove
+that any of these 194 APIs work with any specific customer credential, pass
+the policy guard, return the expected shape, survive retries, exist live,
+or provide safe readback. The absence of a *generic* route does not exclude
+some independent named-tool implementation. Missing SDK exports do not
+authorize a runtime SDK re-vendor, provider credential, release or live
+operation. Complete request/response, original-card owner, provider auth
+and client acceptance remain unverified; CAP-1 is still IN_PROGRESS with
+**zero** completed original roadmap units and all CG gates OPEN.
+
+**Further local test verification:** after the installed SDK-dispatch extension,
+`npm run check` and all **1,103 unit tests** (154 files) plus **125 isolated
+Postgres tests** (48 files) pass. These are not direct live Neon-provider
+or released client acceptance. Post-push exact-head GitHub `ci` and
+`release-policy` still require independent verification.

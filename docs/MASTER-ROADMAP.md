@@ -1,3 +1,14 @@
+### 2026-11-03 CAP-1 installed SDK feasibility checkpoint — draft #203
+
+The checked-in source-only inventory now independently matches the actual
+installed `@neon/sdk/raw` 7.0.1 exports and parsed guarded fallback routes:
+194 distinct control-plane operations, 159 callable raw exports, 4
+fallback-only declarations, and 31 lacking a generic SDK dispatch path.
+The 31 are explicit implementation/proof gaps, not real provider denials.
+No CAP-1 original criterion or subsequent CAP-2/CAP-3/CG acceptance is
+closed. Existing CAP-1 frozen plan and #201 merged main/live baseline
+remain authoritative; draft #203 is still unmerged and unreleased.
+
 ### 2026-11-03 CAP-1 source evidence refinement — draft #203, not merged
 
 Corrected an operation-to-handler attribution false positive in the original

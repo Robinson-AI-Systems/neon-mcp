@@ -48,6 +48,23 @@ next pushed exact head must still pass.
 No production keys, data, issuer, runtime tool permissions or deployed source
 were changed. Original CAP-1 remains IN_PROGRESS with zero completion credit.
 
+### 2026-11-03 — pinned installed SDK dispatch gap extension (draft #203)
+
+A further CAP-1 source check against the actual `@neon/sdk/raw` 7.0.1
+exports identifies 194 unique control-plane operation IDs across the pinned
+runtime and newer official SDK API; 159 have callable SDK raw exports,
+four more have an explicit guarded generic client fallback, and 31 have
+neither generic route in the checked source. Each unrouteable operation
+is individually listed in the generated CAP-1 report with its separate
+handler source state. The final local source verification passed `npm run check`, all 1,103 unit
+tests and all 125 disposable-Postgres tests; the next pushed PR head still
+requires GitHub exact-head CI. The guard parser checks the runtime's seven declared
+fallback predicates and does not count three fallbacks shadowed by existing
+raw exports. This is not a claim of real credential permissions or live
+provider reach, and no runtime client route or production account was
+changed. Original CAP-1 and all six CG gates remain unfinished. This work
+is on unmerged draft PR #203, not the checked main/live PR #201 baseline.
+
 ### 2026-11-03 — READY production source now corroborated via Vercel metadata
 
 Read-only checks independently matched GitHub remote main and live at

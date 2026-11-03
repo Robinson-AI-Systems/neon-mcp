@@ -5,6 +5,7 @@ import {resolve,relative,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parse} from 'yaml';
 import {registry} from '../src/tools/index.js';
+import * as neonRaw from '@neon/sdk/raw';
 import {verifiedSourcePin,buildCapabilityInventory,validateCapabilityInventory,
   formatCapabilityGapReport} from '../src/core/cap-coverage.js';
 const root=resolve(fileURLToPath(new URL('..',import.meta.url)));
@@ -31,18 +32,24 @@ export function generateCoverage(){
   // Inventory's own assertions mention operation IDs but are not behavioral tests.
   delete testFiles['tests/unit/cap-coverage.test.js'];
   const sourceFiles=sources('src/tools');
+  const clientSource=file('src/neon/client.js');
+  const sdkVersion=JSON.parse(file('package.json')).dependencies['@neon/sdk'];
+  const sdkRawOperationNames=Object.keys(neonRaw).filter(name=>
+    typeof neonRaw[name]==='function').sort();
   const inventory=buildCapabilityInventory({spec,sourcePin,
     sourceFiles,testFiles,registry,productSurfaces,
-    currentControlPlane,checkedDate:productSurfaces.checkedDate});
+    currentControlPlane,checkedDate:productSurfaces.checkedDate,
+    sdkRawOperationNames,clientSource,sdkVersion});
   validateCapabilityInventory({inventory,spec,sourcePin,registry,productSurfaces,
-    currentControlPlane,sourceFiles});
+    currentControlPlane,sourceFiles,sdkRawOperationNames,clientSource,sdkVersion});
   // One record per line: reviewable and machine-readable, without a huge
   // pretty-printed six-way credential matrix per operation.
   const skeleton=JSON.stringify({...inventory,rows:[]},null,2);
   const lines=inventory.rows.map(row=>JSON.stringify(row)).join(',\n    ');
   const artifact=skeleton.replace('"rows": []',
     '"rows": [\n    '+lines+'\n  ]')+'\n';
-  return {inventory,artifact,report:formatCapabilityGapReport(inventory),sourceFiles};
+  return {inventory,artifact,report:formatCapabilityGapReport(inventory),sourceFiles,
+    sdkRawOperationNames,clientSource,sdkVersion};
 }
 export function runCoverage(mode){
   if(!['--check','--write'].includes(mode))
@@ -60,7 +67,8 @@ export function runCoverage(mode){
     sdkNew:generated.inventory.currentControlPlane.newToPinned,
     sdkOld:generated.inventory.currentControlPlane.pinnedOnly,
     advanced:generated.inventory.externalSurfaces.count,
-    tools:generated.inventory.registry.registeredTools};
+    tools:generated.inventory.registry.registeredTools,
+    sdkDispatch:generated.inventory.sdkDispatch};
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   try{console.log(JSON.stringify(runCoverage(process.argv[2]??'--check')));}

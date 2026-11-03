@@ -76,3 +76,17 @@ as a dev dependency; no runtime Neon client/provider keys changed. Playground
 command execution and package installation were available. The earlier
 Playground Git-fetch publication preflight failure is still an independent
 unresolved tool integration issue, not permission to skip CI/publish checks.
+
+### 2026-11-03 installed SDK dispatch mismatch discovered
+
+The public official API snapshot includes 193 methods, but the actual
+pinned and installed `@neon/sdk/raw` version 7.0.1 has no callable
+export for 35 of the combined 194 distinct runtime + newer operation IDs.
+Of those 35, four have exact guarded `src/neon/client.js` fallback
+predicates. The other 31 have no generic `call()` route. A source-only
+validator now binds the full 194-operation method inventory to imported
+raw function exports, pinned runtime version and parsed fallback guard
+proof. Do not call these 31 live-provider denials: a separately guarded
+named-tool implementation could still exist and must be tested on its
+own merits. Missing/unknown statuses remain, and neither CAP-1 nor live
+customer permission/client acceptance is finished.

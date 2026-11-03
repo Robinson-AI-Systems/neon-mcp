@@ -1,6 +1,6 @@
 // CAP-1 — conservative source inventory; references are not execution proof.
 import {createHash} from 'node:crypto';
-import {collectSourceOperationReferences} from './cap-source-references.js';
+import {collectSourceOperationReferences,collectDeclaredSdkFallbacks} from './cap-source-references.js';
 export const CREDENTIAL_KINDS=['personal_api_key','organization_api_key','project_api_key','sql_login','delegated_oauth','product_scoped_credential'];
 const states=new Set(['unknown','supported','unsupported']);
 const effects=new Set(['read','write','destructive','costed-unknown','unknown']);
@@ -150,8 +150,29 @@ function candidates(id,sourceIndex){
       proof:'parsed_provider_call_reference_not_executed'};
   });
 }
+function sdkDispatchSources(names,source,version){
+  if(!Array.isArray(names)||names.some(x=>!defined(x))||
+     new Set(names).size!==names.length||!defined(source)||!defined(version)||
+     !source.includes("NEON_SDK_VERSION = '"+version+"'"))
+    throw new TypeError('Pinned SDK exports or client source version invalid');
+  return {names:new Set(names),fallbacks:collectDeclaredSdkFallbacks(source),version};
+}
+function sdkDispatchFor(id,proof){
+  const rawExport=proof.names.has(id),fallback=proof.fallbacks.get(id)??null;
+  return {sdkVersion:proof.version,rawExport,declaredFallback:fallback,
+    genericClientState:rawExport?'raw-export':fallback?'fallback-declared':'no-dispatch-path'};
+}
+function sdkDispatchTotals(rows){
+  const api=rows.filter(x=>x.origin!=='documented-advanced-product');
+  return {total:api.length,rawExport:api.filter(x=>x.sdkDispatch.rawExport).length,
+    fallbackOnly:api.filter(x=>!x.sdkDispatch.rawExport&&
+      x.sdkDispatch.declaredFallback).length,
+    withoutGenericDispatch:api.filter(x=>x.sdkDispatch.genericClientState===
+      'no-dispatch-path').length};
+}
 export function buildCapabilityInventory({spec,sourcePin,sourceFiles={},testFiles={},
-  registry,productSurfaces,currentControlPlane,checkedDate}={}){
+  registry,productSurfaces,currentControlPlane,checkedDate,
+  sdkRawOperationNames,clientSource,sdkVersion}={}){
   if(!defined(checkedDate)||!isObject(sourcePin)||!Array.isArray(registry?.tools)||
       !isObject(registry?.handlers)||!Array.isArray(productSurfaces?.operations))
     throw new TypeError('CAP-1 sources, registry and product list required');
@@ -161,6 +182,7 @@ export function buildCapabilityInventory({spec,sourcePin,sourceFiles={},testFile
     throw new TypeError('Tool registry invalid');
   const api=pinnedOperations(spec),host=spec.servers[0].url;
   const sourceIndex=collectSourceOperationReferences(sourceFiles,known);
+  const dispatch=sdkDispatchSources(sdkRawOperationNames,clientSource,sdkVersion);
   const sdk=officialSdkOperations(currentControlPlane);
   if(currentControlPlane.version!==spec.info.version||
      currentControlPlane.host!==host)
@@ -176,6 +198,7 @@ export function buildCapabilityInventory({spec,sourcePin,sourceFiles={},testFile
   const rows=api.map(op=>{
     const hits=candidates(op.operationId,sourceIndex);
     return {...op,origin:'vendored-openapi',host,providerSourceSha:sourcePin.sha256,
+      sdkDispatch:sdkDispatchFor(op.operationId,dispatch),
       sourceCheckedDate:checkedDate,effect:op.method==='GET'?'read':
         op.method==='DELETE'?'destructive':'write',
       credentials:credentials('api'),requiredPermissions:'unknown',entitlement:'unknown',
@@ -192,6 +215,7 @@ export function buildCapabilityInventory({spec,sourcePin,sourceFiles={},testFile
     rows.push({...op,origin:'official-sdk-reference',host,
       providerSourceSha:currentControlPlane.source.sha256,
       sourceCheckedDate:checkedDate,
+      sdkDispatch:sdkDispatchFor(op.operationId,dispatch),
       effect:op.method==='GET'?'read':op.method==='DELETE'?'destructive':'write',
       currentSdkState:'new-in-sdk-reference',credentials:credentials('api'),
       requiredPermissions:'unknown',entitlement:'unknown',
@@ -209,13 +233,15 @@ export function buildCapabilityInventory({spec,sourcePin,sourceFiles={},testFile
     protocol:item.protocol,host:item.host,version:item.version,
     providerReference:item.reference,providerDocumentationState:'documented',
     providerSourceSha:null,sourceCheckedDate:checkedDate,effect:item.effect,
+    sdkDispatch:null,
     credentials:credentials('advanced',item.reference,item.access),
     requiredPermissions:item.authority,entitlement:'unknown',resourceSelectors:[],
     ownerUnit:'CAP-4',ownerUnitEvidence:'Reconcile direct original cards before adding capability',
     source:{status:'missing',candidates:[],tests:[],guardedExecutionVerified:false},
     live:{status:'unverified',evidence:null}
   });
-  return {schemaVersion:2,checkedDate,currentControlPlane:{
+  return {schemaVersion:3,checkedDate,sdkDispatch:{
+    version:sdkVersion,...sdkDispatchTotals(rows)},currentControlPlane:{
     version:currentControlPlane.version,host:currentControlPlane.host,
     source:currentControlPlane.source.url,
     revision:currentControlPlane.source.revision,
@@ -231,11 +257,13 @@ export function buildCapabilityInventory({spec,sourcePin,sourceFiles={},testFile
     rows:rows.sort((a,b)=>a.key.localeCompare(b.key))};
 }
 
-export function validateCapabilityInventory({inventory,spec,sourcePin,registry,productSurfaces,currentControlPlane,sourceFiles}={}){
+export function validateCapabilityInventory({inventory,spec,sourcePin,registry,productSurfaces,currentControlPlane,sourceFiles,
+  sdkRawOperationNames,clientSource,sdkVersion}={}){
   if(!isObject(inventory)||!Array.isArray(inventory.rows)||
      !Array.isArray(productSurfaces?.operations)||!isObject(sourceFiles))
     throw new TypeError('Inventory and independently checked source files required');
-  if(inventory.schemaVersion!==2)throw new TypeError('CAP-1 inventory schema version drift');
+  if(inventory.schemaVersion!==3)throw new TypeError('CAP-1 inventory schema version drift');
+  const dispatch=sdkDispatchSources(sdkRawOperationNames,clientSource,sdkVersion);
   const control=pinnedOperations(spec),sdk=officialSdkOperations(currentControlPlane);
   const controlBySignature=new Map(control.map(x=>[signature(x),x]));
   const sdkBySignature=new Map(sdk.map(x=>[signature(x),x]));
@@ -311,6 +339,10 @@ export function validateCapabilityInventory({inventory,spec,sourcePin,registry,p
          !row.providerReference.startsWith('https://neon.com/docs/'))
         throw new TypeError('Unverified or invented newer product interface: '+row.key);
     }else throw new TypeError('Unknown provider-origin disposition');
+    const expectedDispatch=row.origin==='documented-advanced-product'?
+      null:sdkDispatchFor(row.operationId,dispatch);
+    if(JSON.stringify(row.sdkDispatch)!==JSON.stringify(expectedDispatch))
+      throw new TypeError('Forged SDK raw export or fallback call evidence: '+row.key);
     if(row.live.status==='verified'&&!defined(row.live.evidence))
       throw new TypeError('Claimed live proof has no evidence: '+row.key);
     if(!Array.isArray(row.source.candidates)||!Array.isArray(row.source.tests)||
@@ -354,6 +386,8 @@ export function validateCapabilityInventory({inventory,spec,sourcePin,registry,p
         throw new TypeError('Unknown credential cannot imply proof: '+row.key+'/'+name);
     }
   }
+  if(JSON.stringify(inventory.sdkDispatch)!==JSON.stringify({version:sdkVersion,...sdkDispatchTotals(inventory.rows)}))
+    throw new TypeError('SDK dispatch denominator or version drift');
   return {controlPlane:control.length,currentControlPlane:sdk.length,
     newSdkOperations:added.length,pinnedOnly:removed.length,
     advanced:productSurfaces.operations.length,total:inventory.rows.length};
@@ -394,6 +428,11 @@ export function formatCapabilityGapReport(inventory){
     '- SDK source is a dated published contract, not evidence that each method is live or authorized.',
     '- Separately documented advanced product workflows: '+inventory.externalSurfaces.count+
       '; different protocols, hosts and unpinned wire interfaces are not control-plane parity.',
+    '- SDK `@neon/sdk/raw` static coverage: '+inventory.sdkDispatch.rawExport+
+      ' of '+inventory.sdkDispatch.total+' control-plane operation IDs have a callable export, '+
+      inventory.sdkDispatch.fallbackOnly+' lack that export but have an explicitly declared fallback, and '+
+      inventory.sdkDispatch.withoutGenericDispatch+' have no generic client dispatch route in the checked source.',
+    '- Export/fallback declarations are source evidence only, NOT verified API requests, credentials, guards, retries or live behavior.',
     '- Registered named MCP tools: '+inventory.registry.registeredTools+
       '; named-tool counts are not operation coverage.',
     '- Candidate source means a parsed provider-call operation ID appears in a tool module, with file and source line. Only the enclosing named handler is attributed; shared helpers remain unassigned. It is not proof of guarded execution.',
@@ -405,6 +444,13 @@ export function formatCapabilityGapReport(inventory){
   for(const g of capabilityGapReport(inventory))
     lines.push('| '+g.family+' | '+g.operations+' | '+g.verifiedSource+' | '+
       g.candidateSource+' | '+g.missingSource+' | '+g.verifiedLive+' |');
+  lines.push('','## Generic Neon SDK client dispatch gaps (independent of MCP handler coverage)','',
+    'These cataloged operations have neither a callable installed `@neon/sdk/raw` export nor a source-declared fallback. The generic `call()` path rejects such IDs; other independently implemented paths, if any, require separate proof.','',
+    '| Method | Path | Operation ID | Origin | Handler source state |',
+    '| --- | --- | --- | --- | --- |');
+  for(const row of inventory.rows.filter(x=>x.sdkDispatch?.genericClientState==='no-dispatch-path'))
+    lines.push('| '+row.method+' | '+row.path+' | '+row.operationId+' | '+
+      row.origin+' | '+row.source.status+' |');
   lines.push('','## Official SDK-only control-plane operations (explicit gaps)','',
     'These methods appear in the dated official SDK OpenAPI but not in the runtime-vendored schema.',
     'No SDK-only method is reported as executable, provider-authorized or released without separate evidence.','',

@@ -53,3 +53,40 @@ export function collectSourceOperationReferences(sourceFiles,registeredTools){
     a.line-b.line||a.via.localeCompare(b.via));
   return result;
 }
+
+// Detect only exact runtime fallback guards in the actual client source.
+// Other references, comments and unguarded literals cannot stand in for a
+// missing @neon/sdk/raw export. A declaration is not proof of execution.
+export function collectDeclaredSdkFallbacks(clientSource){
+  if(typeof clientSource!=='string')throw new TypeError('Neon client source required');
+  const ast=parse(clientSource,{ecmaVersion:'latest',sourceType:'module',loc:true});
+  const found=new Map();
+  function visit(node){
+    if(!node||typeof node!=='object')return;
+    if(Array.isArray(node)){for(const child of node)visit(child);return;}
+    if(node.type==='VariableDeclarator'&&node.id?.type==='Identifier'){
+      const check=node.init;
+      if(check?.type==='LogicalExpression'&&check.operator==='&&'){
+        const left=check.left,right=check.right;
+        const id=left?.type==='BinaryExpression'&&left.operator==='==='&&
+          left.left?.type==='Identifier'&&left.left.name==='operationId'?
+          literal(left.right):null;
+        const member=right?.left?.argument;
+        if(id&&right?.type==='BinaryExpression'&&right.operator==='!=='&&
+           right.left?.type==='UnaryExpression'&&right.left.operator==='typeof'&&
+           member?.type==='MemberExpression'&&!member.computed&&
+           member.object?.name==='raw'&&member.property?.name===id&&
+           literal(right.right)==='function'){
+          if(found.has(id))throw new TypeError('Duplicate raw fallback declaration');
+          found.set(id,{flag:node.id.name,line:node.loc.start.line});
+        }
+      }
+    }
+    for(const [key,value] of Object.entries(node)){
+      if(key==='loc'||key==='range'||key==='start'||key==='end')continue;
+      if(value&&typeof value==='object')visit(value);
+    }
+  }
+  visit(ast);
+  return found;
+}

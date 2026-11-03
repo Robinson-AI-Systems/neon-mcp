@@ -1,3 +1,17 @@
+## 2026-11-03 — Distinguish a published SDK method from an installed callable route
+
+CAP-1 reports installed `@neon/sdk/raw` operation function availability
+separately from published OpenAPI and the source-to-tool handler map.
+Only exact exported functions in the pinned dependency and guarded fallback
+predicates parsed from the real Neon client can be marked as *declared*
+generic dispatch routes. These declarations are never certified execution,
+credential scope, provider entitlement, protected-write guards or real
+released acceptance. Count a fallback-only declaration only when its SDK
+raw function is absent. Keep the 31 presently unrouteable generic operations
+in explicit pending engineering, not as a fake unsupported-provider status.
+No SDK upgrade, API change, grants or production actions are approved by
+this inventory decision.
+
 ## 2026-11-03 — CAP-1 call-site provenance cannot claim whole-module tool coverage
 
 Decision: attribute an operation candidate only to parsed literal provider

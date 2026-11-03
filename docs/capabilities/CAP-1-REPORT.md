@@ -8,6 +8,8 @@ Source inventory checked 2026-11-03. This is source accounting, not proof of a l
 - Compared with runtime-vendored API: 31 SDK-only methods, 1 pinned-only methods, 162 shared signatures; method names were checked for drift.
 - SDK source is a dated published contract, not evidence that each method is live or authorized.
 - Separately documented advanced product workflows: 15; different protocols, hosts and unpinned wire interfaces are not control-plane parity.
+- SDK `@neon/sdk/raw` static coverage: 159 of 194 control-plane operation IDs have a callable export, 4 lack that export but have an explicitly declared fallback, and 31 have no generic client dispatch route in the checked source.
+- Export/fallback declarations are source evidence only, NOT verified API requests, credentials, guards, retries or live behavior.
 - Registered named MCP tools: 131; named-tool counts are not operation coverage.
 - Candidate source means a parsed provider-call operation ID appears in a tool module, with file and source line. Only the enclosing named handler is attributed; shared helpers remain unassigned. It is not proof of guarded execution.
 - Live operation evidence remains unverified until tied to the exact checked deployed source and client.
@@ -44,6 +46,44 @@ Source inventory checked 2026-11-03. This is source accounting, not proof of a l
 | sdk-new/Logs | 3 | 0 | 0 | 3 | 0 |
 | sdk-new/Project | 4 | 0 | 0 | 4 | 0 |
 | sdk-new/Realtime | 5 | 0 | 0 | 5 | 0 |
+
+## Generic Neon SDK client dispatch gaps (independent of MCP handler coverage)
+
+These cataloged operations have neither a callable installed `@neon/sdk/raw` export nor a source-declared fallback. The generic `call()` path rejects such IDs; other independently implemented paths, if any, require separate proof.
+
+| Method | Path | Operation ID | Origin | Handler source state |
+| --- | --- | --- | --- | --- |
+| DELETE | /organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints/{vpc_endpoint_id} | deleteOrganizationVPCEndpoint | vendored-openapi | missing |
+| DELETE | /projects/{project_id}/auth/domains | deleteNeonAuthDomainFromRedirectURIWhitelist | vendored-openapi | missing |
+| DELETE | /projects/{project_id}/branches/{branch_id}/data-api/{database_name} | deleteProjectBranchDataAPI | vendored-openapi | missing |
+| DELETE | /projects/{project_id}/vpc_endpoints/{vpc_endpoint_id} | deleteProjectVPCEndpoint | vendored-openapi | missing |
+| GET | /organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints | listOrganizationVPCEndpoints | vendored-openapi | missing |
+| GET | /organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints/{vpc_endpoint_id} | getOrganizationVPCEndpointDetails | vendored-openapi | missing |
+| GET | /organizations/{org_id}/vpc/vpc_endpoints | listOrganizationVPCEndpointsAllRegions | vendored-openapi | missing |
+| GET | /projects/{project_id}/auth/domains | listNeonAuthRedirectURIWhitelistDomains | vendored-openapi | missing |
+| GET | /projects/{project_id}/branches/{branch_id}/data-api/{database_name} | getProjectBranchDataAPI | vendored-openapi | missing |
+| GET | /projects/{project_id}/connection_uri | getConnectionURI | vendored-openapi | missing |
+| GET | /projects/{project_id}/vpc_endpoints | listProjectVPCEndpoints | vendored-openapi | missing |
+| PATCH | /projects/{project_id}/branches/{branch_id}/data-api/{database_name} | updateProjectBranchDataAPI | vendored-openapi | missing |
+| POST | /organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints/{vpc_endpoint_id} | assignOrganizationVPCEndpoint | vendored-openapi | missing |
+| POST | /projects/{project_id}/auth/domains | addNeonAuthDomainToRedirectURIWhitelist | vendored-openapi | missing |
+| POST | /projects/{project_id}/branches/{branch_id}/data-api/{database_name} | createProjectBranchDataAPI | vendored-openapi | missing |
+| POST | /projects/{project_id}/vpc_endpoints/{vpc_endpoint_id} | assignProjectVPCEndpoint | vendored-openapi | missing |
+| POST | /projects/auth/keys | createNeonAuthProviderSDKKeys | vendored-openapi | missing |
+| DELETE | /projects/{project_id}/branches/{branch_id}/auth/oauth-provider/clients/{client_id} | deleteNeonAuthOAuthClient | official-sdk-reference | missing |
+| DELETE | /projects/{project_id}/branches/{branch_id}/realtime | disableProjectBranchRealtime | official-sdk-reference | missing |
+| GET | /projects/{project_id}/branches/{branch_id}/auth/oauth-provider/clients | listNeonAuthOAuthClients | official-sdk-reference | missing |
+| GET | /projects/{project_id}/branches/{branch_id}/auth/oauth-provider/clients/{client_id} | getNeonAuthOAuthClient | official-sdk-reference | missing |
+| GET | /projects/{project_id}/branches/{branch_id}/auth/plugins/oauth-provider | getNeonAuthOAuthProviderPlugin | official-sdk-reference | missing |
+| GET | /projects/{project_id}/branches/{branch_id}/realtime | getProjectBranchRealtime | official-sdk-reference | missing |
+| GET | /projects/{project_id}/branches/{branch_id}/realtime/secret | getProjectBranchRealtimeSecret | official-sdk-reference | missing |
+| GET | /projects/count | countProjects | official-sdk-reference | missing |
+| PATCH | /projects/{project_id}/branches/{branch_id}/auth/oauth-provider/clients/{client_id} | updateNeonAuthOAuthClient | official-sdk-reference | missing |
+| PATCH | /projects/{project_id}/branches/{branch_id}/auth/plugins/oauth-provider | updateNeonAuthOAuthProviderPlugin | official-sdk-reference | missing |
+| POST | /projects/{project_id}/branches/{branch_id}/auth/oauth-provider/clients | createNeonAuthOAuthClient | official-sdk-reference | missing |
+| POST | /projects/{project_id}/branches/{branch_id}/auth/oauth-provider/clients/{client_id}/rotate_secret | rotateNeonAuthOAuthClientSecret | official-sdk-reference | missing |
+| POST | /projects/{project_id}/branches/{branch_id}/realtime | enableProjectBranchRealtime | official-sdk-reference | missing |
+| POST | /projects/{project_id}/branches/{branch_id}/realtime/rotate_secret | rotateProjectBranchRealtimeSecret | official-sdk-reference | missing |
 
 ## Official SDK-only control-plane operations (explicit gaps)
 

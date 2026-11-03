@@ -7,7 +7,7 @@ import {pinnedOperations,verifiedSourcePin,buildCapabilityInventory,
   validateCapabilityInventory,capabilityGapReport,formatCapabilityGapReport,
   officialSdkOperations,verifyOfficialSdkRaw,sha256
 } from '../../src/core/cap-coverage.js';
-import {collectSourceOperationReferences} from '../../src/core/cap-source-references.js';
+import {collectSourceOperationReferences,collectDeclaredSdkFallbacks} from '../../src/core/cap-source-references.js';
 
 const spec=parse(readFileSync('vendor/neon-openapi/v2.yaml','utf8'));
 const specText=readFileSync('vendor/neon-openapi/v2.yaml','utf8');
@@ -25,10 +25,11 @@ function fakeSdk(operations){
     operations,operationDigest:sha256(JSON.stringify(operations))};
 }
 const sourcePin=verifiedSourcePin({specText,sourceText});
-const sourceFiles=generateCoverage().sourceFiles;
+const {sourceFiles,sdkRawOperationNames,clientSource,sdkVersion}=generateCoverage();
 function inventory(){return structuredClone(generateCoverage().inventory);}
 function validate(x){return validateCapabilityInventory({
-  inventory:x,spec,sourcePin,registry,productSurfaces,currentControlPlane,sourceFiles});}
+  inventory:x,spec,sourcePin,registry,productSurfaces,currentControlPlane,sourceFiles,
+  sdkRawOperationNames,clientSource,sdkVersion});}
 describe('CAP-1 complete but conservative operation inventory',()=>{
   it('checks all pinned real API methods with their exact source hash and distinct newer products',()=>{
     const map=inventory(),expected=pinnedOperations(spec);
@@ -40,6 +41,8 @@ describe('CAP-1 complete but conservative operation inventory',()=>{
     expect(map.currentControlPlane.newToPinned).toBe(31);
     expect(map.currentControlPlane.pinnedOnly).toBe(1);
     expect(map.rows).toHaveLength(209);
+    expect(map.sdkDispatch).toEqual({version:'7.0.1',total:194,
+      rawExport:159,fallbackOnly:4,withoutGenericDispatch:31});
     expect(validate(map)).toEqual({
       controlPlane:163,currentControlPlane:193,newSdkOperations:31,
       pinnedOnly:1,advanced:15,total:209});
@@ -61,6 +64,14 @@ describe('CAP-1 complete but conservative operation inventory',()=>{
     const storage=map.rows.find(x=>x.operationId==='object-storage:put');
     expect(storage.credentials.product_scoped_credential.status).toBe('supported');
     expect(storage.requiredPermissions).toBe('storage:write');
+    expect(map.rows.find(x=>x.operationId==='listProjectMembers').sdkDispatch.genericClientState)
+      .toBe('raw-export');
+    expect(map.rows.find(x=>x.operationId==='getProjectJWKS').sdkDispatch.genericClientState)
+      .toBe('fallback-declared');
+    expect(map.rows.find(x=>x.operationId==='getProjectJWKS').sdkDispatch.declaredFallback.flag)
+      .toBe('jwksRead');
+    expect(map.rows.find(x=>x.operationId==='listNeonAuthOAuthClients').sdkDispatch.genericClientState)
+      .toBe('no-dispatch-path');
     const api=map.rows.find(x=>x.origin==='vendored-openapi');
     expect(api.credentials.sql_login.status).toBe('unsupported');
     expect(api.credentials.project_api_key.status).toBe('unknown');
@@ -185,6 +196,27 @@ describe('CAP-1 complete but conservative operation inventory',()=>{
     candidate3.source.candidates=[];
     expect(()=>validate(map3)).toThrow(/source call site/i);
   });
+  it('pins the installed SDK raw export and actual guarded fallback source separately',()=>{
+    const map=inventory();
+    const absent=map.rows.filter(x=>x.sdkDispatch?.genericClientState==='no-dispatch-path');
+    expect(absent).toHaveLength(31);
+    expect(absent.some(x=>x.operationId==='listNeonAuthOAuthClients')).toBe(true);
+    const fake=structuredClone(map);
+    fake.rows.find(x=>x.operationId==='listNeonAuthOAuthClients').sdkDispatch.rawExport=true;
+    expect(()=>validate(fake)).toThrow(/SDK raw export/i);
+    const fake2=structuredClone(map);
+    fake2.sdkDispatch.withoutGenericDispatch=0;
+    expect(()=>validate(fake2)).toThrow(/dispatch denominator/i);
+    const fallback=collectDeclaredSdkFallbacks(clientSource);
+    expect(fallback.get('getProjectJWKS').flag).toBe('jwksRead');
+    expect(fallback.get('recoverProjectBranch').flag).toBe('recoverBranch');
+    const disguised="// const foo=operationId === 'fake' && typeof raw.fake !== 'function';";
+    expect(collectDeclaredSdkFallbacks(disguised).has('fake')).toBe(false);
+    expect(()=>validateCapabilityInventory({inventory:map,spec,sourcePin,registry,
+      productSurfaces,currentControlPlane,sourceFiles,sdkRawOperationNames,
+      clientSource:clientSource.replace("typeof raw.getProjectJWKS !== 'function'","false"),sdkVersion}))
+      .toThrow(/SDK raw export/i);
+  });
   it('refuses a malformed or undocumented newer product row',()=>{
     const fakeSpec={info:{version:'v2'},servers:[{url:'https://console.neon.tech/api/v2'}],
       paths:{'/widgets':{get:{operationId:'getWidgets',tags:['Widget']}}}};
@@ -199,13 +231,16 @@ describe('CAP-1 complete but conservative operation inventory',()=>{
     const found=buildCapabilityInventory({
       spec:fakeSpec,sourcePin,registry:fakeRegistry,productSurfaces:fakeProducts,
       currentControlPlane:fakeCurrent,
-      checkedDate:'2026-11-03',sourceFiles:{
+      checkedDate:'2026-11-03',sdkRawOperationNames:['getWidgets'],
+      sdkVersion:'7.0.1',clientSource:"export const NEON_SDK_VERSION = '7.0.1';",sourceFiles:{
         'src/tools/widgets.js':"export const handlers={async neon_widgets(){return projectRead(null,'getWidgets')}};"
       },testFiles:{}});
     expect(found.rows).toHaveLength(2);
     expect(found.rows.find(x=>x.operationId==='getWidgets').source.status).toBe('candidate');
     validateCapabilityInventory({inventory:found,spec:fakeSpec,sourcePin,
       registry:fakeRegistry,productSurfaces:fakeProducts,currentControlPlane:fakeCurrent,
+      sdkRawOperationNames:['getWidgets'],sdkVersion:'7.0.1',
+      clientSource:"export const NEON_SDK_VERSION = '7.0.1';",
     sourceFiles:{'src/tools/widgets.js':"export const handlers={async neon_widgets(){return projectRead(null,'getWidgets')}};"}});
     found.rows.find(x=>x.operationId==='example:read').providerDocumentationState='unknown';
     expect(()=>validateCapabilityInventory({inventory:found,spec:fakeSpec,sourcePin,
@@ -220,12 +255,15 @@ describe('CAP-1 complete but conservative operation inventory',()=>{
     expect(report).toContain('163 unique operations');
     expect(report).toContain('193 unique operations');
     expect(report).toContain('31 SDK-only methods');
+    expect(report).toContain('31 have no generic client dispatch route');
     expect(report).toContain('1 pinned-only methods');
     expect(report).not.toMatch(/[0-9]+(?:\.[0-9]+)?%/);
   });
   it('enforces checked generated outputs and does not contact provider',()=>{
     expect(runCoverage('--check')).toEqual({
       checked:true,api:163,sdk:193,sdkNew:31,sdkOld:1,advanced:15,
-      tools:registry.tools.length});
+      tools:registry.tools.length,
+      sdkDispatch:{version:'7.0.1',total:194,rawExport:159,
+        fallbackOnly:4,withoutGenericDispatch:31}});
   });
 });
