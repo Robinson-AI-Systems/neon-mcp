@@ -1,4 +1,8 @@
 
+### 2026-11-02 — use custom GitHub's real Git/runtime and Vercel's deployment evidence to accelerate Neon
+
+**Decision:** Engineering sessions default to the owner's custom GitHub connector's **native Git workspace + isolated Robinson Playground runtime**. This permits local code/test/DB checks, real ancestry and bounded workspace lifecycle even from ChatGPT mobile. One-off immutable-SHA Playground and full-check Actions are verification layers; atomic expected-head/count-checked REST commits are fallback, not the only delivery method. Vercel Unleashed supplies read-only actual project/deployment/alias metadata, source corroboration and diagnostics. A failing high-level Vercel workflow is not a failed deployment or a green one; use low-level verified reads. No new product scope, live deployment, permission, money, secret, data or release approval is implied. See [fast path](runbooks/CUSTOM-GITHUB-VERCEL-FAST-PATH.md) and [frozen maintenance acceptance](audits/2026-11-02-native-git-vercel-workflow-plan.md).
+
 ### 2026-11-02 — user clarified backend developer login and grant isolation
 
 **Decision:** developer sign-in and the developer **test-grant** management system exist only at an independently protected backend developer control-plane access point for testing/development. They must not be part of, selectable within, advertised by or confused with public-facing customer login. Public OAuth consented grants are a separate user-owned feature; read-only/production rights are choices under the ordinary user session, not extra login modes. Staff acting as users do not inherit developer authority. Scope through original A-3, CAP-2/3/5, R-2 and CG-1/2/6; preserve all existing release/permission gates.

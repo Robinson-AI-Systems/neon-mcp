@@ -1,4 +1,8 @@
 
+### Current development execution route — custom GitHub native Git + Playground and Vercel (2026-11-02)
+
+The owner directed every Neon implementing agent to use the [custom-connector native workflow](runbooks/CUSTOM-GITHUB-VERCEL-FAST-PATH.md): persistent Git clone/workspace with attached isolated runtime for full original-card implementation and tests; single SHA-pinned Playground checks; GitHub exact-head PR/CI/merge; and Vercel project/deployment/alias read-only evidence. Unlike the old REST fallback, this route has actual executable commands and local disposable-Postgres capability **when attached and verified**. If capacity/attachment fails, use count-checked atomic GitHub commits plus mandatory Actions DB/CI, not invented local passes. This changes **execution efficiency, not roadmap order, accepted subsection count, release policy, source/live proof, or owner permissions**.
+
 ### Server release provenance for connected coding agents — 2026-11-02 design
 
 The RAS Standard now adopts the GitHub MCP VER-1 pattern: `initialize.serverInfo.version` and `neon_whoami.server_release` tell agents the current deployed version and SHA, with safe current-release change-history directions. Design lives in [the adoption crosswalk](designs/RAS-MCP-D001-ADOPTION.md). Implement within A-3/A-7/R-2/O-4 and verify via CG-1/4/5 and checked released source, not from main's latest commit. Keep missing SHA visibly unknown. Documentation alone grants no implementation credit.

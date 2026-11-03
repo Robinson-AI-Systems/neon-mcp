@@ -8,6 +8,9 @@ operates mostly from a phone; everything he reads must be plain language.
 
 ## Read only what this work needs
 
+**Execution shortcut:** after AGENTS and SESSION-START, use the [custom GitHub native Git + Robinson Playground + Vercel fast path](runbooks/CUSTOM-GITHUB-VERCEL-FAST-PATH.md). It is the default for real editing/testing from mobile too, with SHA-pinned local/CI evidence; use legacy REST only after confirmed runtime inability. It does not modify the approved roadmap, permission boundaries or scheduled deployment.
+
+
 1. Implementing a card: [SESSION-START](SESSION-START.md) (one page). Otherwise AGENTS — workflow and hard limits.
 2. [STATUS](STATUS.md) — current head/state/next item.
 3. [MASTER-ROADMAP](MASTER-ROADMAP.md) — order of batches and work coverage.

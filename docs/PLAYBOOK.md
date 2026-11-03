@@ -1,6 +1,6 @@
 # PLAYBOOK — how to deliver a coherent implementation bundle
 
-Session startup, cadence and release-dependent proof follow `docs/SESSION-START.md`. These recipes preserve all existing security, review and validation gates. Run focused checks at coherent seams and full required gates before publishing, rather than the whole suite after each small local edit.
+Session startup, cadence and release-dependent proof follow `docs/SESSION-START.md`. For the primary custom GitHub native Git workspace/Robinson Playground execution path plus Vercel diagnostics and honest fallback, follow [CUSTOM-GITHUB-VERCEL-FAST-PATH](runbooks/CUSTOM-GITHUB-VERCEL-FAST-PATH.md); this is the preferred route even in mobile-only sessions. These recipes preserve all existing security, review and validation gates. Run focused checks at coherent seams and full required gates before publishing, rather than the whole suite after each small local edit.
 
 The rules are in `AGENTS.md`; the short start is `docs/SESSION-START.md`; the work is the card in `docs/pr-cards/`.
 Same procedure as the Stripe MCP's PLAYBOOK, adapted to this repo (no Next.js, no browser tests; Neon instead of Stripe;
@@ -11,7 +11,7 @@ a fake Neon server and real throwaway Postgres instead of stripe-mock).
 Complete SESSION-START §§0–1 acceptance reconciliation before selecting new code.
 This recipe does not bypass the acceptance accounting or final closeout procedure.
 
-1. `git fetch origin && git status -sb`. Resume the branch/PR in `docs/STATUS.md` (and the card's resume note) before
+1. `git fetch origin && git status -sb` in the local checkout or **GitHub native Git workspace**, or read those same refs/status with the custom GitHub MCP; use its attached Playground to run `npm run session:prepare` and later tests. Resume the branch/PR in `docs/STATUS.md` (and the card's resume note) before
    starting anything new. Never discard local work.
 2. Read the card. If the roadmap row says JIT, write the card first from the design and current code
    (`docs/pr-cards/README.md`). A missing card is work, not a reason to stop.
@@ -98,9 +98,8 @@ docs check (`scripts/check-docs-updated.mjs`), index validation (`docs/pr-cards/
 | A door (HTTPS API, `neon_call`) | `npx vitest run tests/doors/` |
 | Listing or descriptions | `node scripts/check-budgets.mjs --print` |
 
-**If the whole checkout/terminal is unavailable:** follow [SESSION-START §6](SESSION-START.md#6-keep-moving-problems-are-not-blockers)
-and use GitHub REST through the connected GitHub plugin (or `gh api` if available). Edit/commit on an `ai/*`
-branch and let GitHub Actions execute `check`, `unit` and disposable-Postgres `db`. Inspect
+**If the primary custom GitHub native Git workspace/Playground cannot attach or execute:** first inspect its actual allocation/status, then try a SHA-pinned one-off `github_playground_run` where supported. Only if neither works, follow [SESSION-START §6](SESSION-START.md#6-keep-moving-problems-are-not-blockers)
+and use `github_content_commit_git_data` with `expectedHead`, `createFrom` when creating a branch, `expectedFileCount` and verified `manifest_complete` (or guarded `github_content_edit_files`) on an `ai/*` branch. Let GitHub Actions execute `check`, `unit` and disposable-Postgres `db` when no executable sandbox exists. Read the remote tree afterwards; the obsolete 12-file-limited snapshot push and unverified REST replays are disallowed. Inspect
 `GET /repos/{owner}/{repo}/commits/{sha}/check-runs` and
 `GET /repos/{owner}/{repo}/actions/jobs/{job_id}/logs` (or check-run annotations).
 REST supplies access to the remote CI results, **not local execution**; record the limitation.
@@ -135,7 +134,7 @@ OWNER-INPUTS for new questions, DECISIONS for decisions. PR title `<type>: <plai
 English: what Chris can now ask for; acceptance with evidence; owner decisions (IN-xx or none); review dispositions;
 what is not included; CI runs used. Delete the resume note in the final commit.
 
-**Commands (REST; `gh pr …` uses GraphQL, which some workspaces block).** `R=Robinson-AI-Systems/neon-mcp`,
+**Fallback commands (REST; preferred is custom GitHub `github_workflow_open_pr`, `github_workflow_pr_status`, `github_workflow_merge_when_green`, with exact head). `gh pr …` uses GraphQL, which some workspaces block.** `R=Robinson-AI-Systems/neon-mcp`,
 `export GH_PAGER=cat`:
 
 ```bash
@@ -156,7 +155,7 @@ gh api -X PATCH repos/$R/pulls/<n> -f base=main                         # retarg
 
 ## Step 8 — Preview
 
-Vercel builds a preview per branch. Previews share this server's production database, so they must never hold
+Use Vercel Unleashed's read-only `vercel_deploy_list/get`, project and alias inspection to find the **specific PR's preview** and its tested revision; do not assume a high-level project-health summary is functioning. Its `commit:null` means unverified revision, not proof. Vercel builds a preview per branch. Previews share this server's production database, so they must never hold
 production power: on a non-production deployment every connection is forced to `preview` mode and organization-key
 tools are refused (A-3/A-5, design A13). For a card that changes a door or login, open the preview's home page and
 confirm the tool counts shown match the PR.

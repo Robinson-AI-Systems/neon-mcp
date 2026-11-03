@@ -1,5 +1,10 @@
 # SESSION-START — reconcile, accept released work, implement, close out
 
+## Tool-enabled session default (2026-11-02)
+
+Read [CUSTOM-GITHUB-VERCEL-FAST-PATH](runbooks/CUSTOM-GITHUB-VERCEL-FAST-PATH.md) before choosing the execution route. **Primary:** the custom GitHub MCP's *native Git workspace with attached Robinson Playground runtime* for bounded source inspection, actual code/data/door/test edits, local checks and git commit/push. Use `github_playground_run` for a quick immutable-SHA test. Discover/describe tools and verify allocation, repository attachment, command exit code, file manifest, branch ancestry and exact-head CI. If runtime is unavailable, use the connector's count-checked atomic GitHub commit path and Actions' full test/DB proof; do not pretend REST ran local tests. **Vercel Unleashed:** project/deploy/aliases/env-*metadata* diagnostics and released-source corroboration only, not unapproved deployment. Its high-level health/release workflows have returned `invalid_request` for an otherwise readable Neon project; use the successful lower-level read operations and record unknown commit provenance. All existing §0–§6 catch-up, bundle, developer authority, security, CI, review, merge and release gates remain binding.
+
+
 ## Autonomous execution contract
 
 “Do N bundles” authorizes continuing the full documented process without routine

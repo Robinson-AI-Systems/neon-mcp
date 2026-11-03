@@ -1,5 +1,8 @@
 # REST/Actions stalled-session recovery and exact-head CI gate (2026-10-12)
 
+> **2026-11-02 current priority:** This is now a *fallback* runbook. The custom GitHub MCP exposes [native Git workspaces, attached Robinson Playground shell/runtime, SHA-pinned one-off runs, count-checked atomic commits and exact-head PR workflows](CUSTOM-GITHUB-VERCEL-FAST-PATH.md). Try/verify the native workspace/runtime first, then a one-off Playground test; use this REST route if those cannot execute. The old 12-file snapshot limitation is avoided by `github_content_commit_git_data` with expected head, intended file count and independently checked manifest. Keep the REST failure/retry and CI proof rules below if a fallback is necessary.
+
+
 Applies to sessions without local checkout or working GitHub DNS. Supplements SESSION-START sections 0/5/6 and PLAYBOOK Steps 5–10. Owner, protected-resource, production, spending and review gates remain mandatory.
 
 ## Observed failure and correction
