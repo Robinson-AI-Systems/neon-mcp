@@ -1,5 +1,34 @@
 ## Verified source and deployment checkpoint — 2026-11-01
 
+
+### 2026-11-03 — documentation preflight: latest **merged** baseline
+
+Checked remote \`main\` and \`live\` both at
+\`69c46b71b6ab35e483f42338618146d1a377d074\`. The latest merged
+Neon PR is **#201**, which added the native-Git/Playground/Vercel developer
+workflow runbook and session instructions (maintenance only, zero product
+implementation/acceptance credit). The preceding merged PR **#200**
+adopted the RAS D-001 design crosswalk (design only). These are the
+source-of-truth merged baselines for the next engineering changes. The older
+2026-11-01 Vercel READY/source observation below is historical; no serving
+source SHA was independently confirmed by this preflight.
+
+**Unmerged branches, tracked separately:** Draft PR **#202** carries the
+R-2 public-client/server-release/RTC-2 source stage; draft PR **#203**
+carries the unfinished CAP-1 inventory source stage. Both had green required
+\`ci\` and \`release-policy\` on their own exact original PR heads at this
+preflight, but **neither is merged or independently deployed/accepted**.
+Their code is excluded from the merged \`main\` account. CAP-1, R-2 and
+all six CG gates remain incomplete. Do not update the original accepted-unit
+counts, authorize a release or claim real Neon/client behavior from these PRs.
+
+The required documentation-first reconciliation is now explicit in
+[SESSION-START §0](SESSION-START.md). Every later branch/pr/merge must
+recheck actual remote heads and reconcile STATUS, roadmap, original card,
+decision records and deployment notes as affected, distinguishing merged,
+unmerged, released and independently accepted evidence.
+
+
 ### 2026-11-03 CAP-1 source implementation checkpoint — incomplete original unit
 
 The separate CAP-1 branch has its original acceptance frozen at planning commit

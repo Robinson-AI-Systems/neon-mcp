@@ -1,4 +1,20 @@
 
+### 2026-11-03 authoritative merged-tree documentation baseline
+
+Latest independently checked remote \`main\` and \`live\`:
+\`69c46b71b6ab35e483f42338618146d1a377d074\`, merged Neon PR
+**#201** (custom GitHub native Git + Playground and Vercel fast-path process
+maintenance), after PR **#200** (RAS D-001 design adoption). Neither
+completed an original engineering subsection or any CG gate. Unmerged
+drafts **#202** (R-2 staged client/RTC implementation) and **#203**
+(CAP-1 partial source inventory) have separate branch/CI status and must
+not be represented as merged source. Current serving SHA, independent
+native-client and provider acceptance remain unverified. Start all subsequent
+work by reconciling the last actual merged PR and documentation as specified
+in SESSION-START §0; refresh affected documentation as the implementation
+evolves and after verified merges.
+
+
 ### 2026-11-03 CAP-1 source inventory implementation (partial original unit)
 
 A separate approved CAP-1 plan was frozen at native-Git commit

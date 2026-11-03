@@ -177,6 +177,30 @@ review, hosting or owner gate may be weakened to shorten this cycle.
 
 ## 0. Reconcile and recover
 
+### Documentation-first merged baseline (owner clarification 2026-11-03)
+
+**Step one for every new implementation or continuation:** resolve the actual
+remote merged \`main\` and \`live\` heads and identify the last merged PR and its
+accepted source/code/test changes. Compare \`docs/STATUS.md\`, this roadmap and
+the active card/index with that merged tree. Repair any stale *current-state*
+claims **before new feature edits**, within the same planned implementation PR
+or an authorized existing branch; retain dated historical snapshots as history.
+Document the checked baseline SHA and latest merged PR. Do not report an open,
+green or draft PR as part of merged \`main\`, and do not infer deployed/live
+behavior from a merged PR. Record open PRs and their unmerged work separately.
+
+As implementation progresses, update the original card, STATUS, roadmap,
+decisions, owner/deployment/database notes and indexes where affected.
+Immediately before push, compare documentation with the actual branch diff,
+tests and acceptance results; before a permitted merge, verify exact-head CI,
+reviews and changed docs. After merge, verify the new \`main\` SHA and record
+the resulting merged state in the permanent status/handoff using the normal
+repository-safe route. Any post-merge documentation edit uses a new branch/PR,
+never a direct commit to \`main\`. New sessions first reconcile that baseline
+again. Historical verification and unverified deployment/provider acceptance
+remain clearly separate.
+
+
 Read the governing instructions and the current permanent handoff, not historical
 status entries as new work. Verify actual main, live, the READY production revision,
 open/unfinished PRs, exact-head CI and unresolved reviews. Preserve concurrent work.
