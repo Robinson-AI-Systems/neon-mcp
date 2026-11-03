@@ -27,3 +27,16 @@ ALL original R-2 criteria 1–8 remain open: RTC 2 manifest/source proof, owner-
 | Positive | GitHub connector exposes real release identity and updates. | github_whoami surfaced release version, immutable commit, release source and change lookup, and typed native Git gave actual worktree/head/status. | Standardize this pattern across RAS fleet. |
 
 Confirmed evidence is separated from previously observed/unconfirmed items. The frozen R-2 bundle plan was committed previously at 53657f02e6774c448a264cc8e09fefddaeda2003. Rerunning the PRE-CODE bundle-plan command after implementation properly refused the outdated plan baseline; do not rewrite frozen scope merely to pass. Full original R-2 delivery accounting remains CONTINUE. No other repository or MCP deployment was modified.
+
+### 2026-11-03 R-2 scoped-rate follow-up
+
+The early RTC pass route previously hardcoded 60 admitted calls/minute
+despite original R-2 requiring configurable per-pass limits. New
+code propagates owner-selected caps from the protected form through
+one-time issuance, additive storage, exact per-request readback and
+PostgreSQL atomic admission. A real disposable Postgres fixture
+checks a cap of three across two DB adapters, eight concurrent
+calls, denial and immediate revocation. Distinct from accepting
+any higher authority: current preview/read_only/24h/project-key
+scope is unchanged. Neither a live provider account nor a
+production RTC pass was exercised.

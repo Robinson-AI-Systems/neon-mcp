@@ -1,5 +1,25 @@
 ## Verified source and deployment checkpoint — 2026-11-01
 
+### 2026-11-03 — R-2 persistent per-pass RTC caps, draft PR #202
+
+A substantial R-2 follow-up source update on unmerged draft #202 extends
+the existing owner-issued preview/read_only project RTC pass with a
+configurable **1–60 calls/minute** cap, additive PostgreSQL storage
+(default 60 for existing passes), atomic shared budget admission,
+dynamic 429 Retry-After and a safe owner-form/receipt/whoami readback.
+No authorization or provider grant was widened, and no production
+database, live key, pass, deployment or release was changed.
+Disposable-Postgres tests cover two independently created DB adapters
+racing the same rate-3 pass (3 admitted, 5 denied), revocation and
+invalid persisted limits; unit tests cover one-time delivery and form
+validation. Final local npm run check, 1,108/1,108 unit tests (156 files) and 129/129 disposable PostgreSQL tests (48 files) passed after the RTC 2 fixture correction. Exact-head remote CI remains to be checked after push.
+The full original R-2 and all six CG gates remain OPEN.
+Merged main/live last verified at #201 commit
+69c46b71b6ab35e483f42338618146d1a377d074;
+CAP-1 draft #203 is separate and remains unmerged.
+
+
+
 ### 2026-11-03 — R-2 guarded RTC 2 wire and canonical-result source milestone
 
 Draft #202 on branch ai/gpt6/neon-ras-client-entry-release retains the

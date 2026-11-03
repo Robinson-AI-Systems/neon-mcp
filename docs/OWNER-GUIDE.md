@@ -122,3 +122,18 @@ degraded unless the database probe is independently enabled, so no one can
 infer a live database merely from configured environment variables. Do not
 activate public release, change identity domains or grant developer access
 based on these pending source changes.
+
+### Temporary RTC read-only pass call limit (pending draft PR #202)
+
+On the existing owner passphrase-protected setup page, choose an
+authorized project, a pass lifetime of up to 24 hours, and a
+**calls-per-minute limit of 1–60**. The default is 60 to preserve
+earlier behavior; choosing 3, for example, means a maximum of
+three requests across all server instances during the same minute.
+The pass appears only through the existing one-time secret exchange,
+not in the receipt. Exhausting its rate returns 429 and a
+Retry-After value for the remainder of that minute. Revoking the
+pass immediately blocks its next call. This feature is **source-only
+in unmerged PR #202**; do not assume it is available in production
+until independently checked release/deployment and native client
+acceptance. These temporary passes still cannot make provider writes.

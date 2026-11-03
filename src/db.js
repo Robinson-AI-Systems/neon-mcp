@@ -110,21 +110,22 @@ export function createDb(sql = productionSql()) {
     },
     // RTC 1 early adoption: owner-only, short-lived project-scoped read_only passes.
     // The pass is transient input to this method; only its SHA-256 hash is persisted.
-    async createRtcReadOnlyPass({token,passId,orgId,projectScope,expiresAt}) {
+    async createRtcReadOnlyPass({token,passId,orgId,projectScope,expiresAt,requestsPerMinute=60}) {
       if(!/^rtc_pass_[A-Za-z0-9_-]{43}$/.test(token||'') ||
         !/^rtc_[A-Za-z0-9_-]{16}$/.test(passId||'') ||
         !/^[a-z0-9-]{1,60}$/.test(orgId||'') ||
         !/^[a-z0-9-]{1,60}$/.test(projectScope||'') ||
+        !Number.isInteger(requestsPerMinute)||requestsPerMinute<1||requestsPerMinute>60||
         !(expiresAt instanceof Date) || !Number.isFinite(expiresAt.getTime()) ||
         expiresAt.getTime()<=Date.now() ||
         expiresAt.getTime()>Date.now()+86401000)
         throw new TypeError('RTC pass requires a verified owner, project and <=24h expiry');
       const rows=await sql`INSERT INTO oauth_tokens
         (token_hash,client_id,neon_org,project_scope,mode,profile,listing,kind,
-         rtc_areas,allow_writes,expires_at)
+         rtc_areas,allow_writes,expires_at,rtc_requests_per_minute)
         SELECT ${hashToken(token)},${passId},${orgId},${projectScope},
           'preview','read_only','catalog','pass',
-          '["server","discovery"]'::jsonb,FALSE,${expiresAt}
+          '["server","discovery"]'::jsonb,FALSE,${expiresAt},${requestsPerMinute}
         WHERE EXISTS(SELECT 1 FROM neon_orgs WHERE id=${orgId})
           AND EXISTS(SELECT 1 FROM neon_keys WHERE org_id=${orgId}
             AND kind='project' AND project_id=${projectScope}
@@ -136,7 +137,7 @@ export function createDb(sql = productionSql()) {
     async getRtcPass(token){
       if(!/^rtc_pass_[A-Za-z0-9_-]{43}$/.test(token||''))return null;
       const rows=await sql`SELECT client_id,neon_org,project_scope,mode,profile,
-        listing,kind,rtc_areas,allow_writes,expires_at,revoked_at
+        listing,kind,rtc_areas,allow_writes,rtc_requests_per_minute,expires_at,revoked_at
         FROM oauth_tokens p WHERE p.token_hash=${hashToken(token)} AND p.kind='pass'
         AND EXISTS(SELECT 1 FROM neon_keys k
           WHERE k.org_id=p.neon_org AND k.project_id=p.project_scope
@@ -851,6 +852,9 @@ export function createDb(sql = productionSql()) {
         rtc_areas JSONB NOT NULL DEFAULT '[]'::jsonb`;
       await sql`ALTER TABLE oauth_tokens ADD COLUMN IF NOT EXISTS
         allow_writes BOOLEAN NOT NULL DEFAULT FALSE`;
+      // Additive/backward-compatible: existing read-only passes retain the 60/min cap.
+      await sql`ALTER TABLE oauth_tokens ADD COLUMN IF NOT EXISTS
+        rtc_requests_per_minute INTEGER NOT NULL DEFAULT 60`;
       await sql`CREATE TABLE IF NOT EXISTS login_attempts (
         id BIGSERIAL PRIMARY KEY, ip TEXT NOT NULL,
         attempted_at TIMESTAMPTZ NOT NULL DEFAULT now(), success BOOLEAN NOT NULL

@@ -180,6 +180,7 @@ export function createRtcHttpHandlers({db,registry,env=process.env,wireVersion=1
     return send(res,200,{ok:true,result:{server:'robinson-neon-mcp',
       prefix:'neon',profile:connection.profile,mode:connection.mode,
       projectScope:connection.projectScope,allowWrites:false,
+      requestsPerMinute:connection.requestsPerMinute,
       areas:connection.rtcAreas}});
   }
   async function results(req,res){

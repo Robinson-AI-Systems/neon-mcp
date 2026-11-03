@@ -1,3 +1,14 @@
+### 2026-11-03 — R-2 read-only pass cap (draft #202, source only)
+
+Existing owner-created project-scoped preview/read_only RTC passes may
+now choose a 1–60 request/minute limit, stored per hashed pass in the
+server database and enforced by the existing shared PostgreSQL counter.
+Default 60 preserves legacy passes. Full R-2 RTC 2 write routes,
+native-client conformance, grant permissions, real release acceptance
+and the CG overlays remain unfinished. This is not a new subsection
+or permission expansion. #203 CAP-1 remains a separate unfinished
+draft; last verified merged main/live is #201.
+
 
 ### Current development execution route — custom GitHub native Git + Playground and Vercel (2026-11-02)
 

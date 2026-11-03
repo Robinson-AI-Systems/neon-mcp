@@ -9,7 +9,7 @@ const secondPass='rtc_pass_'+'C'.repeat(43);
 const client='rtc_'+'B'.repeat(16);
 const base={client_id:client,neon_org:'org-fake-one',project_scope:'proj-fake-one',
   mode:'preview',profile:'read_only',listing:'catalog',kind:'pass',
-  rtc_areas:['server','discovery'],allow_writes:false,
+  rtc_areas:['server','discovery'],allow_writes:false,rtc_requests_per_minute:60,
   expires_at:new Date(Date.now()+3600000),revoked_at:null};
 const connection={clientId:client,neonOrg:base.neon_org,projectScope:base.project_scope,
   mode:'preview',profile:'read_only',

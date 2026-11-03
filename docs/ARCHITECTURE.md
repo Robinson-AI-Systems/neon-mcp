@@ -213,3 +213,15 @@ requires canonical text and adds a server-derived, per-pass scope component
 to its new result handle hash. This is not broader Neon provider access,
 production activation or a permission change. R-1/R-2 authorization and
 verified deployed conformance remain separate unfinished work.
+
+### Pending R-2 per-pass RTC budget storage (draft #202, not deployed)
+
+The unmerged draft adds
+`oauth_tokens.rtc_requests_per_minute INTEGER NOT NULL DEFAULT 60`
+via additive `initSchema()` migration. New owner-issued hashed RTC
+passes store an integer cap 1..60, and `getRtcPass` returns it for
+fail-closed `requireRtcPass` admission. The existing PostgreSQL
+`consumeApiBudget` method remains the sole atomic cross-instance
+limiter per hashed pass and UTC minute, independent of app process.
+Old pass rows use default 60. This is a pending migration, not an
+observed production schema change or live source claim.

@@ -1,3 +1,17 @@
+## 2026-11-03 — Persist owner-selected temporary RTC pass rate limit
+
+Decision: the already owner-authorized temporary read_only/preview
+RTC pass may choose its own 1–60 integer calls/minute. Default 60
+retains existing passes, and PostgreSQL's unique key+window atomic
+budget remains the cross-instance source of admission truth. A
+malformed persisted cap is a grant-integrity failure; reject before
+budgeting, do not widen to 60. HTTP 429 Retry-After shows the
+actual remaining minute, never a fictitious fixed 60 seconds. Keep
+owner-only issuance, protected delivery, project-key reach, immediate
+revocation, existing 24h max, area restrictions and no live customer
+permission increase. This source-only R-2 change is not permission
+to enable RTC 2 in production.
+
 
 ### 2026-11-02 — use custom GitHub's real Git/runtime and Vercel's deployment evidence to accelerate Neon
 

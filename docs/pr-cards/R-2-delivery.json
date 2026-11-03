@@ -1,0 +1,53 @@
+{
+  "productionAdded": 387,
+  "productionRemoved": 74,
+  "planComparison": "Partial original R-2, zero original-card completion credit. This extension preserves existing owner-only preview/read_only project pass constraints while implementing a configurable persisted 1..60 minute quota and accurate 429 Retry-After, including two-adapter PostgreSQL concurrency and revocation proof. R-2 still lacks general RTC 2 authenticated write route, full R-1 pass scope, direct-client and provider acceptance, exact deployed provenance and independent development/customer sign-in validation. Existing frozen original eight criteria are unchanged, and no live provider/production resources were altered. All check, 1,108 unit, 129 disposable DB suites passed locally; required exact-head GitHub CI will be rechecked after publishing.",
+  "newEngineering": "Per-pass owner-selected bounded-rate input, validated issuance and exact persisted grant readback; additive oauth_tokens.rtc_requests_per_minute column with legacy default 60; guarded admission using existing cross-instance atomic Postgres minute meter and accurate Retry-After; safe whoami/one-time receipt; negative and two-adapter race/revocation tests, and current card/status/roadmap/owner/architecture/decisions documentation.",
+  "relatedWorkDecision": "R-1 pass issuance and R-3 conformance are dependencies, but each remains its own full subsection with separate proof",
+  "decision": "CONTINUE",
+  "subsections": [
+    {
+      "id": "R-2",
+      "remainingEngineering": [
+        "Finish the frozen original RTC 2 full pass authentication, policy and guarded write routing across all HTTPS doors.",
+        "Complete R-1 permission issuance and R-3 independent RTC conformance through their separate original plan boundaries.",
+        "Obtain independently verified real desktop/mobile OAuth, consent and released/provider behavior only under applicable owner production approvals.",
+        "Reconcile source versus actual deployed release identity and all remaining original R-2 acceptance criteria."
+      ],
+      "criteria": [
+        {
+          "criterion": "Public RTC 2 manifest correct, versioned and truthful with counted tools and no unverified deployment SHA",
+          "evidence": "The R-2 source branch retains RTC 1 until independent RTC 2 deployment/consumer cutover; release and client metadata have source tests, but no evidence of running RTC 2 production or independent revision agreement."
+        },
+        {
+          "criterion": "One authenticated effective pass principal across every HTTPS door, guarded writes, correct error envelopes and separation from MCP OAuth",
+          "evidence": "requireRtcPass authorizes the limited existing read_only preview subset and rejects MCP OAuth bearers, revoked and forged grants. Complete RTC 2 full-authority/write-through and universal HTTPS guard equivalence remain unimplemented and unaccepted."
+        },
+        {
+          "criterion": "Cursor list and 1-based byte-exact bounded result recovery with grant isolation",
+          "evidence": "Existing RTC 2 injected tests cover HMAC-bound discovery cursors and 1-based byte-exact UTF-8 result recovery; real released RTC 2 ingress and all pass scopes unverified."
+        },
+        {
+          "criterion": "Atomic 429 rate budget across two handlers, revocation, expiry and legacy pass handling",
+          "evidence": "New R-2 extension: owner input, issuance and persistent row carry an integer 1..60 requests/minute, default 60 for existing passes. requireRtcPass validates stored cap and calls atomic PostgreSQL consumeApiBudget with exact pass hash; HTTP 429 exposes the remaining minute. Disposable PostgreSQL tests run 8 concurrent requests through two created DB adapters under limit 3: 3 accepted, 5 rejected, and the next call after revocation refused; see tests/db/rtc-passes.test.js. General RTC 2 pass lifecycle, quota scopes and released acceptance remain pending."
+        },
+        {
+          "criterion": "At most thirty real OpenAPI operations, native PKCE metadata and fixed resource identity",
+          "evidence": "Current public RTC 1 OpenAPI remains bounded and a source-only PKCE/handoff exists; native actual client and authenticated RTC 2 advertised contract acceptance remain incomplete."
+        },
+        {
+          "criterion": "Same serving release identity across initialize, whoami, manifest, health and front door",
+          "evidence": "Native initialize, manifest, whoami, health and the public entry have version/SHA metadata source handling, but exact running deployed SHA cross-endpoint and direct client verification have not passed."
+        },
+        {
+          "criterion": "Public mobile OAuth handoff without developer authentication confusion, backward-compatible old clients",
+          "evidence": "Customer-facing mobile OAuth handoff and legacy route source tests exist; independent proof of customer versus backend-only developer grants and normal mobile sign-in is missing."
+        },
+        {
+          "criterion": "Complete fake-provider/disposable-Postgres/two-tenant/direct-client/deployment conformance proof",
+          "evidence": "Full source checks, 1108 unit tests in 156 files, 129 isolated disposable PostgreSQL tests in 48 files pass after the pass-rate extension. Real fake-provider end-to-end RTC 2 write behavior, independent desktop/mobile clients, authorized deployed/provider acceptance and owner release remain missing."
+        }
+      ]
+    }
+  ]
+}
