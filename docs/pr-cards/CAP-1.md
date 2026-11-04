@@ -597,3 +597,18 @@ unavailable methods, with in-process negative permission/replay
 tests only. Frozen original CAP-1 returns `CONTINUE_BUNDLE`
 rather than complete. Exact pushed-head CI and independent
 provider, role, client, deployed/CG acceptance are separate.
+
+## 2026-11-04 merged-main re-census reconciliation
+
+Recovered draft PR #203 against current main
+`186ad2af2931ea379c5c827a0c6a6101d1ecba57`.
+Retained the original frozen acceptance and all actual source dispatch
+evidence. Reconciled the work index to preserve the four newly filed
+PLANNED cards CAP-6…CAP-9 while CAP-1 remains IN_PROGRESS.
+The independent platform lifecycle-unit census in `docs/COMPLETION.md`
+(152 mapped / 73 covered / 4 composed / 75 missing, plus 7
+server-owned missing lifecycle legs) supersedes any implied completeness
+grade based solely on this CAP-1 control-plane SDK inventory (194
+versioned operations). No original CAP-1 or CG credit is earned by
+this ancestry/documentation reconciliation; real provider and independently
+released-client acceptance remain OPEN.

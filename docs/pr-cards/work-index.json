@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-11-03",
+  "updated": "2026-11-04",
   "order": [
     "A",
     "B",
@@ -1300,6 +1300,78 @@
         "CAP-5"
       ],
       "readiness": "WRITE_CARD_AT_START",
+      "ownerInputs": []
+    },
+    {
+      "id": "CAP-6",
+      "title": "Client registration lifecycle completion (owner-facing list/read, update and delete)",
+      "batch": "CAP",
+      "design": "docs/designs/MAXIMUM-AUTHORITY.md",
+      "dependencies": [
+        "CAP-1"
+      ],
+      "card": "docs/pr-cards/CAP-6.md",
+      "status": "PLANNED",
+      "migration": "JIT contract before implementation",
+      "budget": 450,
+      "units": [
+        "CAP-6"
+      ],
+      "readiness": "READY",
+      "ownerInputs": []
+    },
+    {
+      "id": "CAP-7",
+      "title": "Organization unenrollment (remove an enrolled organization)",
+      "batch": "CAP",
+      "design": "docs/designs/MAXIMUM-AUTHORITY.md",
+      "dependencies": [
+        "CAP-1"
+      ],
+      "card": "docs/pr-cards/CAP-7.md",
+      "status": "PLANNED",
+      "migration": "JIT contract before implementation",
+      "budget": 350,
+      "units": [
+        "CAP-7"
+      ],
+      "readiness": "READY",
+      "ownerInputs": []
+    },
+    {
+      "id": "CAP-8",
+      "title": "Stored-record hard delete for revoked rows, and the RTC pass list surface",
+      "batch": "CAP",
+      "design": "docs/designs/MAXIMUM-AUTHORITY.md",
+      "dependencies": [
+        "CAP-1"
+      ],
+      "card": "docs/pr-cards/CAP-8.md",
+      "status": "PLANNED",
+      "migration": "JIT contract before implementation",
+      "budget": 400,
+      "units": [
+        "CAP-8"
+      ],
+      "readiness": "READY",
+      "ownerInputs": []
+    },
+    {
+      "id": "CAP-9",
+      "title": "Consumption and usage reads",
+      "batch": "CAP",
+      "design": "docs/designs/MAXIMUM-AUTHORITY.md",
+      "dependencies": [
+        "CAP-1"
+      ],
+      "card": "docs/pr-cards/CAP-9.md",
+      "status": "PLANNED",
+      "migration": "JIT contract before implementation",
+      "budget": 400,
+      "units": [
+        "CAP-9"
+      ],
+      "readiness": "READY",
       "ownerInputs": []
     }
   ],
