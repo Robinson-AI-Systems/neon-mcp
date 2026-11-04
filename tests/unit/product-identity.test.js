@@ -16,7 +16,7 @@ const response=()=>({
 describe('independent Neon connection product attribution',()=>{
   it('uses one descriptive display name without replacing stable wire identity',async()=>{
     expect(PRODUCT_DISPLAY_NAME).toBe('Neon Unleashed by Robinson AI Systems');
-    expect(PRODUCT_ATTRIBUTION).toMatch(/not an official Neon product or endorsement/);
+    expect(PRODUCT_ATTRIBUTION).toMatch(/not affiliated with, endorsed by, or sponsored by Neon/);
     const r=response();await landing({method:'GET'},r);
     expect(r.body).toContain(PRODUCT_DISPLAY_NAME);
     expect(r.body).toContain(PRODUCT_ATTRIBUTION);

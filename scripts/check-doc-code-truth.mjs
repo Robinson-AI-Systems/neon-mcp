@@ -31,7 +31,7 @@ export function checkDocCodeTruth({ files, exists }) {
   if (!files['README.md'].includes(`${count} tracked original/CAP work cards`)) {
     errors.push('README: original/CAP card count disagrees with index');
   }
-  if (!files['docs/MASTER-ROADMAP.md'].includes('CAP-1–CAP-5') || cap.length !== 5) {
+  if (!files['docs/MASTER-ROADMAP.md'].includes('CAP-1–CAP-9') || cap.length !== 9) {
     errors.push('Master roadmap: CAP backlog incomplete or undocumented');
   }
   if (gates.length !== 6 || !files['docs/COMPLETION-GATES.md'].includes('CG-1')) {

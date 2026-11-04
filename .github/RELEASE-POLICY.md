@@ -34,3 +34,19 @@ If all events are missed, the signed-in owner `christcr2012` can Run workflow on
 branches and invocations fail closed. Recovery retains exact-main CI, ancestry,
 atomic marker and read-back checks and skips if a release already occurred that day.
 No provider production permission, plan, spending limit or preview setting changes.
+
+## Owner-ordered releases (owner ruling, 2026-11-04)
+
+Release caps bind the automatic promoter only. An owner-ordered release is not
+bound by the once-per-Denver-day cap: the signed-in owner `christcr2012` can Run
+workflow on `main` with `owner_release` checked and `expected_main_sha` set to
+the exact 40-character main commit to release. The promoter refuses unless
+remote main still equals that SHA, `live` is an ancestor of main and the
+required checks are green at that exact SHA; it then fast-forwards `live` and
+writes a separate receipt tag `owner-release/<Denver day>-<first 8 of the
+released SHA>` atomically with the branch update, reading both back before
+reporting success. The owner path never creates, modifies or deletes the daily
+`live-promotion/<day>` marker, and a release whose `live` already equals the
+expected SHA succeeds as a recorded no-op with the receipt tag written. This
+exception does not authorize automatic releases at agent batch boundaries, new
+provider production permissions or spending.

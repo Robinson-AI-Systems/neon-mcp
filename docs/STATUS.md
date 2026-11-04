@@ -71,6 +71,25 @@ Full final-head checks/PR self-review are required before merge.
 
 **Open roadmap at this checkpoint:** 58 original and CAP cards: 20 MERGED, 12 IN_PROGRESS, 21 PLANNED, 5 APPROVED; six CG acceptance overlays remain OPEN. Preserve older dated entries as historical evidence; they do not override this current snapshot. Do not manually promote `live`, reveal credentials, relax money-out policy, or declare product completion from an apparently healthy deployment.
 
+### 2026-11-04 — PR #202 recovery and current deployment evidence (source-only)
+Checked Git main 186ad2af2931ea379c5c827a0c6a6101d1ecba57 and live
+ac40ca5ac21d05961b29d724e57c57da1c3c6990; Vercel deployment
+dpl_ZmhMCgTd8t5ratrAywnb3L58DgJp is READY at live SHA and serves
+neon-mcp.vercel.app. Draft PRs #202 and #203 both retain incomplete original
+acceptance and pre-rebase merge conflicts. PR #202 is being reconciled here
+with latest merged main, including #205 product naming, #206 CI shards,
+#208 exceptional owner-release guard and #209 capability re-census.
+The capability census remains 152 mapped / 73 covered / 4 composed /
+75 missing (plus seven internal lifecycle legs); CAP-6…CAP-9 stay PLANNED.
+No independent RTC 2, live provider, direct client, domain or CG pass claimed.
+
+### 2026-11-04 — CI re-optimization: unit and db suites sharded (maintenance, no card credit)
+
+Owner standing rule (2026-11-03): MCP-server CI targets 30 seconds per run with a 1-minute hard cap; any CI over the cap 3 times is re-optimized as a standing work item. Measured before-state from real `ci` runs (GitHub Actions): run wall clocks 50–69s across the last 12 runs, with the `unit (fake Neon)` job the long pole at 51–58s and `db` at 35–36s. Change: the unit suite now runs as a 3-way parallel matrix (`--shard=N/3`) and the db suite as a 2-way parallel matrix (`--shard=N/2`), each leg keeping its 180-second ci-phase budget; `scripts/check-ci-layout.mjs` now pins the shard counts (`matrices: {unit: 3, db: 2}`) so the cohorts cannot silently collapse back to one serial runner. Partition integrity proven by execution locally: unit shards ran 51/51/51 files and 324/407/358 tests = 153 files / 1,089 tests, exactly the unsharded totals; db shards ran 24/24 files and 73/52 tests = 48 files / 125 tests, exactly the unsharded totals. No test deleted, skipped or weakened; `check`, `rtc` and the aggregate `ci` gate are unchanged. Local caveat: this sandbox's PostgreSQL 16.2 bundle ships no `hstore`, so the two extension test files fail identically in the unsharded local baseline and in their shard — CI's full Postgres 17 image is the verdict for those files. Honest floor: per-job fixed cost (checkout, Node setup, `npm ci`) is roughly 15s on GitHub-hosted runners, so sub-30s total runs are not expected from sharding alone; the 1-minute cap is the binding target. Zero application code, zero original-card/CAP/CG acceptance credit; exact-head CI and release-policy on the PR are the merge evidence.
+
+### 2026-11-04 — owner-ordered release route added to the daily release policy (maintenance, no card credit)
+
+Owner ruling (2026-11-04): the once-per-Denver-day release cap binds the automatic promoter only; an owner-ordered release runs the repo's exceptional route with its guards and its own receipt. The Daily live policy workflow gained an `owner_release` dispatch input plus an `expected_main_sha` pin: the invocation requires `christcr2012` as actor and triggering actor, the promoter refuses unless remote main still equals the expected SHA, and then it runs the identical checked promotion as the automatic path (exact-head `ci` + `release-policy` green, fast-forward ancestry, atomic push, read-back) — except it does not stand down on the day's `live-promotion/<day>` marker and instead writes `owner-release/<Denver-day>-<first 8 of the released SHA>` atomically with the live advance. The automatic path is behaviorally unchanged and the owner path never touches the daily marker; a non-owner dispatch with the input set refuses at the invocation gate. Pinned by four new tests in `.github/release/promote-live.test.mjs` (owner decision, invocation gate, workflow surface, and a real-git promotion past an existing daily marker with stale-SHA, failed-check and re-run no-op cases); all eight pre-existing release tests pass unchanged (12/12 locally). Policy text lives in `.github/RELEASE-POLICY.md` → Owner-ordered releases. First use ordered the same day: the owner release of the merged CI-sharding head (PR #206) after the morning's checked promotion had already consumed the day's automatic receipt; the release outcome and read-backs are recorded in the session report.
 ### 2026-11-02 — R-2 agent-visible release/customer entry integration (source-only PR in progress)
 
 Branch \`ai/gpt6/neon-ras-client-entry-release\` started at

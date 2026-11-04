@@ -13,7 +13,7 @@ test('current docs agree with actual endpoint files, card counts, RTC adoption s
 test('a removed route and stale card count independently fail instead of silently passing', () => {
   const gone = checkDocCodeTruth({ files, exists:p => p !== 'api/oauth/revoke.js' && exists(p) });
   assert.ok(gone.some(e => e.includes('api/oauth/revoke.js')));
-  const stale = checkDocCodeTruth({ files:{...files,'README.md':files['README.md'].replace('58 tracked original/CAP','53 tracked original/CAP')}, exists});
+  const stale = checkDocCodeTruth({ files:{...files,'README.md':files['README.md'].replace('62 tracked original/CAP','53 tracked original/CAP')}, exists});
   assert.ok(stale.some(e => e.includes('card count')));
 });
 test('unimplemented RTC 2 is never represented by a documentation-only adoption', () => {
