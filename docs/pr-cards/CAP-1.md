@@ -524,3 +524,28 @@ and policy/readback verification, independent real-provider
 rights, current other-host coverage and released direct-client
 proof. The original frozen whole CAP-1 is still IN_PROGRESS,
 zero completed subsections, all CG overlays OPEN.
+
+## 2026-11-04 — new merged baseline / preserved CAP-1 plan
+
+The owner-approved CAP-1 original acceptance was frozen at
+`50342cc66d5b698334b6952c7f1e0f431eb7c7af` and remains
+unchanged. Before writing this continuation's product source, merged
+the actual current `main` `3fe41498633cbe4f16044d10a9cb6b350814148d`
+(including merged #204 documentation audit, #205 public brand
+identity and #206 parallel CI shards) into the live draft feature
+branch with native Git at `85a428613bc17d388811e357fcdb4c844ab8ece6`.
+All merged baseline features and docs are retained.
+
+The next approved CAP-1 criterion-4 source integration must
+route exactly the **17 official canonical operation names** whose
+installed SDK exports use a different letter case, only through
+method/path-checked aliases, while leaving **14** not-exported
+canonical operations explicitly unsupported before budget or HTTP.
+The existing 159 same-name SDK operations, 4 declared fallback
+stubs, 20 alias names and 194 unique operation IDs are retained
+without pretending that alias spellings are extra provider methods.
+The checked source generator, fake-client positive and failure
+fixtures, universal write/key/budget/replay guards, operation
+coverage report and documentation must be updated together.
+This neither completes original CAP-1 nor passes any live/provider
+or customer-client acceptance gate.

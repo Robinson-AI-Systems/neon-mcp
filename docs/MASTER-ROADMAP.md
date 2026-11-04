@@ -1,3 +1,17 @@
+### 2026-11-04 — CAP-1 continuation after merged PRs #204–#206
+
+Existing draft #203 was brought forward from last verified green
+head `b6de963f90711f06f2ab24ae3a4852070c966a7a` to actual
+merged `main` `3fe41498633cbe4f16044d10a9cb6b350814148d`
+by no-conflict native feature-branch merge
+`85a428613bc17d388811e357fcdb4c844ab8ece6`.
+Preserve merged fleet compliance docs (#204), public identity
+(#205) and CI shard layout (#206). Under the frozen original
+CAP-1 plan, finish runtime routing of 17 official SDK names
+through exact installed case aliases; 14 still absent raw methods
+remain denied. Source-only and live acceptance are distinct;
+no CG gate or original whole-card completion credit yet.
+
 ### 2026-11-03 late — CAP-1 raw SDK case-alias interoperability (draft #203)
 
 The first full test run exposed six regressions because the initial

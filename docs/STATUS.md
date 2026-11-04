@@ -1,5 +1,36 @@
 ## Verified source and deployment checkpoint — 2026-11-01
 
+### 2026-11-04 — merged-source baseline reconciled before CAP-1 continuation
+
+Independently verified **`main` `3fe41498633cbe4f16044d10a9cb6b350814148d`**
+(merged PR #206) and **draft PR #203 head
+`b6de963f90711f06f2ab24ae3a4852070c966a7a`**, with required
+`ci` and `release-policy` successful at the draft head before new
+work. New native feature workspace merged actual `origin/main` by
+normal no-conflict Git merge at
+`85a428613bc17d388811e357fcdb4c844ab8ece6`, not main writes.
+The newly merged baseline includes #204's independent
+`docs/COMPLETION.md` fleet review, #205's public Neon Unleashed by
+Robinson AI Systems brand/source identity, and #206's unit 3-way
+and database 2-way CI shard guard. Preserve all; do not count their
+source as new CAP-1 work or replace with older docs.
+
+The **original frozen CAP-1** remains IN_PROGRESS (zero complete
+subsections, all six CG gates OPEN). This resumed CAP-1 slice
+reconciles **17 official canonical Neon SDK operation IDs** that
+lack same-name installed raw exports but have method/path-verified
+case-only SDK alias exports; **14** remaining official operations
+must stay fail-closed until a separately checked implementation.
+Update the original CAP-1 card, tests, source coverage report and
+live-vs-source evidence as engineering proceeds. Provider
+credentials, roles, paid write authority, real request/readback and
+direct-client release acceptance remain independently unverified.
+No deployment, customer identity, production Neon data, billing,
+provider keys or DNS was modified. Exact new head CI must be
+checked after this continuation is pushed.
+
+
+
 ### 2026-11-03 late — installed SDK raw acronym-case alias reconciliation
 
 The first full test run exposed six regressions because the initial

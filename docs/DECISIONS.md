@@ -1,3 +1,17 @@
+## 2026-11-04 — CAP-1 recover expired scratch via current merged main, not prior chat
+
+Temporary Playground edits expired before publication. The
+durable source-of-truth is the latest verified pushed draft head
+`b6de963f90711f06f2ab24ae3a4852070c966a7a`, original frozen
+CAP-1 acceptance, and actual merged `main`
+`3fe41498633cbe4f16044d10a9cb6b350814148d`.
+Merge current main on a feature branch, reconcile documents
+first, and reconstruct the 17 canonical SDK-name casing aliases
+from generated pinned source metadata, not uncommitted scratch
+or permissive guessing. Never allow the 14 actually missing
+raw methods, invent provider permission, or mark source fixtures
+as live. Preserve PR #206's parallel CI layout.
+
 ## 2026-11-03 — Checked SDK casing aliases do not increase provider authority
 
 Recognize installed raw SDK spelling aliases for canonical
