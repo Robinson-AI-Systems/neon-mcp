@@ -3,7 +3,7 @@ import { createNeonClient } from '@neon/sdk';
 import * as raw from '@neon/sdk/raw';
 import { createHash } from 'node:crypto';
 import { formatNeonError } from './errors.js';
-import { neonMethod } from './operation-methods.js';
+import {neonMethod,neonRawCaseAlias} from './operation-methods.js';
 
 export const NEON_SDK_VERSION = '7.0.1';
 const RETRY_STATUSES = new Set([423, 429]);
@@ -143,9 +143,13 @@ export async function call(client, operationId, params = {}, {
     typeof raw.setProjectMemberRole!=='function';
   const memberDelete = operationId==='removeProjectMemberRole'&&
     typeof raw.removeProjectMemberRole!=='function';
+  // Only an installed raw alias whose exact method and route were checked
+  // against the pinned published operation may serve a canonical name.
+  const rawName=typeof raw[operationId]==='function'
+    ? operationId : neonRawCaseAlias(operationId);
+  const rawHandler=typeof raw[rawName]==='function' ? raw[rawName] : null;
   if (!recoverBranch && !jwksRead && !jwksAdd && !jwksDelete &&
-      !memberList && !memberPut && !memberDelete &&
-      typeof raw[operationId] !== 'function')
+      !memberList && !memberPut && !memberDelete && !rawHandler)
     throw new Error('Neon operation is not supported by the pinned SDK.');
   const trustedMethod = neonMethod(operationId);
   if (!trustedMethod)
@@ -184,7 +188,7 @@ export async function call(client, operationId, params = {}, {
                   ? await client.projectMemberRole(params.path,params.body)
                   : memberDelete
                     ? await client.removeProjectMemberRole(params.path)
-                    : await raw[operationId]({ client: client.sdk, ...params });
+                    : await rawHandler({ client: client.sdk, ...params });
     } catch (error) {
       result = { error };
     }

@@ -147,3 +147,16 @@ preserves existing connection-info behavior without granting
 any extra provider capability. Real Neon and protected-resource
 authorization still govern every operation; this source
 extension remains in a draft PR, not released.
+
+#### Canonical Neon API name compatibility in CAP-1 draft
+
+Some published provider API IDs differ in case from the
+installed SDK's callable names. The source now recognizes
+17 previously unavailable *canonical* names by executing
+a method/path-verified installed alias; four fallback
+operations are unchanged, and 14 methods remain unavailable
+before any provider call. It neither adds provider rights
+nor calls live Neon. Connection and client capabilities
+still depend on the user's real delegated credential,
+tenant/project role and accepted released service. This
+draft feature is not active in production.

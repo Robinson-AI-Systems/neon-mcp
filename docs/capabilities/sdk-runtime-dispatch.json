@@ -13,10 +13,13 @@
   "counts": {
     "total": 194,
     "rawRouted": 159,
+    "aliasRouted": 17,
     "fallbackStubbed": 4,
-    "unavailableRejected": 31,
+    "unavailableRejected": 14,
     "raw403Denied": 159,
-    "rawWrite503Unreplayed": 94
+    "alias403Denied": 17,
+    "rawWrite503Unreplayed": 94,
+    "aliasWrite503Unreplayed": 10
   },
   "rows": [
     {
@@ -64,10 +67,10 @@
       "method": "DELETE",
       "path": "/organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints/{vpc_endpoint_id}",
       "origin": "vendored-openapi",
-      "state": "rejected-before-dispatch",
+      "state": "synthetic-aliased-http-routed",
       "executionEvidence": "in-process fake SDK only; provider not contacted",
-      "synthetic403Denied": false,
-      "synthetic503Unreplayed": false
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
     },
     {
       "operationId": "deleteProject",
@@ -84,10 +87,10 @@
       "method": "DELETE",
       "path": "/projects/{project_id}/auth/domains",
       "origin": "vendored-openapi",
-      "state": "rejected-before-dispatch",
+      "state": "synthetic-aliased-http-routed",
       "executionEvidence": "in-process fake SDK only; provider not contacted",
-      "synthetic403Denied": false,
-      "synthetic503Unreplayed": false
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
     },
     {
       "operationId": "deleteNeonAuthIntegration",
@@ -214,10 +217,10 @@
       "method": "DELETE",
       "path": "/projects/{project_id}/branches/{branch_id}/data-api/{database_name}",
       "origin": "vendored-openapi",
-      "state": "rejected-before-dispatch",
+      "state": "synthetic-aliased-http-routed",
       "executionEvidence": "in-process fake SDK only; provider not contacted",
-      "synthetic403Denied": false,
-      "synthetic503Unreplayed": false
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
     },
     {
       "operationId": "deleteProjectBranchDatabase",
@@ -294,10 +297,10 @@
       "method": "DELETE",
       "path": "/projects/{project_id}/vpc_endpoints/{vpc_endpoint_id}",
       "origin": "vendored-openapi",
-      "state": "rejected-before-dispatch",
+      "state": "synthetic-aliased-http-routed",
       "executionEvidence": "in-process fake SDK only; provider not contacted",
-      "synthetic403Denied": false,
-      "synthetic503Unreplayed": false
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
     },
     {
       "operationId": "listApiKeys",
@@ -414,9 +417,9 @@
       "method": "GET",
       "path": "/organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints",
       "origin": "vendored-openapi",
-      "state": "rejected-before-dispatch",
+      "state": "synthetic-aliased-http-routed",
       "executionEvidence": "in-process fake SDK only; provider not contacted",
-      "synthetic403Denied": false,
+      "synthetic403Denied": true,
       "synthetic503Unreplayed": false
     },
     {
@@ -424,9 +427,9 @@
       "method": "GET",
       "path": "/organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints/{vpc_endpoint_id}",
       "origin": "vendored-openapi",
-      "state": "rejected-before-dispatch",
+      "state": "synthetic-aliased-http-routed",
       "executionEvidence": "in-process fake SDK only; provider not contacted",
-      "synthetic403Denied": false,
+      "synthetic403Denied": true,
       "synthetic503Unreplayed": false
     },
     {
@@ -434,9 +437,9 @@
       "method": "GET",
       "path": "/organizations/{org_id}/vpc/vpc_endpoints",
       "origin": "vendored-openapi",
-      "state": "rejected-before-dispatch",
+      "state": "synthetic-aliased-http-routed",
       "executionEvidence": "in-process fake SDK only; provider not contacted",
-      "synthetic403Denied": false,
+      "synthetic403Denied": true,
       "synthetic503Unreplayed": false
     },
     {
@@ -474,9 +477,9 @@
       "method": "GET",
       "path": "/projects/{project_id}/auth/domains",
       "origin": "vendored-openapi",
-      "state": "rejected-before-dispatch",
+      "state": "synthetic-aliased-http-routed",
       "executionEvidence": "in-process fake SDK only; provider not contacted",
-      "synthetic403Denied": false,
+      "synthetic403Denied": true,
       "synthetic503Unreplayed": false
     },
     {
@@ -714,9 +717,9 @@
       "method": "GET",
       "path": "/projects/{project_id}/branches/{branch_id}/data-api/{database_name}",
       "origin": "vendored-openapi",
-      "state": "rejected-before-dispatch",
+      "state": "synthetic-aliased-http-routed",
       "executionEvidence": "in-process fake SDK only; provider not contacted",
-      "synthetic403Denied": false,
+      "synthetic403Denied": true,
       "synthetic503Unreplayed": false
     },
     {
@@ -844,9 +847,9 @@
       "method": "GET",
       "path": "/projects/{project_id}/connection_uri",
       "origin": "vendored-openapi",
-      "state": "rejected-before-dispatch",
+      "state": "synthetic-aliased-http-routed",
       "executionEvidence": "in-process fake SDK only; provider not contacted",
-      "synthetic403Denied": false,
+      "synthetic403Denied": true,
       "synthetic503Unreplayed": false
     },
     {
@@ -924,9 +927,9 @@
       "method": "GET",
       "path": "/projects/{project_id}/vpc_endpoints",
       "origin": "vendored-openapi",
-      "state": "rejected-before-dispatch",
+      "state": "synthetic-aliased-http-routed",
       "executionEvidence": "in-process fake SDK only; provider not contacted",
-      "synthetic403Denied": false,
+      "synthetic403Denied": true,
       "synthetic503Unreplayed": false
     },
     {
@@ -1104,10 +1107,10 @@
       "method": "PATCH",
       "path": "/projects/{project_id}/branches/{branch_id}/data-api/{database_name}",
       "origin": "vendored-openapi",
-      "state": "rejected-before-dispatch",
+      "state": "synthetic-aliased-http-routed",
       "executionEvidence": "in-process fake SDK only; provider not contacted",
-      "synthetic403Denied": false,
-      "synthetic503Unreplayed": false
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
     },
     {
       "operationId": "updateProjectBranchDatabase",
@@ -1194,10 +1197,10 @@
       "method": "POST",
       "path": "/organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints/{vpc_endpoint_id}",
       "origin": "vendored-openapi",
-      "state": "rejected-before-dispatch",
+      "state": "synthetic-aliased-http-routed",
       "executionEvidence": "in-process fake SDK only; provider not contacted",
-      "synthetic403Denied": false,
-      "synthetic503Unreplayed": false
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
     },
     {
       "operationId": "transferProjectsFromOrgToOrg",
@@ -1224,10 +1227,10 @@
       "method": "POST",
       "path": "/projects/{project_id}/auth/domains",
       "origin": "vendored-openapi",
-      "state": "rejected-before-dispatch",
+      "state": "synthetic-aliased-http-routed",
       "executionEvidence": "in-process fake SDK only; provider not contacted",
-      "synthetic403Denied": false,
-      "synthetic503Unreplayed": false
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
     },
     {
       "operationId": "addNeonAuthOauthProvider",
@@ -1354,10 +1357,10 @@
       "method": "POST",
       "path": "/projects/{project_id}/branches/{branch_id}/data-api/{database_name}",
       "origin": "vendored-openapi",
-      "state": "rejected-before-dispatch",
+      "state": "synthetic-aliased-http-routed",
       "executionEvidence": "in-process fake SDK only; provider not contacted",
-      "synthetic403Denied": false,
-      "synthetic503Unreplayed": false
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
     },
     {
       "operationId": "createProjectBranchDatabase",
@@ -1544,10 +1547,10 @@
       "method": "POST",
       "path": "/projects/{project_id}/vpc_endpoints/{vpc_endpoint_id}",
       "origin": "vendored-openapi",
-      "state": "rejected-before-dispatch",
+      "state": "synthetic-aliased-http-routed",
       "executionEvidence": "in-process fake SDK only; provider not contacted",
-      "synthetic403Denied": false,
-      "synthetic503Unreplayed": false
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
     },
     {
       "operationId": "createNeonAuthIntegration",
@@ -1564,10 +1567,10 @@
       "method": "POST",
       "path": "/projects/auth/keys",
       "origin": "vendored-openapi",
-      "state": "rejected-before-dispatch",
+      "state": "synthetic-aliased-http-routed",
       "executionEvidence": "in-process fake SDK only; provider not contacted",
-      "synthetic403Denied": false,
-      "synthetic503Unreplayed": false
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
     },
     {
       "operationId": "transferNeonAuthProviderProject",

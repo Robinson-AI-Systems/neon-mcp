@@ -1,3 +1,44 @@
+### 2026-11-04 — original CAP-1 universal client alias routing (draft #203)
+
+The installed `@neon/sdk/raw` 7.0.1 exposes 20
+method/path-verified case-only naming aliases. Of 31
+published official Neon SDK operation IDs previously marked
+missing from same-name raw exports, **17** map uniquely to
+the pinned route with a verified installed raw alias, while
+**14** still lack a usable installed generic route.
+
+The production SDK `call()` now maps only these 17 canonical
+IDs through the generated `NEON_CANONICAL_RAW_ALIASES`
+table; the check-time generator actually invokes each
+installed raw alias against a **fake HTTP client** and compares
+its exact canonical method/path. Four explicitly declared
+fallback-only methods retain their existing guarded paths
+instead of being changed to alias dispatch. A checked,
+separate source inventory now distinguishes **159** direct
+raw exports, **17** case-alias exports, **4** guarded fallbacks
+and **14** unavailable generic dispatch IDs, totaling the
+same **194 unique control-plane methods**. The remaining
+three of the 20 alias spellings correspond to guarded fallback
+canonical IDs. Alias spellings are not new API operations.
+
+The regenerated `sdk-runtime-dispatch.json` executes all
+17 canonical aliases against synthetic transport, including
+17 sanitized simulated HTTP 403 results and **10** simulated
+non-GET HTTP 503 outcomes without mutation replay. It still
+checks the original 159 direct routes, four fallback stubs,
+and 14 fail-closed absent routes before provider calls or
+budget. Existing user/org/provider credential entitlement,
+per-tool authorization, permission denial, real readback and
+direct-client checked release remain **unverified**. This
+is not source-to-provider/live acceptance or a complete
+original CAP-1 card. No provider credentials, account,
+live Neon data, billing, DNS or production deployment were
+used or modified.
+
+Original source, registered-handler and live provider/client
+acceptance are not done; CAP-1/2/3 and six CG gates remain
+independent. This stage has zero original whole-item credit.
+
 ### 2026-11-04 — CAP-1 continuation after merged PRs #204–#206
 
 Existing draft #203 was brought forward from last verified green

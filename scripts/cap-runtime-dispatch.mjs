@@ -23,7 +23,7 @@ export async function verifySdkDispatchRows(inventory,{dispatch=call}={}){
   const seen=new Set(),results=[];
   for(const row of rows){
     if(!isObject(row.sdkDispatch)||!isObject(row.wire)||
-       !['raw-export','fallback-declared','no-dispatch-path'].includes(
+       !['raw-export','case-alias-export','fallback-declared','no-dispatch-path'].includes(
          row.sdkDispatch.genericClientState)||
        seen.has(row.operationId))
       throw new TypeError('Malformed or duplicate control-plane runtime proof row');
@@ -53,7 +53,7 @@ export async function verifySdkDispatchRows(inventory,{dispatch=call}={}){
     const state=row.sdkDispatch.genericClientState;
     let synthetic403Denied=false;
     let synthetic503Unreplayed=false;
-    if(state==='raw-export'){
+    if(state==='raw-export'||state==='case-alias-export'){
       if(error||output?.confirmed!==true||seenCalls.length!==1||
          fallbacks.length!==0||budget.count!==1||
          seenCalls[0].method!==row.method.toLowerCase()||
@@ -121,6 +121,7 @@ export async function verifySdkDispatchRows(inventory,{dispatch=call}={}){
       operationId:row.operationId,method:row.method,path:row.path,
       origin:row.origin,
       state:state==='raw-export'?'synthetic-raw-http-routed':
+        state==='case-alias-export'?'synthetic-aliased-http-routed':
         state==='fallback-declared'?'synthetic-fallback-stub-invoked':
           'rejected-before-dispatch',
       // No real request/response or provider authorization was observed.
@@ -131,18 +132,25 @@ export async function verifySdkDispatchRows(inventory,{dispatch=call}={}){
   const counts={
     total:results.length,
     rawRouted:results.filter(x=>x.state==='synthetic-raw-http-routed').length,
+    aliasRouted:results.filter(x=>x.state==='synthetic-aliased-http-routed').length,
     fallbackStubbed:results.filter(x=>x.state==='synthetic-fallback-stub-invoked').length,
     unavailableRejected:results.filter(x=>x.state==='rejected-before-dispatch').length,
-    raw403Denied:results.filter(x=>x.synthetic403Denied).length,
-    rawWrite503Unreplayed:results.filter(x=>x.synthetic503Unreplayed).length
+    raw403Denied:results.filter(x=>x.state==='synthetic-raw-http-routed'&&x.synthetic403Denied).length,
+    alias403Denied:results.filter(x=>x.state==='synthetic-aliased-http-routed'&&x.synthetic403Denied).length,
+    rawWrite503Unreplayed:results.filter(x=>x.state==='synthetic-raw-http-routed'&&x.synthetic503Unreplayed).length,
+    aliasWrite503Unreplayed:results.filter(x=>x.state==='synthetic-aliased-http-routed'&&x.synthetic503Unreplayed).length
   };
   const expected=inventory.sdkDispatch;
   if(counts.total!==expected.total||counts.rawRouted!==expected.rawExport||
+     counts.aliasRouted!==expected.aliasedExport||
      counts.fallbackStubbed!==expected.fallbackOnly||
      counts.unavailableRejected!==expected.withoutGenericDispatch||
      counts.raw403Denied!==expected.rawExport||
+     counts.alias403Denied!==expected.aliasedExport||
      counts.rawWrite503Unreplayed!==results.filter(x=>
-       x.state==='synthetic-raw-http-routed'&&x.method!=='GET').length)
+       x.state==='synthetic-raw-http-routed'&&x.method!=='GET').length||
+     counts.aliasWrite503Unreplayed!==results.filter(x=>
+       x.state==='synthetic-aliased-http-routed'&&x.method!=='GET').length)
     throw new TypeError('Checked SDK static/dynamic dispatch denominator mismatch');
   return {schemaVersion:1,source:'installed @neon/sdk/raw with in-memory fake HTTP client',
     sdkVersion:expected.version,

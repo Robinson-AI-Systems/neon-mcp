@@ -77,18 +77,21 @@ describe('CAP-1 installed runtime fake HTTP operation evidence (not provider acc
  it('routes every callable installed SDK raw operation through one fake method/path and budget',async()=>{
    const result=await verifySdkDispatchRows(generateCoverage().inventory);
    expect(result.counts).toEqual({total:194,rawRouted:159,
-     fallbackStubbed:4,unavailableRejected:31,raw403Denied:159,
-     rawWrite503Unreplayed:94});
+     aliasRouted:17,fallbackStubbed:4,unavailableRejected:14,raw403Denied:159,alias403Denied:17,
+     rawWrite503Unreplayed:94,aliasWrite503Unreplayed:10});
    expect(result.verifiedLiveProvider).toBe(false);
    expect(result.verifiedCredentials).toBe(false);
    expect(result.verifiedGuards).toBe(false);
    expect(result.verifiedRequestResponse).toBe(false);
    expect(result.rows.filter(x=>x.state==='synthetic-raw-http-routed')).toHaveLength(159);
-   expect(result.rows.filter(x=>x.synthetic403Denied)).toHaveLength(159);
-   expect(result.rows.filter(x=>x.synthetic503Unreplayed)).toHaveLength(94);
+   expect(result.rows.filter(x=>x.state==='synthetic-aliased-http-routed')).toHaveLength(17);
+   expect(result.rows.filter(x=>x.state==='rejected-before-dispatch')).toHaveLength(14);
+   expect(result.rows.filter(x=>x.synthetic403Denied)).toHaveLength(176);
+   expect(result.rows.filter(x=>x.synthetic503Unreplayed)).toHaveLength(104);
    expect(result.rows.filter(x=>x.synthetic503Unreplayed&&x.method==='GET'))
      .toHaveLength(0);
-   expect(result.rows.filter(x=>x.synthetic403Denied&&x.state!=='synthetic-raw-http-routed'))
+   expect(result.rows.filter(x=>x.synthetic403Denied&&
+     !['synthetic-raw-http-routed','synthetic-aliased-http-routed'].includes(x.state)))
      .toHaveLength(0);
    expect(generateCoverage().inventory.rows.every(x=>
      !x.source.tests.includes('tests/unit/cap-runtime-dispatch.test.js'))).toBe(true);
@@ -100,11 +103,11 @@ describe('CAP-1 installed runtime fake HTTP operation evidence (not provider acc
    const rows=generateCoverage().inventory;
    const missing=rows.rows.filter(x=>x.sdkDispatch?.genericClientState===
      'no-dispatch-path');
-   expect(missing).toHaveLength(31);
+   expect(missing).toHaveLength(14);
    expect(missing.some(x=>x.operationId==='listNeonAuthOAuthClients')).toBe(true);
    const output=await verifySdkDispatchRows(rows);
    expect(output.rows.filter(x=>x.state==='rejected-before-dispatch'))
-     .toHaveLength(31);
+     .toHaveLength(14);
    expect(output.rows.filter(x=>x.state==='synthetic-fallback-stub-invoked')
      .map(x=>x.operationId).sort())
      .toEqual(['addProjectJWKS','deleteProjectJWKS',
@@ -129,8 +132,8 @@ describe('CAP-1 installed runtime fake HTTP operation evidence (not provider acc
  it('keeps generated source proof immutable and never upgrades real/live capability',async()=>{
    const outcome=await runSdkDispatch('--check');
    expect(outcome).toMatchObject({checked:true,total:194,rawRouted:159,
-     fallbackStubbed:4,unavailableRejected:31,raw403Denied:159,
-     rawWrite503Unreplayed:94,realProviderVerified:false});
+     aliasRouted:17,fallbackStubbed:4,unavailableRejected:14,raw403Denied:159,alias403Denied:17,
+     rawWrite503Unreplayed:94,aliasWrite503Unreplayed:10,realProviderVerified:false});
    const stored=JSON.parse(readFileSync('docs/capabilities/sdk-runtime-dispatch.json','utf8'));
    expect(stored.verifiedLiveProvider).toBe(false);
    expect(stored.rows).toHaveLength(194);

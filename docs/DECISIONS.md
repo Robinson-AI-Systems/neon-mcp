@@ -1,3 +1,20 @@
+## 2026-11-04 — Only independently pinned SDK aliases resolve canonical dispatch
+
+The Neon official operation ID is a provider *reference*,
+not necessarily the exact installed SDK raw export spelling.
+When one canonical ID has a single installed case-only export
+with exact pinned method/path verified by in-process SDK HTTP
+invocation, the generic client may route that canonical ID via
+the generated map. A declared fallback has priority over
+case aliases, and unknown/unmatched published IDs must remain
+unsupported before provider HTTP or request budget.
+Reconcile **17** additional canonical alias routes, leaving
+**14** unresolved (of the 31 formerly missing by exact name);
+never infer entitlements or count a second operation from
+20 alias spellings. Existing mutating write/key/budget/
+non-replay and owner resource permissions are unchanged.
+No actual provider access or live release is authorized.
+
 ## 2026-11-04 — CAP-1 recover expired scratch via current merged main, not prior chat
 
 Temporary Playground edits expired before publication. The

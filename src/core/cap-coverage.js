@@ -160,12 +160,21 @@ function sdkDispatchSources(names,source,version){
 }
 function sdkDispatchFor(id,proof){
   const rawExport=proof.names.has(id),fallback=proof.fallbacks.get(id)??null;
-  return {sdkVersion:proof.version,rawExport,declaredFallback:fallback,
-    genericClientState:rawExport?'raw-export':fallback?'fallback-declared':'no-dispatch-path'};
+  // Only case-only candidates: installed raw aliases are independently
+  // checked for exact canonical wire method/path by the runtime generator.
+  const candidates=rawExport?[]:[...proof.names].filter(name=>
+    name!==id&&name.toLowerCase()===id.toLowerCase());
+  if(candidates.length>1)throw new TypeError('Ambiguous SDK operation casing for '+id);
+  const rawAlias=candidates[0]??null;
+  return {sdkVersion:proof.version,rawExport,declaredFallback:fallback,rawAlias,
+    genericClientState:rawExport?'raw-export':fallback?'fallback-declared':
+      rawAlias?'case-alias-export':'no-dispatch-path'};
 }
 function sdkDispatchTotals(rows){
   const api=rows.filter(x=>x.origin!=='documented-advanced-product');
   return {total:api.length,rawExport:api.filter(x=>x.sdkDispatch.rawExport).length,
+    aliasedExport:api.filter(x=>x.sdkDispatch.genericClientState===
+      'case-alias-export').length,
     fallbackOnly:api.filter(x=>!x.sdkDispatch.rawExport&&
       x.sdkDispatch.declaredFallback).length,
     withoutGenericDispatch:api.filter(x=>x.sdkDispatch.genericClientState===
@@ -483,8 +492,9 @@ export function formatCapabilityGapReport(inventory){
     '- Separately documented advanced product workflows: '+inventory.externalSurfaces.count+
       '; different protocols, hosts and unpinned wire interfaces are not control-plane parity.',
     '- SDK `@neon/sdk/raw` static coverage: '+inventory.sdkDispatch.rawExport+
-      ' of '+inventory.sdkDispatch.total+' control-plane operation IDs have a callable export, '+
-      inventory.sdkDispatch.fallbackOnly+' lack that export but have an explicitly declared fallback, and '+
+      ' of '+inventory.sdkDispatch.total+' control-plane operation IDs have a same-name export, '+
+      inventory.sdkDispatch.aliasedExport+' have checked case-only SDK raw aliases, '+
+      inventory.sdkDispatch.fallbackOnly+' use an explicitly declared guarded fallback, and '+
       inventory.sdkDispatch.withoutGenericDispatch+' have no generic client dispatch route in the checked source.',
     '- Export/fallback declarations are source evidence only, NOT verified API requests, credentials, guards, retries or live behavior.',
     '- Exact declared request/response/parameter/auth wire contracts: '+

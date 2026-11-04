@@ -194,3 +194,21 @@ operations; 12 alias writes remain protected by the write/key
 gate and 8 reads continue to work. No provider credentials,
 network, account or production data used. The original 31
 canonical dispatch gaps still need reconciliation.
+
+### 2026-11-04 — recovered canonical alias source execution (no provider)
+
+The previous uncommitted 17-alias experiment was lost when
+its Playground workspace expired. GitHub draft #203 kept
+the last remote-green `b6de963` commit. A clean native
+Git workspace merged newest `main` `3fe4149` (PR
+#206 after #204/#205) at `85a4286`. Documentation
+and the original CAP-1 continuation plan were committed
+before the new runtime edit. Rebuilt the 17-case alias
+map from the checked installed raw SDK export list and
+published canonical records; 20 alias spellings are
+matched to method/path with fake transport. The runtime
+evidence gate proves canonical-name fake dispatch for 17
+IDs, leaves 14 unexported IDs without a generic route
+and keeps four fallback-only implementations. Simulated
+403/503 cases do not authorize or verify real provider
+rights; no credential, network or customer tenant used.

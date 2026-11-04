@@ -218,6 +218,33 @@ export const NEON_OPERATION_METHODS=Object.freeze({
   "updateProjectEndpoint":"PATCH",
   "updateSnapshot":"PATCH",
 });
+// Canonical provider operation IDs mapped to fake-wire-verified SDK raw export casing.
+export const NEON_CANONICAL_RAW_ALIASES=Object.freeze({
+  "addNeonAuthDomainToRedirectURIWhitelist":"addNeonAuthDomainToRedirectUriWhitelist",
+  "addProjectJWKS":"addProjectJwks",
+  "assignOrganizationVPCEndpoint":"assignOrganizationVpcEndpoint",
+  "assignProjectVPCEndpoint":"assignProjectVpcEndpoint",
+  "createNeonAuthProviderSDKKeys":"createNeonAuthProviderSdkKeys",
+  "createProjectBranchDataAPI":"createProjectBranchDataApi",
+  "deleteNeonAuthDomainFromRedirectURIWhitelist":"deleteNeonAuthDomainFromRedirectUriWhitelist",
+  "deleteOrganizationVPCEndpoint":"deleteOrganizationVpcEndpoint",
+  "deleteProjectBranchDataAPI":"deleteProjectBranchDataApi",
+  "deleteProjectJWKS":"deleteProjectJwks",
+  "deleteProjectVPCEndpoint":"deleteProjectVpcEndpoint",
+  "getConnectionURI":"getConnectionUri",
+  "getOrganizationVPCEndpointDetails":"getOrganizationVpcEndpointDetails",
+  "getProjectBranchDataAPI":"getProjectBranchDataApi",
+  "getProjectJWKS":"getProjectJwks",
+  "listNeonAuthRedirectURIWhitelistDomains":"listNeonAuthRedirectUriWhitelistDomains",
+  "listOrganizationVPCEndpoints":"listOrganizationVpcEndpoints",
+  "listOrganizationVPCEndpointsAllRegions":"listOrganizationVpcEndpointsAllRegions",
+  "listProjectVPCEndpoints":"listProjectVpcEndpoints",
+  "updateProjectBranchDataAPI":"updateProjectBranchDataApi",
+});
+export function neonRawCaseAlias(operationId){
+  return Object.hasOwn(NEON_CANONICAL_RAW_ALIASES,operationId)
+    ? NEON_CANONICAL_RAW_ALIASES[operationId] : null;
+}
 export function neonMethod(operationId){
   return Object.hasOwn(NEON_OPERATION_METHODS,operationId)
     ? NEON_OPERATION_METHODS[operationId] : null;

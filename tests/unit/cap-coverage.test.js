@@ -65,7 +65,7 @@ describe('CAP-1 complete but conservative operation inventory',()=>{
       x.name==='limit'&&x.in==='query')).toBe(true);
 
     expect(map.sdkDispatch).toEqual({version:'7.0.1',total:194,
-      rawExport:159,fallbackOnly:4,withoutGenericDispatch:31});
+      rawExport:159,aliasedExport:17,fallbackOnly:4,withoutGenericDispatch:14});
     expect(validate(map)).toEqual({
       controlPlane:163,currentControlPlane:193,newSdkOperations:31,
       pinnedOnly:1,advanced:15,total:209});
@@ -276,7 +276,14 @@ describe('CAP-1 complete but conservative operation inventory',()=>{
   it('pins the installed SDK raw export and actual guarded fallback source separately',()=>{
     const map=inventory();
     const absent=map.rows.filter(x=>x.sdkDispatch?.genericClientState==='no-dispatch-path');
-    expect(absent).toHaveLength(31);
+    expect(absent).toHaveLength(14);
+    const aliases=map.rows.filter(x=>
+      x.sdkDispatch?.genericClientState==='case-alias-export');
+    expect(aliases).toHaveLength(17);
+    expect(aliases.find(x=>x.operationId==='getConnectionURI')?.sdkDispatch.rawAlias)
+      .toBe('getConnectionUri');
+    expect(aliases.find(x=>x.operationId==='createProjectBranchDataAPI')?.sdkDispatch.rawAlias)
+      .toBe('createProjectBranchDataApi');
     expect(absent.some(x=>x.operationId==='listNeonAuthOAuthClients')).toBe(true);
     const fake=structuredClone(map);
     fake.rows.find(x=>x.operationId==='listNeonAuthOAuthClients').sdkDispatch.rawExport=true;
@@ -335,7 +342,7 @@ describe('CAP-1 complete but conservative operation inventory',()=>{
     expect(report).toContain('193 unique operations');
     expect(report).toContain('31 SDK-only methods');
     expect(report).toContain('17 shared method/path contracts differ');
-    expect(report).toContain('31 have no generic client dispatch route');
+    expect(report).toContain('14 have no generic client dispatch route');
     expect(report).toContain('1 pinned-only methods');
     expect(report).not.toMatch(/[0-9]+(?:\.[0-9]+)?%/);
   });
@@ -344,6 +351,6 @@ describe('CAP-1 complete but conservative operation inventory',()=>{
       checked:true,api:163,sdk:193,sdkNew:31,sdkOld:1,advanced:15,
       tools:registry.tools.length,
       sdkDispatch:{version:'7.0.1',total:194,rawExport:159,
-        fallbackOnly:4,withoutGenericDispatch:31}});
+        fallbackOnly:4,aliasedExport:17,withoutGenericDispatch:14}});
   });
 });

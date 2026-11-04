@@ -271,3 +271,20 @@ Unrecognized installed exports or changed alias wire contracts
 fail source checks. All mutation aliases require caller write:true
 and request key before budget/HTTP. This prevents breaking valid
 connection-info readers without granting additional provider rights.
+
+### Canonical Neon operation ID → verified installed alias (draft CAP-1)
+
+The checked `NEON_CANONICAL_RAW_ALIASES` table maps the
+official API casing (such as `getConnectionURI`) to its
+installed SDK raw function casing (such as `getConnectionUri`)
+only after actual SDK wrapper execution against fake transport
+proves the **same exact HTTP verb and path** as the pinned
+source record. Among 194 unique API operations, 159
+use same-name exports, 17 use canonical-name case aliases,
+four have separately declared fallbacks, and 14 lack
+generic dispatch. A raw alias cannot bypass the
+`NEON_OPERATION_METHODS` write:true and request-key gate,
+shared durable API-budget admission or no-blind-replay logic.
+The generated 20 case-only spellings are not independent
+provider permissions, and the 15 advanced non-control-plane
+workflows retain separate API/host proof requirements.
