@@ -137,3 +137,17 @@ recoverable and verify remote head before any terminal result.
 The new synthetic verifier now checks 159 sanitized 403 denials and
 94 ambiguous 503 write failures without replay, using fake provider
 responses only. No native-client or real-provider acceptance is claimed.
+
+### 2026-11-03 evening — real source bug caught by synthetic CAP-1 execution
+
+An injected 503 on `updateProject` followed by the old generic
+branch recovery lookup returned an unrelated branch annotated
+with the same `rtc_request` and incorrectly marked the project
+update `confirmed:true`. This was independently reproduced in
+the actual repository `call()` with the installed SDK wrappers
+and no network. The repair scopes annotation-based success
+to `createProjectBranch` and preserves unknown outcome for
+all other mutation types. Follow-on regression ensures a
+legitimate branch-create annotation still confirms through a
+bounded read-only lookup. All evidence is source/fake-provider,
+not actual Neon customer deployment or live provider readback.

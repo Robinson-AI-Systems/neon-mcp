@@ -1,5 +1,28 @@
 ## Verified source and deployment checkpoint — 2026-11-01
 
+### 2026-11-03 evening — CAP-1 genuine uncertain-write recovery correction
+
+A new **source repro** on unmerged draft #203 showed that a
+simulated failed project-update PATCH could be falsely confirmed
+from another branch carrying the same request-key annotation.
+`src/neon/client.js` now restricts branch-annotation recovery
+to the exact `createProjectBranch` operation; other uncertain
+mutations remain `unknown_outcome`, `confirmed:null` with no
+replay or unrelated branch lookup. Focused SDK regression tests
+prove the cross-operation mismatch denial and legitimate
+branch-create annotation recovery. All fake-provider only:
+no production data, real customer/project, database grant or
+live Neon API call. This repairs shared source correctness
+but does not count CAP-1 original completion, CG acceptance,
+or a released version. The completed local `npm run check` passed, all **1,111
+unit tests** in 155 files and **125 real disposable PostgreSQL
+tests** in 48 files passed. The generated per-operation source test
+map was refreshed. Required GitHub `ci` and `release-policy`
+must be observed on the exact new pushed head; previously green
+PR checks do not count.
+
+
+
 ### 2026-11-03 evening — recovered CAP-1 synthetic 403/503 negative routes (draft #203)
 
 Recovered from a later expired Playground workspace: the original

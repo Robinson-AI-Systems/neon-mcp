@@ -52,6 +52,62 @@ describe('A-4a single official Neon API client and safe retries', () => {
     expect(result.error.code).toBe('unknown_outcome');
     expect(fake.calls.map(x=>x.operationId)).toEqual(['createProjectBranch', 'listProjectBranches']);
   });
+  it('cannot falsely confirm an unrelated failed project write using matching branch annotations',async()=>{
+    const key='cap1_shared_test_request_key_123';
+    const sent=[];let budgetCalls=0;
+    const sdk={
+      patch:async opts=>{
+        sent.push({method:'patch',url:opts.url});
+        return {error:{status:503,message:'FAKE_PRIVATE'},
+          response:{status:503,headers:{get:()=>null}}};
+      },
+      get:async opts=>{
+        sent.push({method:'get',url:opts.url});
+        return {data:{branches:[{id:'br_unrelated',name:'unrelated'}],
+          annotations:{br_unrelated:{value:{rtc_request:key}}}},
+          response:{status:200}};
+      }
+    };
+    const c={sdk,orgId:fx.IDS.org,sleep:async()=>{},
+      budget:{consume:async()=>{budgetCalls++;return {allowed:true}}}};
+    const result=await call(c,'updateProject',{
+      path:{project_id:fx.IDS.project},body:{project:{name:'desired'}}},
+    {write:true,requestKey:key});
+    expect(result).toMatchObject({
+      confirmed:null,error:{code:'unknown_outcome',status:503}});
+    expect(result).not.toHaveProperty('recovered');
+    expect(sent).toEqual([{method:'patch',url:'/projects/{project_id}'}]);
+    expect(budgetCalls).toBe(1);
+    expect(JSON.stringify(result)).not.toContain('FAKE_PRIVATE');
+  });
+  it('preserves explicit tagged branch-create recovery without replaying creation',async()=>{
+    const key='cap1_branch_create_unique_request_123';const sent=[];
+    const sdk={
+      post:async opts=>{
+        sent.push({method:'post',url:opts.url});
+        return {error:{status:503,message:'FAKE_PRIVATE'},
+          response:{status:503,headers:{get:()=>null}}};
+      },
+      get:async opts=>{
+        sent.push({method:'get',url:opts.url});
+        return {data:{branches:[{id:'br_exact',name:'dev'}],
+          annotations:{br_exact:{value:{rtc_request:key}}}},
+          response:{status:200}};
+      }
+    };
+    const c={sdk,orgId:fx.IDS.org,sleep:async()=>{},
+      budget:{consume:async()=>({allowed:true})}};
+    const result=await call(c,'createProjectBranch',{
+      path:{project_id:fx.IDS.project},
+      body:{branch:{parent_id:fx.IDS.main,name:'dev'}}},
+    {write:true,requestKey:key});
+    expect(result).toMatchObject({
+      confirmed:true,recovered:true,data:{id:'br_exact',name:'dev'}});
+    expect(sent).toEqual([
+      {method:'post',url:'/projects/{project_id}/branches'},
+      {method:'get',url:'/projects/{project_id}/branches'}
+    ]);
+  });
   it('requires write idempotency keys and rejects non-existent raw SDK methods', async () => {
     const fake = makeFakeNeon();
     const {client:c} = client(fake);

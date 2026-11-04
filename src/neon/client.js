@@ -181,7 +181,12 @@ export async function call(client, operationId, params = {}, {
       continue;
     }
     if (write && isUncertain(error)) {
-      const existing = await findExisting(client, { projectId: params.path?.project_id, requestKey: key });
+      // A branch annotation can prove only the *branch-create* operation
+      // that wrote it. Never let an unrelated, caller-reused request key
+      // falsely confirm a project/role/security/deletion mutation.
+      const existing = operationId === 'createProjectBranch'
+        ? await findExisting(client, {projectId: params.path?.project_id, requestKey: key})
+        : null;
       return existing
         ? { data: existing, confirmed: true, recovered: true }
         : { error: { code: 'unknown_outcome', status: status || null }, confirmed: null };

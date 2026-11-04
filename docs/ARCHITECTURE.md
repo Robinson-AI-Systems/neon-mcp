@@ -213,3 +213,16 @@ delegated OAuth and product-scoped credentials. Each status has provider
 citation where any support/refusal is asserted, or stays unknown. Newer-product
 methods remain separately sourced and are not folded into the older OpenAPI
 denominator. No new runtime authority or provider API calls are introduced.
+
+### Ambiguous Neon mutation recovery — operation-scoped (CAP-1 source correction)
+
+`src/neon/client.js` handles an unknown result for writes as pending,
+without replay. Only an ambiguous `createProjectBranch` operation
+may consult the branch annotation `rtc_request` to corroborate the
+same request key. The generic client must not consult or reuse
+branch annotations as successful readback for any other write.
+Non-branch mutations retain their own operation-specific B-1
+readback and durable-audit policy, and unknown outcome must not
+be changed to success by unrelated resource metadata.
+This rule was proven with fake Neon SDK only; actual provider
+acceptance is still separately required.

@@ -1,3 +1,17 @@
+## 2026-11-03 evening — ambiguous-write readback must be operation-specific
+
+A generic request key is not proof that *every* Neon mutation was
+applied. Branch annotation `rtc_request` is relevant to exact
+`createProjectBranch` recovery only; it cannot confirm an unrelated
+project update, delete, role/security, billing, ownership or other
+provider write. An ambiguous provider response for any other
+operation remains `unknown_outcome` with `confirmed:null`
+unless that operation has a separately independently verified
+readback under the existing B-1 lifecycle. Never blindly retry
+these writes or leak provider errors. This source correction
+does not grant extra user/provider authority or approve a
+live resource operation.
+
 ## 2026-11-03 evening — installed SDK synthetic denials must be separate from real rights
 
 The CAP-1 raw SDK synthetic method/path proof also asserts one

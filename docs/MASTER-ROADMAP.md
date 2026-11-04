@@ -1,3 +1,16 @@
+### 2026-11-03 evening — CAP-1 shared client uncertain-write recovery safety fix (draft #203)
+
+A reproducible fake provider failure showed that `call()` could
+confirm a failed project update by reusing a matching annotation
+from an unrelated branch. Restrict branch-annotation recovery to
+`createProjectBranch`; every other ambiguous write remains
+unconfirmed, pending owner/provider readback by its real
+operation-specific policy, and is not replayed. Targeted
+regressions verify cross-operation refusal and intended branch
+recovery. This is real shared-client source safety engineering
+against original CAP-1 criterion 4, but does not complete per-operation
+permissions, independent readback or any CG gate.
+
 ### 2026-11-03 evening — CAP-1 installed raw SDK simulated denial/replay proof (draft #203)
 
 The CAP-1 checked synthetic method/path artifact now independently

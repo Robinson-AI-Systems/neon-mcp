@@ -367,3 +367,46 @@ complete original subsections, with real provider permissions,
 guarded handler-specific operation proof and independently released
 client acceptance still open. Exact-head GitHub CI must be verified
 only after the new commit is pushed.
+
+## 2026-11-03 evening — fix unscoped ambiguous-write recovery (source safety regression)
+
+While exercising the runtime synthetic 503 paths, an additional direct
+`src/neon/client.js` reproduction found a **real source logic
+defect**: `call()` attempted `findExisting()` branch-annotation
+recovery after *every* uncertain write. A failed `updateProject`
+with an explicitly reused request key could mistakenly return
+`confirmed:true, recovered:true` for an unrelated branch carrying
+the same `rtc_request` annotation. The synthetic reproduction
+returned a fake branch record after a failed project PATCH; no Neon
+account/resource was contacted.
+
+The source now allows annotation-based recovery **only for
+`createProjectBranch`**, the one operation whose request key is
+represented by a branch's annotation. All other uncertain write
+operations retain `confirmed:null`, `unknown_outcome`, non-replay,
+and their existing durable B-1 policy/audit semantics. They no longer
+read an unrelated project branch inventory in an attempt to confirm
+their outcome. A new `tests/unit/neon-client.test.js` fixture
+proves an unrelated matching annotation cannot confirm a failed
+project update, makes no additional branch GET, consumes one budget,
+and does not leak a fake provider secret. Another regression
+verifies legitimate exact-tagged branch creation still performs
+the one read-only recovery check and never resends creation.
+
+This is a **shared A-4/Neon API client correctness correction within
+existing CAP-1 criterion 4**, not a completed standalone new
+subsection or proof that all provider writes have independently
+validated readbacks. The existing original CAP-1 frozen plan, all
+relevant authorization/production gates and independent live
+verification remain unchanged.
+
+**Final local verification of the operation-scoped recovery fix
+(2026-11-03):** `npm run check` PASS; **1,111/1,111**
+unit tests in 155 files PASS; **125/125** real isolated
+disposable PostgreSQL tests in 48 files PASS. The generated
+209-row CAP-1 source index was regenerated because the new
+`updateProject` behavioral regression adds one legitimate
+source test attribution; it remains *source* evidence rather
+than provider authorization. Original frozen CAP-1 plan still
+returns CONTINUE (zero original subsections complete); exact
+GitHub PR head CI must be verified after publication.
