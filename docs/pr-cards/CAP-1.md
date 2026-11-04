@@ -318,3 +318,52 @@ runtime artifact has 194 synthetic-control-plane rows, and no
 provider network call or credential was used. GitHub exact-head
 required CI still must be verified after publication; CAP-1 is
 not accepted or merged.
+
+## 2026-11-03 evening — fail-closed installed-SDK synthetic HTTP denials (draft #203)
+
+Following the prior 194-operation source-only wrapper snapshot, the
+automated **real installed SDK + in-memory fake HTTP** verifier now
+asserts a simulated HTTP **403** through each of all **159** raw-export
+operations. Each must return the sanitized `not_authorized` result,
+consume exactly one synthetic rate budget, make exactly one matching
+method/path request, **not retry**, and never echo an injected fake
+secret. This is not a real permission or credential test.
+
+The same verifier simulates an ambiguous **503** on all **94**
+raw-export non-GET operations. Their production `call()` wrapper must
+return `unknown_outcome` with `confirmed:null` rather than claim
+success, reveal a fake secret or replay the mutation. At most one
+bounded read-only project-branch recovery lookup is permitted; this
+is not proof of a provider's actual idempotency or true readback.
+
+The checked `sdk-runtime-dispatch.json` now includes per-operation
+`synthetic403Denied` and `synthetic503Unreplayed` and count totals,
+never `verifiedGuards`, `verifiedCredentials`, `verifiedReadback`,
+`verifiedRequestResponse` or `verifiedLiveProvider`. Its 4 declared
+fallback-only stubs and 31 unsupported generic paths retain their
+separate evidence limits. Normal `npm run check` enforces drift, and
+the existing CAP-1 focused tests assert these extra outcomes.
+
+**Process recovery:** the earlier Playground session ended with an
+uncommitted local 403/503 experiment, and its old workspace was
+subsequently unavailable. This extension was reimplemented in a fresh
+native Git feature workspace from independently verified remote
+branch head `9da94bc6fb7e55ce39a51d9c8887efd16453b38a`;
+unpublished scratch results were **not** treated as commit or CI proof.
+The correct operational remedy is checkpointing tested changes with
+native Git and verifying the remote head before any session ends.
+All seven original CAP-1 acceptance criteria remain incomplete;
+source-denial fixtures are not independently authorized real-provider
+operations, user guard proof, paid/production rights, or deployed
+client acceptance. No new account or production resource was touched.
+
+**Final local verification of this negative-route extension
+(2026-11-03):** `npm run check` PASS, **1,109 / 1,109**
+unit tests (155 files) PASS, **125 / 125** disposable-PostgreSQL
+tests (48 files) PASS. All 159 synthetic 403 and 94 synthetic 503
+cases were re-exercised by the normal check and focused unit suite.
+The original frozen CAP-1 acceptance is still **CONTINUE**, zero
+complete original subsections, with real provider permissions,
+guarded handler-specific operation proof and independently released
+client acceptance still open. Exact-head GitHub CI must be verified
+only after the new commit is pushed.

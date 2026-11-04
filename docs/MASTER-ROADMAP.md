@@ -1,3 +1,15 @@
+### 2026-11-03 evening — CAP-1 installed raw SDK simulated denial/replay proof (draft #203)
+
+The CAP-1 checked synthetic method/path artifact now independently
+exercises one-call sanitized 403 denials on 159 installed raw wrapper
+operations and ambiguous HTTP 503 on 94 write operations without
+mutation replay. Counts remain explicitly *in-process fake SDK*
+evidence, not actual credential authority, provider behavior,
+per-registered-tool policy/readback or real-client acceptance. CAP-1
+and all downstream dependent CAP-2/CAP-3/CG completion remain open,
+with no new subsection or source-to-live credit. This extension is
+under the existing original frozen CAP-1 plan.
+
 ### 2026-11-03 — synthetic runtime-checkable installed SDK call paths (draft #203)
 
 CAP-1's source inventory now has a deterministic **real wrapper

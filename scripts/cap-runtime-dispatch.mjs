@@ -51,6 +51,8 @@ export async function verifySdkDispatchRows(inventory,{dispatch=call}={}){
         {write:row.method!=='GET',requestKey:key});
     }catch(e){error=e}
     const state=row.sdkDispatch.genericClientState;
+    let synthetic403Denied=false;
+    let synthetic503Unreplayed=false;
     if(state==='raw-export'){
       if(error||output?.confirmed!==true||seenCalls.length!==1||
          fallbacks.length!==0||budget.count!==1||
@@ -58,6 +60,51 @@ export async function verifySdkDispatchRows(inventory,{dispatch=call}={}){
          seenCalls[0].url!==row.path||
          JSON.stringify(seenCalls[0].path??{})!==JSON.stringify(path))
         throw new TypeError('Installed SDK fake HTTP method/path/budget mismatch: '+row.operationId);
+      // Real installed SDK wrapper, simulated 403, no provider grant or
+      // external network. A denial must be sanitized and never retried.
+      const refusals=[];let refusalBudget=0;
+      const denySdk=Object.fromEntries(methods.map(method=>[method,
+        async opts=>{
+          refusals.push({method,url:opts.url});
+          return {error:{status:403,message:'CAP1_FAKE_SECRET_MUST_NOT_APPEAR'},
+            response:{status:403,headers:{get:()=>null}}};
+        }]));
+      const denial=await dispatch({...client,sdk:denySdk,
+        budget:{consume:async()=>{refusalBudget++;return {allowed:true}}}},
+        row.operationId,params,{write:row.method!=='GET',requestKey:key});
+      if(denial?.confirmed!==false||denial?.error?.code!=='not_authorized'||
+         denial?.error?.status!==403||
+         JSON.stringify(denial).includes('CAP1_FAKE_SECRET_MUST_NOT_APPEAR')||
+         refusals.length!==1||refusalBudget!==1||
+         refusals[0].method!==row.method.toLowerCase()||
+         refusals[0].url!==row.path)
+        throw new TypeError('Installed SDK synthetic 403 denial leaked or retried: '+row.operationId);
+      synthetic403Denied=true;
+      if(row.method!=='GET'){
+        // Simulate an ambiguous server failure. Only one mutating request
+        // may go out; the wrapper may do its bounded read-only recovery
+        // lookup but must never silently repeat the write.
+        const uncertainCalls=[];let uncertainBudget=0;
+        const uncertainSdk=Object.fromEntries(methods.map(method=>[method,
+          async opts=>{
+            uncertainCalls.push({method,url:opts.url});
+            return method==='get'?
+              {data:{branches:[],operations:[]},response:{status:200}}:
+              {error:{status:503,message:'CAP1_FAKE_SECRET_MUST_NOT_APPEAR'},
+                response:{status:503,headers:{get:()=>null}}};
+          }]));
+        const uncertain=await dispatch({...client,sdk:uncertainSdk,
+          budget:{consume:async()=>{uncertainBudget++;return {allowed:true}}}},
+          row.operationId,params,{write:true,requestKey:key});
+        const writes=uncertainCalls.filter(x=>x.method!=='get');
+        if(uncertain?.confirmed!==null||uncertain?.error?.code!=='unknown_outcome'||
+           JSON.stringify(uncertain).includes('CAP1_FAKE_SECRET_MUST_NOT_APPEAR')||
+           writes.length!==1||writes[0].method!==row.method.toLowerCase()||
+           writes[0].url!==row.path||
+           uncertainCalls.length>2||uncertainBudget<1||uncertainBudget>2)
+          throw new TypeError('Installed SDK synthetic 503 write replay/leak: '+row.operationId);
+        synthetic503Unreplayed=true;
+      }
     }else if(state==='fallback-declared'){
       const method=fallbackMethod[row.sdkDispatch.declaredFallback?.flag];
       if(!method||error||output?.confirmed!==true||seenCalls.length!==0||
@@ -77,19 +124,25 @@ export async function verifySdkDispatchRows(inventory,{dispatch=call}={}){
         state==='fallback-declared'?'synthetic-fallback-stub-invoked':
           'rejected-before-dispatch',
       // No real request/response or provider authorization was observed.
-      executionEvidence:'in-process fake SDK only; provider not contacted'
+      executionEvidence:'in-process fake SDK only; provider not contacted',
+      synthetic403Denied,synthetic503Unreplayed
     });
   }
   const counts={
     total:results.length,
     rawRouted:results.filter(x=>x.state==='synthetic-raw-http-routed').length,
     fallbackStubbed:results.filter(x=>x.state==='synthetic-fallback-stub-invoked').length,
-    unavailableRejected:results.filter(x=>x.state==='rejected-before-dispatch').length
+    unavailableRejected:results.filter(x=>x.state==='rejected-before-dispatch').length,
+    raw403Denied:results.filter(x=>x.synthetic403Denied).length,
+    rawWrite503Unreplayed:results.filter(x=>x.synthetic503Unreplayed).length
   };
   const expected=inventory.sdkDispatch;
   if(counts.total!==expected.total||counts.rawRouted!==expected.rawExport||
      counts.fallbackStubbed!==expected.fallbackOnly||
-     counts.unavailableRejected!==expected.withoutGenericDispatch)
+     counts.unavailableRejected!==expected.withoutGenericDispatch||
+     counts.raw403Denied!==expected.rawExport||
+     counts.rawWrite503Unreplayed!==results.filter(x=>
+       x.state==='synthetic-raw-http-routed'&&x.method!=='GET').length)
     throw new TypeError('Checked SDK static/dynamic dispatch denominator mismatch');
   return {schemaVersion:1,source:'installed @neon/sdk/raw with in-memory fake HTTP client',
     sdkVersion:expected.version,

@@ -120,3 +120,20 @@ source were not modified. These checks are local integration of
 runtime-generated wrappers with *fake transport only*, and must
 not be recast as provider permission, policy-guard, readback,
 SDK endpoint responsiveness, or live client success.
+
+### 2026-11-03 evening — Playground uncommitted-session expiry and negative fixture recovery
+
+The prior CAP-1 Playground job was no longer active on reconnection:
+the native Git workspace status returned `No active workspace belongs
+to this connection.` Remote PR #203 retained its previously verified
+`9da94bc6fb7e55ce39a51d9c8887efd16453b38a` source/check head.
+Consequently the prior uncommitted 403/503 scratch was not represented
+as saved work. A fresh native feature workspace was attached, the
+simulation was regenerated and run against the installed real SDK.
+This is a tool/session durability limitation, not evidence of failed
+GitHub remote push or dropped prior commits. Keep checkpoints
+recoverable and verify remote head before any terminal result.
+
+The new synthetic verifier now checks 159 sanitized 403 denials and
+94 ambiguous 503 write failures without replay, using fake provider
+responses only. No native-client or real-provider acceptance is claimed.

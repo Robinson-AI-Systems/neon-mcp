@@ -1,5 +1,28 @@
 ## Verified source and deployment checkpoint — 2026-11-01
 
+### 2026-11-03 evening — recovered CAP-1 synthetic 403/503 negative routes (draft #203)
+
+Recovered from a later expired Playground workspace: the original
+draft's checked branch head stayed `9da94bc6fb7e55ce39a51d9c8887efd16453b38a`
+with both required checks green, but uncommitted local experiments
+were **not retained**. A new native Git/Playground workspace is
+testing the installed SDK's sanitized one-call HTTP 403 denial
+through **159** raw exports and non-replayed ambiguous HTTP 503
+through **94** non-GET exports; 4 fallback-only stubs and 31
+unavailable generic routes remain separately classified.
+All tests use synthetic in-memory provider transports and fake
+identities. CAP-1 remains unmerged and IN_PROGRESS, zero original
+subsection or CG gate completion credit. Latest verified remote
+main/live baseline remains #201
+`69c46b71b6ab35e483f42338618146d1a377d074`.
+After recovery, local `npm run check` passed, all
+**1,109 unit tests** in 155 files passed, and all **125 isolated
+disposable-PostgreSQL tests** in 48 files passed. The refreshed exact
+PR-head GitHub CI and release-policy checks remain to be observed
+after this extension is pushed; older green checks do not count.
+
+
+
 ### 2026-11-03 — actual installed SDK generic dispatch checked with fake HTTP (draft #203)
 
 The CAP-1 source stage now runs **159** actual installed SDK raw

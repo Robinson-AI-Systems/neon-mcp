@@ -1,3 +1,18 @@
+## 2026-11-03 evening — installed SDK synthetic denials must be separate from real rights
+
+The CAP-1 raw SDK synthetic method/path proof also asserts one
+sanitized and non-retried 403 per available installed SDK wrapper,
+and for write operations an ambiguous 503 produces `confirmed:null`
+without replaying the mutation. A bounded independent read-only
+recovery lookup is allowed. These are **fake transport** checks,
+not Neon provider permission, customer auth, write guard policy,
+real response/readback, idempotency, or production acceptance.
+Keep runtime 403/503 counters in a separate checked source artifact;
+never promote them to verified real-provider reach. When Playground
+expires between turns, recover from the independently verified remote
+feature head and repeat local checks; do not describe uncommitted
+experiments as pushed work.
+
 ## 2026-11-03 — distinguish installed SDK fake HTTP execution from real provider proof
 
 A source operation reference, available SDK function, captured

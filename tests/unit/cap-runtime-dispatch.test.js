@@ -7,12 +7,19 @@ describe('CAP-1 installed runtime fake HTTP operation evidence (not provider acc
  it('routes every callable installed SDK raw operation through one fake method/path and budget',async()=>{
    const result=await verifySdkDispatchRows(generateCoverage().inventory);
    expect(result.counts).toEqual({total:194,rawRouted:159,
-     fallbackStubbed:4,unavailableRejected:31});
+     fallbackStubbed:4,unavailableRejected:31,raw403Denied:159,
+     rawWrite503Unreplayed:94});
    expect(result.verifiedLiveProvider).toBe(false);
    expect(result.verifiedCredentials).toBe(false);
    expect(result.verifiedGuards).toBe(false);
    expect(result.verifiedRequestResponse).toBe(false);
    expect(result.rows.filter(x=>x.state==='synthetic-raw-http-routed')).toHaveLength(159);
+   expect(result.rows.filter(x=>x.synthetic403Denied)).toHaveLength(159);
+   expect(result.rows.filter(x=>x.synthetic503Unreplayed)).toHaveLength(94);
+   expect(result.rows.filter(x=>x.synthetic503Unreplayed&&x.method==='GET'))
+     .toHaveLength(0);
+   expect(result.rows.filter(x=>x.synthetic403Denied&&x.state!=='synthetic-raw-http-routed'))
+     .toHaveLength(0);
    expect(generateCoverage().inventory.rows.every(x=>
      !x.source.tests.includes('tests/unit/cap-runtime-dispatch.test.js'))).toBe(true);
    expect(result.rows.every(x=>x.executionEvidence.includes('fake SDK only'))).toBe(true);
@@ -52,7 +59,8 @@ describe('CAP-1 installed runtime fake HTTP operation evidence (not provider acc
  it('keeps generated source proof immutable and never upgrades real/live capability',async()=>{
    const outcome=await runSdkDispatch('--check');
    expect(outcome).toMatchObject({checked:true,total:194,rawRouted:159,
-     fallbackStubbed:4,unavailableRejected:31,realProviderVerified:false});
+     fallbackStubbed:4,unavailableRejected:31,raw403Denied:159,
+     rawWrite503Unreplayed:94,realProviderVerified:false});
    const stored=JSON.parse(readFileSync('docs/capabilities/sdk-runtime-dispatch.json','utf8'));
    expect(stored.verifiedLiveProvider).toBe(false);
    expect(stored.rows).toHaveLength(194);
