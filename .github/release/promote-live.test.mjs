@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { checksPass, checksFailed, decide, denverDay, run } from './promote-live.mjs';
+import { authorizedReleaseInvocation, checksPass, checksFailed, decide, denverDay, ownerReleaseInvocation, run } from './promote-live.mjs';
 import { execFileSync } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -103,6 +103,44 @@ test('real atomic git promotion, read-back and second same-day update refusal', 
   }
 });
 
+test('owner release bypasses the daily cap only for the exact expected SHA', () => {
+  const state = { main, live, ancestor: true, green: true, alreadyToday: true,
+    ownerRelease: true, expectedMainSha: main };
+  assert.equal(decide(state), 'promote');
+  assert.equal(decide({ ...state, alreadyToday: false }), 'promote');
+  assert.equal(decide({ ...state, live: main }), 'skip');
+  assert.throws(() => decide({ ...state, expectedMainSha: live }), /expected main SHA/);
+  assert.throws(() => decide({ ...state, expectedMainSha: 'not-a-sha' }), /expected main SHA/);
+  assert.throws(() => decide({ ...state, expectedMainSha: undefined }), /expected main SHA/);
+  // The owner path never overrides diverged history or non-green checks.
+  assert.throws(() => decide({ ...state, ancestor: false }), /rewrite/);
+  assert.throws(() => decide({ ...state, green: false }), /checks/);
+});
+test('owner release invocation requires the owner pair and a well-formed expected SHA', () => {
+  const env = { GITHUB_REPOSITORY: 'example/repo', GITHUB_REF: 'refs/heads/main',
+    GITHUB_EVENT_NAME: 'workflow_dispatch', GITHUB_ACTOR: 'christcr2012', GITHUB_TRIGGERING_ACTOR: 'christcr2012',
+    OWNER_RELEASE: 'true', EXPECTED_MAIN_SHA: main, GH_TOKEN: 'fixture' };
+  const time = new Date('2026-10-14T11:00:00Z');
+  assert.equal(ownerReleaseInvocation(env), true);
+  assert.equal(authorizedReleaseInvocation(env, 'example/repo', time), true);
+  // No recovery flag or elapsed-midnight condition applies to the owner path.
+  assert.equal(authorizedReleaseInvocation(env, 'example/repo', new Date('2026-10-14T06:00:00Z')), true);
+  for (const change of [{ GITHUB_ACTOR: 'other' }, { GITHUB_TRIGGERING_ACTOR: 'other' },
+    { GITHUB_TRIGGERING_ACTOR: undefined }, { OWNER_RELEASE: 'false' }, { OWNER_RELEASE: undefined },
+    { EXPECTED_MAIN_SHA: undefined }, { EXPECTED_MAIN_SHA: '' }, { EXPECTED_MAIN_SHA: 'abc' },
+    { EXPECTED_MAIN_SHA: 'A'.repeat(40) }, { EXPECTED_MAIN_SHA: 'g'.repeat(40) },
+    { EXPECTED_MAIN_SHA: main.slice(0, 39) }, { GITHUB_EVENT_NAME: 'push' },
+    { GITHUB_REF: 'refs/heads/live' }, { GITHUB_REPOSITORY: 'other/repo' }, { GH_TOKEN: '' }])
+    assert.equal(authorizedReleaseInvocation({ ...env, ...change }, 'example/repo', time), false);
+});
+test('workflow exposes the owner release inputs and passes them to the promoter', () => {
+  const workflow = readFileSync(new URL('../workflows/daily-live.yml', import.meta.url), 'utf8');
+  assert.match(workflow, /owner_release:/);
+  assert.match(workflow, /expected_main_sha:/);
+  assert.match(workflow, /inputs\.owner_release == true/);
+  assert.match(workflow, /OWNER_RELEASE:/);
+  assert.match(workflow, /EXPECTED_MAIN_SHA:/);
+});
 test('bounded schedule backups preserve midnight, daily marker and owner recovery', () => {
   const workflow = readFileSync(new URL('../workflows/daily-live.yml', import.meta.url), 'utf8');
   const crons = [...workflow.matchAll(/cron: '([^']+)'/g)].map(m => m[1]);
@@ -130,6 +168,75 @@ test('recovery requires explicit owner, expected repository, main and elapsed mi
   assert.equal(authorizedReleaseInvocation(env, 'example/repo', new Date('2026-12-14T07:00:00Z')), false);
   assert.equal(authorizedReleaseInvocation(env, 'example/repo', new Date('2026-12-14T07:01:00Z')), true);
   assert.equal(authorizedReleaseInvocation({ ...env, GITHUB_EVENT_NAME: 'schedule' }, 'example/repo', time), true);
+});
+
+test('owner release promotes past the daily marker with its own receipt, exact-SHA and check guards', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'release-owner-'));
+  const cwd = process.cwd(), fetchBefore = globalThis.fetch;
+  const keys = ['GITHUB_REPOSITORY', 'GITHUB_REF', 'GITHUB_EVENT_NAME', 'GH_TOKEN',
+    'GITHUB_ACTOR', 'GITHUB_TRIGGERING_ACTOR', 'OWNER_RELEASE', 'EXPECTED_MAIN_SHA', 'RECOVER_MISSED_DAILY'];
+  const before = keys.map(k => process.env[k]);
+  const git = (...args) => execFileSync('git', args, { cwd: dir, encoding: 'utf8', stdio: 'pipe' }).trim();
+  const remoteTag = name => git('ls-remote', 'origin', 'refs/tags/' + name).split(/\s+/)[0];
+  const remoteLive = () => git('ls-remote', 'origin', 'refs/heads/live').split(/\s+/)[0];
+  try {
+    git('init', '--bare', join(dir, 'remote.git'));
+    git('init', '-b', 'main');
+    git('config', 'user.email', 'test@example.invalid');
+    git('config', 'user.name', 'Release test');
+    git('remote', 'add', 'origin', join(dir, 'remote.git'));
+    writeFileSync(join(dir, 'fixture.txt'), 'first');
+    git('add', 'fixture.txt'); git('commit', '-m', 'first');
+    git('push', 'origin', 'main', 'main:live');
+    const original = git('rev-parse', 'HEAD');
+    writeFileSync(join(dir, 'fixture.txt'), 'second');
+    git('commit', '-am', 'second'); git('push', 'origin', 'main');
+    const second = git('rev-parse', 'HEAD');
+    // Today's automatic release already happened: the daily marker exists.
+    git('push', 'origin', original + ':refs/tags/live-promotion/' + denverDay());
+    const marker = 'live-promotion/' + denverDay();
+    const receiptFor = sha => 'owner-release/' + denverDay() + '-' + sha.slice(0, 8);
+    Object.assign(process.env, { GITHUB_REPOSITORY: 'example/repo', GITHUB_REF: 'refs/heads/main',
+      GITHUB_EVENT_NAME: 'workflow_dispatch', GITHUB_ACTOR: 'christcr2012',
+      GITHUB_TRIGGERING_ACTOR: 'christcr2012', OWNER_RELEASE: 'true',
+      EXPECTED_MAIN_SHA: second, GH_TOKEN: 'fixture' });
+    delete process.env.RECOVER_MISSED_DAILY;
+    process.chdir(dir);
+    const policy = { repository: 'example/repo', requiredChecks: ['ci'] };
+    let checkSha = second, checkConclusion = 'success';
+    globalThis.fetch = async () => ({ ok: true, json: async () => ({ total_count: 1,
+      check_runs: [{ ...good, head_sha: checkSha, conclusion: checkConclusion }] }) });
+    // Promotes despite the daily marker; marker untouched; receipt written.
+    await run(policy, { attempts: 1 });
+    assert.equal(remoteLive(), second);
+    assert.equal(remoteTag(receiptFor(second)), second);
+    assert.equal(remoteTag(marker), original);
+    // Advance main; a stale expected SHA is refused and live does not move.
+    writeFileSync(join(dir, 'fixture.txt'), 'third');
+    git('commit', '-am', 'third'); git('push', 'origin', 'main');
+    const third = git('rev-parse', 'HEAD');
+    await assert.rejects(run(policy, { attempts: 1 }), /Owner release refused/);
+    assert.equal(remoteLive(), second);
+    // A failed required check at the exact expected SHA is a hard refusal.
+    process.env.EXPECTED_MAIN_SHA = third; checkSha = third; checkConclusion = 'failure';
+    await assert.rejects(run(policy, { attempts: 1 }), /check failed/);
+    assert.equal(remoteLive(), second);
+    // Green exact-head checks promote the new head with a new receipt.
+    checkConclusion = 'success';
+    await run(policy, { attempts: 1 });
+    assert.equal(remoteLive(), third);
+    assert.equal(remoteTag(receiptFor(third)), third);
+    assert.equal(remoteTag(marker), original);
+    // Re-running at the released head is a recorded no-op, not an error.
+    await run(policy, { attempts: 1 });
+    assert.equal(remoteLive(), third);
+    assert.equal(remoteTag(receiptFor(third)), third);
+    assert.equal(remoteTag(marker), original);
+  } finally {
+    process.chdir(cwd); globalThis.fetch = fetchBefore;
+    keys.forEach((key, i) => { if (before[i] === undefined) delete process.env[key]; else process.env[key] = before[i]; });
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test('successful no-change run records a receipt and suppresses later development', async () => {
