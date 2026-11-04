@@ -34,6 +34,14 @@ secure additional credential lifecycle; advanced functional gaps; independent pr
 Existing acceptance and unfinished original cards retain priority. Named-tool counts
 do not establish provider API coverage. No runtime grant or release change is implied.
 
+Re-census filing (2026-11-04): the capability re-census (see `docs/COMPLETION.md`
+row 15 and its re-census record) filed four further PLANNED units — CAP-6 (client
+registration lifecycle completion), CAP-7 (organization unenrollment), CAP-8
+(stored-record hard delete + RTC pass list) and CAP-9 (consumption and usage
+reads) — so the indexed CAP backlog now runs CAP-1–CAP-9. CAP-6…CAP-9 are
+census-filed plans, not owner-approved builds; no runtime grant or release change
+is implied by them either.
+
 
 # MASTER ROADMAP — the one handoff
 
