@@ -151,3 +151,18 @@ all other mutation types. Follow-on regression ensures a
 legitimate branch-create annotation still confirms through a
 bounded read-only lookup. All evidence is source/fake-provider,
 not actual Neon customer deployment or live provider readback.
+
+### 2026-11-03 evening — budget truthiness bug reproduced and corrected
+
+Executed `src/neon/client.js:call()` against a fake SDK:
+`budget.consume()` returning undefined still invoked the SDK.
+Executed `makeNeonBudget()` against a fake DB returning
+`{allowed:'false'}`: it reported `allowed:true`.
+The corrected client and DB adapter require explicit boolean
+admission, return sanitized service unavailable on malformed
+or thrown budgets, and refuse the provider request. Focused
+source tests cover nine malformed values, thrown fake DB
+exception, ordinary 429 and bounded retry-after. The real
+Postgres atomic budget concurrency suite remains the separate
+data-plane verification. No live Neon account/provider data
+or production budget was altered.

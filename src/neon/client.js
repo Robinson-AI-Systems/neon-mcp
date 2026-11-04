@@ -98,12 +98,23 @@ function safeError(error, fallbackStatus) {
   });
 }
 async function takeBudget(client) {
-  const result = await client.budget.consume({ orgId: client.orgId, calls: 1 });
-  if (result?.allowed === false || result === false) {
-    return { code: 'rate_limited', status: 429,
-      retryAfterSeconds: Number(result?.retryAfterSeconds) || 60 };
+  let result;
+  try {
+    result = await client.budget.consume({ orgId: client.orgId, calls: 1 });
+  } catch {
+    // No provider request, and never return a raw DB error to a client.
+    return {code:'budget_unavailable',status:503};
   }
-  return null;
+  if (result === true || result?.allowed === true) return null;
+  if (result?.allowed === false || result === false) {
+    const seconds=Number(result?.retryAfterSeconds);
+    return {code:'rate_limited',status:429,
+      retryAfterSeconds:Number.isFinite(seconds)?
+        Math.min(60,Math.max(1,Math.ceil(seconds))):60};
+  }
+  // Unknown persisted/read-only budget shape is a service fault, not
+  // an implicit allowed:true or an invented ordinary rate exhaustion.
+  return {code:'budget_unavailable',status:503};
 }
 function isUncertain(error) {
   const status = Number(error?.status ?? error?.response?.status);

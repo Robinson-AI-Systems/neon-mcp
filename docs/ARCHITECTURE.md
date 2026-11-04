@@ -226,3 +226,18 @@ readback and durable-audit policy, and unknown outcome must not
 be changed to success by unrelated resource metadata.
 This rule was proven with fake Neon SDK only; actual provider
 acceptance is still separately required.
+
+### Fail-closed durable shared Neon API request admission (CAP-1 draft #203)
+
+Before every Neon API request, the scoped key's `makeNeonBudget`
+adapter uses the existing atomic DB minute ledger. Only a
+literal database `allowed:true/false` is valid: missing,
+string/numeric and malformed results throw, never authorize.
+The installed SDK wrapper `call()` independently requires
+a literal `true` or object `allowed:true` before any HTTP.
+Unknown/throwing budgets produce a sanitized
+`budget_unavailable` 503, explicit denials 429 with bounded
+Retry-After; no provider request or credential value is exposed
+by an unconfirmed/invalid admission. These source tests do not
+prove the actual provider's current permission entitlements,
+metering or live production acceptance.

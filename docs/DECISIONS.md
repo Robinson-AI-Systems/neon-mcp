@@ -1,3 +1,18 @@
+## 2026-11-03 evening — durable budget admission is explicitly boolean and fail closed
+
+A budget function's existence is not admission. The shared Neon
+SDK client may send a provider API request only after a literal
+`true` or `{allowed:true}`; the persistent shared
+`makeNeonBudget` must receive a literal boolean `allowed`
+from its atomic DB counter. Missing, malformed, string/numeric,
+null, or thrown ledger responses must refuse before HTTP, with
+nonsecret 503 for unknown/unavailable budget. Explicit
+`allowed:false` stays a 429 with finite 1–60-second remaining
+window. Never classify unknown ledger state as rate exhausted
+or silently permit customer-facing/provider side effects.
+This developer-source safety fix changes no owner
+permissions, live account policy, production data or billing.
+
 ## 2026-11-03 evening — ambiguous-write readback must be operation-specific
 
 A generic request key is not proof that *every* Neon mutation was

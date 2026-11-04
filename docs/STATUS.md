@@ -1,5 +1,27 @@
 ## Verified source and deployment checkpoint — 2026-11-01
 
+### 2026-11-03 evening — fail-closed atomic shared Neon API budget (draft #203)
+
+A fake-provider source reproduction proved missing budget
+admission could allow an SDK call, and a persisted response
+`{allowed:'false'}` could be treated as permission. Source-only
+correction in `src/neon/budget.js` and `src/neon/client.js`
+requires explicit boolean admission at both boundaries; malformed
+or thrown ledger results return generic 503 before provider calls,
+and genuine deny remains bounded 429. Unit test negatives
+prove no fake network requests or private exception leaks.
+No production database/paid Neon attempt, account state,
+permission, deployment or issuer was modified.
+This is real client-source safety engineering, **not** full
+CAP-1 accepted authority, real provider denial/readback,
+released-client approval, or a CG gate. Final local `npm run check` passed, all **1,114 unit
+tests** in 155 files and **125 isolated PostgreSQL tests** in
+48 files passed. Required exact-head GitHub `ci` and
+`release-policy` remain to be verified after this extension
+is published; no earlier head can be treated as the new one.
+
+
+
 ### 2026-11-03 evening — CAP-1 genuine uncertain-write recovery correction
 
 A new **source repro** on unmerged draft #203 showed that a

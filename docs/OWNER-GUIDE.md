@@ -112,3 +112,14 @@ explicitly marked unverified; ambiguous writes are never automatically replayed.
 **Source implementation does not mean live acceptance.** No real account key or
 project was mutated during developer tests. Release and owner/provider testing remain
 separate repository obligations.
+
+### Provider API budget unavailable (CAP-1 source fix, pending draft #203)
+
+The server only calls the Neon API after its shared database
+rate ledger explicitly admits the request. If the ledger is
+unavailable or corrupt, the request fails with a generic 503
+rather than treating an unknown count as permission. An
+ordinary exhausted per-minute budget is a distinct 429 with
+a bounded retry delay. This change is **not** live until the
+approved PR is merged, released and verified; it does not
+relax owner-controlled production or protected-resource rules.

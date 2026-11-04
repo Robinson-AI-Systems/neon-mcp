@@ -410,3 +410,44 @@ source test attribution; it remains *source* evidence rather
 than provider authorization. Original frozen CAP-1 plan still
 returns CONTINUE (zero original subsections complete); exact
 GitHub PR head CI must be verified after publication.
+
+## 2026-11-03 evening — atomic Neon API-budget admission must fail closed
+
+CAP-1's live wrapper/permission-route test pass revealed another
+**actual source security boundary defect**, reproduced entirely against
+in-memory fake database/provider adapters: an injected
+`budget.consume()` result `undefined` allowed a real Neon SDK wrapper
+to call its (fake) provider, and `makeNeonBudget()` treated a database
+`{allowed:'false'}` string as truthy `allowed:true`. A missing,
+malformed or corrupted durable rate-limit admission must never allow
+a billable/protected provider API attempt.
+
+Both layers now require an explicitly **boolean** admission: the
+persistent adapter accepts `result.allowed === true/false` and throws
+on malformed database responses; the common `call()` adapter admits
+only a literal `true` or `{allowed:true}`. It refuses a malformed
+response or thrown budget exception with a nonsecret
+`budget_unavailable` (503) **before** sending any SDK request.
+Explicit `false` retains ordinary 429 rate-limited behavior with
+bounded 1–60-second Retry-After, including malformed/infinite
+duration safeguards. Existing genuine PostgreSQL atomic minute
+counters and provider-rate ceilings remain unchanged.
+
+`tests/unit/neon-budget.test.js` refuses nine corrupted persistent
+admission forms; `tests/unit/neon-client.test.js` refuses those
+forms, masks a thrown fake private database exception, proves zero
+provider requests, accepts explicit literal `true` as the previous
+compatibility path, and bounds malformed 429 delays. These are
+synthetic security-boundary tests plus the existing isolated
+real-PostgreSQL budget tests, not independently executed paid,
+production, end-user permission or live-provider actions.
+This preserves CAP-1's original guarded-dispatch criterion;
+**zero original CAP-1 subsections and CG gates have completed**.
+
+**Final source-only budget-boundary verification (2026-11-03):**
+`npm run check` PASS; all **1,114/1,114 unit tests** (155 files)
+PASS; all **125/125 isolated real PostgreSQL tests** (48 files)
+PASS. The regenerated source inventory includes the new
+per-operation test attribution. The original full CAP-1 is still
+`CONTINUE` with zero original subsection completion credit;
+the new PR head must independently pass GitHub CI/release checks.

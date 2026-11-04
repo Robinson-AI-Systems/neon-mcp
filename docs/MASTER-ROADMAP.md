@@ -1,3 +1,16 @@
+### 2026-11-03 evening — CAP-1 shared API budget admission source fix (draft #203)
+
+In-process actual SDK client tests exposed a missing-admission
+and truthy-string bypass in the shared durable API budget. Both
+the database adapter and common wrapper now accept only explicit
+boolean admission, fail closed before any provider HTTP on
+malformed/unavailable ledger responses, and keep genuine 429
+distinct from generic storage-fault 503. The existing PostgreSQL
+concurrent budget counter and user permission/spend safeguards
+remain unchanged. This advances existing CAP-1 criterion 4
+without declaring authorization, live/provider or original-card
+acceptance complete.
+
 ### 2026-11-03 evening — CAP-1 shared client uncertain-write recovery safety fix (draft #203)
 
 A reproducible fake provider failure showed that `call()` could

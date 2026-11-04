@@ -40,6 +40,39 @@ describe('A-4a single official Neon API client and safe retries', () => {
     expect(result.error.retryAfterSeconds).toBe(30);
     expect(fake.calls).toHaveLength(0);
   });
+  it('requires explicit true admission, refuses malformed/throwing budget before provider HTTP',async()=>{
+    const fake=makeFakeNeon();
+    for(const bad of [undefined,null,{},'true',{allowed:'true'},
+      {allowed:'false'},{allowed:1},{allowed:0},{allowed:null}]){
+      const {client:c}=client(fake,{async consume(){return bad;}});
+      const result=await call(c,'getProject',{path:{project_id:fx.IDS.project}});
+      expect(result).toMatchObject({
+        confirmed:false,error:{code:'budget_unavailable',status:503}});
+      expect(fake.calls).toHaveLength(0);
+    }
+    const {client:unavailable}=client(fake,{
+      async consume(){throw new Error('FAKE_PRIVATE_DB_ERROR');}});
+    const refused=await call(unavailable,'getProject',{
+      path:{project_id:fx.IDS.project}});
+    expect(refused).toMatchObject({
+      confirmed:false,error:{code:'budget_unavailable',status:503}});
+    expect(JSON.stringify(refused)).not.toContain('FAKE_PRIVATE_DB_ERROR');
+    expect(fake.calls).toHaveLength(0);
+  });
+  it('keeps explicit budget denials as bounded 429 and accepts explicit boolean true',async()=>{
+    const fake=makeFakeNeon();
+    fake.when('getProject').resolves(fx.responses.getProject());
+    const {client:allowed}=client(fake,{async consume(){return true;}});
+    const success=await call(allowed,'getProject',{path:{project_id:fx.IDS.project}});
+    expect(success.confirmed).toBe(true);
+    expect(fake.calls).toHaveLength(1);
+    const badWait=client(fake,{async consume(){
+      return {allowed:false,retryAfterSeconds:Infinity};}}).client;
+    const denied=await call(badWait,'getProject',{path:{project_id:fx.IDS.project}});
+    expect(denied).toMatchObject({
+      confirmed:false,error:{code:'rate_limited',status:429,retryAfterSeconds:60}});
+    expect(fake.calls).toHaveLength(1);
+  });
   it('never resends an uncertain create and only reads annotations to investigate', async () => {
     const fake = makeFakeNeon();
     fake.when('createProjectBranch').rejects(500, { code: '', message: 'unknown result' });
