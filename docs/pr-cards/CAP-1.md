@@ -612,3 +612,21 @@ grade based solely on this CAP-1 control-plane SDK inventory (194
 versioned operations). No original CAP-1 or CG credit is earned by
 this ancestry/documentation reconciliation; real provider and independently
 released-client acceptance remain OPEN.
+
+### 2026-11-04 recovered-branch source verification
+
+Native Git reconciled branch with merged main
+`186ad2af2931ea379c5c827a0c6a6101d1ecba57` on the existing
+draft PR #203. The source inventory remains 194 **control-plane
+operation IDs** (159 direct SDK calls, 17 aliases, 4 guarded fallbacks,
+14 without generic routes), distinct from the independent 152 mapped
+platform lifecycle units in `docs/COMPLETION.md`. The original card
+and its seven frozen acceptance criteria remain intact; no provider
+permission or live client evidence has been promoted.
+
+The reconciled local source passed `npm run check` (exit 0),
+**1,119/1,119 unit tests (155 files)** and **125/125 real isolated
+PostgreSQL tests (48 files)**. The current pushed PR SHA and both
+exact-head GitHub CI gates require verification separately after
+publication. CAP-1 remains IN_PROGRESS, zero completed original
+subsections, CG-1 through CG-6 OPEN.

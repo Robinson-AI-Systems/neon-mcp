@@ -13,6 +13,10 @@ legs; its 152 capability legs and CAP-1's 194 versioned operation IDs
 are different counting systems. CAP-6…CAP-9 stay PLANNED (not approved).
 No real Neon credential, provider mutation, production permission, direct
 client acceptance, RTC 2 or original CAP-1 completion is asserted here.
+The reconciled feature source passed `npm run check`,
+1,119 unit tests (155 files), and 125 real isolated PostgreSQL
+tests (48 files). Exact-head Actions and independent provider/client
+acceptance remain separately open.
 
 ### 2026-11-04 — draft #203 CAP-1 installed SDK alias routing, source only
 
