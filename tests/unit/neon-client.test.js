@@ -73,6 +73,31 @@ describe('A-4a single official Neon API client and safe retries', () => {
       confirmed:false,error:{code:'rate_limited',status:429,retryAfterSeconds:60}});
     expect(fake.calls).toHaveLength(1);
   });
+  it('cannot call a mutating Neon operation when the caller omits or lies about its write flag',async()=>{
+    const fake=makeFakeNeon();
+    const {client:c,budget}=client(fake);
+    for(const op of ['createProject','updateProject','deleteProject',
+      'createProjectBranch','revokeApiKey','recoverProjectBranch']){
+      for(const opts of [{},{write:false},{write:false,requestKey:'fake_safe_key_1234'}]){
+        await expect(call(c,op,{path:{project_id:fx.IDS.project}},opts))
+          .rejects.toThrow(/requires explicit write:true/);
+      }
+      await expect(call(c,op,{path:{project_id:fx.IDS.project}},{write:true}))
+        .rejects.toThrow(/request key/);
+    }
+    expect(budget.calls).toBe(0);
+    expect(fake.calls).toHaveLength(0);
+  });
+  it('never accepts unknown or inherited method-table operation identifiers',async()=>{
+    const fake=makeFakeNeon();const {client:c,budget}=client(fake);
+    for(const op of ['__proto__','constructor','valueOf','totallyNewSdkWrite']){
+      await expect(call(c,op,{},{
+        write:true,requestKey:'fake_safe_key_1234'})).rejects.toThrow(
+        /not supported by the pinned SDK|not pinned in the checked API inventory/);
+    }
+    expect(budget.calls).toBe(0);
+    expect(fake.calls).toHaveLength(0);
+  });
   it('never resends an uncertain create and only reads annotations to investigate', async () => {
     const fake = makeFakeNeon();
     fake.when('createProjectBranch').rejects(500, { code: '', message: 'unknown result' });

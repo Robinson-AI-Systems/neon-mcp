@@ -1,3 +1,29 @@
+## 2026-11-03 — Checked SDK casing aliases do not increase provider authority
+
+Recognize installed raw SDK spelling aliases for canonical
+OpenAPI operations only when a unique case-insensitive ID
+matches **and** an actual installed wrapper, invoked against
+fake HTTP, generates the pinned canonical method/path. Keep
+194 unique API operations distinct from 214 supported spellings
+(20 aliases: 12 writes, 8 reads). Reject new unknown exports
+and keep all alias writes behind the same write:true/request-key
+budget and non-replay boundary. Case aliases are never new
+entitlements, live acceptance or original-card completion.
+
+## 2026-11-03 — HTTP method is authoritative for universal SDK write safety
+
+A caller's optional `write` flag alone cannot classify a Neon
+provider operation. Generate a checked, minimal operationId→HTTP
+method guard from the pinned vendor OpenAPI and the independently
+SHA-verified official SDK snapshot; block unknown method records
+without a provider call, and require explicit `write:true` plus
+the established request key for every known non-GET method.
+Do not silently infer a mutation as a read or relax existing
+preview, spending, owner/protected-resource, provider
+credential, permission or release controls. This is an offline
+source-level defense, not proof that a provider grants a capability
+or that the current provider surface is exhaustive.
+
 ## 2026-11-03 evening — durable budget admission is explicitly boolean and fail closed
 
 A budget function's existence is not admission. The shared Neon

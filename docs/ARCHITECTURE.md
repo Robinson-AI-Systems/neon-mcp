@@ -241,3 +241,33 @@ Retry-After; no provider request or credential value is exposed
 by an unconfirmed/invalid admission. These source tests do not
 prove the actual provider's current permission entitlements,
 metering or live production acceptance.
+
+### Checked runtime control-plane HTTP method classification (CAP-1 draft #203)
+
+The universal SDK client imports the generated
+`src/neon/operation-methods.js` table, whose 194 operation
+IDs and canonical GET/POST/PUT/PATCH/DELETE methods are derived
+from the checked vendored Neon 163-method OpenAPI and newer official
+SDK 193-method source, deduplicated. The checked offline
+`verify-neon-method-guards.mjs --check` runs within normal
+repository check/CI. A mutation cannot bypass the request-key
+and non-replay semantics by omitting or falsifying the optional
+caller `write` argument: any pinned non-GET method requires
+`write:true` before budget or HTTP. Unknown source operations
+are not newly enabled. Actual user/protected write guards,
+provider permissions, readback and released/client proof remain
+independent and mandatory.
+
+### Installed raw SDK spelling aliases (checked CAP-1 source guard)
+
+Some installed raw SDK names use different acronym case than the
+canonical Neon SDK OpenAPI ID. The generated `operation-methods.js`
+guards 194 unique canonical operation methods and 20 exact
+installed case-alias spellings (12 writes and 8 reads), not 214
+different provider operations. The offline verifier must call
+every installed alias through a fake HTTP SDK and compare its
+actual method and path to one and only one pinned source contract.
+Unrecognized installed exports or changed alias wire contracts
+fail source checks. All mutation aliases require caller write:true
+and request key before budget/HTTP. This prevents breaking valid
+connection-info readers without granting additional provider rights.

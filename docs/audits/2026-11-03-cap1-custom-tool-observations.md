@@ -166,3 +166,31 @@ exception, ordinary 429 and bounded retry-after. The real
 Postgres atomic budget concurrency suite remains the separate
 data-plane verification. No live Neon account/provider data
 or production budget was altered.
+
+### 2026-11-03 late — optional write flag bypass confirmed in actual SDK wrapper
+
+A fake in-memory Neon transport confirmed that calling
+`createProject` or `updateProject` without `write:true`
+successfully invoked a mutating HTTP operation with no required
+request key. Added 194-operation pinned method guard and
+source-checked generator with 94 installed SDK write-path
+negative tests. `call()` now refuses all 94 raw-export
+mutations missing write intent or request key before touching
+the simulated API budget or network. This is a real source
+correctness fix, but not independently tested live provider
+authorization, client enrollment or release.
+
+### 2026-11-03 late — full unit caught installed SDK case-only export mismatch
+
+The first 194-name operation guard failed six unit tests, including
+real pre-existing connection-info test paths: published OpenAPI
+`getConnectionURI` differs in casing from the installed raw
+`getConnectionUri` function. Inspecting the actual installed SDK
+identified 23 additional functions, 3 non-operation helpers and
+20 legitimate case-only operation aliases. In-memory fake SDK
+calls independently matched every alias to a canonical method/path.
+Corrected guard: 214 name spellings for 194 unique provider
+operations; 12 alias writes remain protected by the write/key
+gate and 8 reads continue to work. No provider credentials,
+network, account or production data used. The original 31
+canonical dispatch gaps still need reconciliation.

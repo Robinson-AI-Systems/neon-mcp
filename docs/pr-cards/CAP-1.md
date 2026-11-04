@@ -451,3 +451,76 @@ PASS. The regenerated source inventory includes the new
 per-operation test attribution. The original full CAP-1 is still
 `CONTINUE` with zero original subsection completion credit;
 the new PR head must independently pass GitHub CI/release checks.
+
+## 2026-11-03 late — CAP-1 pinned operation method write guard (draft PR #203)
+
+The common Neon SDK `call()` wrapper previously accepted an omitted
+`write` option for mutating raw SDK operations; synthetic calls to
+`createProject` and `updateProject` ran successfully without
+an idempotency/request key. The source now uses
+`src/neon/operation-methods.js` to check the exact HTTP method for
+**194** uniquely pinned control-plane operations (163 vendored plus
+31 newer official SDK method/path gaps, deduplicated). The checked
+offline generator `scripts/verify-neon-method-guards.mjs` rebuilds
+that table from the independently source-verified CAP-1 inventory and
+is part of `npm run check`; mismatched, unknown and duplicated
+method metadata fail before a provider request.
+
+The production `call()` entrypoint independently requires the
+literal `write:true` for every non-GET operation, then the existing
+nonempty request key and non-replay behavior. It does not trust an
+omitted or false caller classification and does not authorize a
+previously unsupported SDK operation. Tests cover **all 94**
+mutating raw-export methods: omitted/false write flags and missing
+request keys are rejected before **any** rate-budget consumption or
+fake provider HTTP. Additional negative cases exercise inherited and
+unknown operation identifiers. The 159 raw exports, four explicitly
+guarded fallback routes and 31 generic unsupported operations retain
+their separate source/proof states.
+
+These are source and injected-client safety checks, not a new real
+provider credential, product permission, customer release, deployed
+runtime acceptance or full CAP-1 completion. No Neon provider or
+production database was contacted. Original frozen CAP-1 criteria,
+source-versus-live evidence and CG-1–CG-6 remain OPEN.
+
+### 2026-11-03 late — 20 verified SDK spellings, no new API operations
+
+The first full test run exposed six regressions because the initial
+194-name guard excluded installed raw SDK exports with acronym-casing
+differences (for example `getConnectionUri` versus published
+`getConnectionURI`). A direct audit of the installed `@neon/sdk/raw`
+7.0.1 exposed 23 function names outside the canonical published
+operation IDs: 3 SDK client helpers and **20 actual case-only API aliases**.
+The corrected method guard now protects **214 runtime spellings**
+representing the **same 194 unique source operations**. The 20 aliases
+are exactly 12 writes and 8 reads. The checked generator discovers
+each unlisted alias, verifies one unambiguous canonical operation, and
+actually executes the installed SDK wrapper against a fake transport
+to assert the *exact canonical HTTP method and path* before allowing
+that spelling. Unknown exports fail the check instead of being silently
+authorized.
+
+All 94 canonical raw-SDK mutations and 12 installed alias mutations
+reject omitted/false write intent or missing request keys before rate
+budget or HTTP. Existing connection-info read tests are restored.
+The 31 canonical-name missing generic routes remain separately
+reported: an available differently cased spelling is **not**
+independent evidence of a generic canonical handler or live provider
+permission. The result is source interoperability and fail-closed
+engineering only; CAP-1 original completion, real Neon provider rights
+and all CG acceptance remain OPEN.
+
+**Latest source verification (2026-11-03):** the final checked
+194-unique-operation/20-installed-alias method guard, preserved
+connection-info behavior and new mutation preflight checks passed
+`npm run check`, **1,119/1,119 unit tests** across 155 files
+and **125/125 isolated disposable PostgreSQL tests** across
+48 files. All SDK invocations used synthetic in-memory transport;
+there was no live provider permission, account, production key,
+deployment, spend or protected mutation. The original full
+CAP-1 acceptance still requires actual per-operation credential
+and policy/readback verification, independent real-provider
+rights, current other-host coverage and released direct-client
+proof. The original frozen whole CAP-1 is still IN_PROGRESS,
+zero completed subsections, all CG overlays OPEN.

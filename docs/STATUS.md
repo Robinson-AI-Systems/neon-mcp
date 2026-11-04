@@ -1,5 +1,79 @@
 ## Verified source and deployment checkpoint — 2026-11-01
 
+### 2026-11-03 late — installed SDK raw acronym-case alias reconciliation
+
+The first full test run exposed six regressions because the initial
+194-name guard excluded installed raw SDK exports with acronym-casing
+differences (for example `getConnectionUri` versus published
+`getConnectionURI`). A direct audit of the installed `@neon/sdk/raw`
+7.0.1 exposed 23 function names outside the canonical published
+operation IDs: 3 SDK client helpers and **20 actual case-only API aliases**.
+The corrected method guard now protects **214 runtime spellings**
+representing the **same 194 unique source operations**. The 20 aliases
+are exactly 12 writes and 8 reads. The checked generator discovers
+each unlisted alias, verifies one unambiguous canonical operation, and
+actually executes the installed SDK wrapper against a fake transport
+to assert the *exact canonical HTTP method and path* before allowing
+that spelling. Unknown exports fail the check instead of being silently
+authorized.
+
+All 94 canonical raw-SDK mutations and 12 installed alias mutations
+reject omitted/false write intent or missing request keys before rate
+budget or HTTP. Existing connection-info read tests are restored.
+ Final local
+`npm run check` passed, **1,119 unit tests (155 files)**
+and **125 isolated real-PostgreSQL tests (48 files)** passed.
+GitHub exact-head CI on the upcoming push must be separately
+observed; prior PR checks do not verify these new changes.
+
+The 31 canonical-name missing generic routes remain separately
+reported: an available differently cased spelling is **not**
+independent evidence of a generic canonical handler or live provider
+permission. The result is source interoperability and fail-closed
+engineering only; CAP-1 original completion, real Neon provider rights
+and all CG acceptance remain OPEN.
+
+
+
+### 2026-11-03 late — CAP-1 pinned operation method write guard (draft PR #203)
+
+The common Neon SDK `call()` wrapper previously accepted an omitted
+`write` option for mutating raw SDK operations; synthetic calls to
+`createProject` and `updateProject` ran successfully without
+an idempotency/request key. The source now uses
+`src/neon/operation-methods.js` to check the exact HTTP method for
+**194** uniquely pinned control-plane operations (163 vendored plus
+31 newer official SDK method/path gaps, deduplicated). The checked
+offline generator `scripts/verify-neon-method-guards.mjs` rebuilds
+that table from the independently source-verified CAP-1 inventory and
+is part of `npm run check`; mismatched, unknown and duplicated
+method metadata fail before a provider request.
+
+The production `call()` entrypoint independently requires the
+literal `write:true` for every non-GET operation, then the existing
+nonempty request key and non-replay behavior. It does not trust an
+omitted or false caller classification and does not authorize a
+previously unsupported SDK operation. Tests cover **all 94**
+mutating raw-export methods: omitted/false write flags and missing
+request keys are rejected before **any** rate-budget consumption or
+fake provider HTTP. Additional negative cases exercise inherited and
+unknown operation identifiers. The 159 raw exports, four explicitly
+guarded fallback routes and 31 generic unsupported operations retain
+their separate source/proof states.
+
+These are source and injected-client safety checks, not a new real
+provider credential, product permission, customer release, deployed
+runtime acceptance or full CAP-1 completion. No Neon provider or
+production database was contacted. Original frozen CAP-1 criteria,
+source-versus-live evidence and CG-1–CG-6 remain OPEN.
+
+Draft #203 remains IN_PROGRESS with zero complete original CAP-1
+subsections; latest independently verified merged main/live is still
+`69c46b71b6ab35e483f42338618146d1a377d074` (PR #201).
+New exact-head GitHub CI/review and full local tests must be checked
+after this extension is committed and pushed. Draft #202 is separate.
+
+
 ### 2026-11-03 evening — fail-closed atomic shared Neon API budget (draft #203)
 
 A fake-provider source reproduction proved missing budget

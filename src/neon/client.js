@@ -3,6 +3,7 @@ import { createNeonClient } from '@neon/sdk';
 import * as raw from '@neon/sdk/raw';
 import { createHash } from 'node:crypto';
 import { formatNeonError } from './errors.js';
+import { neonMethod } from './operation-methods.js';
 
 export const NEON_SDK_VERSION = '7.0.1';
 const RETRY_STATUSES = new Set([423, 429]);
@@ -146,6 +147,13 @@ export async function call(client, operationId, params = {}, {
       !memberList && !memberPut && !memberDelete &&
       typeof raw[operationId] !== 'function')
     throw new Error('Neon operation is not supported by the pinned SDK.');
+  const trustedMethod = neonMethod(operationId);
+  if (!trustedMethod)
+    throw new TypeError('Neon operation method is not pinned in the checked API inventory.');
+  // Never trust optional caller write flags to classify REST methods:
+  // an omitted/mistyped write flag must not bypass request-key/nonreplay.
+  if (trustedMethod !== 'GET' && write !== true)
+    throw new TypeError('Mutating Neon operation requires explicit write:true.');
   if (!client?.sdk || typeof client?.budget?.consume !== 'function' ||
       (recoverBranch && typeof client.recoverBranch !== 'function') ||
       (jwksRead && typeof client.getProjectJWKS !== 'function') ||

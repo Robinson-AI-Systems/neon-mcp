@@ -2,8 +2,78 @@ import {describe,it,expect} from 'vitest';
 import {readFileSync} from 'node:fs';
 import {generateCoverage} from '../../scripts/cap-coverage.mjs';
 import {verifySdkDispatchRows,runSdkDispatch} from '../../scripts/cap-runtime-dispatch.mjs';
+import {call} from '../../src/neon/client.js';
+import {generateOperationMethods,verifySdkAliasWire,checkOperationMethods}
+  from '../../scripts/verify-neon-method-guards.mjs';
+import {neonMethod,NEON_OPERATION_METHODS} from '../../src/neon/operation-methods.js';
 
 describe('CAP-1 installed runtime fake HTTP operation evidence (not provider acceptance)',()=>{
+ it('prevents all 94 raw SDK mutations from bypassing the write flag or key',async()=>{
+   const inv=generateCoverage().inventory;
+   const candidate=inv.rows.filter(x=>
+     x.sdkDispatch?.genericClientState==='raw-export'&&x.method!=='GET');
+   expect(candidate).toHaveLength(94);
+   const all=Object.entries(NEON_OPERATION_METHODS);
+   expect(all).toHaveLength(214);
+   expect(neonMethod('getConnectionUri')).toBe('GET');
+   expect(neonMethod('addProjectJwks')).toBe('POST');
+   expect(all.filter(([_,method])=>method!=='GET').length)
+     .toBeGreaterThanOrEqual(candidate.length);
+   expect(neonMethod('__proto__')).toBeNull();
+   expect(neonMethod('unapprovedMethod')).toBeNull();
+   expect(generateOperationMethods(inv)).toContain('"createProject":"POST"');
+   let attempted=0,budget=0;
+   const sdk=Object.fromEntries(['get','post','put','patch','delete']
+     .map(method=>[method,async()=>{attempted++;return {data:{fake:true}}}]));
+   const client={sdk,orgId:'fake',
+     budget:{consume:async()=>{budget++;return {allowed:true}}},
+     sleep:async()=>{}};
+   for(const row of candidate){
+     expect(neonMethod(row.operationId)).toBe(row.method);
+     const path=Object.fromEntries(row.wire.parameters.filter(p=>p.in==='path')
+       .map(p=>[p.name,'fake-'+p.name]));
+     for(const opts of [{},{write:false},
+       {write:false,requestKey:'fake_request_12345'}]){
+       await expect(call(client,row.operationId,{path,body:{fake:true}},opts))
+         .rejects.toThrow(/requires explicit write:true/);
+     }
+     await expect(call(client,row.operationId,{path,body:{fake:true}},
+       {write:true})).rejects.toThrow(/request key/);
+   }
+   expect(budget).toBe(0);
+   expect(attempted).toBe(0);
+ });
+ it('pins all twenty actual raw SDK capitalization aliases to exact fake method/path',async()=>{
+   expect(await verifySdkAliasWire()).toBe(20);
+   const result=await checkOperationMethods('--check');
+   expect(result).toMatchObject({methodCount:214,pinnedOperationIds:194,
+     caseAliases:20,providerVerified:false});
+   expect(neonMethod('getProjectJwks')).toBe('GET');
+   expect(neonMethod('createProjectBranchDataApi')).toBe('POST');
+   expect(neonMethod('deleteProjectVpcEndpoint')).toBe('DELETE');
+ });
+ it('denies missing write intent for every mutating installed alias',async()=>{
+   const inventory=generateCoverage().inventory;
+   const rawIds=new Set(inventory.rows.filter(x=>x.sdkDispatch!==null)
+     .map(x=>x.operationId));
+   const aliases=Object.entries(NEON_OPERATION_METHODS).filter(
+     ([name])=>!rawIds.has(name));
+   expect(aliases).toHaveLength(20);
+   let dispatched=0,consumed=0;
+   const fake={sdk:Object.fromEntries(['get','post','patch','put','delete'].map(
+     verb=>[verb,async()=>{dispatched++;return {data:{fake:true}}}])),
+     orgId:'fake',sleep:async()=>{},
+     budget:{consume:async()=>{consumed++;return {allowed:true}}}};
+   for(const [name,method] of aliases){
+     if(method==='GET')continue;
+     await expect(call(fake,name,{path:{project_id:'fake'},body:{}},{write:false,
+       requestKey:'fake_request_12345'})).rejects.toThrow(/requires explicit write:true/);
+     await expect(call(fake,name,{path:{project_id:'fake'},body:{}},{write:true}))
+       .rejects.toThrow(/request key/);
+   }
+   expect(dispatched).toBe(0);
+   expect(consumed).toBe(0);
+ });
  it('routes every callable installed SDK raw operation through one fake method/path and budget',async()=>{
    const result=await verifySdkDispatchRows(generateCoverage().inventory);
    expect(result.counts).toEqual({total:194,rawRouted:159,

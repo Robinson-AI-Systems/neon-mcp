@@ -123,3 +123,27 @@ ordinary exhausted per-minute budget is a distinct 429 with
 a bounded retry delay. This change is **not** live until the
 approved PR is merged, released and verified; it does not
 relax owner-controlled production or protected-resource rules.
+
+### API operation identity guard (draft CAP-1, not released)
+
+The developer SDK client refuses an operation that is not in its
+checked operation/method index, and requires an explicit write
+request key whenever the provider HTTP method mutates state.
+The operation index is rebuilt offline from pinned Neon API
+metadata and checked by CI; it does not grant new permissions.
+Missing write intent fails before a provider request.
+Existing owner/protected/preview approvals and real provider
+rights continue to apply separately. This change is not live
+until its PR satisfies the repository's release and acceptance
+gates.
+
+#### Installed SDK acronym spelling compatibility
+
+Neon's installed SDK uses 20 case-variant raw operation spellings
+compared with the pinned canonical OpenAPI; the method guard accepts
+these only when the installed wrapper's method/path matches the
+same vetted operation. Twelve are writes and eight reads. This
+preserves existing connection-info behavior without granting
+any extra provider capability. Real Neon and protected-resource
+authorization still govern every operation; this source
+extension remains in a draft PR, not released.
