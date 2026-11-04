@@ -36,9 +36,38 @@ function fixture(overrides={}){
   async function call(door,query={},authorization=pass){
     const res=response();await handlers[door](request(door,query,authorization),res);return res;
   }
-  return {call,counts,text};
+  async function post(name,body,authorization=pass){
+    const res=response();
+    await handlers.tools({...request('tools',{name},authorization),
+      method:'POST',body},res);
+    return res;
+  }
+  return {call,post,counts,text};
 }
 describe('RTC 2 scoped HTTP dialect (not yet public-advertised)',()=>{
+  it('never sends an over-budget RTC 2 batch response even when individual reads fit',async()=>{
+    const fakeKeys=Array.from({length:36},(_,i)=>({
+      kind:'project',project_id:'proj-'+String(i).padStart(4,'0'),
+      last4:'FAKE',revoked_at:null
+    }));
+    const f=fixture({
+      async listNeonOrgs(){return [{id:base.neon_org,label:'Fake organization',
+        production_enabled:false}];},
+      async listNeonKeySummaries(){return fakeKeys;}
+    });
+    const single=await f.post('neon_whoami',{});
+    expect(single.statusCode).toBe(200);
+    expect(Buffer.byteLength(JSON.stringify(single.body))).toBeLessThanOrEqual(8192);
+    const batch=await f.post('_batch',{calls:Array.from({length:10},()=>({
+      name:'neon_whoami',args:{}
+    }))});
+    expect(batch.statusCode).toBe(503);
+    expect(batch.body).toMatchObject({ok:false,error:{code:'service_error'}});
+    expect(batch.body).not.toHaveProperty('result');
+    expect(Buffer.byteLength(JSON.stringify(batch.body))).toBeLessThanOrEqual(8192);
+    expect(JSON.stringify(batch.body)).not.toContain('proj-0035');
+    expect(f.counts.meter).toBe(2);
+  });
   it('paginates caller-visible tools with total count, no schemas, bound cursors and terminal null',async()=>{
     const f=fixture(),names=[];
     let cursor,steps=0;

@@ -71,6 +71,19 @@ Full final-head checks/PR self-review are required before merge.
 
 **Open roadmap at this checkpoint:** 58 original and CAP cards: 20 MERGED, 12 IN_PROGRESS, 21 PLANNED, 5 APPROVED; six CG acceptance overlays remain OPEN. Preserve older dated entries as historical evidence; they do not override this current snapshot. Do not manually promote `live`, reveal credentials, relax money-out policy, or declare product completion from an apparently healthy deployment.
 
+### 2026-11-04 — R-2 RTC 2 whole-response safety regression (unmerged draft #202)
+
+The injected RTC 2 HTTPS handler now rejects any complete HTTP reply
+over 8,192 bytes, including aggregated read-only batches whose individual
+results are smaller. It returns a bounded 503 error and no partial data;
+RTC 1 wire behavior remains identical and RTC 2 remains unadvertised.
+Focused RTC HTTP suites passed 13/13; merged-main identity/release
+focused tests previously passed 12/12 and source `npm run check` passed.
+On this reconciled local source, `npm run check` passed, all
+1,110 unit tests (156 files) passed and all 132 isolated PostgreSQL
+tests (49 files) passed. Exact pushed-head CI, native owner-client/provider
+and approved release proof remain pending. See R-2 card and delivery JSON.
+
 ### 2026-11-04 — PR #202 recovery and current deployment evidence (source-only)
 Checked Git main 186ad2af2931ea379c5c827a0c6a6101d1ecba57 and live
 ac40ca5ac21d05961b29d724e57c57da1c3c6990; Vercel deployment
