@@ -71,6 +71,21 @@ Full final-head checks/PR self-review are required before merge.
 
 **Open roadmap at this checkpoint:** 58 original and CAP cards: 20 MERGED, 12 IN_PROGRESS, 21 PLANNED, 5 APPROVED; six CG acceptance overlays remain OPEN. Preserve older dated entries as historical evidence; they do not override this current snapshot. Do not manually promote `live`, reveal credentials, relax money-out policy, or declare product completion from an apparently healthy deployment.
 
+### 2026-11-04 — Draft #202 RTC 2 candidate manifest and scope-bound caller evidence
+
+PR #202 was confirmed draft/open with green original exact-head CI at
+`68c67fd835907a7e01dbedb9ed251be11591bb27`; source work after
+that head is **not yet published**. The R-2 runtime now has an unadvertised
+RTC 2 manifest projection with fixed HTTPS issuer and verified release
+requirements; injectable RTC 2 HTTP direct/batch scopes distinguish
+`outside_scope`, `not_found` and `invalid_args`; RTC 2 whoami
+includes the non-secret exact pass principal and organization.
+Legacy RTC 1 public wire behavior is unchanged. Reconciled full
+source checks passed: `npm run check`, 1,116 unit tests (157 files)
+and 132 disposable PostgreSQL tests (49 files). Full checks and exact-head verification must follow publication;
+no native client/provider acceptance, external authorization, original
+R-2 completion, CG credit, production release or billable action.
+
 ### 2026-11-04 — R-2 RTC 2 whole-response safety regression (unmerged draft #202)
 
 The injected RTC 2 HTTPS handler now rejects any complete HTTP reply

@@ -154,7 +154,23 @@ export function createRtcHttpHandlers({db,registry,env=process.env,wireVersion=1
           return {...c,args:normalizeArgs(c.args??{})};
         });
       }catch{return error(res,'invalid_args',400);}
-      if(calls.some(c=>!plain(c)||!namePattern.test(c.name||'')||
+      if(wireVersion===2){
+        // §5.1 scope-first lookup applies to batches too. Preflight all calls
+        // before executing any; a known-but-inaccessible name is distinct
+        // from a truly absent tool, and invalid schemas are invalid_args.
+        for(const c of calls){
+          if(!namePattern.test(c.name||'')||
+             Object.keys(c).some(k=>!['name','args'].includes(k)))
+            return error(res,'invalid_args',400);
+          const item=registry.tools.find(t=>t.name===c.name);
+          if(!item)return error(res,'not_found',404);
+          if(!rtcNonproductionTool(c.name)||item.writes!==false||
+             !item.profiles?.includes(connection.profile))
+            return error(res,'outside_scope',403);
+          if(!safeInvocation(c.name,c.args??{}))
+            return error(res,'invalid_args',400);
+        }
+      }else if(calls.some(c=>!plain(c)||!namePattern.test(c.name||'')||
            !rtcNonproductionTool(c.name)||!safeInvocation(c.name,c.args??{}) ||
            !registry.tools.some(t=>t.name===c.name && t.writes===false &&
              t.profiles?.includes(connection.profile)) ||
@@ -169,12 +185,21 @@ export function createRtcHttpHandlers({db,registry,env=process.env,wireVersion=1
       }
       return sendBounded(res,200,{ok:true,result:{results}});
     }
-    if(!rtcNonproductionTool(name))
-      return error(res,'refused_by_guard',403);
     const meta=registry.tools.find(t=>t.name===name);
-    if(!meta||meta.writes!==false||
-       !meta.profiles?.includes(connection.profile))
-      return error(res,'not_found',404);
+    if(wireVersion===2){
+      // §5.1: known but inaccessible is outside_scope; a genuinely
+      // unknown name remains not_found. RTC 1 keeps its frozen denials.
+      if(!meta)return error(res,'not_found',404);
+      if(!rtcNonproductionTool(name)||meta.writes!==false||
+         !meta.profiles?.includes(connection.profile))
+        return error(res,'outside_scope',403);
+    }else{
+      if(!rtcNonproductionTool(name))
+        return error(res,'refused_by_guard',403);
+      if(!meta||meta.writes!==false||
+         !meta.profiles?.includes(connection.profile))
+        return error(res,'not_found',404);
+    }
     if(req.method==='GET')return sendBounded(res,200,{ok:true,result:rtcToolMetadata(meta)});
     let args;
     try {args=argsFrom(req);}catch{return error(res,'invalid_args',400);}
@@ -189,6 +214,10 @@ export function createRtcHttpHandlers({db,registry,env=process.env,wireVersion=1
     if(!connection)return;
     return sendBounded(res,200,{ok:true,result:{server:'robinson-neon-mcp',
       prefix:'neon',profile:connection.profile,mode:connection.mode,
+      // RTC 2 §4.4: attest the exact pass principal and account in addition
+      // to policy; never reveal the bearer token or pass-derived binding.
+      ...(wireVersion===2?{principal:{kind:'pass',id:connection.clientId,
+        organizationId:connection.neonOrg}}:{}),
       projectScope:connection.projectScope,allowWrites:false,
       requestsPerMinute:connection.requestsPerMinute,
       server_release:serverRelease(env),

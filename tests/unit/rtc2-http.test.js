@@ -45,6 +45,64 @@ function fixture(overrides={}){
   return {call,post,counts,text};
 }
 describe('RTC 2 scoped HTTP dialect (not yet public-advertised)',()=>{
+  it('preflights scoped batches and distinguishes unknown, known-denied, and malformed calls',async()=>{
+    let executed=0;
+    const f=fixture({
+      async listNeonOrgs(){executed++;return [{
+        id:base.neon_org,label:'Fake tenant',production_enabled:false
+      }];},
+      async listNeonKeySummaries(){return [];}
+    });
+    const payload=name=>({calls:[
+      {name:'neon_whoami',args:{}},{name,args:{}}
+    ]});
+    const unknown=await f.post('_batch',payload('neon_tool_that_does_not_exist'));
+    expect(unknown.statusCode).toBe(404);
+    expect(unknown.body.error.code).toBe('not_found');
+    const outside=await f.post('_batch',payload('neon_role_delete'));
+    expect(outside.statusCode).toBe(403);
+    expect(outside.body.error.code).toBe('outside_scope');
+    expect(executed).toBe(0); // Rejected batches never execute an earlier good call.
+    const allowed=await f.post('_batch',payload('neon_whoami'));
+    expect(allowed.statusCode).toBe(200);
+    expect(allowed.body.result.results).toHaveLength(2);
+    const invalid=await f.post('_batch',{calls:[
+      {name:'neon_whoami',args:{}},
+      {name:'neon_whoami',args:{bad_selector:true}}
+    ]});
+    expect(invalid.statusCode).toBe(400);
+    expect(invalid.body.error.code).toBe('invalid_args');
+    expect(executed).toBe(2); // Only the two approved calls reached the named handler.
+    for(const r of [unknown,outside,invalid]){
+      expect(r.body).not.toHaveProperty('result');
+      expect(JSON.stringify(r.body)).not.toContain(pass);
+    }
+  });
+  it('attests the authenticated pass principal and scope without leaking grant material',async()=>{
+    const f=fixture();
+    const res=await f.call('whoami');
+    expect(res.statusCode).toBe(200);
+    expect(res.body.result).toMatchObject({
+      principal:{kind:'pass',id:base.client_id,organizationId:base.neon_org},
+      profile:'read_only',mode:'preview',allowWrites:false,
+      projectScope:base.project_scope,areas:base.rtc_areas,
+      requestsPerMinute:60
+    });
+    expect(JSON.stringify(res.body)).not.toContain(pass);
+    expect(JSON.stringify(res.body)).not.toContain(hashToken('rtc2-cursor:'+pass));
+    expect(f.counts.meter).toBe(1);
+  });
+  it('distinguishes known out-of-scope tools from unknown names without leaking data',async()=>{
+    const f=fixture();
+    const outside=await f.call('tools',{name:'neon_project_delete'});
+    expect(outside.statusCode).toBe(403);
+    expect(outside.body).toMatchObject({ok:false,error:{code:'outside_scope'}});
+    const absent=await f.call('tools',{name:'neon_missing_tool_name'});
+    expect(absent.statusCode).toBe(404);
+    expect(absent.body).toMatchObject({ok:false,error:{code:'not_found'}});
+    expect(JSON.stringify(outside.body)+JSON.stringify(absent.body)).not.toContain(pass);
+    expect(f.counts.meter).toBe(2);
+  });
   it('never sends an over-budget RTC 2 batch response even when individual reads fit',async()=>{
     const fakeKeys=Array.from({length:36},(_,i)=>({
       kind:'project',project_id:'proj-'+String(i).padStart(4,'0'),

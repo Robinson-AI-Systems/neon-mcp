@@ -139,3 +139,14 @@ covered by the design; write the card when its predecessor is real.
 | R Hub-ready doors (RTC 1) | R-1 passes · R-2 HTTPS API, manifest, OpenAPI, rate limits · R-3 conformance in CI | JIT |
 | E Neon backend services | E-1 Auth + Data API · E-2 storage, Functions, triggers, logs | JIT |
 | X Close-out | X-1 undo · X-2 read-only smoke · X-3 scratch-project write check | JIT |
+
+### 2026-11-04 — R-2 unmerged candidate RTC 2 source stage
+
+Draft #202 retains all frozen R-2 acceptance, with no completed-card
+credit. The isolated RTC 2 candidate manifest validates exact deployed
+release SHA and pinned 2.x fields without serving them publicly; HTTP
+direct/batch scope denials and pass-principal attestation have synthetic
+regressions. This is a partial source extension, NOT completed RTC 2,
+native client acceptance, backend-only developer sign-in, a new approved
+card or release. RTC 1 is still the public advertised dialect; keep
+R-1/R-3 dependencies and CG-1…CG-6 open.

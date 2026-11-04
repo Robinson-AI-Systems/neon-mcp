@@ -2,6 +2,7 @@
 // The public contract remains unadvertised until the authenticated HTTPS doors land.
 import {isToolAllowed} from './profiles.js';
 import {serverRelease} from './server-release.js';
+import {publicOrigin} from './http.js';
 import {PRODUCT_DISPLAY_NAME,PRODUCT_ATTRIBUTION,MCP_TECHNICAL_ID} from './product-identity.js';
 
 export const RTC_PREFIX='neon';
@@ -57,6 +58,26 @@ export function rtcManifest(registry,{release=serverRelease(),
     profiles:['read_only','everyday','full'],
     listingModes:['catalog','compact'],modes:['preview','production'],devTools:false};
 }
+// Source-only RTC 2 manifest projection. Never call this from the public
+// route until its own R-1/R-2/R-3 and direct-client adoption gates pass.
+// A missing deployed revision is a refusal, never a fabricated claim.
+export function rtc2Manifest(registry,{env=process.env,release=serverRelease(env)}={}){
+  if(typeof release?.commit!=='string'||!/^[a-f0-9]{40}$/.test(release.commit))
+    throw new TypeError('Cannot claim RTC 2 without a verified deployed revision');
+  const origin=publicOrigin(env);
+  const legacy=rtcManifest(registry,{release});
+  if(legacy.prefix!=='neon'||!registry.tools.every(t=>t.name.startsWith('neon_')))
+    throw new TypeError('RTC 2 prefix does not match the registered catalog');
+  return {rtc:2,server:legacy.server,prefix:'neon_',
+    version:legacy.version,revision:release.commit,apiVersion:legacy.apiVersion,
+    areas:legacy.areas,counts:legacy.counts,profiles:legacy.profiles,
+    modes:legacy.modes,listingModes:legacy.listingModes,
+    listing:{pagination:'cursor',maxLimit:100,replyBudgetBytes:8192},
+    results:{recovery:'content-pages',handleTtlSeconds:86400,pageBudgetBytes:8192},
+    auth:{passes:true,oauth:{issuer:origin,protectedResource:origin+'/api/mcp'}},
+    connection:origin+'/connection',devTools:false,health:'/api/health'};
+}
+
 export function rtcCatalogAll(registry,connection,{listing,q,area,audience}={},env={}){
   const listingMode=LISTINGS.has(listing)?listing:
     LISTINGS.has(connection?.listing)?connection.listing:'compact';
