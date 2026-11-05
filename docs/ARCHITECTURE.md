@@ -141,7 +141,8 @@ exposed as MCP tools until the Batch B SQL/production guards are implemented.
 
 Node **24.x** (`package.json` `engines`; Vercel stopped deploying Node 20 on 2026-10-01). Plain ES modules, no build
 step. Dependencies (exact versions): `@modelcontextprotocol/sdk` 1.32.1, `@neon/sdk` 7.0.1, `@neondatabase/serverless`
-1.2.0, `libpg-query` 18.1.5; dev: `eslint` 10.12.0, `pg` 8.23.1, `vitest` 5.0.3, `yaml` 2.9.1.
+1.2.0, `libpg-query` 18.1.5, `pg` 8.23.1 (runtime since RACK-1: the rack store transport); dev: `eslint` 10.12.0, `vitest` 5.0.3, `yaml` 2.9.1.
+Outside Vercel, the service runs under `rack-server.mjs` (RACK-2), a thin entrypoint that dispatches to the same `api/` handlers under the reproduced Vercel function contract (filesystem binding, `vercel.json` rewrites, per-function body parsing); it binds `PORT`/`HOST` from the environment.
 
 ## B-1 audited write reservation
 
