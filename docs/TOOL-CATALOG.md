@@ -85,7 +85,7 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 | `neon_get_settings` | This server's stored settings: protected resources, price table and its date, spend cap, dev-branch defaults, SQL limits, wait limits | — | Ow | R | B-8 (built #34) |
 | `neon_update_settings` | Change a stored setting (never the protected-resources list, which only the setup page edits) | C | Ow | F | B-8 (built #37; tightening only) |
 
-## Projects (`neon_project_*`) — 11
+## Projects (`neon_project_*`) — 12
 
 | Tool | What it does | Flags | Aud | Profile | Card |
 | --- | --- | --- | --- | --- | --- |
@@ -97,6 +97,7 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 | `neon_project_recover` | Bring back a project deleted in the last 7 days | C | Ow | F | D-1 (built #49) |
 | `neon_project_list_regions` | Regions Neon offers now, with which backend services each supports | — | B | R | D-1 (built #46) |
 | `neon_project_get_settings` | Project-wide settings: IP allow, public/VPC blocking, logical replication, maintenance window, preload libraries (and available ones), quotas, history retention, default compute settings, audit level, HIPAA | — | Ow Op | R | D-1 (built #47) |
+| `neon_consumption_get` | Consumption for a stated period (hourly/daily/monthly): exact per-project or per-branch metric totals from the consumption-history endpoints (v2, plus legacy plans), with a dollar estimate priced from the server's stored price table — an estimate, never the Neon bill | — | B Ow Op | R | CAP-9 |
 | `neon_project_update_settings` | Maintenance window, preload libraries, default compute settings for new computes (spend increases go through the spend guard) | C Pr $ | Ow | F | D-1 (built #50) |
 | `neon_project_set_history_retention` | How far back restores can reach (Neon bills instant-restore storage; preview shows the price) | C Pr $ | Ow | F | D-1 (built #50) |
 | `neon_project_set_quotas` | Per-project consumption quotas; reaching one suspends computes (preview says what would stop today) | C Pr | Ow | F | D-1 (built #50) |
@@ -381,7 +382,7 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #160 (updated with 2026-10-19 D-7/D-8 owner visibility; now included in 2026-11-01 READY release; CAP-6/CAP-8 server-self lifecycle added 2026-11-04):** `read_only` 51; `everyday` 59; `full` 128. These are implemented/visible tools, not the 177-tool planned catalog; verify with exact-head CI.
+**Implemented registry at #160 (updated with 2026-10-19 D-7/D-8 owner visibility; now included in 2026-11-01 READY release; CAP-6/CAP-8 server-self lifecycle and CAP-9 consumption reads added 2026-11-04):** `read_only` 52; `everyday` 60; `full` 129. These are implemented/visible tools, not the 177-tool planned catalog; verify with exact-head CI.
 
 ## Totals
 
