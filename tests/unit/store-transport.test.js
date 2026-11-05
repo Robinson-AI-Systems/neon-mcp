@@ -45,4 +45,13 @@ describe('own-store transport selection', () => {
     expect(typeof direct).toBe('function');
     await direct.end();
   });
+
+  it('ends a shared pool once even when several handles end it', async () => {
+    const url = 'postgres://localhost:5433/neondb';
+    const first = pgStoreSql(url);
+    const second = pgStoreSql(url);
+    await first.end();
+    await second.end();
+    await first.end();
+  });
 });

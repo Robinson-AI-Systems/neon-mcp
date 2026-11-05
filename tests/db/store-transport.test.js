@@ -69,10 +69,11 @@ describe('pg own-store transport, real disposable Postgres', () => {
   });
 
   it('auto-selects pg for a non-Neon store URL through storeSql', async () => {
+    // Same URL, so this is the same shared pool as `sql`; its end is
+    // owned by the afterAll teardown, not by this handle.
     const auto = storeSql({ DATABASE_URL: storeUrl });
     const rows = await auto.query('SELECT 1 AS probe_ok', []);
     expect(rows[0].probe_ok).toBe(1);
-    await auto.end();
   });
 
   it('answers the health probe through the transport with the pinned shape', async () => {

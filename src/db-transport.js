@@ -47,15 +47,16 @@ export function selectStoreTransport(env = process.env) {
 const pools = new Map();
 
 function poolFor(url) {
-  let pool = pools.get(url);
-  if (!pool) {
+  let entry = pools.get(url);
+  if (!entry) {
     // A long-lived standalone process reuses one small pool per store
     // URL; the serverless driver needs no pool because each call is an
-    // independent HTTP request.
-    pool = new pg.Pool({ connectionString: url, max: 5, idleTimeoutMillis: 30_000 });
-    pools.set(url, pool);
+    // independent HTTP request. Handles are created per caller, so the
+    // pool — and its ended state — is shared by every handle for a URL.
+    entry = { pool: new pg.Pool({ connectionString: url, max: 5, idleTimeoutMillis: 30_000 }), ended: false };
+    pools.set(url, entry);
   }
-  return pool;
+  return entry;
 }
 
 // The pg half of the handle contract. Rows come back as plain objects
@@ -63,7 +64,8 @@ function poolFor(url) {
 // error codes (e.g. 23505) ride the thrown error unchanged, as they do
 // through the Neon driver.
 export function pgStoreSql(url) {
-  const pool = poolFor(url);
+  const entry = poolFor(url);
+  const { pool } = entry;
   const sql = async (strings, ...values) => {
     const text = strings.reduce((acc, part, i) => (i === 0 ? part : `${acc}$${i}${part}`), '');
     const { rows } = await pool.query(text, values);
@@ -71,6 +73,8 @@ export function pgStoreSql(url) {
   };
   sql.query = async (text, values = []) => (await pool.query(text, values)).rows;
   sql.end = async () => {
+    if (entry.ended) return;
+    entry.ended = true;
     pools.delete(url);
     await pool.end();
   };
