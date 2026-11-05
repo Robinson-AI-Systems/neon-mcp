@@ -44,3 +44,11 @@ date and hash.
 
 Preserve stable IDs (cards, `IN-xx`, decisions). Anything that could touch production or raise spend starts off.
 Do not turn a plan or a passing test into a claim of production readiness.
+
+### Source-only R-2 customer surfaces — pending exact-head PR and normal release
+\`api/health.js\` publishes a fail-closed opt-in dependency health probe;
+\`api/connection.js\` is the customer-facing \`/connection\` page;
+\`api/connect/handoff.js\` accepts newly registered normal public OAuth mobile
+callbacks, while \`api/developer/connect.js\` retains registered legacy clients.
+These are not independent client acceptance or a developer-only login. Existing
+\`api/contract.js\`, \`api/rtc.js\` and \`api/openapi.json.js\` remain RTC 1.

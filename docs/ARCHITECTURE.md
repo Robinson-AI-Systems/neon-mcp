@@ -288,3 +288,59 @@ shared durable API-budget admission or no-blind-replay logic.
 The generated 20 case-only spellings are not independent
 provider permissions, and the 15 advanced non-control-plane
 workflows retain separate API/host proof requirements.
+
+## R-2 source integration under review — 2026-11-02 (not independently released)
+
+\`src/core/server-release.js\` derives the package version and only a valid observed
+40-character \`VERCEL_GIT_COMMIT_SHA\`, used in native MCP initialize and
+\`neon_whoami.server_release\`. It never infers a deployed commit from main,
+live, Host or readiness of a Vercel deployment. \`/api/health\` and \`/\`
+share this release value; health remains degraded by default unless a separately
+configured \`HEALTH_DB_PROBE_ENABLED=1\` performs a successful real database
+SELECT 1. Public \`/connection\` is a nonsecret documentation-only customer page,
+using \`PUBLIC_BASE_URL\`, not request headers, to state the endpoint and issuer.
+The new normal mobile callback \`/api/connect/handoff\` uses the same authenticated,
+encrypted and PKCE/redirect-bound code handoff as the original public callback
+\`/api/developer/connect\`; the latter remains for registered legacy clients.
+The current RTC 1 HTTPS pass implementation and the adopted RTC 2 target are
+distinct. There is still no backend-only developer test-grant login implementation;
+no claim of release/tenant/provider/client or RTC 2 conformance acceptance.
+
+### RTC 2 compatibility-safe staging (2026-11-03)
+
+The isolated RTC 2 wire implementation lives in src/core/rtc2-wire.js.
+src/core/rtc-http.js accepts wireVersion:2 for test injection only. Actual
+api/rtc.js and public api/contract.js continue the frozen RTC 1 routing and
+manifest under their existing enable guard; no version cutover occurred.
+
+The result_store table gains nullable canonical_text TEXT through additive,
+idempotent ALTER TABLE. New oversized results persist already-scrubbed
+canonical JSON text alongside prior JSONB and existing expiry. Old rows and
+RTC 1/MCP 0-based result formats are unaffected. RTC 2 exact page recovery
+requires canonical text and adds a server-derived, per-pass scope component
+to its new result handle hash. This is not broader Neon provider access,
+production activation or a permission change. R-1/R-2 authorization and
+verified deployed conformance remain separate unfinished work.
+
+### Pending R-2 per-pass RTC budget storage (draft #202, not deployed)
+
+The unmerged draft adds
+`oauth_tokens.rtc_requests_per_minute INTEGER NOT NULL DEFAULT 60`
+via additive `initSchema()` migration. New owner-issued hashed RTC
+passes store an integer cap 1..60, and `getRtcPass` returns it for
+fail-closed `requireRtcPass` admission. The existing PostgreSQL
+`consumeApiBudget` method remains the sole atomic cross-instance
+limiter per hashed pass and UTC minute, independent of app process.
+Old pass rows use default 60. This is a pending migration, not an
+observed production schema change or live source claim.
+
+### RTC compatibility manifest/HTTPS serving identity (draft #202)
+
+The public `/api/contract` handler checks the RTC 1 feature gate
+and generates its manifest through `rtcManifest(...,
+{release:serverRelease(env)})`. Authenticated RTC HTTPS `whoami`
+uses the same `serverRelease(env)` as native MCP serverInfo and
+`neon_whoami`. The deployment SHA is included only when the
+hosting environment supplies a strict lowercase 40-character SHA.
+No Host-derived identity, remote dependency, SDK change, credential
+or privilege upgrade is involved; RTC 2 remains unadvertised.

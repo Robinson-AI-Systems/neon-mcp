@@ -47,6 +47,8 @@ function page(message='',p={}) {
     requestId:['Secret request ID','Use the ID of the pending secret request.'],
     secret:['Requested secret','Paste the secret requested by this operation.'],
     ttlHours:['Pass lifetime in hours','The read-only pass expires after this many hours.'],
+    requestsPerMinute:['RTC calls per minute (1–60)',
+      'Choose a per-pass call limit; 60 is the current default and maximum.'],
     passId:['Read-only pass ID','Use the ID of the pass you want to revoke.'],
     scratchPhrase:['Scratch isolation acknowledgement','Type the complete isolated-project acknowledgement; this is a separate ownership attestation, not production approval.']
   };
@@ -83,7 +85,7 @@ function page(message='',p={}) {
   const inbound=form('submit_secret',org()+input('requestId','text',p.secret_request||'')+
     input('secret','password'));
   const issueRtc=form('create_read_only_rtc_pass',org()+input('projectId')+
-    input('ttlHours','number','24'));
+    input('ttlHours','number','24')+input('requestsPerMinute','number','60'));
   const revokeRtc=form('revoke_read_only_rtc_pass',org()+input('passId'));
   return '<!doctype html><html lang="en"><head><meta charset="utf-8">'+
     '<meta name="viewport" content="width=device-width,initial-scale=1">'+
@@ -142,13 +144,17 @@ export function createSetupHandler({db,vault,exchange,env=process.env,scratchCli
       if(p.action==='create_read_only_rtc_pass'){
         if(env.RTC1_ENABLED!=='1')return send(res,403,{error:'rtc_not_enabled'});
         if(typeof p.projectId!=='string'||!/^[a-z0-9-]{1,60}$/.test(p.projectId)||
-          !/^([1-9]|1\\d|2[0-4])$/.test(String(p.ttlHours)))
+          !/^([1-9]|1\\d|2[0-4])$/.test(String(p.ttlHours))||
+          (p.requestsPerMinute!==undefined&&
+            !/^(?:[1-9]|[1-5]\d|60)$/.test(String(p.requestsPerMinute))))
           return send(res,400,{error:'invalid_read_only_pass_scope'});
         const receipt=await issueReadOnlyRtcPass({db,exchange,env,orgId,
-          projectScope:p.projectId,ttlHours:Number(p.ttlHours)});
+          projectScope:p.projectId,ttlHours:Number(p.ttlHours),
+          requestsPerMinute:p.requestsPerMinute===undefined?60:
+            Number(p.requestsPerMinute)});
         // Only the one-time link, never the pass value, enters rendered HTML.
         return send(res,200,page('Temporary read_only pass '+receipt.passId+
-          ' created. View once via '+receipt.oneTimeLink+
+          ' created. Limit '+receipt.requestsPerMinute+' calls/minute. View once via '+receipt.oneTimeLink+
           '. Expires '+receipt.expiresAt),'text/html; charset=utf-8');
       }
       if(p.action==='revoke_read_only_rtc_pass'){

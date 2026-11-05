@@ -403,10 +403,116 @@ live-provider probe, customer credential test or public-client acceptance.
 Current interface inventory, permission/handler/execution proof and real-world
 acceptance remain incomplete, so CAP-1 and all six CG gates stay OPEN.
 
+### 2026-11-03 — RTC public HTTPS release identity consistency (draft PR #202)
+
+Additional R-2 source work makes public RTC compatibility manifest and
+pass-authenticated HTTPS `whoami` expose `server_release` from the same
+validated active `serverRelease(env)` used by MCP initialize, native
+`neon_whoami`, health and front door. A forged request Host or an
+invalid/missing serving commit never yields a fabricated SHA.
+The RTC1 feature gate and nonproduction pass restriction remain
+unchanged; no RTC2 public activation, provider/customer permission,
+production data, domain, release or DNS was touched. All 1,109 unit tests (156 files), 132 isolated PostgreSQL
+tests (49 files), and repository source/documentation checks passed
+locally after this change. Required GitHub exact-head CI is still
+independently verified only after publishing the new branch head. R-2 remains IN_PROGRESS, zero original
+subsections complete, CG1–6 OPEN.
+
+
+
+### 2026-11-03 — additional synthetic cross-tenant RTC 2 HTTP/PG conformance
+
+The existing draft #202 original R-2 branch now adds a synthetic
+**two-tenant/three-pass** disposable-Postgres HTTP conformance suite
+(`tests/db/rtc2-pass-isolation.test.js`) that checks cursor and
+one-time result ownership even across independent handlers, exact
+UTF-8 text pages, sensitive-result canonical consistency, revoked
+access and native OAuth-token refusal. This is independent
+**local** proof, not an assertion of a released RTC 2 route, live
+Neon behavior or a successful external desktop/mobile client.
+Original R-2 and all six CG gates remain OPEN. Local npm run check,
+1,108 unit tests (156 files) and 132 disposable-PostgreSQL tests
+(49 files) passed; this extension remains unmerged and its new head
+requires independent exact-head GitHub CI.
+
+### 2026-11-03 — R-2 persistent per-pass RTC caps, draft PR #202
+
+A substantial R-2 follow-up source update on unmerged draft #202 extends
+the existing owner-issued preview/read_only project RTC pass with a
+configurable **1–60 calls/minute** cap, additive PostgreSQL storage
+(default 60 for existing passes), atomic shared budget admission,
+dynamic 429 Retry-After and a safe owner-form/receipt/whoami readback.
+No authorization or provider grant was widened, and no production
+database, live key, pass, deployment or release was changed.
+Disposable-Postgres tests cover two independently created DB adapters
+racing the same rate-3 pass (3 admitted, 5 denied), revocation and
+invalid persisted limits; unit tests cover one-time delivery and form
+validation. Final local npm run check, 1,108/1,108 unit tests (156 files) and 129/129 disposable PostgreSQL tests (48 files) passed after the RTC 2 fixture correction. Exact-head remote CI remains to be checked after push.
+The full original R-2 and all six CG gates remain OPEN.
+Merged main/live last verified at #201 commit
+69c46b71b6ab35e483f42338618146d1a377d074;
+CAP-1 draft #203 is separate and remains unmerged.
+
+
+
+### 2026-11-03 — R-2 guarded RTC 2 wire and canonical-result source milestone
+
+Draft #202 on branch ai/gpt6/neon-ras-client-entry-release retains the
+frozen original R-2 scope. New separately injectable RTC 2 cursor discovery,
+1-based byte-exact content pages, nullable canonical-text persistence,
+exact pass-scoped results and tests are documented in
+[the existing R-2 card](pr-cards/R-2.md) and
+[tool assessment](audits/2026-11-03-neon-rtc2-and-custom-tools.md).
+Production continues RTC 1 and no RTC 2 manifest claim is made. ALL
+full R-2 criteria and all six CG gates remain OPEN; no deployed/client/
+provider acceptance is claimed. Vercel READY commit metadata remains null,
+therefore serving source is not independently established. No live settings,
+provider data, issuer, DNS, spending or release status changed.
+Full final-head checks/PR self-review are required before merge.
 
 **Checked Git main and live:** `1c810cb0ca69fffc9be088d4c8e9834d2dd7d720` (identical). **Checked Vercel Production:** READY at the same commit (deployment `dpl_9Mwm4LGqpQajD4cSD9DrnmuWgj4U`). No Neon MCP PR was open at the start of this documentation audit. Merged PRs #191–#197 include the six completion gates and CAP planning, OAuth environment isolation, public-client PKCE and client-owned token revocation, the rights-reserved LICENSE and RTC 2 *adoption documentation*. The OAuth routes exist in `api/oauth/` and their active handlers; the supported native MCP route exists at `api/mcp.js`. These are **source/READY deployment** observations, not independent client/provider acceptance. In particular, independent multi-tenant self-onboarding, all CAP-1–CAP-5 work, production mutation, scratch end-to-end acceptance and RTC 2 conformance remain open under the original roadmap/gates. The RTC 2 owner decision is normative from October 31, but PR #197 deliberately changed **documentation only**, not the service's wire dialect.
 
 **Open roadmap at this checkpoint:** 58 original and CAP cards: 20 MERGED, 12 IN_PROGRESS, 21 PLANNED, 5 APPROVED; six CG acceptance overlays remain OPEN. Preserve older dated entries as historical evidence; they do not override this current snapshot. Do not manually promote `live`, reveal credentials, relax money-out policy, or declare product completion from an apparently healthy deployment.
+
+### 2026-11-04 — Draft #202 RTC 2 candidate manifest and scope-bound caller evidence
+
+PR #202 was confirmed draft/open with green original exact-head CI at
+`68c67fd835907a7e01dbedb9ed251be11591bb27`; source work after
+that head is **not yet published**. The R-2 runtime now has an unadvertised
+RTC 2 manifest projection with fixed HTTPS issuer and verified release
+requirements; injectable RTC 2 HTTP direct/batch scopes distinguish
+`outside_scope`, `not_found` and `invalid_args`; RTC 2 whoami
+includes the non-secret exact pass principal and organization.
+Legacy RTC 1 public wire behavior is unchanged. Reconciled full
+source checks passed: `npm run check`, 1,116 unit tests (157 files)
+and 132 disposable PostgreSQL tests (49 files). Full checks and exact-head verification must follow publication;
+no native client/provider acceptance, external authorization, original
+R-2 completion, CG credit, production release or billable action.
+
+### 2026-11-04 — R-2 RTC 2 whole-response safety regression (unmerged draft #202)
+
+The injected RTC 2 HTTPS handler now rejects any complete HTTP reply
+over 8,192 bytes, including aggregated read-only batches whose individual
+results are smaller. It returns a bounded 503 error and no partial data;
+RTC 1 wire behavior remains identical and RTC 2 remains unadvertised.
+Focused RTC HTTP suites passed 13/13; merged-main identity/release
+focused tests previously passed 12/12 and source `npm run check` passed.
+On this reconciled local source, `npm run check` passed, all
+1,110 unit tests (156 files) passed and all 132 isolated PostgreSQL
+tests (49 files) passed. Exact pushed-head CI, native owner-client/provider
+and approved release proof remain pending. See R-2 card and delivery JSON.
+
+### 2026-11-04 — PR #202 recovery and current deployment evidence (source-only)
+Checked Git main 186ad2af2931ea379c5c827a0c6a6101d1ecba57 and live
+ac40ca5ac21d05961b29d724e57c57da1c3c6990; Vercel deployment
+dpl_ZmhMCgTd8t5ratrAywnb3L58DgJp is READY at live SHA and serves
+neon-mcp.vercel.app. Draft PRs #202 and #203 both retain incomplete original
+acceptance and pre-rebase merge conflicts. PR #202 is being reconciled here
+with latest merged main, including #205 product naming, #206 CI shards,
+#208 exceptional owner-release guard and #209 capability re-census.
+The capability census remains 152 mapped / 73 covered / 4 composed /
+75 missing (plus seven internal lifecycle legs); CAP-6…CAP-9 stay PLANNED.
+No independent RTC 2, live provider, direct client, domain or CG pass claimed.
 
 ### 2026-11-04 — CI re-optimization: unit and db suites sharded (maintenance, no card credit)
 
@@ -415,6 +521,31 @@ Owner standing rule (2026-11-03): MCP-server CI targets 30 seconds per run with 
 ### 2026-11-04 — owner-ordered release route added to the daily release policy (maintenance, no card credit)
 
 Owner ruling (2026-11-04): the once-per-Denver-day release cap binds the automatic promoter only; an owner-ordered release runs the repo's exceptional route with its guards and its own receipt. The Daily live policy workflow gained an `owner_release` dispatch input plus an `expected_main_sha` pin: the invocation requires `christcr2012` as actor and triggering actor, the promoter refuses unless remote main still equals the expected SHA, and then it runs the identical checked promotion as the automatic path (exact-head `ci` + `release-policy` green, fast-forward ancestry, atomic push, read-back) — except it does not stand down on the day's `live-promotion/<day>` marker and instead writes `owner-release/<Denver-day>-<first 8 of the released SHA>` atomically with the live advance. The automatic path is behaviorally unchanged and the owner path never touches the daily marker; a non-owner dispatch with the input set refuses at the invocation gate. Pinned by four new tests in `.github/release/promote-live.test.mjs` (owner decision, invocation gate, workflow surface, and a real-git promotion past an existing daily marker with stale-SHA, failed-check and re-run no-op cases); all eight pre-existing release tests pass unchanged (12/12 locally). Policy text lives in `.github/RELEASE-POLICY.md` → Owner-ordered releases. First use ordered the same day: the owner release of the merged CI-sharding head (PR #206) after the morning's checked promotion had already consumed the day's automatic receipt; the release outcome and read-backs are recorded in the session report.
+### 2026-11-02 — R-2 agent-visible release/customer entry integration (source-only PR in progress)
+
+Branch \`ai/gpt6/neon-ras-client-entry-release\` started at
+\`69c46b71b6ab35e483f42338618146d1a377d074\`, frozen plan
+\`53657f02e6774c448a264cc8e09fefddaeda2003\`.
+New source reports truthful packaged version and verified deployed SHA (or null);
+keeps the native OAuth issuer bound to \`PUBLIC_BASE_URL\`; adds public, safely
+degraded-by-default \`/api/health\`, accessible \`/\` and customer
+\`/connection\` pages; provides customer-oriented \`/api/connect/handoff\`
+while preserving registered legacy mobile callback security and handling.
+Focused tests \`tests/unit/ras-release-entry.test.js\`,
+\`product-identity.test.js\` and \`developer-handoff.test.js\` passed
+17/17 before connection-page addition; expanded focused 9/9 later passed.
+These are **local source tests only**, not exact-head CI or a released client
+or actual Neon provider observation. No production deployment, DNS, env,
+provider write or spend. R-2 remains **IN_PROGRESS**; RTC 2 HTTPS pass/full
+writes/list/results, backend-only dev principal, production-source/client/
+tenant acceptance and all six CG gates remain OPEN.
+
+Native Git/Playground observations for a later operator tooling audit:
+the Git workspace was cloned, branch and planning commit worked; runtime
+required explicit provision/attach/resume before execution, then returned
+verified command exit statuses. Local check, 1,098 unit tests and disposable PostgreSQL suite passed before the later shared-adapter refactor; the refactor then passed 16 focused tests. The final PR head still needs exact CI. Playground publication prepare failed to fetch with its runtime Git credentials while native Git fetch succeeded. Vercel deployment READY lacked a commit SHA;
+a project-name deployment query failed but exact ID worked. These do not
+prove a broken deployment; improve tool diagnostics and provenance.
 
 ### 2026-11-02 — native Git/Playground + Vercel fast-path workflow, maintenance only
 

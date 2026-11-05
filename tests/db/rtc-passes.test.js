@@ -4,6 +4,7 @@ import {openIsolatedSchema,closeIsolatedSchema,neonShapedQuery,rawQuery}
   from '../../test/helpers/pg-neon-adapter.js';
 import {requireLocalDatabaseUrl} from './local-url.js';
 import {randomBytes} from 'node:crypto';
+import {requireRtcPass} from '../../src/core/rtc-passes.js';
 let db;
 const name='org-fake-rtc',project='proj-fake-rtc';
 const pass=()=> 'rtc_pass_'+randomBytes(32).toString('base64url');
@@ -25,6 +26,7 @@ it('stores only hash, forces nonproduction read_only and supports instant scoped
   expect(saved).toMatchObject({client_id:passId,neon_org:name,
     project_scope:project,mode:'preview',profile:'read_only',
     listing:'catalog',kind:'pass',allow_writes:false,
+    rtc_requests_per_minute:60,
     rtc_areas:['server','discovery']});
   const raw=await rawQuery('SELECT token_hash,refresh_hash,kind,mode,profile FROM oauth_tokens WHERE client_id=$1',[passId]);
   expect(raw).toHaveLength(1);
@@ -58,6 +60,39 @@ it('invalidates all scoped RTC access immediately if the owning project key is r
   expect(await db.getRtcPass(token)).toMatchObject({client_id:passId});
   expect(await db.revokeNeonKey({orgId:name,id:key.id})).toBe(true);
   expect(await db.getRtcPass(token)).toBeNull();
+});
+it('enforces a stored per-pass cap atomically across two independently created database adapters',async()=>{
+  const token=pass(),passId=id(),expiresAt=new Date(Date.now()+3600000);
+  await db.createRtcReadOnlyPass({token,passId,orgId:name,projectScope:project,
+    expiresAt,requestsPerMinute:3});
+  const stored=await db.getRtcPass(token);
+  expect(stored).toMatchObject({client_id:passId,rtc_requests_per_minute:3,
+    profile:'read_only',mode:'preview',allow_writes:false});
+  const adapters=[createDb(neonShapedQuery()),createDb(neonShapedQuery())];
+  const req={headers:{authorization:'Bearer '+token}};
+  const answers=await Promise.all(Array.from({length:8},(_,i)=>{
+    const res={headers:{},setHeader(k,v){this.headers[k]=v;return this;},
+      status(code){this.code=code;return this;},
+      send(body){this.body=body;return this;}};
+    return requireRtcPass(req,res,adapters[i%2]).then(connection=>({connection,res}));
+  }));
+  expect(answers.filter(x=>x.connection!==null)).toHaveLength(3);
+  expect(answers.filter(x=>x.res.code===429)).toHaveLength(5);
+  expect(answers.filter(x=>x.connection?.requestsPerMinute===3)).toHaveLength(3);
+  expect(answers.filter(x=>x.res.headers['Retry-After']!==undefined)).toHaveLength(5);
+  expect(await db.revokeRtcPass({orgId:name,passId})).toBe(true);
+  const res={headers:{},setHeader(k,v){this.headers[k]=v;return this;},
+    status(code){this.code=code;return this;},send(body){this.body=body;return this;}};
+  expect(await requireRtcPass(req,res,adapters[0])).toBeNull();
+  expect(res.code).toBe(401);
+});
+it('rejects invalid stored RTC per-pass limits at the database boundary',async()=>{
+  const base={token:pass(),passId:id(),orgId:name,projectScope:project,
+    expiresAt:new Date(Date.now()+3600000)};
+  for(const rate of [0,61,-2,1.5,'4']){
+    await expect(db.createRtcReadOnlyPass({...base,requestsPerMinute:rate}))
+      .rejects.toThrow(/RTC pass requires/);
+  }
 });
 it('rate limits 61 parallel calls to exactly 60 across simulated independent instances',async()=>{
   const key='ab'.repeat(32),now=new Date(360000);

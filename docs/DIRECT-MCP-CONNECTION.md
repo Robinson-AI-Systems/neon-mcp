@@ -41,3 +41,17 @@ If the configured origin is `https://neon-mcp.vercel.app`, the candidate connect
 For each desktop/mobile client record: exact client name/version/platform, `PUBLIC_BASE_URL` host (not secrets), current Git main SHA, deployed live SHA, auth method, selected authorized org and scope **with identifiers redacted from public documentation**, remote MCP initialize and tools/list result, actual real provider read result class, required write-and-readback outcome on approved isolated fixture, refresh/revoke/reconnect behavior, mismatched principal/resource refusal, date and whether every test passed/failed/deferred. Keep implementation, release and external acceptance as independent states.
 
 Public listing is **not authorized** by this guide. Brand and third-party platform eligibility must be reviewed before any distribution change.
+
+## RAS customer entry and release metadata (source-only R-2 work, 2026-11-02)
+
+The public \`/connection\` information page and \`/api/health\` report only the currently served
+release when its deployment SHA is truly available. Revision is explicitly null/unknown
+otherwise. The direct Streamable HTTP endpoint remains \`/api/mcp\` with its existing
+OAuth resource-bound authorization. Newly registered supported mobile clients can use
+the standard customer-facing callback \`/api/connect/handoff\`; old exact registered
+\`/api/developer/connect\` callbacks remain compatible without an internal developer
+grant or any expanded privileges. The new route does not permit a customer to become
+a developer or change another tenant's grant. Only independently authenticated
+backend developer controls may issue internal test grants (not implemented yet).
+Do not claim any particular ChatGPT/Claude mobile device has passed solely from
+this source work. RTC 2 is adopted but not yet implemented or certified.

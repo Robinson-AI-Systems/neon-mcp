@@ -2,7 +2,9 @@
 // Early owner-approved adoption is intentionally limited to verified, harmless,
 // project-scoped read_only metadata; generic write/pass expansion remains gated.
 import {send} from './http.js';
-import {rtcCatalog,rtcToolMetadata,rtcError} from './rtc-contract.js';
+import {rtcCatalog,rtcCatalogAll,rtcToolMetadata,rtcError} from './rtc-contract.js';
+import {rtc2CatalogPage,rtc2ContentPage,RTC2_REPLY_BYTES} from './rtc2-wire.js';
+import {serverRelease} from './server-release.js';
 import {requireRtcPass,rtcNonproductionTool} from './rtc-passes.js';
 import {dispatchReadOnlyTool} from './mcp-server.js';
 import {resultScope} from './result-store.js';
@@ -61,8 +63,11 @@ function safeInvocation(name,args){
   }
   return entries.every(k=>shared.includes(k));
 }
-async function invoke({db,registry,connection,env,name,args}){
-  const reply=await dispatchReadOnlyTool({db,registry,connection,env,name,args});
+async function invoke({db,registry,connection,env,name,args,wireVersion=1}){
+  const dispatchConnection=wireVersion===2?
+    {...connection,rtcResultGrant:connection.passBinding}:connection;
+  const reply=await dispatchReadOnlyTool({db,registry,connection:dispatchConnection,
+    env,name,args});
   if(reply?.isError===true||!Array.isArray(reply?.content)||
     reply.content.length!==1||reply.content[0]?.type!=='text')
     return {error:'service_error'};
@@ -76,9 +81,22 @@ async function invoke({db,registry,connection,env,name,args}){
     return {result};
   }catch{return {error:'service_error'};}
 }
-export function createRtcHttpHandlers({db,registry,env=process.env}={}){
+export function createRtcHttpHandlers({db,registry,env=process.env,wireVersion=1}={}){
+  // Version 2 is explicitly injectable for conformance until all R-1/R-2
+  // authorization, write and deployment requirements are met. The live door
+  // still serves RTC 1 and MUST NOT advertise RTC 2 prematurely.
+  if(wireVersion!==1&&wireVersion!==2)throw new TypeError('Unsupported RTC wire version');
   if(!db||!registry?.tools||!registry?.handlers)
     throw new TypeError('RTC HTTP runtime needs a validated registry and database');
+  // RTC 2's reply budget applies to the whole HTTP response, including
+  // aggregated batch replies. Per-tool buffering alone cannot bound a batch.
+  // Reject an oversized response without emitting partial output. RTC 1 is
+  // frozen, so it must retain its pre-adoption response semantics.
+  const sendBounded=(res,status,body)=>{
+    if(wireVersion===2 && Buffer.byteLength(JSON.stringify(body))>RTC2_REPLY_BYTES)
+      return error(res,'service_error',503);
+    return send(res,status,body);
+  };
   async function authorized(req,res){
     if(!active(env,res))return null;
     return requireRtcPass(req,res,db);
@@ -105,9 +123,20 @@ export function createRtcHttpHandlers({db,registry,env=process.env}={}){
         const scoped={tools:registry.tools.filter(t=>
           rtcNonproductionTool(t.name)&&t.writes===false&&
           t.profiles?.includes(connection.profile))};
+        if(wireVersion===2){
+          const filters={q:q.q??'',area:q.area??'',audience:q.audience??'',
+            listing:q.listing??connection.listing,profile:connection.profile,
+            mode:connection.mode,areas:connection.rtcAreas,
+            project:connection.projectScope,principal:connection.clientId};
+          const visible=rtcCatalogAll(scoped,connection,
+            {listing:filters.listing,q:q.q,area:q.area,audience:q.audience},env);
+          const reply=rtc2CatalogPage({items:visible,passBinding:connection.passBinding,
+            filters,limit,cursor:q.cursor});
+          return sendBounded(res,200,reply);
+        }
         const visible=rtcCatalog(scoped,connection,{
           q:q.q,area:q.area,audience:q.audience,listing:q.listing,limit},env);
-        return send(res,200,{ok:true,result:{tools:visible,
+        return sendBounded(res,200,{ok:true,result:{tools:visible,
           count:visible.length,next:null,listing:q.listing||connection.listing}});
       }catch{return error(res,'invalid_args',400);}
     }
@@ -125,7 +154,23 @@ export function createRtcHttpHandlers({db,registry,env=process.env}={}){
           return {...c,args:normalizeArgs(c.args??{})};
         });
       }catch{return error(res,'invalid_args',400);}
-      if(calls.some(c=>!plain(c)||!namePattern.test(c.name||'')||
+      if(wireVersion===2){
+        // §5.1 scope-first lookup applies to batches too. Preflight all calls
+        // before executing any; a known-but-inaccessible name is distinct
+        // from a truly absent tool, and invalid schemas are invalid_args.
+        for(const c of calls){
+          if(!namePattern.test(c.name||'')||
+             Object.keys(c).some(k=>!['name','args'].includes(k)))
+            return error(res,'invalid_args',400);
+          const item=registry.tools.find(t=>t.name===c.name);
+          if(!item)return error(res,'not_found',404);
+          if(!rtcNonproductionTool(c.name)||item.writes!==false||
+             !item.profiles?.includes(connection.profile))
+            return error(res,'outside_scope',403);
+          if(!safeInvocation(c.name,c.args??{}))
+            return error(res,'invalid_args',400);
+        }
+      }else if(calls.some(c=>!plain(c)||!namePattern.test(c.name||'')||
            !rtcNonproductionTool(c.name)||!safeInvocation(c.name,c.args??{}) ||
            !registry.tools.some(t=>t.name===c.name && t.writes===false &&
              t.profiles?.includes(connection.profile)) ||
@@ -134,33 +179,48 @@ export function createRtcHttpHandlers({db,registry,env=process.env}={}){
       // Full preflight is complete before any handler executes.
       const results=[];
       for(const c of calls){
-        const output=await invoke({db,registry,env,connection,name:c.name,args:c.args??{}});
+        const output=await invoke({db,registry,env,connection,name:c.name,args:c.args??{},wireVersion});
         if(output.error)return error(res,output.error,503);
         results.push(output.result);
       }
-      return send(res,200,{ok:true,result:{results}});
+      return sendBounded(res,200,{ok:true,result:{results}});
     }
-    if(!rtcNonproductionTool(name))
-      return error(res,'refused_by_guard',403);
     const meta=registry.tools.find(t=>t.name===name);
-    if(!meta||meta.writes!==false||
-       !meta.profiles?.includes(connection.profile))
-      return error(res,'not_found',404);
-    if(req.method==='GET')return send(res,200,{ok:true,result:rtcToolMetadata(meta)});
+    if(wireVersion===2){
+      // §5.1: known but inaccessible is outside_scope; a genuinely
+      // unknown name remains not_found. RTC 1 keeps its frozen denials.
+      if(!meta)return error(res,'not_found',404);
+      if(!rtcNonproductionTool(name)||meta.writes!==false||
+         !meta.profiles?.includes(connection.profile))
+        return error(res,'outside_scope',403);
+    }else{
+      if(!rtcNonproductionTool(name))
+        return error(res,'refused_by_guard',403);
+      if(!meta||meta.writes!==false||
+         !meta.profiles?.includes(connection.profile))
+        return error(res,'not_found',404);
+    }
+    if(req.method==='GET')return sendBounded(res,200,{ok:true,result:rtcToolMetadata(meta)});
     let args;
     try {args=argsFrom(req);}catch{return error(res,'invalid_args',400);}
     if(!safeInvocation(name,args))return error(res,'invalid_args',400);
-    const output=await invoke({db,registry,env,connection,name,args});
+    const output=await invoke({db,registry,env,connection,name,args,wireVersion});
     if(output.error)return error(res,output.error,503);
-    return send(res,200,{ok:true,...output});
+    return sendBounded(res,200,{ok:true,...output});
   }
   async function whoami(req,res){
     if(!methods(req,res,['GET']))return;
     const connection=await authorized(req,res);
     if(!connection)return;
-    return send(res,200,{ok:true,result:{server:'robinson-neon-mcp',
+    return sendBounded(res,200,{ok:true,result:{server:'robinson-neon-mcp',
       prefix:'neon',profile:connection.profile,mode:connection.mode,
+      // RTC 2 §4.4: attest the exact pass principal and account in addition
+      // to policy; never reveal the bearer token or pass-derived binding.
+      ...(wireVersion===2?{principal:{kind:'pass',id:connection.clientId,
+        organizationId:connection.neonOrg}}:{}),
       projectScope:connection.projectScope,allowWrites:false,
+      requestsPerMinute:connection.requestsPerMinute,
+      server_release:serverRelease(env),
       areas:connection.rtcAreas}});
   }
   async function results(req,res){
@@ -170,6 +230,21 @@ export function createRtcHttpHandlers({db,registry,env=process.env}={}){
     const handle=req.query?.handle;
     if(typeof handle!=='string'||!handlePattern.test(handle))
       return error(res,'not_found',404);
+    if(wireVersion===2){
+      const rawPage=req.query?.page??'1';
+      if(typeof rawPage!=='string'||!/^[1-9][0-9]{0,5}$/.test(rawPage)||
+         req.query?.fields!==undefined||req.query?.pageSize!==undefined)
+        return error(res,'invalid_args',400);
+      try{
+        const stored=await db.readResultHandle({handle,connection:resultScope({...connection,rtcResultGrant:connection.passBinding})});
+        // Old RTC 1 handles never claim byte-exact recovery without the
+        // canonical serialized text retained at result production.
+        if(!stored||typeof stored.canonical_text!=='string')
+          return error(res,'not_found',404);
+        return sendBounded(res,200,rtc2ContentPage({handle,text:stored.canonical_text,
+          page:Number(rawPage)}));
+      }catch{return error(res,'invalid_args',400);}
+    }
     const rawPage=req.query?.page??'0',rawSize=req.query?.pageSize??'10';
     if(typeof rawPage!=='string'||!/^\d{1,6}$/.test(rawPage)||
        typeof rawSize!=='string'||!/^\d{1,2}$/.test(rawSize))
@@ -183,7 +258,7 @@ export function createRtcHttpHandlers({db,registry,env=process.env}={}){
       if(fields!==undefined&&(typeof fields!=='string'||fields.length>512))
         return error(res,'invalid_args',400);
       const data=pageStoredResult(stored.body,{page,pageSize,fields});
-      return send(res,200,{ok:true,result:{handle,summary:stored.summary,...data}});
+      return sendBounded(res,200,{ok:true,result:{handle,summary:stored.summary,...data}});
     }catch{return error(res,'service_error',503);}
   }
   return {tools,whoami,results};

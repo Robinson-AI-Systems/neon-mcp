@@ -17,6 +17,6 @@ test('a removed route and stale card count independently fail instead of silentl
   assert.ok(stale.some(e => e.includes('card count')));
 });
 test('unimplemented RTC 2 is never represented by a documentation-only adoption', () => {
-  const inaccurate = checkDocCodeTruth({ files:{...files,'docs/DIRECT-MCP-CONNECTION.md':files['docs/DIRECT-MCP-CONNECTION.md'].replace('not yet implemented','already fully accepted')}, exists});
+  const inaccurate = checkDocCodeTruth({ files:{...files,'docs/DIRECT-MCP-CONNECTION.md':files['docs/DIRECT-MCP-CONNECTION.md'].replaceAll('not yet implemented','already fully accepted')}, exists});
   assert.ok(inaccurate.some(e => e.includes('RTC 2')));
 });
