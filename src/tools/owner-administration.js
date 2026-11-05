@@ -1,4 +1,6 @@
 // B-8b: revoke local OAuth grants only; never mutate Neon API or enable production.
+// CAP-8 companion: the purge hard-deletes only rows that are already revoked
+// (token rows also once expired); a live row is never purgeable.
 import { defineWrite } from '../core/write.js';
 import { requestKey } from '../neon/client.js';
 const guards=Object.freeze({
@@ -26,15 +28,37 @@ const revoke=defineWrite({
   readAfter:async(args,ctx)=>ctx.db.getActiveScopedConnection(selected(ctx,args)),
   verify:async(_before,after)=>after===null
 });
+const purge=defineWrite({
+  name:'neon_purge_revoked_records',destructive:true,productionEffect:'none',
+  plan:async(_args,ctx)=>{
+    const before=await ctx.db.countPurgeableStoredRecords();
+    return {before,target:'server-store:revoked-rows',
+      summary:'Permanently delete '+before.neonKeys+' revoked stored key row(s) and '+
+        before.oauthTokens+' revoked or expired token row(s); live rows are never touched',
+      projectId:null,branchId:null};
+  },
+  apply:async(_args,ctx)=>{
+    const result=await ctx.db.purgeRevokedStoredRecords();
+    ctx.purgedStoredRecords=result;
+    return {confirmed:true,operations:[]};
+  },
+  readAfter:async(_args,ctx)=>ctx.db.countPurgeableStoredRecords(),
+  verify:async(_before,after)=>after.neonKeys===0 && after.oauthTokens===0
+});
 export const tools=[{...revoke.tool,profiles:['full'],
   description:'Preview and revoke one client’s grants in this organization immediately.',
   inputSchema:{type:'object',properties:{...revoke.tool.inputSchema.properties,
-    clientId:{type:'string',minLength:1,maxLength:120}},required:['clientId'],additionalProperties:false}}];
+    clientId:{type:'string',minLength:1,maxLength:120}},required:['clientId'],additionalProperties:false}},
+  {...purge.tool,profiles:['full'],
+  description:'Preview and permanently delete revoked stored key rows and revoked or expired token rows.',
+  inputSchema:{type:'object',properties:{...purge.tool.inputSchema.properties},
+    additionalProperties:false}}];
 const internalContext=({db,connection,env})=>({
   db,connection,env,deploymentEnv:env?.VERCEL_ENV,guards,
   connectionId:connection?.clientId??connection?.client_id??null,
   writeKey:(name,args)=>requestKey({neonOrg:connection?.neonOrg??connection?.neon_org},name,args)
 });
 export const handlers={
-  neon_revoke_connection:(args,context)=>revoke.handler(args,internalContext(context))
+  neon_revoke_connection:(args,context)=>revoke.handler(args,internalContext(context)),
+  neon_purge_revoked_records:(args,context)=>purge.handler(args,internalContext(context))
 };

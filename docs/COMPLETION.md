@@ -163,6 +163,19 @@ deletes the row). Four records are asymmetric:
 Server-self missing total: **7 legs** — filed as cards CAP-6 (registrations),
 CAP-7 (unenroll), CAP-8 (hard delete + pass list).
 
+**Build outcome, 2026-11-04 overnight (source; rides the 2026-11-05 00:01
+automatic promotion):** CAP-6 and CAP-8 are built, closing 5 of the 7 legs at
+source — registration list/read, metadata update and delete-with-token-cascade
+(`neon_list_oauth_clients`, `neon_get_oauth_client`, `neon_update_oauth_client`,
+`neon_delete_oauth_client`), revoked-row hard delete for `neon_keys` and
+`oauth_tokens` (`neon_purge_revoked_records`), and the RTC pass list
+(`neon_list_rtc_passes`, wiring the previously caller-less `db.listRtcPasses`).
+Registry now 137 tools; production profile visibility read_only 51 / everyday
+59 / full 128. The census counts above stand as the 2026-11-04 freeze of
+record; the remaining 2 server-self legs are CAP-7 (org unenroll). Proof:
+`tests/db/oauth-client-lifecycle.test.js` on disposable Postgres plus unit
+suites; see the CAP-6/CAP-8 card status lines.
+
 **Missing-with-plan register (platform, 75 units).** Cards CAP-6…CAP-9 are
 filed with this PR (CAP-9 covers consumption). Every other missing item stands
 here as a missing-with-plan row naming its card TO-BE-FILED; nothing is

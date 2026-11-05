@@ -12,6 +12,8 @@ const size={type:'integer',minimum:1,maximum:50};
 export const tools=[
   {name:'neon_list_connections',description:'List this organization’s safe connection summaries, never tokens.',
     inputSchema:schema({limit:size}),writes:false,profiles},
+  {name:'neon_list_rtc_passes',description:'List this organization’s RTC passes with safe summaries, never a pass token.',
+    inputSchema:schema({}),writes:false,profiles},
   {name:'neon_recent_changes',description:'List this organization’s server change log without private snapshots.',
     inputSchema:schema({limit:size,tool:{type:'string'},projectId:{type:'string'},
       includePreviews:{type:'boolean'}}),writes:false,profiles},
@@ -23,6 +25,11 @@ export const tools=[
 export const handlers={
   async neon_list_connections(args,ctx){
     return text({connections:await ctx.db.listConnectionSummaries(org(ctx),args.limit??30)});
+  },
+  async neon_list_rtc_passes(_args,ctx){
+    const rows=await ctx.db.listRtcPasses(org(ctx));
+    return text({passes:rows.map(row=>({passId:row.pass_id,projectId:row.project_scope,
+      createdAt:row.created_at,expiresAt:row.expires_at,revoked:row.revoked_at!=null}))});
   },
   async neon_recent_changes(args,ctx){
     const changes=await ctx.db.listRecentChanges({orgId:org(ctx),limit:args.limit??20,

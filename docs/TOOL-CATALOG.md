@@ -55,7 +55,7 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 **Key:** tools marked `org key` need the organization API key (IN-04); all others work with a project-scoped key.
 
 
-## Server about itself (`neon_*`) — 19
+## Server about itself (`neon_*`) — 25
 
 | Tool | What it does | Flags | Aud | Profile | Card |
 | --- | --- | --- | --- | --- | --- |
@@ -65,6 +65,12 @@ Neon), **Ow** owner (setting up and administering the account), **Op** operator 
 | `neon_check_key_access` | Re-probe every stored key: what each can reach (projects, org actions), which tools are blocked and which key kind would fix it | — | Ow | R | B-8 (built #36) |
 | `neon_list_connections` | Claude connections and passes: organization, mode, profile, listing, rate limit, last used | — | Ow | R | B-8 (built #34) |
 | `neon_revoke_connection` | Switch a connection or pass off at once | C | Ow | F | B-8 (built #35) |
+| `neon_list_rtc_passes` | RTC passes for the organization: pass id, project, created and expiry times, revoked state; never a pass token | — | Ow | R | CAP-8 |
+| `neon_list_oauth_clients` | OAuth client registrations (dynamic client registration) with safe summaries: name, redirect URIs, auth method, live token counts; never secret material | — | Ow | F | CAP-6 |
+| `neon_get_oauth_client` | One OAuth client registration's safe summary and live token count | — | Ow | F | CAP-6 |
+| `neon_update_oauth_client` | Update one registration's display name or redirect URIs; issued credentials are never touched | C | Ow | F | CAP-6 |
+| `neon_delete_oauth_client` | Delete one registration and revoke its live tokens so they stop working at once | C | Ow | F | CAP-6 |
+| `neon_purge_revoked_records` | Permanently delete revoked stored key rows and revoked or expired token rows; live rows are never touched | C | Ow | F | CAP-8 |
 | `neon_enable_production` | Request production access for one organization (NOT activation; needs owner passphrase and typed approval within ten minutes, plus release gates after X-2/X-3) | C | Ow | F | B-2 (built #20) |
 | `neon_disable_production` | Stop production permission immediately and invalidate pending owner approval | C | Ow | F | B-2 (built #20) |
 | `neon_recent_changes` | What changed through this server (filter by tool, project, branch, date; previews hidden unless asked) | — | Ow Op | R | B-8 (built #34) |
@@ -375,7 +381,7 @@ support tickets. The full map (every console settings page) is built in O-4 (`sr
   metrics and Postgres logs, alerts, encryption/SSL/password-policy switches, project clone, branch merge, backup export,
   checkpoint/WAL statistics; and two speculative advice tools (partitioning, materialized views).
 
-**Implemented registry at #160 (updated with 2026-10-19 D-7/D-8 owner visibility; now included in 2026-11-01 READY release):** `read_only` 50; `everyday` 58; `full` 122. These are implemented/visible tools, not the 177-tool planned catalog; verify with exact-head CI.
+**Implemented registry at #160 (updated with 2026-10-19 D-7/D-8 owner visibility; now included in 2026-11-01 READY release; CAP-6/CAP-8 server-self lifecycle added 2026-11-04):** `read_only` 51; `everyday` 59; `full` 128. These are implemented/visible tools, not the 177-tool planned catalog; verify with exact-head CI.
 
 ## Totals
 

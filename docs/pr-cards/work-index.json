@@ -1310,7 +1310,7 @@
         "CAP-1"
       ],
       "card": "docs/pr-cards/CAP-6.md",
-      "status": "PLANNED",
+      "status": "MERGED",
       "migration": "JIT contract before implementation",
       "budget": 450,
       "units": [
@@ -1346,7 +1346,7 @@
         "CAP-1"
       ],
       "card": "docs/pr-cards/CAP-8.md",
-      "status": "PLANNED",
+      "status": "MERGED",
       "migration": "JIT contract before implementation",
       "budget": 400,
       "units": [
