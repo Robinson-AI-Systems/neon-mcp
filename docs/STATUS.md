@@ -1,5 +1,20 @@
 ## Verified source and deployment checkpoint — 2026-11-01
 
+### 2026-11-04 — CAP-9: consumption and usage reads (overnight queue)
+
+`neon_consumption_get` answers the monthly-usage workflow (platform map W10):
+per-project and per-branch consumption for a stated period from the platform
+consumption-history endpoints (v2 projects, v2 branches, legacy plans), with
+exact integer metric totals and a dollar estimate priced from the server's
+stored, source-dated price table in integer cents — labeled an estimate,
+never the Neon bill (the platform returns metrics, not currency). Nonsense
+periods are rejected before any Neon call; project-scoped connections stay
+inside their project. Registry 138 tools; production visibility 52 / 60 / 129.
+Verified locally: repository `npm run check` and `tests/unit/consumption.test.js`
+through the fake Neon server, which validates request and response shapes
+against the vendored API description. Rides the 2026-11-05 00:01 automatic
+promotion (no owner release fired).
+
 ### 2026-11-04 — CAP-6 + CAP-8: server-self registration lifecycle and hard delete (overnight queue)
 
 Owner tools for this server's own OAuth client registrations are built:

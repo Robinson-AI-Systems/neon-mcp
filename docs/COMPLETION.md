@@ -176,6 +176,16 @@ record; the remaining 2 server-self legs are CAP-7 (org unenroll). Proof:
 `tests/db/oauth-client-lifecycle.test.js` on disposable Postgres plus unit
 suites; see the CAP-6/CAP-8 card status lines.
 
+**Build outcome, 2026-11-04 overnight (consumption):** CAP-9 is built —
+`neon_consumption_get` reads the platform consumption-history endpoints
+(per-project v2, per-branch v2, legacy plans) for a stated period and returns
+exact metric totals with a clearly labeled dollar estimate priced from the
+server's stored price table in integer cents (the platform returns metrics,
+never currency). Registry now 138 tools; production profile visibility
+read_only 52 / everyday 60 / full 129. Proof: `tests/unit/consumption.test.js`
+through the fake Neon server (request/response shapes validated against the
+vendored API description; totals equal fixture line items).
+
 **Missing-with-plan register (platform, 75 units).** Cards CAP-6…CAP-9 are
 filed with this PR (CAP-9 covers consumption). Every other missing item stands
 here as a missing-with-plan row naming its card TO-BE-FILED; nothing is
@@ -183,7 +193,7 @@ dropped.
 
 | Missing item | Units | Plan |
 |---|---|---|
-| Consumption history reads (per-project / per-branch usage) | 1 | **Card CAP-9 filed** |
+| Consumption history reads (per-project / per-branch usage) | 1 | **Card CAP-9 filed — BUILT 2026-11-04** (`neon_consumption_get`; see the build-outcome note in this section) |
 | Neon Auth management surface (integration, users, OAuth providers, OAuth clients, trusted domains, configuration set) | 22 | Card TO-BE-FILED — largest single build; sequenced after CAP-2…CAP-5 |
 | Functions + triggers + function custom domains | 13 | Card TO-BE-FILED (preview surface; platform plan-gating unverified) |
 | Data API management | 4 | Card TO-BE-FILED (its JWKS dependency is COVERED) |
