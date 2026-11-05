@@ -1,5 +1,22 @@
 ## Verified source and deployment checkpoint — 2026-11-01
 
+### 2026-11-05 — RACK-2: standalone rack entrypoint (rack migration staging)
+
+The service can now run outside Vercel: `rack-server.mjs` at the
+repository root dispatches every request to the same `api/` handler
+modules the Vercel deployment invokes, reproducing the filesystem
+binding for all 16 function files, the seven `vercel.json` rewrites
+(including the RTC doors and their injected parameters), each
+function's body-parsing contract, and the chainable response helpers
+on a real Node response — so the MCP streaming transport keeps its
+native surface. One open question is recorded on the card (Q-1): the
+front door is served at both `/` and `/api` until a live read-back
+settles which binding the current build treats as canonical. The
+route-table suite pins the whole table plus the fail-closed shapes.
+Vercel ignores the new file; the deployed service is unchanged.
+Registry stays 139 tools. Rides the next automatic promotion; no
+owner release fired.
+
 ### 2026-11-05 — RACK-1: own-store transport promotion (rack migration staging)
 
 The server's own store can now run on plain Postgres, the first staging
