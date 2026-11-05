@@ -58,6 +58,36 @@ CAP-5 acceptance question, recorded here — not asserted either way.
 `docs/TOOL-CATALOG.md` describes the planned product scope (its own checkpoint
 banner says so) and is not a registry count.
 
+**Disposition of the 9 no-profile tools (recorded 2026-11-04, overnight
+queue).** All 9 declare the full profile and are write tools; production
+visibility for writes is an explicit per-tool allowlist, and none of the 9
+has been individually audited onto it. They are visible in no profile on any
+deployment class (on preview deployments no write tools are visible at all);
+their operations exist in the server's internal machinery (the SQL write
+pipeline journals under `neon_sql_execute`; the dev-run engine owns the
+checkpoint machinery). The disposition for each is the same standing
+posture — **deliberately outside connection profiles pending individual
+production audit under CAP-5** — for these recorded reasons:
+
+- The 3 SQL-write tools (`neon_sql_preview_change`, `neon_sql_execute`,
+  `neon_sql_execute_transaction`): arbitrary-SQL writes are the broadest
+  writes in the catalog and cannot be previewed as one named, bounded
+  operation the way allowlisted writes are; production SQL change flows
+  through the guarded, classified write paths instead.
+- The 6 dev tools (`neon_dev_checkpoint`, `neon_dev_reset_branch`,
+  `neon_dev_restore_checkpoint`, `neon_dev_migration_preview`,
+  `neon_dev_anonymized_copy`, `neon_dev_tune_query`): they mutate dev-branch
+  content and checkpoints. Their lifecycle siblings (branch create, seed,
+  cleanup) are allowlisted, but these content-mutating operations have not
+  had their own production audit, and the anonymized surface is incomplete —
+  §1.3 of the re-census relies on `neon_dev_anonymized_copy` /
+  `neon_dev_anonymized_status` while the masking-rule read/update legs stand
+  missing.
+
+No re-profiling was done: widening what a connection may do by default is an
+owner decision, so promotion of any of the 9 requires its CAP-5 audit plus an
+owner-visible decision, recorded here as the path.
+
 **Audit method note.** This reconciliation is a survey-and-reconciliation pass
 (one worker; repo + live-surface read-backs), not a full Tier 2 Critic pass. It
 closes no product requirement by itself. Whether the server's own Neon store
@@ -70,7 +100,7 @@ sleeps when idle was not checked and no store was woken to check it.
 | Tool registry | **131 registered** live; 50 / 58 / 122 visible by profile on a production deployment. |
 | Roadmap / gates in repo | 62 tracked original/CAP work cards with unfinished implementation; CG-1…CG-6 all **OPEN** (see [COMPLETION-GATES](COMPLETION-GATES.md)); the CAP-1 census is superseded as census of record by the 2026-11-04 two-source re-census (row 15), which also filed CAP-6…CAP-9; CAP-2…CAP-5 not complete. |
 | RAS MCP conformance | **17 rows** below. No row is closed on live evidence by this reconciliation; rows 12–14 conform at plan level as scoped. |
-| Release identity and health | **Open.** No `server_release`, no health endpoint. Draft PR #202 carries the VER-1 source work. |
+| Release identity and health | **Source complete; live proof owed.** `server_release` and the pinned-shape health endpoint are in code at current main (PR #202, merged); the row closes when all surfaces agree at one checked deployed release (a post-promotion read-back). |
 | Branded identity/domain | **Not cut over.** Issuer is the platform domain; branded domain not serving; live front-door name is the pre-rename form (correction PR prepared separately, left open for review). |
 | Production readiness | **No filed pass.** |
 | Neon production activation | Per-organization owner enablement remains the owner's separate act; nothing in this schedule changes it. |
@@ -83,17 +113,17 @@ sleeps when idle was not checked and no store was woken to check it.
 | 2. Client ID cards (CIMD) | **OPEN — not verified live.** | Discovery advertises a registration endpoint and `none` token auth, but no live knock test with a real card client (Claude/ChatGPT) has been run against a checked release, and fetch-and-validate behaviour is not evidenced in this record. Closes only on that knock test. |
 | 3. One public sign-in | **PARTIAL.** | The OAuth journey answers live at the platform origin (discovery read back 2026-11-04). Still open: the public `/connection` page (live 404) and the authenticated My Connection settings surface; read-only/production remain post-login settings by design and must be proven so in the CG-2/CG-6 tests the repo already tracks. |
 | 4. Developer access boundary | **OPEN.** | `api/developer/connect.js` is, per the repo's own design record, a public mobile OAuth handoff wearing a developer name — the staged migration (trace clients → relocate the legitimate handoff → reserve/guard the developer namespace) is designed in `docs/designs/RAS-MCP-D001-ADOPTION.md` and not yet executed. The entitled-developer vs ordinary-user live pair, including crossover refusals, remains to be proven. |
-| 5. Release provenance / VER-1 | **OPEN — source in flight.** | No live surface reports version/SHA today (`/api` has neither; `neon_whoami` has no `server_release`). Draft PR #202 (R-2) carries the source step; the row closes when initialize, whoami, manifest, health and front door agree at one checked deployed release. |
+| 5. Release provenance / VER-1 | **OPEN — source complete, live proof owed.** | PR #202 (R-2) merged 2026-11-04: initialize, `neon_whoami`, the RTC manifest, health and the front door all derive `server_release` from the same validated `serverRelease(env)` at source (a forged Host or missing commit never yields a fabricated SHA). The row closes when those surfaces agree at one checked deployed release — a post-promotion live read-back, still owed. |
 | 6. Identity anchoring / branded origin | **OPEN.** | Live issuer and resource are `https://neon-mcp.vercel.app`; `https://neon.robinsonaisystems.com` returns DEPLOYMENT_NOT_FOUND. The cutover is one ruled, sequenced identity change (single configured origin value, DNS attach, reconnect path) — not attempted by this audit. |
 | 7. Unleashed branding and naming | **PARTIAL.** | In the repo: `docs/UNLEASHED-BRAND-SPEC.md` and the approved Coral render `docs/unleashed-neon.png` (307,711 bytes, the approved render's size) are present, and the D-005 Coral `#FF5F5F` claim is recorded in the repo's design history. Live/code gaps: `PRODUCT_DISPLAY_NAME` in `src/core/product-identity.js` is still "Neon by Robinson AI Systems" (a separate correction PR updates it to the full Unleashed name and the §6.3 attribution wording; left open for review); the Coral accent appears in no code surface; there are no HTML pages, favicon or icon assets to carry the Break-Out mark; `package.json`'s description carries no product name (the package name itself is a stable identifier and is not churned). Closes only on live read-back of mark + accent + full name. |
-| 8. Branded front door — five fleet things | **PARTIAL.** | (a) Branded subdomain: not serving (row 6). (b) Status surface substance is live at `/api` as JSON; the literal `/` route 404s and there is no HTML front door in the fleet design — resolve deliberately with the branded cutover. (c) `/connection` returns 404 — unbuilt. (d) Instructions cannot name only the branded address until cutover. (e) The single `robinsonaisystems.com/tools` listing is not verified from this repository; it may show a connect button only when the branded connection page answers. The `/api` status surface itself is verified database-free, which is the cost-ruling half of this row and it passes. |
-| 9. Fleet health contract | **OPEN.** | No `/api/health` route exists in code or live (both 404). Build step: add the pinned-shape health readout (status, version, deployed SHA, tool count, timestamp; 200/503) whose dependency check can genuinely fail, keeping the public front-door path database-free per the cost ruling; advertise the path from the contract surface. This row is distinct from the front door's database-free pass in row 8. |
+| 8. Branded front door — five fleet things | **PARTIAL.** | (a) Branded subdomain: not serving (row 6). (b) The HTML front door exists at source (PR #202: health line, version and deployed-revision link, census depth line added 2026-11-04) and serves from the platform domain after a promotion carries it; the branded presentation resolves with the cutover. (c) `/connection` exists at source (`api/connection.js`, public instructions surface). (d) Instructions cannot name only the branded address until cutover. (e) The single `robinsonaisystems.com/tools` listing is not verified from this repository; it may show a connect button only when the branded connection page answers. The front-door path is verified database-free in its default posture, which is the cost-ruling half of this row and it passes. |
+| 9. Fleet health contract | **SOURCE COMPLETE — live read-back owed.** | The pinned-shape health readout exists at source (`api/health.js` + `src/service-health.js`, merged via PR #202): status ok/degraded, version, deployed SHA, registry tool count, timestamp; 200/503; the database dependency check is opt-in (`HEALTH_DB_PROBE_ENABLED`, a go-live checklist switch) and genuinely fails closed — a failed or unconfigured probe reports degraded, never a fabricated ok, and no internal detail leaks (unit-proven in `tests/unit/ras-release-entry.test.js`). The path is advertised from the contract surface (the RTC manifest carries `health: '/api/health'`, and the front door links it), and the public front-door path stays database-free in the default posture per the cost ruling. What remains is the live read-back at a checked deployed release, which the first promotion carrying #202 makes possible. This row is distinct from the front door's database-free pass in row 8. |
 | 10. Production readiness and protection gate | **OPEN — no filed pass.** | Pass every gate section with evidence (public-surface/backdoor inventory, sign-in hygiene, legal placement, abuse/cost defences, privacy/retention clocks, observability, the 3am watcher runbook, recovery/fixtures, docs truth), declaring any degraded check degraded. The repo's CG-1…CG-6 overlays stay OPEN until then. Charging or launching beyond beta additionally requires the one-time attorney review of Terms/Privacy. |
 | 11. Discovery and contract governance (RTC) | **PARTIAL — plan level.** | The RTC 2 owner decision is documented in the repo and `/api/contract` honestly withholds RTC 1 identity (503, integration in progress). RTC 2 wire adoption (advertisement, opaque-cursor pagination, content-page recovery, passes) is not implemented; no `rtc:2` claim is made anywhere, which is the conforming posture until it is. |
 | 12. No global credential fallback | **CONFORMS at plan level.** | The design binds every connection to its own organization's keys; no service-owned global Neon credential route is present in the serving code paths read for this record. CAP-5 proof must keep demonstrating it; this row supplies no independent live pass. |
 | 13. Version evolution | **CONFORMS at plan level.** | Additive/fail-closed evolution (frozen tool names/shapes, restrictive defaults) is the repo's standing rule and its release policy's shape; a continuing rule, not a completed acceptance event. |
 | 14. Pattern appraisal guardrails | **RECORDED; remote coding runtime NOT APPLICABLE.** | No further baseline work. |
-| 15. Capability completeness | **CORRECTABLE — PARTIAL under the capability-completeness grading amendment.** | **Reopened and re-issued 2026-11-04** under the RAS MCP Standard's capability-completeness grading amendment (Library D-001, as amended 2026-11-04 by Library PR #5). The census is now a two-source reconciliation — platform side from Neon's official documentation only, server side from code only, built independently and sealed — recorded in the "Capability re-census record" section below: **152 mapped units / 73 COVERED / 4 COMPOSED / 0 OWNER-EXCLUDED / 75 MISSING** on the platform surface, plus **7 MISSING lifecycle legs on the server's own registration/connection records**, the class the original census missed. Under the amendment the grade is capped at PARTIAL while any plausibly-needed capability stands MISSING; missing items with a filed plan still count as missing for the cap. Every missing unit carries a plan in the record section: cards **CAP-6…CAP-9 are filed with this PR** (registration lifecycle + consumption reads); the rest stand as missing-with-plan rows naming their card TO-BE-FILED. This reconciliation supersedes draft PR #203's single-source CAP-1 draft as the census of record. Still owed under this row: the consumer test (with CAP-5) and the front-door depth line citing this census instead of the bare tool count, which rides the branded cutover. |
+| 15. Capability completeness | **CORRECTABLE — PARTIAL under the capability-completeness grading amendment.** | **Reopened and re-issued 2026-11-04** under the RAS MCP Standard's capability-completeness grading amendment (Library D-001, as amended 2026-11-04 by Library PR #5). The census is now a two-source reconciliation — platform side from Neon's official documentation only, server side from code only, built independently and sealed — recorded in the "Capability re-census record" section below: **152 mapped units / 73 COVERED / 4 COMPOSED / 0 OWNER-EXCLUDED / 75 MISSING** on the platform surface, plus **7 MISSING lifecycle legs on the server's own registration/connection records**, the class the original census missed. Under the amendment the grade is capped at PARTIAL while any plausibly-needed capability stands MISSING; missing items with a filed plan still count as missing for the cap. Every missing unit carries a plan in the record section: cards **CAP-6…CAP-9 are filed with this PR** (registration lifecycle + consumption reads); the rest stand as missing-with-plan rows naming their card TO-BE-FILED. This reconciliation supersedes draft PR #203's single-source CAP-1 draft as the census of record. Still owed under this row: the consumer test (with CAP-5). The front-door depth line citing this census next to the bare tool count was added 2026-11-04 (overnight queue) ahead of the branded cutover it was scheduled to ride. |
 | 16. Conformance-correction process | **CORRECTABLE — process running.** | Step 0–2 are done (frozen baseline above, inventory in this record and the repo's D-001 adoption crosswalk, 17 honest rows). The row closes when every row conforms or carries a ruled exception with live proof filed. Note: `docs/STATUS.md`'s top checkpoint still reads 2026-11-01 at `1c810cb0…`; that heading is pinned verbatim by `scripts/check-doc-code-truth.mjs`, so refreshing it belongs with that check's owner — recorded here rather than breaking CI from an audit PR. |
 | 17. Owner-obedience | **CORRECTABLE — classification not yet filed.** | The code already runs guarded confirm patterns for destructive/costly tools (B-1 preview/confirm, spend previews, production enablement as an owner setting), but no inventory classifying every refusal point as aim check / convertible veto / non-convertible boundary / platform rule exists yet. Build step: file that classification in this record's successor pass, convert any owner-facing vetoes to the confirmed-action pattern (evaluate → disclose → fingerprint → confirm → re-check → journal → read back) most destructive first, each closing only on live proof. |
 
@@ -283,15 +313,19 @@ parallel (check / unit / db / rtc) with 180-second phase budgets.
 ## Shortest truthful answer
 
 Neon Unleashed by Robinson AI Systems still needs: the VER-1 release identity
-(draft PR #202) proven live; a health endpoint in the pinned shape; the CIMD
+proven live (source complete in merged PR #202, including the pinned-shape
+health endpoint — rows 5 and 9); the CIMD
 knock test and the full client matrix (CG-1/CAP-5); the developer-boundary
 migration and live denial pair; the branded-domain/identity cutover — which
-also delivers the HTML front door, the `/connection` page, the Break-Out mark
+delivers the branded domain, the Break-Out mark
 with the Coral accent on public surfaces, and the corrected public name (a
-code correction for the name is prepared and waiting review); the CAP-1 census
-(draft PR #203) and CAP-2…CAP-5; the owner-obedience refusal classification;
-the 9-tool production-visibility disposition; and the production-readiness
-gate. Only after those — and separately, only with Chris's authorization for
+code correction for the name is prepared and waiting review; the HTML front
+door and the `/connection` page already exist at source); CAP-2…CAP-5 (the
+CAP-1 census merged as PR #203, and CAP-6…CAP-9 were built 2026-11-04); the
+owner-obedience refusal classification; and the production-readiness
+gate. The 9-tool production-visibility disposition is recorded in the census
+note above (deliberately outside connection profiles pending CAP-5 audit).
+Only after those — and separately, only with Chris's authorization for
 launch or per-account production use — can it be called a finished product.
 
 *Disclaimer: Neon Unleashed is a Robinson AI Systems product. It is not

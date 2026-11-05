@@ -23,6 +23,7 @@ export function createFrontDoor({env=process.env,health=serviceHealth}={}){
       '</head><body><main><small class="mark">ROBINSON AI SYSTEMS · INDEPENDENT INTEGRATION</small>'+
       '<h1>'+safe(PRODUCT_DISPLAY_NAME)+'</h1><p>'+safe(PRODUCT_ATTRIBUTION)+'</p>'+
       '<p class="status">Service health: '+safe(state.status)+' · '+safe(state.tools)+' registered tools</p>'+
+      '<p>Capability census (2026-11-04): 73 of 152 platform operations covered, 4 composed, the rest missing with filed plans; this server’s own lifecycle records are complete. Full record: row 15 of docs/COMPLETION.md in the public repository.</p>'+
       '<p>Version: <code>'+safe(rel.version)+'</code> · Deployed revision: '+commit+'</p>'+
       '<p>Development-stage service. A status page is not proof of an authenticated Neon account connection.</p>'+
       '<p><a href="/api/health">Health</a> · <a href="/connection">My connection</a> · <a href="/api/contract">Contract</a> · '+
