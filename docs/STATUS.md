@@ -1,5 +1,24 @@
 ## Verified source and deployment checkpoint — 2026-11-01
 
+### 2026-11-04 — Health contract record corrected; 9 no-profile tools dispositioned (overnight queue)
+
+Verification at current main: the fleet health contract's build side is
+already complete at source (merged PR #202) — `api/health.js` serves the
+pinned shape (status, version, deployed SHA, tool count, timestamp; 200/503),
+the database probe is opt-in and fails closed to degraded, the RTC contract
+manifest advertises `health: '/api/health'`, and the front door links it.
+What was missing was the record: COMPLETION rows 5, 8 and 9 and the closing
+summary still described the pre-#202 state. They now read source-complete
+with the live read-back still owed (the first promotion carrying #202 —
+tonight's 00:01 train — makes it possible). The front door also gained the
+census depth line row 15 owed (2026-11-04 census: 73 of 152 covered, 4
+composed, the rest missing-with-plan), ahead of the branded cutover it was
+scheduled to ride. Separately, the 9 registered tools visible in no
+connection profile (3 SQL-write, 6 dev) are dispositioned in the COMPLETION
+census note: deliberately outside connection profiles pending individual
+CAP-5 production audit, per-tool reasons recorded; no re-profiling was done
+(widening a connection's default reach is an owner decision).
+
 ### 2026-11-04 — CAP-7: organization unenrollment (overnight queue)
 
 An enrolled organization can now be removed: `neon_unenroll_organization`
