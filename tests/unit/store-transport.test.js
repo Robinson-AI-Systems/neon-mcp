@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { isNeonStoreUrl, selectStoreTransport, storeSql, pgStoreSql } from '../../src/db-transport.js';
 
-const NEON_URL = 'postgres://fixture@ep-example-123.us-east-1.neon.tech/neondb';
+const NEON_URL = 'postgres://fixture@ep-fake-endpoint-123.us-east-1.neon.tech/neondb';
 const LOCAL_URL = 'postgres://localhost:5432/neondb';
 
 describe('own-store transport selection', () => {
