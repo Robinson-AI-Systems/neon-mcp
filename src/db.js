@@ -50,6 +50,104 @@ export function createDb(sql = productionSql()) {
       const rows = await sql`SELECT client_id, data FROM oauth_clients WHERE client_id = ${clientId}`;
       return rows[0] ? { client_id: rows[0].client_id, ...rows[0].data } : null;
     },
+    // CAP-6: owner-facing registration lifecycle. Summaries never expose the
+    // stored client_secret_hash; only its presence is reported.
+    async listOAuthClients() {
+      const rows = await sql`SELECT c.client_id, c.data, c.created_at,
+        (SELECT count(*)::integer FROM oauth_tokens t
+          WHERE t.client_id = c.client_id AND t.kind = 'connector') AS token_total,
+        (SELECT count(*)::integer FROM oauth_tokens t
+          WHERE t.client_id = c.client_id AND t.kind = 'connector'
+          AND t.revoked_at IS NULL AND t.expires_at > now()) AS token_live,
+        (SELECT count(*)::integer FROM oauth_codes k
+          WHERE k.client_id = c.client_id) AS code_count
+        FROM oauth_clients c ORDER BY c.created_at ASC, c.client_id ASC`;
+      return rows.map((row) => ({
+        clientId: row.client_id, clientName: row.data?.client_name ?? null,
+        redirectUris: Array.isArray(row.data?.redirect_uris) ? row.data.redirect_uris : [],
+        tokenEndpointAuthMethod: row.data?.token_endpoint_auth_method ?? null,
+        hasClientSecret: typeof row.data?.client_secret_hash === 'string' &&
+          row.data.client_secret_hash.length > 0,
+        createdAt: row.created_at, tokens: { total: row.token_total, live: row.token_live },
+        pendingCodes: row.code_count
+      }));
+    },
+    async getOAuthClientSummary(clientId) {
+      if (typeof clientId !== 'string' || !clientId) return null;
+      const rows = await sql`SELECT c.client_id, c.data, c.created_at,
+        (SELECT count(*)::integer FROM oauth_tokens t
+          WHERE t.client_id = c.client_id AND t.kind = 'connector') AS token_total,
+        (SELECT count(*)::integer FROM oauth_tokens t
+          WHERE t.client_id = c.client_id AND t.kind = 'connector'
+          AND t.revoked_at IS NULL AND t.expires_at > now()) AS token_live,
+        (SELECT count(*)::integer FROM oauth_codes k
+          WHERE k.client_id = c.client_id) AS code_count
+        FROM oauth_clients c WHERE c.client_id = ${clientId}`;
+      const row = rows[0];
+      return row ? {
+        clientId: row.client_id, clientName: row.data?.client_name ?? null,
+        redirectUris: Array.isArray(row.data?.redirect_uris) ? row.data.redirect_uris : [],
+        tokenEndpointAuthMethod: row.data?.token_endpoint_auth_method ?? null,
+        hasClientSecret: typeof row.data?.client_secret_hash === 'string' &&
+          row.data.client_secret_hash.length > 0,
+        createdAt: row.created_at, tokens: { total: row.token_total, live: row.token_live },
+        pendingCodes: row.code_count
+      } : null;
+    },
+    // Metadata only: the stored secret hash and auth method are preserved
+    // verbatim; issued credentials are never touched by an update.
+    async updateOAuthClient({ clientId, clientName, redirectUris }) {
+      if (typeof clientId !== 'string' || !clientId)
+        throw new TypeError('OAuth client registration requires an ID');
+      if (clientName === undefined && redirectUris === undefined)
+        throw new TypeError('Nothing to update: name or redirect URIs required');
+      if (clientName !== undefined && clientName !== null &&
+        (typeof clientName !== 'string' || clientName.length > 200))
+        throw new TypeError('Invalid OAuth client name');
+      if (redirectUris !== undefined &&
+        (!Array.isArray(redirectUris) || !redirectUris.length ||
+          redirectUris.some((uri) => typeof uri !== 'string' || !uri || uri.length > 2048)))
+        throw new TypeError('Invalid redirect URIs');
+      const rows = await sql`SELECT data FROM oauth_clients WHERE client_id = ${clientId}`;
+      if (!rows.length) return false;
+      const data = { ...rows[0].data };
+      if (clientName !== undefined) data.client_name = clientName;
+      if (redirectUris !== undefined) data.redirect_uris = redirectUris;
+      const updated = await sql`UPDATE oauth_clients SET data = ${JSON.stringify(data)}::jsonb
+        WHERE client_id = ${clientId} RETURNING client_id`;
+      return updated.length === 1;
+    },
+    // Deleting a registration revokes its live connector tokens and clears its
+    // pending authorization codes, so nothing the client holds keeps working.
+    async deleteOAuthClient(clientId) {
+      if (typeof clientId !== 'string' || !clientId)
+        throw new TypeError('OAuth client registration requires an ID');
+      const rows = await sql`SELECT client_id FROM oauth_clients WHERE client_id = ${clientId}`;
+      if (!rows.length) return null;
+      const revoked = await sql`UPDATE oauth_tokens SET revoked_at = now()
+        WHERE client_id = ${clientId} AND kind = 'connector' AND revoked_at IS NULL
+        RETURNING token_hash`;
+      const codes = await sql`DELETE FROM oauth_codes WHERE client_id = ${clientId}
+        RETURNING code`;
+      await sql`DELETE FROM oauth_clients WHERE client_id = ${clientId}`;
+      return { tokensRevoked: revoked.length, codesRemoved: codes.length };
+    },
+    // CAP-8: hard delete for rows that are already dead. A live key or token
+    // row is never purgeable; token rows also qualify once expired.
+    async countPurgeableStoredRecords() {
+      const keys = await sql`SELECT count(*)::integer AS n FROM neon_keys
+        WHERE revoked_at IS NOT NULL`;
+      const tokens = await sql`SELECT count(*)::integer AS n FROM oauth_tokens
+        WHERE revoked_at IS NOT NULL OR expires_at <= now()`;
+      return { neonKeys: keys[0].n, oauthTokens: tokens[0].n };
+    },
+    async purgeRevokedStoredRecords() {
+      const keys = await sql`DELETE FROM neon_keys WHERE revoked_at IS NOT NULL
+        RETURNING id`;
+      const tokens = await sql`DELETE FROM oauth_tokens
+        WHERE revoked_at IS NOT NULL OR expires_at <= now() RETURNING token_hash`;
+      return { neonKeys: keys.length, oauthTokens: tokens.length };
+    },
     async createAuthCode({ code, clientId, redirectUri, codeChallenge, codeChallengeMethod = 'S256',
       neonOrg = null, projectScope = null, mode = 'preview', profile = 'everyday',
       listing = 'catalog', ttlSeconds = 600 }) {
@@ -157,7 +255,7 @@ export function createDb(sql = productionSql()) {
     async listRtcPasses(orgId){
       if(!/^[a-z0-9-]{1,60}$/.test(orgId||''))
         throw new TypeError('Invalid owner organization');
-      return sql`SELECT client_id AS pass_id,project_scope,expires_at,revoked_at
+      return sql`SELECT client_id AS pass_id,project_scope,created_at,expires_at,revoked_at
         FROM oauth_tokens WHERE neon_org=${orgId} AND kind='pass'
         ORDER BY created_at DESC LIMIT 50`;
     },
