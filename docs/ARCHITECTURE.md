@@ -1,3 +1,15 @@
+## 2026-11-03 CAP-1 provider-reference boundary
+
+The running source retains its 163-operation, 2026-07 vendored Neon v2
+OpenAPI. CAP-1 additionally records a read-only, commit-pinned official
+Neon SDK v2 source reference (193 operations; 31 SDK-only and one
+runtime-vendor-only). The SDK reference is used ONLY by offline inventory,
+gap reporting and tests in docs/capabilities and src/core/cap-coverage.js;
+it does not alter src/neon/openapi-index.js, the Neon client, credential
+routing, app authentication, operation dispatch or deployment.
+Advanced SQL, storage, Functions, Auth and AI hosts remain separate;
+all new operation permission/execution and released-client evidence is open.
+
 ## 2026-10-21 source: client-owned OAuth disconnect
 
 The merged native issuer exposes POST /api/oauth/revoke on the checked READY release and advertises it through issuer
@@ -180,6 +192,102 @@ sql_scope_hash, sql_preview_expires_at and sql_preview_used_at columns with an
 explicit neon_role_delete tool discriminator and exact owner/connection/role target.
 Only hashes are stored. SQL execution claims require neon_sql_execute so a role
 retirement consent can never be interpreted as an SQL preview. No migration.
+
+### CAP-1 operation/credential inventory staging (2026-11-03)
+
+The source-only CAP-1 inventory generator is scripts/cap-coverage.mjs,
+backed by pure validation in src/core/cap-coverage.js. It resolves
+vendor/neon-openapi/v2.yaml against its pinned SHA in SOURCE.md and the actual
+registered tool names/handlers; parses separate documented provider surfaces
+from docs/capabilities/neon-product-surfaces.json; and produces the checked
+JSON inventory and human family report under docs/capabilities. Run
+node scripts/cap-coverage.mjs --check to detect drift, or --write to regenerate
+for reviewed code changes. The normal repository check now includes it.
+
+A literal operation ID in a tool module is a possible implementation *reference*,
+not proof of actual credential routing, request-shape guard, idempotency,
+response/readback or live access. The inventory intentionally assigns zero
+new verified-source or live credits for such references. Credential kinds
+include personal, organization, project API keys, SQL password roles,
+delegated OAuth and product-scoped credentials. Each status has provider
+citation where any support/refusal is asserted, or stays unknown. Newer-product
+methods remain separately sourced and are not folded into the older OpenAPI
+denominator. No new runtime authority or provider API calls are introduced.
+
+### Ambiguous Neon mutation recovery — operation-scoped (CAP-1 source correction)
+
+`src/neon/client.js` handles an unknown result for writes as pending,
+without replay. Only an ambiguous `createProjectBranch` operation
+may consult the branch annotation `rtc_request` to corroborate the
+same request key. The generic client must not consult or reuse
+branch annotations as successful readback for any other write.
+Non-branch mutations retain their own operation-specific B-1
+readback and durable-audit policy, and unknown outcome must not
+be changed to success by unrelated resource metadata.
+This rule was proven with fake Neon SDK only; actual provider
+acceptance is still separately required.
+
+### Fail-closed durable shared Neon API request admission (CAP-1 draft #203)
+
+Before every Neon API request, the scoped key's `makeNeonBudget`
+adapter uses the existing atomic DB minute ledger. Only a
+literal database `allowed:true/false` is valid: missing,
+string/numeric and malformed results throw, never authorize.
+The installed SDK wrapper `call()` independently requires
+a literal `true` or object `allowed:true` before any HTTP.
+Unknown/throwing budgets produce a sanitized
+`budget_unavailable` 503, explicit denials 429 with bounded
+Retry-After; no provider request or credential value is exposed
+by an unconfirmed/invalid admission. These source tests do not
+prove the actual provider's current permission entitlements,
+metering or live production acceptance.
+
+### Checked runtime control-plane HTTP method classification (CAP-1 draft #203)
+
+The universal SDK client imports the generated
+`src/neon/operation-methods.js` table, whose 194 operation
+IDs and canonical GET/POST/PUT/PATCH/DELETE methods are derived
+from the checked vendored Neon 163-method OpenAPI and newer official
+SDK 193-method source, deduplicated. The checked offline
+`verify-neon-method-guards.mjs --check` runs within normal
+repository check/CI. A mutation cannot bypass the request-key
+and non-replay semantics by omitting or falsifying the optional
+caller `write` argument: any pinned non-GET method requires
+`write:true` before budget or HTTP. Unknown source operations
+are not newly enabled. Actual user/protected write guards,
+provider permissions, readback and released/client proof remain
+independent and mandatory.
+
+### Installed raw SDK spelling aliases (checked CAP-1 source guard)
+
+Some installed raw SDK names use different acronym case than the
+canonical Neon SDK OpenAPI ID. The generated `operation-methods.js`
+guards 194 unique canonical operation methods and 20 exact
+installed case-alias spellings (12 writes and 8 reads), not 214
+different provider operations. The offline verifier must call
+every installed alias through a fake HTTP SDK and compare its
+actual method and path to one and only one pinned source contract.
+Unrecognized installed exports or changed alias wire contracts
+fail source checks. All mutation aliases require caller write:true
+and request key before budget/HTTP. This prevents breaking valid
+connection-info readers without granting additional provider rights.
+
+### Canonical Neon operation ID → verified installed alias (draft CAP-1)
+
+The checked `NEON_CANONICAL_RAW_ALIASES` table maps the
+official API casing (such as `getConnectionURI`) to its
+installed SDK raw function casing (such as `getConnectionUri`)
+only after actual SDK wrapper execution against fake transport
+proves the **same exact HTTP verb and path** as the pinned
+source record. Among 194 unique API operations, 159
+use same-name exports, 17 use canonical-name case aliases,
+four have separately declared fallbacks, and 14 lack
+generic dispatch. A raw alias cannot bypass the
+`NEON_OPERATION_METHODS` write:true and request-key gate,
+shared durable API-budget admission or no-blind-replay logic.
+The generated 20 case-only spellings are not independent
+provider permissions, and the 15 advanced non-control-plane
+workflows retain separate API/host proof requirements.
 
 ## R-2 source integration under review — 2026-11-02 (not independently released)
 

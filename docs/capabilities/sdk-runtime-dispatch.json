@@ -1,0 +1,1966 @@
+{
+  "schemaVersion": 1,
+  "source": "installed @neon/sdk/raw with in-memory fake HTTP client",
+  "sdkVersion": "7.0.1",
+  "vendoredSha256": "dacf72ea2d63110b3694c705313e0b2104e9652ae1be3fc01ceebe7b17059c44",
+  "officialSdkSourceSha256": "fcc7b2c39f15df03adedf90aa7cde7f1f5e7729ae50b10fd9c7a959f3fb1f82d",
+  "wireSnapshotDigest": "33a5690b5706d141dcff1f18e2268cd81d72a2b6b591c7de95f54cda3ec099fe",
+  "verifiedLiveProvider": false,
+  "verifiedCredentials": false,
+  "verifiedGuards": false,
+  "verifiedRequestResponse": false,
+  "verifiedReadback": false,
+  "counts": {
+    "total": 194,
+    "rawRouted": 159,
+    "aliasRouted": 17,
+    "fallbackStubbed": 4,
+    "unavailableRejected": 14,
+    "raw403Denied": 159,
+    "alias403Denied": 17,
+    "rawWrite503Unreplayed": 94,
+    "aliasWrite503Unreplayed": 10
+  },
+  "rows": [
+    {
+      "operationId": "revokeApiKey",
+      "method": "DELETE",
+      "path": "/api_keys/{key_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "revokeOrgApiKey",
+      "method": "DELETE",
+      "path": "/organizations/{org_id}/api_keys/{key_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "deleteOrganizationSpendingLimit",
+      "method": "DELETE",
+      "path": "/organizations/{org_id}/billing/spending_limit",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "removeOrganizationMember",
+      "method": "DELETE",
+      "path": "/organizations/{org_id}/members/{member_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "deleteOrganizationVPCEndpoint",
+      "method": "DELETE",
+      "path": "/organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints/{vpc_endpoint_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-aliased-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "deleteProject",
+      "method": "DELETE",
+      "path": "/projects/{project_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "deleteNeonAuthDomainFromRedirectURIWhitelist",
+      "method": "DELETE",
+      "path": "/projects/{project_id}/auth/domains",
+      "origin": "vendored-openapi",
+      "state": "synthetic-aliased-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "deleteNeonAuthIntegration",
+      "method": "DELETE",
+      "path": "/projects/{project_id}/auth/integration/{auth_provider}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "deleteNeonAuthOauthProvider",
+      "method": "DELETE",
+      "path": "/projects/{project_id}/auth/oauth_providers/{oauth_provider_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "deleteNeonAuthUser",
+      "method": "DELETE",
+      "path": "/projects/{project_id}/auth/users/{auth_user_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "deleteProjectBranch",
+      "method": "DELETE",
+      "path": "/projects/{project_id}/branches/{branch_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "disableNeonAuth",
+      "method": "DELETE",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "deleteBranchNeonAuthTrustedDomain",
+      "method": "DELETE",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/domains",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "deleteBranchNeonAuthOauthProvider",
+      "method": "DELETE",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/oauth_providers/{oauth_provider_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "deleteBranchNeonAuthUser",
+      "method": "DELETE",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/users/{auth_user_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "deleteProjectBranchBucket",
+      "method": "DELETE",
+      "path": "/projects/{project_id}/branches/{branch_id}/buckets/{bucket_name}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "deleteProjectBranchBucketObjectsByPrefix",
+      "method": "DELETE",
+      "path": "/projects/{project_id}/branches/{branch_id}/buckets/{bucket_name}/objects-by-prefix",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "deleteProjectBranchBucketObject",
+      "method": "DELETE",
+      "path": "/projects/{project_id}/branches/{branch_id}/buckets/{bucket_name}/objects/{object_key}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "revokeCredential",
+      "method": "DELETE",
+      "path": "/projects/{project_id}/branches/{branch_id}/credentials/{token_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "deleteProjectBranchDataAPI",
+      "method": "DELETE",
+      "path": "/projects/{project_id}/branches/{branch_id}/data-api/{database_name}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-aliased-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "deleteProjectBranchDatabase",
+      "method": "DELETE",
+      "path": "/projects/{project_id}/branches/{branch_id}/databases/{database_name}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "deleteProjectBranchFunction",
+      "method": "DELETE",
+      "path": "/projects/{project_id}/branches/{branch_id}/functions/{slug}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "deleteProjectBranchRole",
+      "method": "DELETE",
+      "path": "/projects/{project_id}/branches/{branch_id}/roles/{role_name}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "deleteProjectEndpoint",
+      "method": "DELETE",
+      "path": "/projects/{project_id}/endpoints/{endpoint_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "deleteProjectJWKS",
+      "method": "DELETE",
+      "path": "/projects/{project_id}/jwks/{jwks_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-fallback-stub-invoked",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": false,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "revokePermissionFromProject",
+      "method": "DELETE",
+      "path": "/projects/{project_id}/permissions/{permission_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "deleteSnapshot",
+      "method": "DELETE",
+      "path": "/projects/{project_id}/snapshots/{snapshot_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "deleteProjectVPCEndpoint",
+      "method": "DELETE",
+      "path": "/projects/{project_id}/vpc_endpoints/{vpc_endpoint_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-aliased-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "listApiKeys",
+      "method": "GET",
+      "path": "/api_keys",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getAuthDetails",
+      "method": "GET",
+      "path": "/auth",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getConsumptionHistoryPerProject",
+      "method": "GET",
+      "path": "/consumption_history/projects",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getConsumptionHistoryPerBranchV2",
+      "method": "GET",
+      "path": "/consumption_history/v2/branches",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getConsumptionHistoryPerProjectV2",
+      "method": "GET",
+      "path": "/consumption_history/v2/projects",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getOrganization",
+      "method": "GET",
+      "path": "/organizations/{org_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "listOrgApiKeys",
+      "method": "GET",
+      "path": "/organizations/{org_id}/api_keys",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getOrganizationSpendingLimit",
+      "method": "GET",
+      "path": "/organizations/{org_id}/billing/spending_limit",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getOrganizationInvitations",
+      "method": "GET",
+      "path": "/organizations/{org_id}/invitations",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getOrganizationMembers",
+      "method": "GET",
+      "path": "/organizations/{org_id}/members",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getOrganizationMember",
+      "method": "GET",
+      "path": "/organizations/{org_id}/members/{member_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "listOrganizationVPCEndpoints",
+      "method": "GET",
+      "path": "/organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints",
+      "origin": "vendored-openapi",
+      "state": "synthetic-aliased-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getOrganizationVPCEndpointDetails",
+      "method": "GET",
+      "path": "/organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints/{vpc_endpoint_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-aliased-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "listOrganizationVPCEndpointsAllRegions",
+      "method": "GET",
+      "path": "/organizations/{org_id}/vpc/vpc_endpoints",
+      "origin": "vendored-openapi",
+      "state": "synthetic-aliased-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "listProjects",
+      "method": "GET",
+      "path": "/projects",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getProject",
+      "method": "GET",
+      "path": "/projects/{project_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getProjectAdvisorSecurityIssues",
+      "method": "GET",
+      "path": "/projects/{project_id}/advisors",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "listNeonAuthRedirectURIWhitelistDomains",
+      "method": "GET",
+      "path": "/projects/{project_id}/auth/domains",
+      "origin": "vendored-openapi",
+      "state": "synthetic-aliased-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getNeonAuthEmailServer",
+      "method": "GET",
+      "path": "/projects/{project_id}/auth/email_server",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "listNeonAuthIntegrations",
+      "method": "GET",
+      "path": "/projects/{project_id}/auth/integrations",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "listNeonAuthOauthProviders",
+      "method": "GET",
+      "path": "/projects/{project_id}/auth/oauth_providers",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getAvailablePreloadLibraries",
+      "method": "GET",
+      "path": "/projects/{project_id}/available_preload_libraries",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "listProjectBranches",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getProjectBranch",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getProjectBranchAiGateway",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/ai_gateway",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getAnonymizedBranchStatus",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/anonymized_status",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getNeonAuth",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getNeonAuthAllowLocalhost",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/allow_localhost",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "listBranchNeonAuthTrustedDomains",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/domains",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getNeonAuthEmailAndPasswordConfig",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/email_and_password",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getNeonAuthEmailProvider",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/email_provider",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "listBranchNeonAuthOauthProviders",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/oauth_providers",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getNeonAuthPluginConfigs",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/plugins",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getNeonAuthPhoneNumberPlugin",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/plugins/phone-number",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getNeonAuthWebhookConfig",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/webhooks",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getSnapshotSchedule",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/backup_schedule",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "listProjectBranchBuckets",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/buckets",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "listProjectBranchBucketObjects",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/buckets/{bucket_name}/objects",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getProjectBranchBucketObject",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/buckets/{bucket_name}/objects/{object_key}/download",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getProjectBranchSchemaComparison",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/compare_schema",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "listCredentials",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/credentials",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getProjectBranchDataAPI",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/data-api/{database_name}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-aliased-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "listProjectBranchDatabases",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/databases",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getProjectBranchDatabase",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/databases/{database_name}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "listProjectBranchEndpoints",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/endpoints",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "listProjectBranchFunctions",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/functions",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getProjectBranchFunction",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/functions/{slug}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getMaskingRules",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/masking_rules",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "listProjectBranchRoles",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/roles",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getProjectBranchRole",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/roles/{role_name}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getProjectBranchRolePassword",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/roles/{role_name}/reveal_password",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getProjectBranchSchema",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/schema",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getProjectBranchStorage",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/storage",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "countProjectBranches",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/count",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getConnectionURI",
+      "method": "GET",
+      "path": "/projects/{project_id}/connection_uri",
+      "origin": "vendored-openapi",
+      "state": "synthetic-aliased-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "listProjectEndpoints",
+      "method": "GET",
+      "path": "/projects/{project_id}/endpoints",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getProjectEndpoint",
+      "method": "GET",
+      "path": "/projects/{project_id}/endpoints/{endpoint_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getProjectJWKS",
+      "method": "GET",
+      "path": "/projects/{project_id}/jwks",
+      "origin": "vendored-openapi",
+      "state": "synthetic-fallback-stub-invoked",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": false,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "listProjectOperations",
+      "method": "GET",
+      "path": "/projects/{project_id}/operations",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getProjectOperation",
+      "method": "GET",
+      "path": "/projects/{project_id}/operations/{operation_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "listProjectPermissions",
+      "method": "GET",
+      "path": "/projects/{project_id}/permissions",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "listSnapshots",
+      "method": "GET",
+      "path": "/projects/{project_id}/snapshots",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "listProjectVPCEndpoints",
+      "method": "GET",
+      "path": "/projects/{project_id}/vpc_endpoints",
+      "origin": "vendored-openapi",
+      "state": "synthetic-aliased-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "listSharedProjects",
+      "method": "GET",
+      "path": "/projects/shared",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getActiveRegions",
+      "method": "GET",
+      "path": "/regions",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getCurrentUserInfo",
+      "method": "GET",
+      "path": "/users/me",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getCurrentUserOrganizations",
+      "method": "GET",
+      "path": "/users/me/organizations",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "updateOrganizationMember",
+      "method": "PATCH",
+      "path": "/organizations/{org_id}/members/{member_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "updateProject",
+      "method": "PATCH",
+      "path": "/projects/{project_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "updateNeonAuthEmailServer",
+      "method": "PATCH",
+      "path": "/projects/{project_id}/auth/email_server",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "updateNeonAuthOauthProvider",
+      "method": "PATCH",
+      "path": "/projects/{project_id}/auth/oauth_providers/{oauth_provider_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "updateProjectBranch",
+      "method": "PATCH",
+      "path": "/projects/{project_id}/branches/{branch_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "updateNeonAuthAllowLocalhost",
+      "method": "PATCH",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/allow_localhost",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "updateNeonAuthConfig",
+      "method": "PATCH",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/config",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "updateNeonAuthEmailAndPasswordConfig",
+      "method": "PATCH",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/email_and_password",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "updateNeonAuthEmailProvider",
+      "method": "PATCH",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/email_provider",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "updateBranchNeonAuthOauthProvider",
+      "method": "PATCH",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/oauth_providers/{oauth_provider_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "updateNeonAuthMagicLinkPlugin",
+      "method": "PATCH",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/plugins/magic-link",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "updateNeonAuthOrganizationPlugin",
+      "method": "PATCH",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/plugins/organization",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "updateNeonAuthPhoneNumberPlugin",
+      "method": "PATCH",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/plugins/phone-number",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "updateProjectBranchDataAPI",
+      "method": "PATCH",
+      "path": "/projects/{project_id}/branches/{branch_id}/data-api/{database_name}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-aliased-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "updateProjectBranchDatabase",
+      "method": "PATCH",
+      "path": "/projects/{project_id}/branches/{branch_id}/databases/{database_name}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "updateProjectBranchFunction",
+      "method": "PATCH",
+      "path": "/projects/{project_id}/branches/{branch_id}/functions/{slug}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "updateMaskingRules",
+      "method": "PATCH",
+      "path": "/projects/{project_id}/branches/{branch_id}/masking_rules",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "updateProjectEndpoint",
+      "method": "PATCH",
+      "path": "/projects/{project_id}/endpoints/{endpoint_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "updateSnapshot",
+      "method": "PATCH",
+      "path": "/projects/{project_id}/snapshots/{snapshot_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "createApiKey",
+      "method": "POST",
+      "path": "/api_keys",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "createOrgApiKey",
+      "method": "POST",
+      "path": "/organizations/{org_id}/api_keys",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "createOrganizationInvitations",
+      "method": "POST",
+      "path": "/organizations/{org_id}/invitations",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "assignOrganizationVPCEndpoint",
+      "method": "POST",
+      "path": "/organizations/{org_id}/vpc/region/{region_id}/vpc_endpoints/{vpc_endpoint_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-aliased-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "transferProjectsFromOrgToOrg",
+      "method": "POST",
+      "path": "/organizations/{source_org_id}/projects/transfer",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "createProject",
+      "method": "POST",
+      "path": "/projects",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "addNeonAuthDomainToRedirectURIWhitelist",
+      "method": "POST",
+      "path": "/projects/{project_id}/auth/domains",
+      "origin": "vendored-openapi",
+      "state": "synthetic-aliased-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "addNeonAuthOauthProvider",
+      "method": "POST",
+      "path": "/projects/{project_id}/auth/oauth_providers",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "createProjectBranchAnonymized",
+      "method": "POST",
+      "path": "/projects/{project_id}/branch_anonymized",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "createProjectBranch",
+      "method": "POST",
+      "path": "/projects/{project_id}/branches",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "startAnonymization",
+      "method": "POST",
+      "path": "/projects/{project_id}/branches/{branch_id}/anonymize",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "createNeonAuth",
+      "method": "POST",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "addBranchNeonAuthTrustedDomain",
+      "method": "POST",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/domains",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "addBranchNeonAuthOauthProvider",
+      "method": "POST",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/oauth_providers",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "sendNeonAuthTestEmail",
+      "method": "POST",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/send_test_email",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "createBranchNeonAuthNewUser",
+      "method": "POST",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/users",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "createProjectBranchBucket",
+      "method": "POST",
+      "path": "/projects/{project_id}/branches/{branch_id}/buckets",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "presignProjectBranchBucketObject",
+      "method": "POST",
+      "path": "/projects/{project_id}/branches/{branch_id}/buckets/{bucket_name}/objects/{object_key}/presign",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "createCredential",
+      "method": "POST",
+      "path": "/projects/{project_id}/branches/{branch_id}/credentials",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "createProjectBranchDataAPI",
+      "method": "POST",
+      "path": "/projects/{project_id}/branches/{branch_id}/data-api/{database_name}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-aliased-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "createProjectBranchDatabase",
+      "method": "POST",
+      "path": "/projects/{project_id}/branches/{branch_id}/databases",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "finalizeRestoreBranch",
+      "method": "POST",
+      "path": "/projects/{project_id}/branches/{branch_id}/finalize_restore",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "createProjectBranchFunctionDeployment",
+      "method": "POST",
+      "path": "/projects/{project_id}/branches/{branch_id}/functions/{slug}/deployments",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "recoverProjectBranch",
+      "method": "POST",
+      "path": "/projects/{project_id}/branches/{branch_id}/recover",
+      "origin": "vendored-openapi",
+      "state": "synthetic-fallback-stub-invoked",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": false,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "restoreProjectBranch",
+      "method": "POST",
+      "path": "/projects/{project_id}/branches/{branch_id}/restore",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "createProjectBranchRole",
+      "method": "POST",
+      "path": "/projects/{project_id}/branches/{branch_id}/roles",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "resetProjectBranchRolePassword",
+      "method": "POST",
+      "path": "/projects/{project_id}/branches/{branch_id}/roles/{role_name}/reset_password",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "setDefaultProjectBranch",
+      "method": "POST",
+      "path": "/projects/{project_id}/branches/{branch_id}/set_as_default",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "createSnapshot",
+      "method": "POST",
+      "path": "/projects/{project_id}/branches/{branch_id}/snapshot",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "createProjectEndpoint",
+      "method": "POST",
+      "path": "/projects/{project_id}/endpoints",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "restartProjectEndpoint",
+      "method": "POST",
+      "path": "/projects/{project_id}/endpoints/{endpoint_id}/restart",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "startProjectEndpoint",
+      "method": "POST",
+      "path": "/projects/{project_id}/endpoints/{endpoint_id}/start",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "suspendProjectEndpoint",
+      "method": "POST",
+      "path": "/projects/{project_id}/endpoints/{endpoint_id}/suspend",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "addProjectJWKS",
+      "method": "POST",
+      "path": "/projects/{project_id}/jwks",
+      "origin": "vendored-openapi",
+      "state": "synthetic-fallback-stub-invoked",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": false,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "grantPermissionToProject",
+      "method": "POST",
+      "path": "/projects/{project_id}/permissions",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "recoverProject",
+      "method": "POST",
+      "path": "/projects/{project_id}/recover",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "restoreSnapshot",
+      "method": "POST",
+      "path": "/projects/{project_id}/snapshots/{snapshot_id}/restore",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "createProjectTransferRequest",
+      "method": "POST",
+      "path": "/projects/{project_id}/transfer_requests",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "assignProjectVPCEndpoint",
+      "method": "POST",
+      "path": "/projects/{project_id}/vpc_endpoints/{vpc_endpoint_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-aliased-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "createNeonAuthIntegration",
+      "method": "POST",
+      "path": "/projects/auth/create",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "createNeonAuthProviderSDKKeys",
+      "method": "POST",
+      "path": "/projects/auth/keys",
+      "origin": "vendored-openapi",
+      "state": "synthetic-aliased-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "transferNeonAuthProviderProject",
+      "method": "POST",
+      "path": "/projects/auth/transfer_ownership",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "createNeonAuthNewUser",
+      "method": "POST",
+      "path": "/projects/auth/user",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "transferProjectsFromUserToOrg",
+      "method": "POST",
+      "path": "/users/me/projects/transfer",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "setOrganizationSpendingLimit",
+      "method": "PUT",
+      "path": "/organizations/{org_id}/billing/spending_limit",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "updateNeonAuthUserRole",
+      "method": "PUT",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/users/{auth_user_id}/role",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "updateNeonAuthWebhookConfig",
+      "method": "PUT",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/webhooks",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "setSnapshotSchedule",
+      "method": "PUT",
+      "path": "/projects/{project_id}/branches/{branch_id}/backup_schedule",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "acceptProjectTransferRequest",
+      "method": "PUT",
+      "path": "/projects/{project_id}/transfer_requests/{request_id}",
+      "origin": "vendored-openapi",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "deleteNeonAuthOAuthClient",
+      "method": "DELETE",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/oauth-provider/clients/{client_id}",
+      "origin": "official-sdk-reference",
+      "state": "rejected-before-dispatch",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": false,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "deleteProjectBranchCustomDomain",
+      "method": "DELETE",
+      "path": "/projects/{project_id}/branches/{branch_id}/custom-domains/{domain}",
+      "origin": "official-sdk-reference",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "disableProjectBranchRealtime",
+      "method": "DELETE",
+      "path": "/projects/{project_id}/branches/{branch_id}/realtime",
+      "origin": "official-sdk-reference",
+      "state": "rejected-before-dispatch",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": false,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "deleteProjectBranchTrigger",
+      "method": "DELETE",
+      "path": "/projects/{project_id}/branches/{branch_id}/triggers/{trigger_id}",
+      "origin": "official-sdk-reference",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "removeProjectMemberRole",
+      "method": "DELETE",
+      "path": "/projects/{project_id}/members/{member_id}/role",
+      "origin": "official-sdk-reference",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "listNeonAuthOAuthClients",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/oauth-provider/clients",
+      "origin": "official-sdk-reference",
+      "state": "rejected-before-dispatch",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": false,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getNeonAuthOAuthClient",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/oauth-provider/clients/{client_id}",
+      "origin": "official-sdk-reference",
+      "state": "rejected-before-dispatch",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": false,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getNeonAuthOAuthProviderPlugin",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/plugins/oauth-provider",
+      "origin": "official-sdk-reference",
+      "state": "rejected-before-dispatch",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": false,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "listProjectBranchCustomDomains",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/custom-domains",
+      "origin": "official-sdk-reference",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "listProjectBranchLogFields",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/logs/fields",
+      "origin": "official-sdk-reference",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "listProjectBranchLogFieldValues",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/logs/fields/{field_name}/values",
+      "origin": "official-sdk-reference",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getProjectBranchRealtime",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/realtime",
+      "origin": "official-sdk-reference",
+      "state": "rejected-before-dispatch",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": false,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getProjectBranchRealtimeSecret",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/realtime/secret",
+      "origin": "official-sdk-reference",
+      "state": "rejected-before-dispatch",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": false,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "listProjectBranchTriggers",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/triggers",
+      "origin": "official-sdk-reference",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "getProjectBranchTrigger",
+      "method": "GET",
+      "path": "/projects/{project_id}/branches/{branch_id}/triggers/{trigger_id}",
+      "origin": "official-sdk-reference",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "listProjectMembers",
+      "method": "GET",
+      "path": "/projects/{project_id}/members",
+      "origin": "official-sdk-reference",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "countProjects",
+      "method": "GET",
+      "path": "/projects/count",
+      "origin": "official-sdk-reference",
+      "state": "rejected-before-dispatch",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": false,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "updateNeonAuthOAuthClient",
+      "method": "PATCH",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/oauth-provider/clients/{client_id}",
+      "origin": "official-sdk-reference",
+      "state": "rejected-before-dispatch",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": false,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "updateNeonAuthOAuthProviderPlugin",
+      "method": "PATCH",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/plugins/oauth-provider",
+      "origin": "official-sdk-reference",
+      "state": "rejected-before-dispatch",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": false,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "updateProjectBranchTrigger",
+      "method": "PATCH",
+      "path": "/projects/{project_id}/branches/{branch_id}/triggers/{trigger_id}",
+      "origin": "official-sdk-reference",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "sendNeonAuthEmailProviderTest",
+      "method": "POST",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/email_provider/test",
+      "origin": "official-sdk-reference",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "createNeonAuthOAuthClient",
+      "method": "POST",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/oauth-provider/clients",
+      "origin": "official-sdk-reference",
+      "state": "rejected-before-dispatch",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": false,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "rotateNeonAuthOAuthClientSecret",
+      "method": "POST",
+      "path": "/projects/{project_id}/branches/{branch_id}/auth/oauth-provider/clients/{client_id}/rotate_secret",
+      "origin": "official-sdk-reference",
+      "state": "rejected-before-dispatch",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": false,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "revealCredential",
+      "method": "POST",
+      "path": "/projects/{project_id}/branches/{branch_id}/credentials/{token_id}/reveal",
+      "origin": "official-sdk-reference",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "rotateCredential",
+      "method": "POST",
+      "path": "/projects/{project_id}/branches/{branch_id}/credentials/{token_id}/rotate",
+      "origin": "official-sdk-reference",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "registerProjectBranchCustomDomain",
+      "method": "POST",
+      "path": "/projects/{project_id}/branches/{branch_id}/custom-domains",
+      "origin": "official-sdk-reference",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "queryProjectBranchLogs",
+      "method": "POST",
+      "path": "/projects/{project_id}/branches/{branch_id}/logs/query",
+      "origin": "official-sdk-reference",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "enableProjectBranchRealtime",
+      "method": "POST",
+      "path": "/projects/{project_id}/branches/{branch_id}/realtime",
+      "origin": "official-sdk-reference",
+      "state": "rejected-before-dispatch",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": false,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "rotateProjectBranchRealtimeSecret",
+      "method": "POST",
+      "path": "/projects/{project_id}/branches/{branch_id}/realtime/rotate_secret",
+      "origin": "official-sdk-reference",
+      "state": "rejected-before-dispatch",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": false,
+      "synthetic503Unreplayed": false
+    },
+    {
+      "operationId": "createProjectBranchTrigger",
+      "method": "POST",
+      "path": "/projects/{project_id}/branches/{branch_id}/triggers",
+      "origin": "official-sdk-reference",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    },
+    {
+      "operationId": "setProjectMemberRole",
+      "method": "PUT",
+      "path": "/projects/{project_id}/members/{member_id}/role",
+      "origin": "official-sdk-reference",
+      "state": "synthetic-raw-http-routed",
+      "executionEvidence": "in-process fake SDK only; provider not contacted",
+      "synthetic403Denied": true,
+      "synthetic503Unreplayed": true
+    }
+  ]
+}

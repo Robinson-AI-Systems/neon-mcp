@@ -40,6 +40,64 @@ describe('A-4a single official Neon API client and safe retries', () => {
     expect(result.error.retryAfterSeconds).toBe(30);
     expect(fake.calls).toHaveLength(0);
   });
+  it('requires explicit true admission, refuses malformed/throwing budget before provider HTTP',async()=>{
+    const fake=makeFakeNeon();
+    for(const bad of [undefined,null,{},'true',{allowed:'true'},
+      {allowed:'false'},{allowed:1},{allowed:0},{allowed:null}]){
+      const {client:c}=client(fake,{async consume(){return bad;}});
+      const result=await call(c,'getProject',{path:{project_id:fx.IDS.project}});
+      expect(result).toMatchObject({
+        confirmed:false,error:{code:'budget_unavailable',status:503}});
+      expect(fake.calls).toHaveLength(0);
+    }
+    const {client:unavailable}=client(fake,{
+      async consume(){throw new Error('FAKE_PRIVATE_DB_ERROR');}});
+    const refused=await call(unavailable,'getProject',{
+      path:{project_id:fx.IDS.project}});
+    expect(refused).toMatchObject({
+      confirmed:false,error:{code:'budget_unavailable',status:503}});
+    expect(JSON.stringify(refused)).not.toContain('FAKE_PRIVATE_DB_ERROR');
+    expect(fake.calls).toHaveLength(0);
+  });
+  it('keeps explicit budget denials as bounded 429 and accepts explicit boolean true',async()=>{
+    const fake=makeFakeNeon();
+    fake.when('getProject').resolves(fx.responses.getProject());
+    const {client:allowed}=client(fake,{async consume(){return true;}});
+    const success=await call(allowed,'getProject',{path:{project_id:fx.IDS.project}});
+    expect(success.confirmed).toBe(true);
+    expect(fake.calls).toHaveLength(1);
+    const badWait=client(fake,{async consume(){
+      return {allowed:false,retryAfterSeconds:Infinity};}}).client;
+    const denied=await call(badWait,'getProject',{path:{project_id:fx.IDS.project}});
+    expect(denied).toMatchObject({
+      confirmed:false,error:{code:'rate_limited',status:429,retryAfterSeconds:60}});
+    expect(fake.calls).toHaveLength(1);
+  });
+  it('cannot call a mutating Neon operation when the caller omits or lies about its write flag',async()=>{
+    const fake=makeFakeNeon();
+    const {client:c,budget}=client(fake);
+    for(const op of ['createProject','updateProject','deleteProject',
+      'createProjectBranch','revokeApiKey','recoverProjectBranch']){
+      for(const opts of [{},{write:false},{write:false,requestKey:'fake_safe_key_1234'}]){
+        await expect(call(c,op,{path:{project_id:fx.IDS.project}},opts))
+          .rejects.toThrow(/requires explicit write:true/);
+      }
+      await expect(call(c,op,{path:{project_id:fx.IDS.project}},{write:true}))
+        .rejects.toThrow(/request key/);
+    }
+    expect(budget.calls).toBe(0);
+    expect(fake.calls).toHaveLength(0);
+  });
+  it('never accepts unknown or inherited method-table operation identifiers',async()=>{
+    const fake=makeFakeNeon();const {client:c,budget}=client(fake);
+    for(const op of ['__proto__','constructor','valueOf','totallyNewSdkWrite']){
+      await expect(call(c,op,{},{
+        write:true,requestKey:'fake_safe_key_1234'})).rejects.toThrow(
+        /not supported by the pinned SDK|not pinned in the checked API inventory/);
+    }
+    expect(budget.calls).toBe(0);
+    expect(fake.calls).toHaveLength(0);
+  });
   it('never resends an uncertain create and only reads annotations to investigate', async () => {
     const fake = makeFakeNeon();
     fake.when('createProjectBranch').rejects(500, { code: '', message: 'unknown result' });
@@ -51,6 +109,62 @@ describe('A-4a single official Neon API client and safe retries', () => {
     expect(result.confirmed).toBeNull();
     expect(result.error.code).toBe('unknown_outcome');
     expect(fake.calls.map(x=>x.operationId)).toEqual(['createProjectBranch', 'listProjectBranches']);
+  });
+  it('cannot falsely confirm an unrelated failed project write using matching branch annotations',async()=>{
+    const key='cap1_shared_test_request_key_123';
+    const sent=[];let budgetCalls=0;
+    const sdk={
+      patch:async opts=>{
+        sent.push({method:'patch',url:opts.url});
+        return {error:{status:503,message:'FAKE_PRIVATE'},
+          response:{status:503,headers:{get:()=>null}}};
+      },
+      get:async opts=>{
+        sent.push({method:'get',url:opts.url});
+        return {data:{branches:[{id:'br_unrelated',name:'unrelated'}],
+          annotations:{br_unrelated:{value:{rtc_request:key}}}},
+          response:{status:200}};
+      }
+    };
+    const c={sdk,orgId:fx.IDS.org,sleep:async()=>{},
+      budget:{consume:async()=>{budgetCalls++;return {allowed:true}}}};
+    const result=await call(c,'updateProject',{
+      path:{project_id:fx.IDS.project},body:{project:{name:'desired'}}},
+    {write:true,requestKey:key});
+    expect(result).toMatchObject({
+      confirmed:null,error:{code:'unknown_outcome',status:503}});
+    expect(result).not.toHaveProperty('recovered');
+    expect(sent).toEqual([{method:'patch',url:'/projects/{project_id}'}]);
+    expect(budgetCalls).toBe(1);
+    expect(JSON.stringify(result)).not.toContain('FAKE_PRIVATE');
+  });
+  it('preserves explicit tagged branch-create recovery without replaying creation',async()=>{
+    const key='cap1_branch_create_unique_request_123';const sent=[];
+    const sdk={
+      post:async opts=>{
+        sent.push({method:'post',url:opts.url});
+        return {error:{status:503,message:'FAKE_PRIVATE'},
+          response:{status:503,headers:{get:()=>null}}};
+      },
+      get:async opts=>{
+        sent.push({method:'get',url:opts.url});
+        return {data:{branches:[{id:'br_exact',name:'dev'}],
+          annotations:{br_exact:{value:{rtc_request:key}}}},
+          response:{status:200}};
+      }
+    };
+    const c={sdk,orgId:fx.IDS.org,sleep:async()=>{},
+      budget:{consume:async()=>({allowed:true})}};
+    const result=await call(c,'createProjectBranch',{
+      path:{project_id:fx.IDS.project},
+      body:{branch:{parent_id:fx.IDS.main,name:'dev'}}},
+    {write:true,requestKey:key});
+    expect(result).toMatchObject({
+      confirmed:true,recovered:true,data:{id:'br_exact',name:'dev'}});
+    expect(sent).toEqual([
+      {method:'post',url:'/projects/{project_id}/branches'},
+      {method:'get',url:'/projects/{project_id}/branches'}
+    ]);
   });
   it('requires write idempotency keys and rejects non-existent raw SDK methods', async () => {
     const fake = makeFakeNeon();

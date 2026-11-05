@@ -19,7 +19,11 @@ export function makeNeonBudget({ db, apiKey, limitPerMinute = DEFAULT_NEON_API_B
       const result = await db.consumeApiBudget({
         keyHash, windowStart: new Date(start), limit: limitPerMinute
       });
-      return result.allowed
+      // A missing/invalid DB admission is NEVER permission to call Neon.
+      // Truthy strings and numbers must not bypass a durable global budget.
+      if (result?.allowed !== true && result?.allowed !== false)
+        throw new TypeError('Invalid persisted Neon API budget admission');
+      return result.allowed === true
         ? { allowed: true, count: result.count }
         : { allowed: false, count: result.count,
           retryAfterSeconds: Math.max(1, Math.ceil((start + 60000 - time) / 1000)) };

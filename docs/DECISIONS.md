@@ -1,3 +1,187 @@
+## 2026-11-04 — Only independently pinned SDK aliases resolve canonical dispatch
+
+The Neon official operation ID is a provider *reference*,
+not necessarily the exact installed SDK raw export spelling.
+When one canonical ID has a single installed case-only export
+with exact pinned method/path verified by in-process SDK HTTP
+invocation, the generic client may route that canonical ID via
+the generated map. A declared fallback has priority over
+case aliases, and unknown/unmatched published IDs must remain
+unsupported before provider HTTP or request budget.
+Reconcile **17** additional canonical alias routes, leaving
+**14** unresolved (of the 31 formerly missing by exact name);
+never infer entitlements or count a second operation from
+20 alias spellings. Existing mutating write/key/budget/
+non-replay and owner resource permissions are unchanged.
+No actual provider access or live release is authorized.
+
+## 2026-11-04 — CAP-1 recover expired scratch via current merged main, not prior chat
+
+Temporary Playground edits expired before publication. The
+durable source-of-truth is the latest verified pushed draft head
+`b6de963f90711f06f2ab24ae3a4852070c966a7a`, original frozen
+CAP-1 acceptance, and actual merged `main`
+`3fe41498633cbe4f16044d10a9cb6b350814148d`.
+Merge current main on a feature branch, reconcile documents
+first, and reconstruct the 17 canonical SDK-name casing aliases
+from generated pinned source metadata, not uncommitted scratch
+or permissive guessing. Never allow the 14 actually missing
+raw methods, invent provider permission, or mark source fixtures
+as live. Preserve PR #206's parallel CI layout.
+
+## 2026-11-03 — Checked SDK casing aliases do not increase provider authority
+
+Recognize installed raw SDK spelling aliases for canonical
+OpenAPI operations only when a unique case-insensitive ID
+matches **and** an actual installed wrapper, invoked against
+fake HTTP, generates the pinned canonical method/path. Keep
+194 unique API operations distinct from 214 supported spellings
+(20 aliases: 12 writes, 8 reads). Reject new unknown exports
+and keep all alias writes behind the same write:true/request-key
+budget and non-replay boundary. Case aliases are never new
+entitlements, live acceptance or original-card completion.
+
+## 2026-11-03 — HTTP method is authoritative for universal SDK write safety
+
+A caller's optional `write` flag alone cannot classify a Neon
+provider operation. Generate a checked, minimal operationId→HTTP
+method guard from the pinned vendor OpenAPI and the independently
+SHA-verified official SDK snapshot; block unknown method records
+without a provider call, and require explicit `write:true` plus
+the established request key for every known non-GET method.
+Do not silently infer a mutation as a read or relax existing
+preview, spending, owner/protected-resource, provider
+credential, permission or release controls. This is an offline
+source-level defense, not proof that a provider grants a capability
+or that the current provider surface is exhaustive.
+
+## 2026-11-03 evening — durable budget admission is explicitly boolean and fail closed
+
+A budget function's existence is not admission. The shared Neon
+SDK client may send a provider API request only after a literal
+`true` or `{allowed:true}`; the persistent shared
+`makeNeonBudget` must receive a literal boolean `allowed`
+from its atomic DB counter. Missing, malformed, string/numeric,
+null, or thrown ledger responses must refuse before HTTP, with
+nonsecret 503 for unknown/unavailable budget. Explicit
+`allowed:false` stays a 429 with finite 1–60-second remaining
+window. Never classify unknown ledger state as rate exhausted
+or silently permit customer-facing/provider side effects.
+This developer-source safety fix changes no owner
+permissions, live account policy, production data or billing.
+
+## 2026-11-03 evening — ambiguous-write readback must be operation-specific
+
+A generic request key is not proof that *every* Neon mutation was
+applied. Branch annotation `rtc_request` is relevant to exact
+`createProjectBranch` recovery only; it cannot confirm an unrelated
+project update, delete, role/security, billing, ownership or other
+provider write. An ambiguous provider response for any other
+operation remains `unknown_outcome` with `confirmed:null`
+unless that operation has a separately independently verified
+readback under the existing B-1 lifecycle. Never blindly retry
+these writes or leak provider errors. This source correction
+does not grant extra user/provider authority or approve a
+live resource operation.
+
+## 2026-11-03 evening — installed SDK synthetic denials must be separate from real rights
+
+The CAP-1 raw SDK synthetic method/path proof also asserts one
+sanitized and non-retried 403 per available installed SDK wrapper,
+and for write operations an ambiguous 503 produces `confirmed:null`
+without replaying the mutation. A bounded independent read-only
+recovery lookup is allowed. These are **fake transport** checks,
+not Neon provider permission, customer auth, write guard policy,
+real response/readback, idempotency, or production acceptance.
+Keep runtime 403/503 counters in a separate checked source artifact;
+never promote them to verified real-provider reach. When Playground
+expires between turns, recover from the independently verified remote
+feature head and repeat local checks; do not describe uncommitted
+experiments as pushed work.
+
+## 2026-11-03 — distinguish installed SDK fake HTTP execution from real provider proof
+
+A source operation reference, available SDK function, captured
+in-memory method/path, and exercised real provider operation are
+four distinct evidence levels. To verify the generic source seam,
+execute every installed `@neon/sdk/raw` wrapper with a fake
+in-process HTTP transport, assert exactly one expected
+method/path and budget call, explicitly invoke fallback-only
+declared stubs, and refuse unknown operation IDs before budget
+or HTTP. Keep this reproducible `--check` artifact under CAP-1,
+with failure/tamper tests and **no credentials**. Never report a
+fake client return as verified provider authorization, a protected
+write guard, request/response semantics, retry/readback, account
+entitlement, real customer capability or production acceptance.
+
+## 2026-11-03 — CAP-1 published method names must include actual wire declarations
+
+For CAP-1 capability accounting, a canonical method/path/operationId
+record alone is insufficient to classify input shape or permission.
+Record actual parameters, request bodies, response status/schema and
+security declarations from exact pinned OpenAPI, with structural
+digests, without exposing upstream example values. Keep the runtime's
+vendor and official SDK source evidence separate and explicitly list
+shared method/path contract changes. SDK schema security alternatives
+are NOT user authorization, credential scope, executable support or
+live provider acceptance. An offline verifier checks both the full
+official upstream bytes and derived wire contracts. This is approved
+source inventory work only, not an authorized runtime API re-vendor,
+new credential, production action, release, or roadmap completion.
+
+## 2026-11-03 — Distinguish a published SDK method from an installed callable route
+
+CAP-1 reports installed `@neon/sdk/raw` operation function availability
+separately from published OpenAPI and the source-to-tool handler map.
+Only exact exported functions in the pinned dependency and guarded fallback
+predicates parsed from the real Neon client can be marked as *declared*
+generic dispatch routes. These declarations are never certified execution,
+credential scope, provider entitlement, protected-write guards or real
+released acceptance. Count a fallback-only declaration only when its SDK
+raw function is absent. Keep the 31 presently unrouteable generic operations
+in explicit pending engineering, not as a fake unsupported-provider status.
+No SDK upgrade, API change, grants or production actions are approved by
+this inventory decision.
+
+## 2026-11-03 — CAP-1 call-site provenance cannot claim whole-module tool coverage
+
+Decision: attribute an operation candidate only to parsed literal provider
+call sites, with source line and a named registered handler if the reference
+is lexically inside it; do not infer that a shared helper serves every named
+tool in the same module. Leave indirect call-chain links unresolved until
+independent execution-path tests. Exclude CAP-1's own schema/inventory test
+from operation-specific behavioral-test mapping. Cross-check candidates from
+source in the validator so a hand-edited report cannot invent handler reach.
+This source-only evidence refinement grants no client/provider authority,
+original-subsection completion, deployment or new product surface.
+
+### 2026-11-03 — merged-tree documentation preflight is mandatory
+
+**Owner clarification:** At the beginning of every Neon engineering/continuation
+session, verify the exact latest merged main and live SHA and most recent merged
+PR; reconcile the status, roadmap, active card/index, technical/owner guides and
+deployment/database records with the merged source BEFORE new feature edits.
+Record open PR implementation and its CI as unmerged evidence separately.
+Keep documentation synchronized during the work, validate it against the final
+diff before pushing, and reconcile verified post-merge main without committing
+directly to main. The routine is now explicit in SESSION-START §0; nothing about
+an unmerged or green PR constitutes provider/production acceptance. At this
+decision checkpoint merged Neon PR #201 / main and live
+69c46b71b6ab35e483f42338618146d1a377d074 are the last merged
+baseline; drafts #202 and #203 are excluded.
+
+### 2026-11-03 — official SDK OpenAPI is a distinct reference, not runtime authority
+
+CAP-1 may pin and independently byte-check the public official Neon SDK
+OpenAPI at a fixed upstream commit, list differences from the existing runtime
+vendored specification and route missing operations to original cards. This
+documentation and inventory verification is source-only; the runtime API
+schema, user credential resolver, service permission, deployment and live
+provider authority remain unchanged. SDK-only operations cannot count as
+implemented or accepted until handler, policy and real provider evidence
+is separately established. Initial official SDK reference has 193 methods,
+31 absent from runtime vendor and one vendor-only method.
+
 ## 2026-11-03 — One exact deployment identity across RTC HTTPS doors
 
 Both public RTC manifest and pass-authenticated HTTPS `whoami`

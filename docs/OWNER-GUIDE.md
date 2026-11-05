@@ -113,6 +113,54 @@ explicitly marked unverified; ambiguous writes are never automatically replayed.
 project was mutated during developer tests. Release and owner/provider testing remain
 separate repository obligations.
 
+### Provider API budget unavailable (CAP-1 source fix, pending draft #203)
+
+The server only calls the Neon API after its shared database
+rate ledger explicitly admits the request. If the ledger is
+unavailable or corrupt, the request fails with a generic 503
+rather than treating an unknown count as permission. An
+ordinary exhausted per-minute budget is a distinct 429 with
+a bounded retry delay. This change is **not** live until the
+approved PR is merged, released and verified; it does not
+relax owner-controlled production or protected-resource rules.
+
+### API operation identity guard (draft CAP-1, not released)
+
+The developer SDK client refuses an operation that is not in its
+checked operation/method index, and requires an explicit write
+request key whenever the provider HTTP method mutates state.
+The operation index is rebuilt offline from pinned Neon API
+metadata and checked by CI; it does not grant new permissions.
+Missing write intent fails before a provider request.
+Existing owner/protected/preview approvals and real provider
+rights continue to apply separately. This change is not live
+until its PR satisfies the repository's release and acceptance
+gates.
+
+#### Installed SDK acronym spelling compatibility
+
+Neon's installed SDK uses 20 case-variant raw operation spellings
+compared with the pinned canonical OpenAPI; the method guard accepts
+these only when the installed wrapper's method/path matches the
+same vetted operation. Twelve are writes and eight reads. This
+preserves existing connection-info behavior without granting
+any extra provider capability. Real Neon and protected-resource
+authorization still govern every operation; this source
+extension remains in a draft PR, not released.
+
+#### Canonical Neon API name compatibility in CAP-1 draft
+
+Some published provider API IDs differ in case from the
+installed SDK's callable names. The source now recognizes
+17 previously unavailable *canonical* names by executing
+a method/path-verified installed alias; four fallback
+operations are unchanged, and 14 methods remain unavailable
+before any provider call. It neither adds provider rights
+nor calls live Neon. Connection and client capabilities
+still depend on the user's real delegated credential,
+tenant/project role and accepted released service. This
+draft feature is not active in production.
+
 ### Customer connection and release identity (R-2 source work, 2026-11-02)
 The planned \`/connection\` public instructions and \`/api/health\` public
 posture page do not provide credentials or grant permissions. \`neon_whoami\`

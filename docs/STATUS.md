@@ -1,5 +1,408 @@
 ## Verified source and deployment checkpoint — 2026-11-01
 
+### 2026-11-04 — CAP-1 branch recovery against merged main (PR #203)
+Verified main is `186ad2af2931ea379c5c827a0c6a6101d1ecba57`,
+live is `ac40ca5ac21d05961b29d724e57c57da1c3c6990`; Vercel
+production deployment `dpl_ZmhMCgTd8t5ratrAywnb3L58DgJp`
+is READY at the live SHA. Draft #203 is being merged with the newer main
+without changing its frozen CAP-1 acceptance or promoting its synthetic
+SDK dispatch to real provider acceptance. The main-branch two-source
+re-census is authoritative for RAS row 15: 152 mapped platform units,
+73 covered, 4 composed, 75 missing, and 7 missing own-record lifecycle
+legs; its 152 capability legs and CAP-1's 194 versioned operation IDs
+are different counting systems. CAP-6…CAP-9 stay PLANNED (not approved).
+No real Neon credential, provider mutation, production permission, direct
+client acceptance, RTC 2 or original CAP-1 completion is asserted here.
+The reconciled feature source passed `npm run check`,
+1,119 unit tests (155 files), and 125 real isolated PostgreSQL
+tests (48 files). Exact-head Actions and independent provider/client
+acceptance remain separately open.
+
+### 2026-11-04 — draft #203 CAP-1 installed SDK alias routing, source only
+
+The installed `@neon/sdk/raw` 7.0.1 exposes 20
+method/path-verified case-only naming aliases. Of 31
+published official Neon SDK operation IDs previously marked
+missing from same-name raw exports, **17** map uniquely to
+the pinned route with a verified installed raw alias, while
+**14** still lack a usable installed generic route.
+
+The production SDK `call()` now maps only these 17 canonical
+IDs through the generated `NEON_CANONICAL_RAW_ALIASES`
+table; the check-time generator actually invokes each
+installed raw alias against a **fake HTTP client** and compares
+its exact canonical method/path. Four explicitly declared
+fallback-only methods retain their existing guarded paths
+instead of being changed to alias dispatch. A checked,
+separate source inventory now distinguishes **159** direct
+raw exports, **17** case-alias exports, **4** guarded fallbacks
+and **14** unavailable generic dispatch IDs, totaling the
+same **194 unique control-plane methods**. The remaining
+three of the 20 alias spellings correspond to guarded fallback
+canonical IDs. Alias spellings are not new API operations.
+
+The regenerated `sdk-runtime-dispatch.json` executes all
+17 canonical aliases against synthetic transport, including
+17 sanitized simulated HTTP 403 results and **10** simulated
+non-GET HTTP 503 outcomes without mutation replay. It still
+checks the original 159 direct routes, four fallback stubs,
+and 14 fail-closed absent routes before provider calls or
+budget. Existing user/org/provider credential entitlement,
+per-tool authorization, permission denial, real readback and
+direct-client checked release remain **unverified**. This
+is not source-to-provider/live acceptance or a complete
+original CAP-1 card. No provider credentials, account,
+live Neon data, billing, DNS or production deployment were
+used or modified.
+
+The original frozen CAP-1 remains IN_PROGRESS, with zero
+completed original subsections and CG-1–CG-6 OPEN.
+The 2026-11-04 baseline merge includes #204 fleet documentation,
+#205 public brand identity and #206 CI sharding. Final local `npm run check` passed, all **1,119 unit
+tests** (155 files) passed, and all **125 isolated real
+PostgreSQL tests** (48 files) passed. Required exact new-head
+GitHub `ci` and `release-policy` must be independently
+checked after the native-Git feature-branch push; previous
+green heads do not attest the new commit.
+
+
+### 2026-11-04 — merged-source baseline reconciled before CAP-1 continuation
+
+Independently verified **`main` `3fe41498633cbe4f16044d10a9cb6b350814148d`**
+(merged PR #206) and **draft PR #203 head
+`b6de963f90711f06f2ab24ae3a4852070c966a7a`**, with required
+`ci` and `release-policy` successful at the draft head before new
+work. New native feature workspace merged actual `origin/main` by
+normal no-conflict Git merge at
+`85a428613bc17d388811e357fcdb4c844ab8ece6`, not main writes.
+The newly merged baseline includes #204's independent
+`docs/COMPLETION.md` fleet review, #205's public Neon Unleashed by
+Robinson AI Systems brand/source identity, and #206's unit 3-way
+and database 2-way CI shard guard. Preserve all; do not count their
+source as new CAP-1 work or replace with older docs.
+
+The **original frozen CAP-1** remains IN_PROGRESS (zero complete
+subsections, all six CG gates OPEN). This resumed CAP-1 slice
+reconciles **17 official canonical Neon SDK operation IDs** that
+lack same-name installed raw exports but have method/path-verified
+case-only SDK alias exports; **14** remaining official operations
+must stay fail-closed until a separately checked implementation.
+Update the original CAP-1 card, tests, source coverage report and
+live-vs-source evidence as engineering proceeds. Provider
+credentials, roles, paid write authority, real request/readback and
+direct-client release acceptance remain independently unverified.
+No deployment, customer identity, production Neon data, billing,
+provider keys or DNS was modified. Exact new head CI must be
+checked after this continuation is pushed.
+
+
+
+### 2026-11-03 late — installed SDK raw acronym-case alias reconciliation
+
+The first full test run exposed six regressions because the initial
+194-name guard excluded installed raw SDK exports with acronym-casing
+differences (for example `getConnectionUri` versus published
+`getConnectionURI`). A direct audit of the installed `@neon/sdk/raw`
+7.0.1 exposed 23 function names outside the canonical published
+operation IDs: 3 SDK client helpers and **20 actual case-only API aliases**.
+The corrected method guard now protects **214 runtime spellings**
+representing the **same 194 unique source operations**. The 20 aliases
+are exactly 12 writes and 8 reads. The checked generator discovers
+each unlisted alias, verifies one unambiguous canonical operation, and
+actually executes the installed SDK wrapper against a fake transport
+to assert the *exact canonical HTTP method and path* before allowing
+that spelling. Unknown exports fail the check instead of being silently
+authorized.
+
+All 94 canonical raw-SDK mutations and 12 installed alias mutations
+reject omitted/false write intent or missing request keys before rate
+budget or HTTP. Existing connection-info read tests are restored.
+ Final local
+`npm run check` passed, **1,119 unit tests (155 files)**
+and **125 isolated real-PostgreSQL tests (48 files)** passed.
+GitHub exact-head CI on the upcoming push must be separately
+observed; prior PR checks do not verify these new changes.
+
+The 31 canonical-name missing generic routes remain separately
+reported: an available differently cased spelling is **not**
+independent evidence of a generic canonical handler or live provider
+permission. The result is source interoperability and fail-closed
+engineering only; CAP-1 original completion, real Neon provider rights
+and all CG acceptance remain OPEN.
+
+
+
+### 2026-11-03 late — CAP-1 pinned operation method write guard (draft PR #203)
+
+The common Neon SDK `call()` wrapper previously accepted an omitted
+`write` option for mutating raw SDK operations; synthetic calls to
+`createProject` and `updateProject` ran successfully without
+an idempotency/request key. The source now uses
+`src/neon/operation-methods.js` to check the exact HTTP method for
+**194** uniquely pinned control-plane operations (163 vendored plus
+31 newer official SDK method/path gaps, deduplicated). The checked
+offline generator `scripts/verify-neon-method-guards.mjs` rebuilds
+that table from the independently source-verified CAP-1 inventory and
+is part of `npm run check`; mismatched, unknown and duplicated
+method metadata fail before a provider request.
+
+The production `call()` entrypoint independently requires the
+literal `write:true` for every non-GET operation, then the existing
+nonempty request key and non-replay behavior. It does not trust an
+omitted or false caller classification and does not authorize a
+previously unsupported SDK operation. Tests cover **all 94**
+mutating raw-export methods: omitted/false write flags and missing
+request keys are rejected before **any** rate-budget consumption or
+fake provider HTTP. Additional negative cases exercise inherited and
+unknown operation identifiers. The 159 raw exports, four explicitly
+guarded fallback routes and 31 generic unsupported operations retain
+their separate source/proof states.
+
+These are source and injected-client safety checks, not a new real
+provider credential, product permission, customer release, deployed
+runtime acceptance or full CAP-1 completion. No Neon provider or
+production database was contacted. Original frozen CAP-1 criteria,
+source-versus-live evidence and CG-1–CG-6 remain OPEN.
+
+Draft #203 remains IN_PROGRESS with zero complete original CAP-1
+subsections; latest independently verified merged main/live is still
+`69c46b71b6ab35e483f42338618146d1a377d074` (PR #201).
+New exact-head GitHub CI/review and full local tests must be checked
+after this extension is committed and pushed. Draft #202 is separate.
+
+
+### 2026-11-03 evening — fail-closed atomic shared Neon API budget (draft #203)
+
+A fake-provider source reproduction proved missing budget
+admission could allow an SDK call, and a persisted response
+`{allowed:'false'}` could be treated as permission. Source-only
+correction in `src/neon/budget.js` and `src/neon/client.js`
+requires explicit boolean admission at both boundaries; malformed
+or thrown ledger results return generic 503 before provider calls,
+and genuine deny remains bounded 429. Unit test negatives
+prove no fake network requests or private exception leaks.
+No production database/paid Neon attempt, account state,
+permission, deployment or issuer was modified.
+This is real client-source safety engineering, **not** full
+CAP-1 accepted authority, real provider denial/readback,
+released-client approval, or a CG gate. Final local `npm run check` passed, all **1,114 unit
+tests** in 155 files and **125 isolated PostgreSQL tests** in
+48 files passed. Required exact-head GitHub `ci` and
+`release-policy` remain to be verified after this extension
+is published; no earlier head can be treated as the new one.
+
+
+
+### 2026-11-03 evening — CAP-1 genuine uncertain-write recovery correction
+
+A new **source repro** on unmerged draft #203 showed that a
+simulated failed project-update PATCH could be falsely confirmed
+from another branch carrying the same request-key annotation.
+`src/neon/client.js` now restricts branch-annotation recovery
+to the exact `createProjectBranch` operation; other uncertain
+mutations remain `unknown_outcome`, `confirmed:null` with no
+replay or unrelated branch lookup. Focused SDK regression tests
+prove the cross-operation mismatch denial and legitimate
+branch-create annotation recovery. All fake-provider only:
+no production data, real customer/project, database grant or
+live Neon API call. This repairs shared source correctness
+but does not count CAP-1 original completion, CG acceptance,
+or a released version. The completed local `npm run check` passed, all **1,111
+unit tests** in 155 files and **125 real disposable PostgreSQL
+tests** in 48 files passed. The generated per-operation source test
+map was refreshed. Required GitHub `ci` and `release-policy`
+must be observed on the exact new pushed head; previously green
+PR checks do not count.
+
+
+
+### 2026-11-03 evening — recovered CAP-1 synthetic 403/503 negative routes (draft #203)
+
+Recovered from a later expired Playground workspace: the original
+draft's checked branch head stayed `9da94bc6fb7e55ce39a51d9c8887efd16453b38a`
+with both required checks green, but uncommitted local experiments
+were **not retained**. A new native Git/Playground workspace is
+testing the installed SDK's sanitized one-call HTTP 403 denial
+through **159** raw exports and non-replayed ambiguous HTTP 503
+through **94** non-GET exports; 4 fallback-only stubs and 31
+unavailable generic routes remain separately classified.
+All tests use synthetic in-memory provider transports and fake
+identities. CAP-1 remains unmerged and IN_PROGRESS, zero original
+subsection or CG gate completion credit. Latest verified remote
+main/live baseline remains #201
+`69c46b71b6ab35e483f42338618146d1a377d074`.
+After recovery, local `npm run check` passed, all
+**1,109 unit tests** in 155 files passed, and all **125 isolated
+disposable-PostgreSQL tests** in 48 files passed. The refreshed exact
+PR-head GitHub CI and release-policy checks remain to be observed
+after this extension is pushed; older green checks do not count.
+
+
+
+### 2026-11-03 — actual installed SDK generic dispatch checked with fake HTTP (draft #203)
+
+The CAP-1 source stage now runs **159** actual installed SDK raw
+wrappers through production `call()` with a synthetic in-memory
+method/path-capturing SDK client (one budget consumed, one expected
+request path/method), plus **four** guarded fallback-only stubs
+and **31** explicit generic missing-route denials before budget or
+request. The deterministic `sdk-runtime-dispatch.json` artifact and
+`cap-runtime-dispatch.mjs --check` are wired into normal consistency
+checks, with negative spoofing tests. All **194** operation-level
+results remain synthetic-only; no provider credentials, customer
+connection, branch, database, policy, authority or live deployment
+was invoked or changed. This is **not** permission/guard/retry,
+readback or independent client/provider acceptance. Original CAP-1
+remains IN_PROGRESS, zero completed units; CG-1 through CG-6 remain
+OPEN; separate R-2 #202 remains draft. Latest merged main/live
+revision is still `69c46b71b6ab35e483f42338618146d1a377d074`.
+Local `npm run check` passed, all **1,109 unit tests** in 155 files
+and **125 disposable-PostgreSQL tests** in 48 files passed. GitHub
+exact-head `ci` and `release-policy` must be independently verified
+after publication; do not count previous heads.
+
+
+
+
+### 2026-11-03 — verified request/response API declarations; CAP-1 STILL OPEN
+
+Additional source-only engineering in **draft PR #203** ties 163
+runtime-vendored and 193 official SDK OpenAPI method/path records to
+explicit parameter, request body, response/status and authentication
+declarations, plus exact schema/operation hashes; the original official
+full-source SHA-256 was reverified against downloaded upstream bytes.
+**17** of the 162 shared operations have different declared wire
+metadata; these are listed in the CAP-1 report and are not presumed to
+be live incompatibilities. Generated snapshots and their 209 source
+rows reject forged methods, request/response forms or source digests.
+The offline full-upstream verifier now checks both method and wire
+projections. No API client implementation, credential authorization,
+Neon account data, production database, domain, billing or deployment
+was changed. This branch remains **unmerged/unreleased** while all
+original CAP-1 and CG acceptance is outstanding. Latest independently
+checked merged main/live remains PR #201 at
+69c46b71b6ab35e483f42338618146d1a377d074.
+Local npm run check, all 1,105 unit tests, 125 disposable-Postgres tests and the byte-exact 193-method/193-wire upstream verifier passed. New exact-head GitHub CI must be independently recorded after publication.
+
+### 2026-11-03 — documentation preflight: latest **merged** baseline
+
+Checked remote \`main\` and \`live\` both at
+\`69c46b71b6ab35e483f42338618146d1a377d074\`. The latest merged
+Neon PR is **#201**, which added the native-Git/Playground/Vercel developer
+workflow runbook and session instructions (maintenance only, zero product
+implementation/acceptance credit). The preceding merged PR **#200**
+adopted the RAS D-001 design crosswalk (design only). These are the
+source-of-truth merged baselines for the next engineering changes. The older
+2026-11-01 Vercel READY/source observation below is historical; no serving
+source SHA was independently confirmed by this preflight.
+
+**Unmerged branches, tracked separately:** Draft PR **#202** carries the
+R-2 public-client/server-release/RTC-2 source stage; draft PR **#203**
+carries the unfinished CAP-1 inventory source stage. Both had green required
+\`ci\` and \`release-policy\` on their own exact original PR heads at this
+preflight, but **neither is merged or independently deployed/accepted**.
+Their code is excluded from the merged \`main\` account. CAP-1, R-2 and
+all six CG gates remain incomplete. Do not update the original accepted-unit
+counts, authorize a release or claim real Neon/client behavior from these PRs.
+
+The required documentation-first reconciliation is now explicit in
+[SESSION-START §0](SESSION-START.md). Every later branch/pr/merge must
+recheck actual remote heads and reconcile STATUS, roadmap, original card,
+decision records and deployment notes as affected, distinguishing merged,
+unmerged, released and independently accepted evidence.
+
+
+### 2026-11-03 — CAP-1 candidate attribution correction (draft PR #203)
+
+A later source inspection found that the CAP-1 draft was linking all tool
+names in a source module to every operation ID mentioned anywhere in that
+module. That cross-product is not valid implementation evidence. The updated
+source-only inventory parses literal provider-call sites and associates the
+nearest actual named handler only; references from shared helpers are left
+unassigned. Of 209 operation rows, 44 have parsed source candidates, only
+19 identify a direct named handler, and 25 are unresolved helpers; no
+operation has independent source execution or live provider proof. Its own
+CAP-1 tests no longer create artificial per-operation behavioral-test hits.
+Parsed call sites and candidate handler ownership are independently validated
+against the current source and cannot be promoted through a forged JSON row.
+Playground source verification: `npm run check` green; 1,102/1,102 unit
+tests and 125/125 disposable Postgres tests green. Required GitHub CI at the
+next pushed exact head must still pass.
+No production keys, data, issuer, runtime tool permissions or deployed source
+were changed. Original CAP-1 remains IN_PROGRESS with zero completion credit.
+
+### 2026-11-03 — pinned installed SDK dispatch gap extension (draft #203)
+
+A further CAP-1 source check against the actual `@neon/sdk/raw` 7.0.1
+exports identifies 194 unique control-plane operation IDs across the pinned
+runtime and newer official SDK API; 159 have callable SDK raw exports,
+four more have an explicit guarded generic client fallback, and 31 have
+neither generic route in the checked source. Each unrouteable operation
+is individually listed in the generated CAP-1 report with its separate
+handler source state. The final local source verification passed `npm run check`, all 1,103 unit
+tests and all 125 disposable-Postgres tests; the next pushed PR head still
+requires GitHub exact-head CI. The guard parser checks the runtime's seven declared
+fallback predicates and does not count three fallbacks shadowed by existing
+raw exports. This is not a claim of real credential permissions or live
+provider reach, and no runtime client route or production account was
+changed. Original CAP-1 and all six CG gates remain unfinished. This work
+is on unmerged draft PR #203, not the checked main/live PR #201 baseline.
+
+### 2026-11-03 — READY production source now corroborated via Vercel metadata
+
+Read-only checks independently matched GitHub remote main and live at
+69c46b71b6ab35e483f42338618146d1a377d074 to the newest Vercel
+READY production deployment's exact reported commit and all three
+project-owned alias mappings, including neon-mcp.vercel.app.
+This resolves the prior Vercel commit-null *metadata provenance*
+uncertainty for this particular release: the mapped deployment is now
+corroborated at the merged PR #201 baseline. It does not assert that
+a native client connected successfully, confirm a real Neon provider
+operation, or establish any CG gate. Neither draft PR #202 nor #203
+is merged, deployed or independently accepted.
+
+### 2026-11-03 CAP-1 source implementation checkpoint — incomplete original unit
+
+The separate CAP-1 branch has its original acceptance frozen at planning commit
+50342cc66d5b698334b6952c7f1e0f431eb7c7af. The machine-readable source
+inventory currently covers 163 unique operations from the exact pinned July 2026
+Neon OpenAPI and 15 independently documented newer-product workflows; the
+registered MCP catalog has 131 named tools. A deterministic source/authority
+inventory, gap report, duplicate/orphan/credential validation and real-schema
+tests have been built. The checked-in report explicitly distinguishes source
+references from tested handlers and current released/provider evidence.
+
+CAP-1 remains IN_PROGRESS with zero original-unit completion credit until
+the full current-interface enumeration and exact operation-level credential,
+handler, request/response and direct-owner mappings are independently proved.
+No newly mapped source candidate is falsely counted as executable or deployed.
+The six cross-cutting gates remain OPEN; no live credential, customer resource,
+provider operation, release or billing configuration was changed. See
+[CAP-1 card](pr-cards/CAP-1.md) and
+[generated source gap report](capabilities/CAP-1-REPORT.md).
+The older R-2 draft PR #202 remains independent.
+
+
+Official current-SDK drift evidence on the SAME unmerged PR #203 (source
+only): retrieved Neon's public SDK OpenAPI JSON at exact
+neondatabase/neon-pkgs commit 167229f949438fb942809b72dd410888c70943a9
+(2026-11-03 UTC; raw SHA-256
+fcc7b2c39f15df03adedf90aa7cde7f1f5e7729ae50b10fd9c7a959f3fb1f82d).
+It contains 193 REST control-plane method signatures. Against the immutable
+163-method runtime vendor: 162 shared signatures, 31 official SDK-only
+operations and one pinned-only operation. The report now lists EVERY new
+operation by path/method/id and provisionally routes its original card,
+plus the lone pinned-only method and all 15 advanced workflows.
+The attached Playground publication preflight still fails Git fetch,
+while its Node/tests and the distinct native Git path work; the runtime
+Git-key handoff was refused/uncertain and no credential was exposed.
+The checked repository now includes an offline full-upstream byte verifier
+and deterministic 193-operation snapshot; the runtime Neon client still uses
+the old vendored contract. This SDK-source snapshot is not a Neon
+live-provider probe, customer credential test or public-client acceptance.
+Current interface inventory, permission/handler/execution proof and real-world
+acceptance remain incomplete, so CAP-1 and all six CG gates stay OPEN.
+
 ### 2026-11-03 — RTC public HTTPS release identity consistency (draft PR #202)
 
 Additional R-2 source work makes public RTC compatibility manifest and

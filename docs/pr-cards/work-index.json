@@ -1216,14 +1216,15 @@
       "design": "docs/designs/MAXIMUM-AUTHORITY.md",
       "dependencies": [],
       "card": "docs/pr-cards/CAP-1.md",
-      "status": "APPROVED",
+      "status": "IN_PROGRESS",
       "migration": "JIT contract before implementation",
       "budget": 650,
       "units": [
         "CAP-1"
       ],
-      "readiness": "WRITE_CARD_AT_START",
-      "ownerInputs": []
+      "readiness": "READY",
+      "ownerInputs": [],
+      "note": "2026-11-03: source-only frozen full CAP-1 inventory plan; zero completed units, no live acceptance."
     },
     {
       "id": "CAP-2",

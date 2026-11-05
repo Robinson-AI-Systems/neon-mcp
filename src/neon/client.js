@@ -3,6 +3,7 @@ import { createNeonClient } from '@neon/sdk';
 import * as raw from '@neon/sdk/raw';
 import { createHash } from 'node:crypto';
 import { formatNeonError } from './errors.js';
+import {neonMethod,neonRawCaseAlias} from './operation-methods.js';
 
 export const NEON_SDK_VERSION = '7.0.1';
 const RETRY_STATUSES = new Set([423, 429]);
@@ -98,12 +99,23 @@ function safeError(error, fallbackStatus) {
   });
 }
 async function takeBudget(client) {
-  const result = await client.budget.consume({ orgId: client.orgId, calls: 1 });
-  if (result?.allowed === false || result === false) {
-    return { code: 'rate_limited', status: 429,
-      retryAfterSeconds: Number(result?.retryAfterSeconds) || 60 };
+  let result;
+  try {
+    result = await client.budget.consume({ orgId: client.orgId, calls: 1 });
+  } catch {
+    // No provider request, and never return a raw DB error to a client.
+    return {code:'budget_unavailable',status:503};
   }
-  return null;
+  if (result === true || result?.allowed === true) return null;
+  if (result?.allowed === false || result === false) {
+    const seconds=Number(result?.retryAfterSeconds);
+    return {code:'rate_limited',status:429,
+      retryAfterSeconds:Number.isFinite(seconds)?
+        Math.min(60,Math.max(1,Math.ceil(seconds))):60};
+  }
+  // Unknown persisted/read-only budget shape is a service fault, not
+  // an implicit allowed:true or an invented ordinary rate exhaustion.
+  return {code:'budget_unavailable',status:503};
 }
 function isUncertain(error) {
   const status = Number(error?.status ?? error?.response?.status);
@@ -131,10 +143,21 @@ export async function call(client, operationId, params = {}, {
     typeof raw.setProjectMemberRole!=='function';
   const memberDelete = operationId==='removeProjectMemberRole'&&
     typeof raw.removeProjectMemberRole!=='function';
+  // Only an installed raw alias whose exact method and route were checked
+  // against the pinned published operation may serve a canonical name.
+  const rawName=typeof raw[operationId]==='function'
+    ? operationId : neonRawCaseAlias(operationId);
+  const rawHandler=typeof raw[rawName]==='function' ? raw[rawName] : null;
   if (!recoverBranch && !jwksRead && !jwksAdd && !jwksDelete &&
-      !memberList && !memberPut && !memberDelete &&
-      typeof raw[operationId] !== 'function')
+      !memberList && !memberPut && !memberDelete && !rawHandler)
     throw new Error('Neon operation is not supported by the pinned SDK.');
+  const trustedMethod = neonMethod(operationId);
+  if (!trustedMethod)
+    throw new TypeError('Neon operation method is not pinned in the checked API inventory.');
+  // Never trust optional caller write flags to classify REST methods:
+  // an omitted/mistyped write flag must not bypass request-key/nonreplay.
+  if (trustedMethod !== 'GET' && write !== true)
+    throw new TypeError('Mutating Neon operation requires explicit write:true.');
   if (!client?.sdk || typeof client?.budget?.consume !== 'function' ||
       (recoverBranch && typeof client.recoverBranch !== 'function') ||
       (jwksRead && typeof client.getProjectJWKS !== 'function') ||
@@ -165,7 +188,7 @@ export async function call(client, operationId, params = {}, {
                   ? await client.projectMemberRole(params.path,params.body)
                   : memberDelete
                     ? await client.removeProjectMemberRole(params.path)
-                    : await raw[operationId]({ client: client.sdk, ...params });
+                    : await rawHandler({ client: client.sdk, ...params });
     } catch (error) {
       result = { error };
     }
@@ -181,7 +204,12 @@ export async function call(client, operationId, params = {}, {
       continue;
     }
     if (write && isUncertain(error)) {
-      const existing = await findExisting(client, { projectId: params.path?.project_id, requestKey: key });
+      // A branch annotation can prove only the *branch-create* operation
+      // that wrote it. Never let an unrelated, caller-reused request key
+      // falsely confirm a project/role/security/deletion mutation.
+      const existing = operationId === 'createProjectBranch'
+        ? await findExisting(client, {projectId: params.path?.project_id, requestKey: key})
+        : null;
       return existing
         ? { data: existing, confirmed: true, recovered: true }
         : { error: { code: 'unknown_outcome', status: status || null }, confirmed: null };
