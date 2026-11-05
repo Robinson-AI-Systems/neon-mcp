@@ -46,6 +46,7 @@ system is designed to become is in `docs/designs/`; do not copy design text here
 ## Environment variables
 
 `DATABASE_URL` is read lazily by `src/db.js` on `createDb()`/startup initialization, never at import time.
+The own store is reached through one transport seam (`src/db-transport.js`): the Neon HTTP driver when `DATABASE_URL` names a Neon endpoint (`*.neon.tech` — the Vercel deployment), otherwise a pooled node-postgres client against plain Postgres (the Development Rack). `STORE_TRANSPORT=neon|pg` overrides the hostname rule when set; any other value is refused. The health probe uses the same transport, so it proves the store the deployment actually uses.
 Required owner secrets were configured under IN-03. `DATABASE_URL`, `ADMIN_PASSPHRASE`, `PUBLIC_BASE_URL` and `TOKEN_ENCRYPTION_KEY` must be checked against the **actual** selected release and origin by the authorized operator; their values are never published or changed merely to reconcile documentation.
 
 ## Database tables
