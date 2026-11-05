@@ -630,3 +630,14 @@ PostgreSQL tests (48 files)**. The current pushed PR SHA and both
 exact-head GitHub CI gates require verification separately after
 publication. CAP-1 remains IN_PROGRESS, zero completed original
 subsections, CG-1 through CG-6 OPEN.
+
+**Follow-through, 2026-11-04 overnight queue:** two items this census left
+owed are now done at source — the front-door depth line citing this census
+next to the bare tool count (COMPLETION row 15), and the disposition of the
+9 registered tools visible in no connection profile (recorded in the
+COMPLETION census note: deliberately outside connection profiles pending
+individual CAP-5 production audit, per-tool reasons stated; no re-profiling,
+since widening a connection's default reach is an owner decision). The
+health contract's record (rows 5/8/9) was likewise corrected to the merged
+PR #202 source state in the same change; those rows still close only on a
+live read-back at one checked deployed release.
