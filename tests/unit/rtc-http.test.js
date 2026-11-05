@@ -11,7 +11,8 @@ const scope={clientId:'rtc_'+ 'B'.repeat(16),neonOrg:'org-fake-one',
 const row={client_id:scope.clientId,neon_org:scope.neonOrg,
   project_scope:scope.projectScope,mode:'preview',profile:'read_only',
   listing:'catalog',kind:'pass',rtc_areas:['server','discovery'],
-  allow_writes:false,expires_at:new Date(Date.now()+3600000),revoked_at:null};
+  allow_writes:false,rtc_requests_per_minute:60,
+  expires_at:new Date(Date.now()+3600000),revoked_at:null};
 function res(){return {headers:{},statusCode:200,body:null,headersSent:false,
   setHeader(k,v){this.headers[k]=v;return this;},
   status(n){this.statusCode=n;return this;},
@@ -223,7 +224,8 @@ describe('RTC 1 read-only HTTPS route interop against hub contract',()=>{
     const limited=fixture({async consumeApiBudget(){return {allowed:false};}});
     const tooMany=await run(limited,req('GET','whoami'));
     expect(tooMany.statusCode).toBe(429);
-    expect(tooMany.headers['Retry-After']).toBe('60');
+    expect(Number(tooMany.headers['Retry-After'])).toBeGreaterThanOrEqual(1);
+    expect(Number(tooMany.headers['Retry-After'])).toBeLessThanOrEqual(60);
     expect(tooMany.body.error).toMatchObject({code:'rate_limited',
       what:expect.any(String),cause:expect.any(String),
       todo:expect.any(String),technical:expect.any(String)});

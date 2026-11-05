@@ -11,9 +11,10 @@ const safeTools=new Set(['neon_whoami','neon_where_is_setting','neon_get_setting
 export const rtcNonproductionTool=name=>safeTools.has(name);
 
 export async function issueReadOnlyRtcPass({db,exchange,env=process.env,
-  orgId,projectScope,ttlHours=24,now=()=>Date.now()}={}){
+  orgId,projectScope,ttlHours=24,requestsPerMinute=60,now=()=>Date.now()}={}){
   if(!project(orgId)||!project(projectScope)||
       !Number.isInteger(ttlHours)||ttlHours<1||ttlHours>24||
+      !Number.isInteger(requestsPerMinute)||requestsPerMinute<1||requestsPerMinute>60||
       typeof db?.createRtcReadOnlyPass!=='function'||
       typeof db?.revokeRtcPass!=='function'||
       typeof exchange?.putOneTimeSecret!=='function')
@@ -26,13 +27,14 @@ export async function issueReadOnlyRtcPass({db,exchange,env=process.env,
   const expiresAt=new Date(now()+ttlHours*60*60*1000);
   if(!RTC_PASS_PATTERN.test(token)||!passId(id))
     throw new Error('RTC entropy generation failed');
-  await db.createRtcReadOnlyPass({token,passId:id,orgId,projectScope,expiresAt});
+  await db.createRtcReadOnlyPass({token,passId:id,orgId,projectScope,expiresAt,
+    requestsPerMinute});
   try {
     const delivered=await exchange.putOneTimeSecret({
       org:orgId,kind:'rtc_read_only_pass',label:'Temporary Neon RTC read_only access',
       secret:token});
     return {passId:id,oneTimeLink:delivered.link,expiresAt:expiresAt.toISOString(),
-      profile:'read_only',mode:'preview',allowWrites:false};
+      profile:'read_only',mode:'preview',allowWrites:false,requestsPerMinute};
   } catch {
     // A delivery failure is not evidence of a usable credential: revoke it.
     await db.revokeRtcPass({orgId,passId:id});
@@ -58,6 +60,8 @@ export async function requireRtcPass(req,res,db,{now=()=>Date.now()}={}){
   if(!passId(row.client_id)||!project(row.neon_org)||!project(row.project_scope)||
       row.kind!=='pass'||row.mode!=='preview'||row.profile!=='read_only'||
       row.listing!=='catalog'||row.allow_writes!==false||
+      !Number.isInteger(row.rtc_requests_per_minute)||
+      row.rtc_requests_per_minute<1||row.rtc_requests_per_minute>60||
       !Array.isArray(row.rtc_areas)||
       !row.rtc_areas.includes('server')||!row.rtc_areas.includes('discovery')||
       row.rtc_areas.some(x=>!['server','discovery'].includes(x)))
@@ -67,11 +71,14 @@ export async function requireRtcPass(req,res,db,{now=()=>Date.now()}={}){
   const windowStart=new Date(Math.floor(timestamp/60000)*60000);
   let admitted;
   try{admitted=await db.consumeApiBudget({
-    keyHash:hashToken('rtc:'+token),windowStart,limit:60});}
+    keyHash:hashToken('rtc:'+token),windowStart,
+    limit:row.rtc_requests_per_minute});}
   catch{return refuse(res,'service_error',503);}
-  if(admitted?.allowed!==true)return refuse(res,'rate_limited',429,{'Retry-After':'60'});
+  if(admitted?.allowed!==true)return refuse(res,'rate_limited',429,
+    {'Retry-After':String(Math.max(1,Math.ceil((windowStart.getTime()+60000-timestamp)/1000)))});
   return Object.freeze({clientId:row.client_id,neonOrg:row.neon_org,
     projectScope:row.project_scope,mode:'preview',profile:'read_only',
     listing:'catalog',rtcAreas:Object.freeze([...row.rtc_areas]),
-    rtcSafeTools:true});
+    passBinding:hashToken('rtc2-cursor:'+token),rtcSafeTools:true,
+    requestsPerMinute:row.rtc_requests_per_minute});
 }

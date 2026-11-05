@@ -38,6 +38,7 @@ describe('Owner-only RTC pass page and revocation',()=>{
   const created=await invoke(f.handler,req(body));
   expect(created.statusCode).toBe(200);
   expect(f.issued).toHaveLength(1);
+  expect(f.issued[0].requestsPerMinute).toBe(60);
   expect(created.body).toContain('once=');
   expect(created.body).toContain('Temporary read_only pass');
   expect(created.body).not.toContain(f.issued[0].token);
@@ -52,6 +53,15 @@ describe('Owner-only RTC pass page and revocation',()=>{
   const f=fixture(),base={action:'create_read_only_rtc_pass',orgId:'org-fake-one',
     projectId:'proj-fake-one',ttlHours:'1',passphrase:env.ADMIN_PASSPHRASE};
   expect((await invoke(f.handler,req({...base,ttlHours:'30'}))).statusCode).toBe(400);
+  for(const rate of ['0','61','1.5','0x10','-1']){
+    expect((await invoke(f.handler,req({...base,requestsPerMinute:rate}))).statusCode).toBe(400);
+  }
+  expect(f.issued).toHaveLength(0);
+  const custom=await invoke(f.handler,req({...base,requestsPerMinute:'3'}));
+  expect(custom.statusCode).toBe(200);
+  expect(f.issued[0].requestsPerMinute).toBe(3);
+  expect(custom.body).toContain('Limit 3 calls/minute');
+
   expect((await invoke(f.handler,req({...base,projectId:'../../other'}))).statusCode).toBe(400);
   const revoked=await invoke(f.handler,req({action:'revoke_read_only_rtc_pass',
     orgId:'org-fake-one',passId:'rtc_'+'A'.repeat(16),passphrase:env.ADMIN_PASSPHRASE}));

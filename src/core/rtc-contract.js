@@ -1,6 +1,8 @@
 // RTC 1 compatibility metadata. This is not a credential/authorization boundary.
 // The public contract remains unadvertised until the authenticated HTTPS doors land.
 import {isToolAllowed} from './profiles.js';
+import {serverRelease} from './server-release.js';
+import {publicOrigin} from './http.js';
 import {PRODUCT_DISPLAY_NAME,PRODUCT_ATTRIBUTION,MCP_TECHNICAL_ID} from './product-identity.js';
 
 export const RTC_PREFIX='neon';
@@ -37,13 +39,18 @@ export function rtcToolMetadata(tool){
       idempotentHint:!writes||tool.writeContract==='defineWrite-v1',
       openWorldHint:tool.productionEffect==='write'}};
 }
-export function rtcManifest(registry,{version='0.1.0'}={}){
+export function rtcManifest(registry,{release=serverRelease(),
+  version=release.version}={}){
+  if(typeof release?.version!=='string'||release.version!==version||
+     (release.commit!==null&&
+      (typeof release.commit!=='string'||!/^[a-f0-9]{40}$/.test(release.commit))))
+    throw new TypeError('RTC manifest release metadata must share one source');
   if(!Array.isArray(registry?.tools))throw new TypeError('RTC registry required');
   const items=registry.tools.map(rtcToolMetadata);
   const names=new Set(items.map(t=>t.name));
   if(names.size!==items.length)throw new TypeError('Duplicate RTC tool');
   return {rtc:1,server:MCP_TECHNICAL_ID,displayName:PRODUCT_DISPLAY_NAME,
-    description:PRODUCT_ATTRIBUTION,prefix:RTC_PREFIX,version,
+    description:PRODUCT_ATTRIBUTION,prefix:RTC_PREFIX,version,server_release:release,
     apiVersion:'neon-sdk-7.0.1',
     areas:[...new Set(items.map(t=>t.area))].sort(),
     counts:{tools:items.length,writes:items.filter(t=>t.writes).length,
@@ -51,11 +58,30 @@ export function rtcManifest(registry,{version='0.1.0'}={}){
     profiles:['read_only','everyday','full'],
     listingModes:['catalog','compact'],modes:['preview','production'],devTools:false};
 }
-export function rtcCatalog(registry,connection,{listing,q,area,audience,limit=20}={},env={}){
+// Source-only RTC 2 manifest projection. Never call this from the public
+// route until its own R-1/R-2/R-3 and direct-client adoption gates pass.
+// A missing deployed revision is a refusal, never a fabricated claim.
+export function rtc2Manifest(registry,{env=process.env,release=serverRelease(env)}={}){
+  if(typeof release?.commit!=='string'||!/^[a-f0-9]{40}$/.test(release.commit))
+    throw new TypeError('Cannot claim RTC 2 without a verified deployed revision');
+  const origin=publicOrigin(env);
+  const legacy=rtcManifest(registry,{release});
+  if(legacy.prefix!=='neon'||!registry.tools.every(t=>t.name.startsWith('neon_')))
+    throw new TypeError('RTC 2 prefix does not match the registered catalog');
+  return {rtc:2,server:legacy.server,prefix:'neon_',
+    version:legacy.version,revision:release.commit,apiVersion:legacy.apiVersion,
+    areas:legacy.areas,counts:legacy.counts,profiles:legacy.profiles,
+    modes:legacy.modes,listingModes:legacy.listingModes,
+    listing:{pagination:'cursor',maxLimit:100,replyBudgetBytes:8192},
+    results:{recovery:'content-pages',handleTtlSeconds:86400,pageBudgetBytes:8192},
+    auth:{passes:true,oauth:{issuer:origin,protectedResource:origin+'/api/mcp'}},
+    connection:origin+'/connection',devTools:false,health:'/api/health'};
+}
+
+export function rtcCatalogAll(registry,connection,{listing,q,area,audience}={},env={}){
   const listingMode=LISTINGS.has(listing)?listing:
     LISTINGS.has(connection?.listing)?connection.listing:'compact';
-  if(!Number.isInteger(limit)||limit<1||limit>100 ||
-    (q!==undefined&&(typeof q!=='string'||q.length>160))||
+  if((q!==undefined&&(typeof q!=='string'||q.length>160))||
     (area!==undefined&&(typeof area!=='string'||area.length>80))||
     (audience!==undefined&&!audienceSet.has(audience)))
     throw new TypeError('Invalid scoped RTC discovery arguments');
@@ -66,8 +92,12 @@ export function rtcCatalog(registry,connection,{listing,q,area,audience,limit=20
        t.name.startsWith('neon_workflow_')&&t.writes===false))
     .map(rtcToolMetadata)
     .filter(t=>(!area||t.area===area)&&(!audience||t.audience.includes(audience))&&
-      (!query||`${t.name} ${t.description} ${t.area}`.toLowerCase().includes(query)))
-    .slice(0,limit);
+      (!query||([t.name,t.description].join(' ').toLowerCase().includes(query))));
+}
+export function rtcCatalog(registry,connection,{limit=20,...filters}={},env={}){
+  if(!Number.isInteger(limit)||limit<1||limit>100)
+    throw new TypeError('Invalid scoped RTC discovery arguments');
+  return rtcCatalogAll(registry,connection,filters,env).slice(0,limit);
 }
 export function rtcError(code,{status=400}={}){
   const allowed=new Set(['needs_confirmation','refused_by_guard','not_found',

@@ -14,13 +14,14 @@ const response=()=>({
   json(value){this.body=value;return this;}
 });
 describe('independent Neon connection product attribution',()=>{
-  it('uses one descriptive display name without replacing stable wire identity',()=>{
+  it('uses one descriptive display name without replacing stable wire identity',async()=>{
     expect(PRODUCT_DISPLAY_NAME).toBe('Neon Unleashed by Robinson AI Systems');
     expect(PRODUCT_ATTRIBUTION).toMatch(/not affiliated with, endorsed by, or sponsored by Neon/);
-    const r=response();landing({method:'GET'},r);
-    expect(r.body).toMatchObject({name:PRODUCT_DISPLAY_NAME,
-      description:PRODUCT_ATTRIBUTION,endpoint:'/api/mcp'});
-    expect(r.body.status).not.toBe('connected');
+    const r=response();await landing({method:'GET'},r);
+    expect(r.body).toContain(PRODUCT_DISPLAY_NAME);
+    expect(r.body).toContain(PRODUCT_ATTRIBUTION);
+    expect(r.body).toContain('/api/mcp');
+    expect(r.body).not.toContain('status: connected');
     const manifest=rtcManifest(registry);
     expect(manifest).toMatchObject({server:MCP_TECHNICAL_ID,
       displayName:PRODUCT_DISPLAY_NAME,description:PRODUCT_ATTRIBUTION});

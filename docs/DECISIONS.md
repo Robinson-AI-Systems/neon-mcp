@@ -1,3 +1,29 @@
+## 2026-11-03 — One exact deployment identity across RTC HTTPS doors
+
+Both public RTC manifest and pass-authenticated HTTPS `whoami`
+must derive release version, full commit SHA when known, source link
+and changelog from the identical `serverRelease(env)` contract
+already used by native MCP. Reject inconsistent caller overrides
+instead of fabricating a healthy release; unknown revision remains
+`null` and is not inferred from `main`, Host, cookies or headers.
+The owner-controlled RTC 1 enablement and pass restrictions stay
+unchanged. This is part of original R-2 source engineering, NOT an
+approval to expose RTC 2 publicly or claim deployed acceptance.
+
+## 2026-11-03 — Persist owner-selected temporary RTC pass rate limit
+
+Decision: the already owner-authorized temporary read_only/preview
+RTC pass may choose its own 1–60 integer calls/minute. Default 60
+retains existing passes, and PostgreSQL's unique key+window atomic
+budget remains the cross-instance source of admission truth. A
+malformed persisted cap is a grant-integrity failure; reject before
+budgeting, do not widen to 60. HTTP 429 Retry-After shows the
+actual remaining minute, never a fictitious fixed 60 seconds. Keep
+owner-only issuance, protected delivery, project-key reach, immediate
+revocation, existing 24h max, area restrictions and no live customer
+permission increase. This source-only R-2 change is not permission
+to enable RTC 2 in production.
+
 
 ### 2026-11-02 — use custom GitHub's real Git/runtime and Vercel's deployment evidence to accelerate Neon
 
@@ -201,3 +227,16 @@ The standing universal developer-versus-end-user distinction also applies to fou
 **2026-10-19 — Universal MCP completion gate reconciliation and honest release provenance (owner-approved).** The owner reaffirmed that gaps from the direct MCP/mobile/branding/end-user authority directive must be implemented where feasible and otherwise be formally represented in the roadmap, not left in an audit. Add six noncountable, original-card-linked completion gates CG-1..CG-6 to `docs/COMPLETION-GATES.md` and `docs/pr-cards/work-index.json`, enforce their visibility in `npm run session:status` and validation, and require explicit positive/negative, independent checked-source/provider evidence before PASS. No new artificial countable batch subsections; the existing D/V/O/P/W/U/R/E/X engineering is still unfinished. Development $0, production-write, release and secret controls remain binding on builders, but are not permanent customer policy. Original independently hosted native MCP and provider-owned RTC must both be proved; Hub enrollment is NOT a completion gate for Neon. Public catalog/listing and multi-tenant rollout remain private/unapproved until separate CG-6 security, platform/provider eligibility and owner decision. PR #189 and #190 merged and had exact-head CI, but the latest verified `live` deployment remains older; neither PR is live/native-client/provider-accepted. This planning and status reconciliation changes no provider permissions, credentials, spend, data or deployments.
 
 **2026-11-01 — Source-versus-release documentation reconciliation, no security-policy change.** Main/live and checked Vercel Production were independently observed at `1c810cb0ca69fffc9be088d4c8e9834d2dd7d720` after #197, rather than the outdated October 19 deployment SHA repeated in the owner guides. The prior approved RTC 2 decision on 2026-10-31 is normative, but the server still exposes RTC 1-shaped code/contract pending separate reviewed implementation and conformance. OAuth environment-bound bearer rejection (#193), public-client S256 PKCE and client-owned token revocation (#194), five CAP backlog units (#192), and the completion gate set (#191) are now source-merged on that checked release. Update current documentation and keep dated prior notes as historical snapshots. No provider write, public marketplace submission, credential rotation or production activation authorized by this correction.
+
+## 2026-11-02 — R-2 staged release identity and public mobile entry (source only)
+
+The release stamp uses the immutable build SHA where the deployment provides one;
+missing revision is shown as unknown rather than inferred from main, live or an
+untrusted Host. New mobile callbacks use an ordinary customer \`/api/connect/handoff\`
+while registered historical \`/api/developer/connect\` callbacks keep working
+until independently validated migration. The legacy URL name does not grant
+developer authority. Public \`/api/health\` refuses a default successful posture:
+DB probing is disabled absent explicit \`HEALTH_DB_PROBE_ENABLED=1\` because it may
+wake metered compute. This is a source decision, **not** permission to change
+production configuration, RAS identity origin, owner keys, runtime developer
+grants or release policy. Full R-2 and real RTC 2 remain unfinished.

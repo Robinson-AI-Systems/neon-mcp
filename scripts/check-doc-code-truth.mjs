@@ -15,6 +15,9 @@ export function checkDocCodeTruth({ files, exists }) {
   const gates = index.completionGates || [];
   const requiredRoutes = [
     ['api/mcp.js', 'docs/DIRECT-MCP-CONNECTION.md', '/api/mcp'],
+    ['api/health.js', 'docs/ARCHITECTURE.md', '/api/health'],
+    ['api/connection.js', 'docs/DIRECT-MCP-CONNECTION.md', '/connection'],
+    ['api/connect/handoff.js', 'docs/DIRECT-MCP-CONNECTION.md', '/api/connect/handoff'],
     ['api/oauth/revoke.js', 'docs/ARCHITECTURE.md', '/api/oauth/revoke'],
     ['src/core/oauth-revocation.js', 'docs/DIRECT-MCP-CONNECTION.md', '/api/oauth/revoke'],
     ['api/contract.js', 'docs/START-HERE.md', 'contract.js'],

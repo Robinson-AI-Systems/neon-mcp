@@ -1,3 +1,4 @@
+import {serverRelease} from '../core/server-release.js';
 // Owner-safe MCP reads: scoped to the authenticated connection; no ciphertext or credentials.
 const profiles=['read_only','everyday','full'];
 export const tools=[
@@ -18,12 +19,12 @@ async function accountContext({connection,db}) {
   }))};
 }
 export const handlers={
-  async neon_whoami(_args,{connection,db}) {
+  async neon_whoami(_args,{connection,db,env=process.env}) {
     const {org,keys}=await accountContext({connection,db});
     return result({organization:{id:org.id,label:org.label},mode:connection.mode,
       profile:connection.profile,listing:connection.listing,projectScope:connection.projectScope||null,
       keys,productionEnabled:org.production_enabled,
-      apiClientVersion:'7.0.1',apiDescription:'pinned-2026-07-01'});
+      server_release:serverRelease(env),apiClientVersion:'7.0.1',apiDescription:'pinned-2026-07-01'});
   },
   async neon_list_accounts(_args,{connection,db}) {
     const {org,keys}=await accountContext({connection,db});

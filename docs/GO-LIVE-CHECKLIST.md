@@ -94,3 +94,12 @@ authority for the app.
 - [ ] In each linked Vercel project's Production environment, set Branch Tracking to live and read it back. Disable automatic Preview deployments and verify that setting. No Vercel project setting is implied by vercel.json.
 - [ ] Confirm exact-head existing application CI and release-policy pass; development PRs never require a paid Vercel preview. Apply live-only Git rules to any nested Vercel root configuration.
 - [ ] Verify the first scheduled daily promotion and its live-promotion date tag; validate the resulting production deployment from live. Keep all existing access, spending and activation gates.
+
+### RAS Stage 1 health probe — new separately gated setting
+\`HEALTH_DB_PROBE_ENABLED\` is **OFF by default**. Enabling \`1\` makes the
+public health route execute a lightweight, read-only query against the service's
+own database and may wake idle compute or cause metered usage. Require owner
+review of frequency, cost, rate limiting and service settings before enabling;
+this engineering session did not change any production environment variable.
+A 200 healthy health response does not establish real Neon customer authority,
+RTC 2 conformance, client/mobile support or permission to publish publicly.
