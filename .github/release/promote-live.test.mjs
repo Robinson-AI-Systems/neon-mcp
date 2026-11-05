@@ -144,7 +144,7 @@ test('workflow exposes the owner release inputs and passes them to the promoter'
 test('bounded schedule backups preserve midnight, daily marker and owner recovery', () => {
   const workflow = readFileSync(new URL('../workflows/daily-live.yml', import.meta.url), 'utf8');
   const crons = [...workflow.matchAll(/cron: '([^']+)'/g)].map(m => m[1]);
-  assert.deepEqual(crons, ['1 0 * * *', '17 0 * * *', '17 1 * * *', '37 5 * * *', '43 12 * * *']);
+  assert.deepEqual(crons, ['41 0 * * *', '57 0 * * *', '57 1 * * *', '17 6 * * *', '23 13 * * *']);
   assert.equal((workflow.match(/timezone: America\/Denver/g) || []).length, 4);
   assert.match(workflow, /recover_missed_daily:/);
   assert.match(workflow, /default: false/);
