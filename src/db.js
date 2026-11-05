@@ -326,6 +326,47 @@ export function createDb(sql = productionSql()) {
         FROM neon_orgs WHERE id = ${orgId}`;
       return rows[0] || null;
     },
+    // CAP-7: what unenrolling an organization would revoke, counted per org so
+    // the preview can enumerate the cascade before any confirm.
+    async getNeonOrgRemovalPreview(orgId) {
+      if (typeof orgId !== 'string' || !orgId) return null;
+      const orgs = await sql`SELECT id, label, production_enabled, is_default
+        FROM neon_orgs WHERE id = ${orgId}`;
+      if (!orgs.length) return null;
+      const keys = await sql`SELECT count(*)::integer AS total,
+        count(*) FILTER (WHERE revoked_at IS NULL)::integer AS live
+        FROM neon_keys WHERE org_id = ${orgId}`;
+      const tokens = await sql`SELECT
+        count(*) FILTER (WHERE revoked_at IS NULL
+          AND (expires_at IS NULL OR expires_at > now()))::integer AS live,
+        count(*) FILTER (WHERE kind = 'pass' AND revoked_at IS NULL
+          AND (expires_at IS NULL OR expires_at > now()))::integer AS live_passes
+        FROM oauth_tokens WHERE neon_org = ${orgId}`;
+      const codes = await sql`SELECT count(*)::integer AS n FROM oauth_codes
+        WHERE neon_org = ${orgId}`;
+      return { org: orgs[0], storedKeys: keys[0].total, liveKeys: keys[0].live,
+        liveTokens: tokens[0].live, livePasses: tokens[0].live_passes,
+        pendingCodes: codes[0].n };
+    },
+    // CAP-7: revoke cascade, then the enrollment row itself. Stored key rows
+    // and token rows are revoked, never silently dropped (CAP-8's purge can
+    // hard-delete them later); pending sign-in codes are consumables and are
+    // removed. Re-enrollment is the ordinary setup upsert — no tombstone.
+    async deleteNeonOrg(orgId) {
+      if (typeof orgId !== 'string' || !orgId)
+        throw new TypeError('Organization ID is required');
+      const orgs = await sql`SELECT id FROM neon_orgs WHERE id = ${orgId}`;
+      if (!orgs.length) return null;
+      const keys = await sql`UPDATE neon_keys SET revoked_at = now()
+        WHERE org_id = ${orgId} AND revoked_at IS NULL RETURNING id`;
+      const tokens = await sql`UPDATE oauth_tokens SET revoked_at = now()
+        WHERE neon_org = ${orgId} AND revoked_at IS NULL RETURNING token_hash`;
+      const codes = await sql`DELETE FROM oauth_codes WHERE neon_org = ${orgId}
+        RETURNING code`;
+      await sql`DELETE FROM neon_orgs WHERE id = ${orgId}`;
+      return { keysRevoked: keys.length, tokensRevoked: tokens.length,
+        codesRemoved: codes.length };
+    },
     async saveEncryptedNeonKey({ orgId, kind, projectId = null, keyEnc, last4, label = null, reach = {} }) {
       if (!orgId || !['project','org','personal'].includes(kind) ||
           (kind === 'project') !== Boolean(projectId) || !keyEnc || typeof last4 !== 'string' ||

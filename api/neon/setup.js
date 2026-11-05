@@ -43,6 +43,7 @@ function page(message='',p={}) {
     passphrase:['Administrator passphrase','Enter your Neon MCP administrator passphrase, configured in Vercel as ADMIN_PASSPHRASE.'],
     keyId:['Stored key ID','Use the numeric ID returned by List keys.'],
     approvalPhrase:['Production approval phrase','Only enter the approval phrase after completing the required owner checks.'],
+    removalPhrase:['Removal confirmation','Type REMOVE ORGANIZATION exactly. Removal revokes the organization\'s stored keys and live connection tokens and passes, removes pending sign-in codes, and deletes the enrollment.'],
     onceId:['One-time secret ID','Use the ID from your one-time secret link.'],
     requestId:['Secret request ID','Use the ID of the pending secret request.'],
     secret:['Requested secret','Paste the secret requested by this operation.'],
@@ -72,6 +73,7 @@ function page(message='',p={}) {
     input('personalKey','password')+input('label')+
     '<input type="hidden" name="kind" value="personal">');
   const revoke=form('revoke_key',org()+input('keyId','number'));
+  const removeOrg=form('remove_organization',org()+input('removalPhrase'));
   const listProtected=form('list_protected_resources',org());
   const protectedEditor=form('save_protected_resources',org()+
     '<p>Enter a JSON list of other protected projects or branches. Your server project is always protected separately.</p>'+
@@ -101,6 +103,8 @@ function page(message='',p={}) {
     '<p>Required for Neon organization invitations, membership removal and other personally-authorized API operations. '+
     'This elevated credential must belong to an organization administrator, is checked against the exact selected organization, and cannot be submitted through agent tools. It is unavailable on preview deployments.</p>'+personal+
     '<h2>Revoke a key</h2>'+revoke+
+    '<h2>Remove an organization</h2>'+
+    '<p>Unenroll an organization from this server. Its stored keys and live connection tokens and passes are revoked, pending sign-in codes are removed, and the enrollment is deleted. Re-enrollment stays possible from this page at any time.</p>'+removeOrg+
     '<h2>Protected resources (owner only)</h2>'+
     '<p>Your Neon MCP database cannot be removed from protection. Configure and verify its own project in Vercel first.</p>'+
     listProtected+protectedEditor+
@@ -195,6 +199,19 @@ export function createSetupHandler({db,vault,exchange,env=process.env,scratchCli
           return send(res,400,{error:'invalid_key_id'});
         const ok=await vault.revokeKey({orgId,id:Number(p.keyId)});
         return send(res,200,page(ok?'Key revoked.':'No active scoped key matched.'),
+          'text/html; charset=utf-8');
+      }
+      if(p.action==='remove_organization'){
+        if(p.removalPhrase!=='REMOVE ORGANIZATION')
+          return send(res,400,{error:'removal_phrase_required'});
+        const preview=await db.getNeonOrgRemovalPreview(orgId);
+        if(!preview)return send(res,404,page('No enrolled organization matched that ID.'),
+          'text/html; charset=utf-8');
+        const removed=await db.deleteNeonOrg(orgId);
+        return send(res,200,page('Organization '+orgId+' removed: '+
+          removed.keysRevoked+' stored key(s) revoked, '+removed.tokensRevoked+
+          ' live token(s) revoked, '+removed.codesRemoved+
+          ' pending sign-in code(s) removed. Re-enrollment stays possible from this page.'),
           'text/html; charset=utf-8');
       }
       if(p.action==='attest_scratch_project'){

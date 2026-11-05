@@ -1,5 +1,20 @@
 ## Verified source and deployment checkpoint — 2026-11-01
 
+### 2026-11-04 — CAP-7: organization unenrollment (overnight queue)
+
+An enrolled organization can now be removed: `neon_unenroll_organization`
+(guarded, full profile) previews the full cascade — stored keys, live
+connection tokens and passes, pending sign-in codes, with a plain warning
+when production access is enabled — and on confirm revokes the keys and
+tokens, removes the codes and deletes the enrollment; re-enrollment stays
+possible through the ordinary setup flow. The owner setup page carries the
+same removal behind the passphrase plus the typed phrase REMOVE ORGANIZATION.
+With this, all 7 server-self lifecycle legs from the 2026-11-04 re-census
+are built. Registry 139 tools; production visibility 52 / 60 / 130. Verified
+locally on a disposable Postgres scope only (`tests/db/org-unenroll.test.js`)
+plus unit and setup-page suites — **no real organization was unenrolled**.
+Rides the 2026-11-05 00:01 automatic promotion (no owner release fired).
+
 ### 2026-11-04 — CAP-9: consumption and usage reads (overnight queue)
 
 `neon_consumption_get` answers the monthly-usage workflow (platform map W10):

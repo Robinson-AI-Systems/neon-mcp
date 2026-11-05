@@ -40,7 +40,7 @@
     "sourceStatus": "Official docs; advanced wire and version not pinned"
   },
   "registry": {
-    "registeredTools": 138
+    "registeredTools": 139
   },
   "rows": [
     {"key":"advanced|ai-gateway:invoke|current-docs-unpinned","operationId":"ai-gateway:invoke","origin":"documented-advanced-product","family":"ai_gateway","method":"POST","path":"/openai/v1/responses","protocol":"https","host":"branch-ai-gateway-host","version":"current-docs-unpinned","providerReference":"https://neon.com/docs/ai-gateway/overview","providerDocumentationState":"documented","providerSourceSha":null,"sourceCheckedDate":"2026-11-03","effect":"costed-unknown","sdkDispatch":null,"wire":null,"currentWire":null,"currentWireDigest":null,"wireState":"advanced-unpinned","credentials":{"personal_api_key":{"status":"unknown","evidence":null,"scope":"unverified"},"organization_api_key":{"status":"unknown","evidence":null,"scope":"unverified"},"project_api_key":{"status":"unknown","evidence":null,"scope":"unverified"},"sql_login":{"status":"unknown","evidence":null,"scope":"unverified"},"delegated_oauth":{"status":"unknown","evidence":null,"scope":"unverified"},"product_scoped_credential":{"status":"supported","evidence":"https://neon.com/docs/ai-gateway/overview","scope":"Verified branch- and permission-scoped credential required"}},"requiredPermissions":"ai_gateway:invoke","entitlement":"unknown","resourceSelectors":[],"ownerUnit":"CAP-4","ownerUnitEvidence":"Reconcile direct original cards before adding capability","source":{"status":"missing","candidates":[],"tests":[],"guardedExecutionVerified":false},"live":{"status":"unverified","evidence":null}},

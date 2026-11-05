@@ -45,6 +45,37 @@ const purge=defineWrite({
   readAfter:async(_args,ctx)=>ctx.db.countPurgeableStoredRecords(),
   verify:async(_before,after)=>after.neonKeys===0 && after.oauthTokens===0
 });
+// CAP-7: unenroll the connection's own organization. The summary names the
+// organization by ID (labels may be email-shaped and fail the safe-summary
+// scrub); counts enumerate the full cascade before any confirm.
+const unenroll=defineWrite({
+  name:'neon_unenroll_organization',access:true,destructive:true,
+  productionEffect:'none',key:'org',
+  plan:async(_args,ctx)=>{
+    const orgId=ctx.connection?.neonOrg ?? ctx.connection?.neon_org;
+    if(typeof orgId!=='string'||!orgId)throw new Error('Invalid organization selection');
+    const before=await ctx.db.getNeonOrgRemovalPreview(orgId);
+    if(!before)throw new Error('Organization not available');
+    return {before,target:'organization:'+orgId,projectId:null,branchId:null,
+      summary:'Unenroll organization '+orgId+' from this server: revoke '+
+        before.liveKeys+' live stored key(s) of '+before.storedKeys+' stored, revoke '+
+        before.liveTokens+' live connection token(s) including '+before.livePasses+
+        ' pass(es), remove '+before.pendingCodes+' pending sign-in code(s), then delete '+
+        'the enrollment'+(before.org.production_enabled?
+          '; PRODUCTION ACCESS IS ENABLED for this organization':'')+
+        '; re-enrollment stays possible from the setup page'};
+  },
+  apply:async(_args,ctx)=>{
+    const orgId=ctx.connection?.neonOrg ?? ctx.connection?.neon_org;
+    const result=await ctx.db.deleteNeonOrg(orgId);
+    if(!result)return {confirmed:false};
+    ctx.orgRemoval=result;
+    return {confirmed:true,operations:[]};
+  },
+  readAfter:async(_args,ctx)=>
+    ctx.db.getNeonOrg(ctx.connection?.neonOrg ?? ctx.connection?.neon_org),
+  verify:async(_before,after)=>after===null
+});
 export const tools=[{...revoke.tool,profiles:['full'],
   description:'Preview and revoke one client’s grants in this organization immediately.',
   inputSchema:{type:'object',properties:{...revoke.tool.inputSchema.properties,
@@ -52,6 +83,10 @@ export const tools=[{...revoke.tool,profiles:['full'],
   {...purge.tool,profiles:['full'],
   description:'Preview and permanently delete revoked stored key rows and revoked or expired token rows.',
   inputSchema:{type:'object',properties:{...purge.tool.inputSchema.properties},
+    additionalProperties:false}},
+  {...unenroll.tool,profiles:['full'],
+  description:'Preview and unenroll this connection’s organization, revoking its stored keys and live tokens.',
+  inputSchema:{type:'object',properties:{...unenroll.tool.inputSchema.properties},
     additionalProperties:false}}];
 const internalContext=({db,connection,env})=>({
   db,connection,env,deploymentEnv:env?.VERCEL_ENV,guards,
@@ -60,5 +95,6 @@ const internalContext=({db,connection,env})=>({
 });
 export const handlers={
   neon_revoke_connection:(args,context)=>revoke.handler(args,internalContext(context)),
-  neon_purge_revoked_records:(args,context)=>purge.handler(args,internalContext(context))
+  neon_purge_revoked_records:(args,context)=>purge.handler(args,internalContext(context)),
+  neon_unenroll_organization:(args,context)=>unenroll.handler(args,internalContext(context))
 };

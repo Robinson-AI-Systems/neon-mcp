@@ -176,6 +176,15 @@ record; the remaining 2 server-self legs are CAP-7 (org unenroll). Proof:
 `tests/db/oauth-client-lifecycle.test.js` on disposable Postgres plus unit
 suites; see the CAP-6/CAP-8 card status lines.
 
+**Build outcome, 2026-11-04 overnight (unenrollment):** CAP-7 is built —
+`neon_unenroll_organization` plus the matching setup-page removal action
+close the last 2 server-self legs (org unenroll, with its revoke cascade over
+stored keys and live token rows counted in the preview). All 7 server-self
+legs from the census above are now built at source. Registry now 139 tools;
+production profile visibility read_only 52 / everyday 60 / full 130. Proven
+in a disposable test scope only (`tests/db/org-unenroll.test.js`); no real
+organization was unenrolled.
+
 **Build outcome, 2026-11-04 overnight (consumption):** CAP-9 is built —
 `neon_consumption_get` reads the platform consumption-history endpoints
 (per-project v2, per-branch v2, legacy plans) for a stated period and returns
