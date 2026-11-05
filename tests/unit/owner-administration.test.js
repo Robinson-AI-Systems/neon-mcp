@@ -114,3 +114,52 @@ describe('CAP-8 revoked-row purge',()=>{
     expect(f.audit.some(row=>row.tool==='neon_purge_revoked_records'&&row.confirmed==='true')).toBe(true);
   });
 });
+
+describe('CAP-7 organization unenrollment',()=>{
+  function unenrollFixture(){
+    const state={org:{id:'org-fake',label:'Fake',production_enabled:true,is_default:false},
+      removed:0};
+    const audit=[],db={
+      getNeonOrgRemovalPreview:async id=>id==='org-fake'&&state.org
+        ? {org:state.org,storedKeys:3,liveKeys:2,liveTokens:4,livePasses:1,pendingCodes:2}:null,
+      deleteNeonOrg:async id=>{
+        if(id!=='org-fake'||!state.org)return null;
+        state.org=null;state.removed++;return {keysRevoked:2,tokensRevoked:4,codesRemoved:2};
+      },
+      getNeonOrg:async id=>id==='org-fake'?state.org:null,
+      recordWritePreview:async row=>{audit.push({...row,kind:'preview'});return audit.length;},
+      reserveWrite:async row=>{
+        const existing=audit.find(x=>x.requestKey===row.requestKey&&x.kind!=='preview');
+        if(existing)return {created:false,existing:{...existing,neon_org:row.orgId,
+          project_id:row.projectId,branch_id:row.branchId}};
+        audit.push({...row,kind:'write',confirmed:'pending'});
+        return {created:true,id:audit.length};
+      },
+      completeWrite:async({id,confirmed})=>{audit[id-1].confirmed=confirmed;return true;}
+    };
+    const context={db,env:{VERCEL_ENV:'production'},connection:{
+      neonOrg:'org-fake',clientId:'owner-client',mode:'preview',profile:'full'}};
+    return {context,state,audit,db};
+  }
+  it('is a full-profile destructive org-keyed defineWrite tool',()=>{
+    expect(tools[2]).toMatchObject({name:'neon_unenroll_organization',writes:true,
+      writeContract:'defineWrite-v1',productionEffect:'none',access:true,
+      destructive:true,key:'org',profiles:['full']});
+  });
+  it('preview enumerates the cascade and warns on production; confirm unenrolls exactly once',async()=>{
+    const f=unenrollFixture();
+    const preview=read(await handlers.neon_unenroll_organization({dryRun:true},f.context));
+    expect(preview.preview).toContain('org-fake');
+    expect(preview.preview).toContain('2 live stored key(s) of 3 stored');
+    expect(preview.preview).toContain('4 live connection token(s) including 1 pass(es)');
+    expect(preview.preview).toContain('PRODUCTION ACCESS IS ENABLED');
+    expect(f.state.removed).toBe(0);
+    expect(read(await handlers.neon_unenroll_organization({},f.context)).code).toBe('needs_confirmation');
+    expect(f.state.removed).toBe(0);
+    expect(read(await handlers.neon_unenroll_organization({confirm:true},f.context)).confirmed).toBe(true);
+    expect(f.state.removed).toBe(1);
+    expect(f.audit.some(row=>row.tool==='neon_unenroll_organization'&&row.confirmed==='true')).toBe(true);
+    expect((await handlers.neon_unenroll_organization({confirm:true},f.context)).isError).toBe(true);
+    expect(f.state.removed).toBe(1);
+  });
+});

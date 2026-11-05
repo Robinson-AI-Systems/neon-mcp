@@ -40,7 +40,7 @@ describe('B-6 display and connection profiles',()=>{
     expect(isToolAllowed({name:'neon_org_read',writes:false,key:'org',profiles:['read_only','full']},
       {profile:'read_only'})).toBe(false);
     const counts=profileToolCounts(registry.tools,{productionDeployment:true});
-    expect(counts).toEqual({read_only:52,everyday:60,full:129});
+    expect(counts).toEqual({read_only:52,everyday:60,full:130});
     const snapshots=['neon_snapshot_create','neon_snapshot_update',
       'neon_snapshot_delete','neon_snapshot_restore','neon_snapshot_set_schedule'];
     for(const name of snapshots){

@@ -12,7 +12,7 @@ Source inventory checked 2026-11-03. This is source accounting, not proof of a l
 - Export/fallback declarations are source evidence only, NOT verified API requests, credentials, guards, retries or live behavior.
 - Exact declared request/response/parameter/auth wire contracts: 163 runtime-vendored and 193 SHA-checked official SDK references; 17 shared method/path contracts differ.
 - Declared BearerAuth/CookieAuth/etc are OpenAPI schemes, not permission, key-scope or successful provider execution proof.
-- Registered named MCP tools: 138; named-tool counts are not operation coverage.
+- Registered named MCP tools: 139; named-tool counts are not operation coverage.
 - Candidate source means a parsed provider-call operation ID appears in a tool module, with file and source line. Only the enclosing named handler is attributed; shared helpers remain unassigned. It is not proof of guarded execution.
 - Live operation evidence remains unverified until tied to the exact checked deployed source and client.
 
