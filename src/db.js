@@ -1,7 +1,7 @@
 import {scrubNeonResult} from './core/scrub.js';
 import { validateSettingTightening } from './core/setting-constraints.js';
 // The Neon MCP service's own tables. No agent tool may run SQL against this database.
-import { neon } from '@neondatabase/serverless';
+import { storeSql } from './db-transport.js';
 import { hashToken } from './core/oauth.js';
 import { validatePricing } from './neon/pricing.js';
 import {checkpointStore,initCheckpoints} from './db-checkpoints.js';
@@ -21,9 +21,10 @@ export function connectionSettings(row) {
 }
 
 function productionSql() {
-  const url = process.env.DATABASE_URL;
-  if (!url) throw new Error('DATABASE_URL is not configured. Set it in the Vercel project (docs/DEPLOY.md).');
-  return neon(url);
+  // The transport (Neon HTTP driver vs pooled pg) is selected in
+  // src/db-transport.js; on Vercel the store URL is a Neon endpoint and
+  // this returns exactly the handle it always has.
+  return storeSql();
 }
 
 export function createDb(sql = productionSql()) {

@@ -1,5 +1,22 @@
 ## Verified source and deployment checkpoint — 2026-11-01
 
+### 2026-11-05 — RACK-1: own-store transport promotion (rack migration staging)
+
+The server's own store can now run on plain Postgres, the first staging
+item of this server's move to the Development Rack. A single transport
+module (`src/db-transport.js`) selects the driver: the Neon HTTP driver
+whenever `DATABASE_URL` names a Neon endpoint — the Vercel deployment,
+behavior unchanged — and a pooled node-postgres transport otherwise.
+The pattern is the test suite's own adapter promoted into `src/`: the
+whole db layer already ran through this exact query shape against local
+Postgres, and the new `tests/db/store-transport.test.js` proves schema
+creation for all 16 own-store tables, registration round trips and
+parameter binding through the production seam, with the health probe
+answering through the same transport. `pg` is now a runtime dependency.
+No tool or behavior change on Vercel; registry stays 139 tools. Rides
+the next automatic promotion (the rack build pins `main` directly, so
+staging does not wait for it); no owner release fired.
+
 ### 2026-11-04 — Health contract record corrected; 9 no-profile tools dispositioned (overnight queue)
 
 Verification at current main: the fleet health contract's build side is
