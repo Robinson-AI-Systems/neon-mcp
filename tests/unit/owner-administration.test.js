@@ -66,3 +66,51 @@ describe('B-8b independently guarded revocation',()=>{
     expect(f.state.revocations).toBe(0);
   });
 });
+
+describe('CAP-8 revoked-row purge',()=>{
+  function purgeFixture(){
+    const state={keys:[{id:1,revoked:true},{id:2,revoked:false}],
+      tokens:[{id:'a',revoked:true},{id:'b',revoked:false},{id:'c',expired:true}],purges:0};
+    const audit=[],db={
+      countPurgeableStoredRecords:async()=>({neonKeys:state.keys.filter(k=>k.revoked).length,
+        oauthTokens:state.tokens.filter(t=>t.revoked||t.expired).length}),
+      purgeRevokedStoredRecords:async()=>{
+        const keys=state.keys.filter(k=>k.revoked).length;
+        const tokens=state.tokens.filter(t=>t.revoked||t.expired).length;
+        state.keys=state.keys.filter(k=>!k.revoked);
+        state.tokens=state.tokens.filter(t=>!t.revoked&&!t.expired);
+        state.purges++;return {neonKeys:keys,oauthTokens:tokens};
+      },
+      recordWritePreview:async row=>{audit.push({...row,kind:'preview'});return audit.length;},
+      reserveWrite:async row=>{
+        const existing=audit.find(x=>x.requestKey===row.requestKey&&x.kind!=='preview');
+        if(existing)return {created:false,existing:{...existing,neon_org:row.orgId,
+          project_id:row.projectId,branch_id:row.branchId}};
+        audit.push({...row,kind:'write',confirmed:'pending'});
+        return {created:true,id:audit.length};
+      },
+      completeWrite:async({id,confirmed})=>{audit[id-1].confirmed=confirmed;return true;}
+    };
+    const context={db,env:{VERCEL_ENV:'production'},connection:{
+      neonOrg:'org-fake',clientId:'owner-client',mode:'preview',profile:'full'}};
+    return {context,state,audit,db};
+  }
+  it('is a full-profile destructive defineWrite tool',()=>{
+    expect(tools[1]).toMatchObject({name:'neon_purge_revoked_records',writes:true,
+      writeContract:'defineWrite-v1',productionEffect:'none',destructive:true,profiles:['full']});
+  });
+  it('previews exact counts, purges only dead rows on confirm, and journals the purge',async()=>{
+    const f=purgeFixture();
+    const preview=read(await handlers.neon_purge_revoked_records({dryRun:true},f.context));
+    expect(preview.preview).toContain('1 revoked stored key row(s)');
+    expect(preview.preview).toContain('2 revoked or expired token row(s)');
+    expect(f.state.purges).toBe(0);
+    expect(read(await handlers.neon_purge_revoked_records({},f.context)).code).toBe('needs_confirmation');
+    expect(f.state.purges).toBe(0);
+    expect(read(await handlers.neon_purge_revoked_records({confirm:true},f.context)).confirmed).toBe(true);
+    expect(f.state.purges).toBe(1);
+    expect(f.state.keys).toEqual([{id:2,revoked:false}]);
+    expect(f.state.tokens).toEqual([{id:'b',revoked:false}]);
+    expect(f.audit.some(row=>row.tool==='neon_purge_revoked_records'&&row.confirmed==='true')).toBe(true);
+  });
+});

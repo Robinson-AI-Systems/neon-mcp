@@ -4,15 +4,23 @@ import {dashboardSetting} from '../../src/data/dashboard-map.js';
 const read=x=>JSON.parse(x.content[0].text);
 const ctx={connection:{neonOrg:'org-fake'},db:{
   listConnectionSummaries:async(org,limit)=>[{client_id:'fake-client',kind:'connector',mode:'preview',org,limit}],
+  listRtcPasses:async(org)=>[{pass_id:'rtc_AAAAAAAAAAAAAAAA',project_scope:'proj-fake',
+    created_at:'2026-01-01T00:00:00Z',expires_at:'2026-01-02T00:00:00Z',revoked_at:null,org}],
   listRecentChanges:async()=>[{id:1,tool:'neon_dummy',summary:'owner@example.test updated',
     before:{email:'x@y.test'}}],
   listSafeSettings:async()=>[{key:'protected_resources',value:[{org:'org-fake',project_id:'prj-1'},
     {org:'other',project_id:'prj-2'}]},{key:'default_region',value:'aws-us-east-1'}]
 }};
 describe('B-8a safe server reads',()=>{
-  it('registers four read-only profile-safe tools',()=>{
-    expect(tools).toHaveLength(4);
+  it('registers five read-only profile-safe tools',()=>{
+    expect(tools).toHaveLength(5);
     for(const item of tools){expect(item.writes).toBe(false);expect(item.profiles).toContain('read_only');}
+  });
+  it('lists RTC passes as safe summaries for the connection organization only',async()=>{
+    const out=read(await handlers.neon_list_rtc_passes({},ctx));
+    expect(out.passes).toEqual([{passId:'rtc_AAAAAAAAAAAAAAAA',projectId:'proj-fake',
+      createdAt:'2026-01-01T00:00:00Z',expiresAt:'2026-01-02T00:00:00Z',revoked:false}]);
+    expect(JSON.stringify(out)).not.toContain('token_hash');
   });
   it('scopes connection reads and never returns token hashes',async()=>{
     const out=read(await handlers.neon_list_connections({limit:2},ctx));

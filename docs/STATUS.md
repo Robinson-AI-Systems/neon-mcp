@@ -1,5 +1,22 @@
 ## Verified source and deployment checkpoint — 2026-11-01
 
+### 2026-11-04 — CAP-6 + CAP-8: server-self registration lifecycle and hard delete (overnight queue)
+
+Owner tools for this server's own OAuth client registrations are built:
+list/read with safe summaries (never the stored secret hash), a guarded
+metadata update (name, redirect URIs; issued credentials untouched), and a
+guarded delete whose preview names the client and its live token count and
+whose confirm revokes those tokens and clears pending codes. The revoked-row
+purge (`neon_purge_revoked_records`) hard-deletes revoked `neon_keys` rows and
+revoked or expired `oauth_tokens` rows with per-table counts journaled; live
+rows are never purgeable. `neon_list_rtc_passes` wires the previously
+caller-less `db.listRtcPasses`. Registry 137 tools; production visibility
+51 / 59 / 128. Verified locally: repository `npm run check`, unit suites, and
+`tests/db/oauth-client-lifecycle.test.js` against a disposable local Postgres
+cluster. No production data, org or key was touched; the cards ride the
+2026-11-05 00:01 automatic promotion (no owner release fired — conformance
+builds, not a findings batch).
+
 ### 2026-11-04 — CAP-1 branch recovery against merged main (PR #203)
 Verified main is `186ad2af2931ea379c5c827a0c6a6101d1ecba57`,
 live is `ac40ca5ac21d05961b29d724e57c57da1c3c6990`; Vercel

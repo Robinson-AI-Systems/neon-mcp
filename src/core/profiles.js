@@ -1,6 +1,9 @@
 // B-6: only registry metadata and trusted connection scope determine visibility.
 const profiles=new Set(['read_only','everyday','full']);
-const internalControls=new Set(['neon_enable_production','neon_disable_production','neon_revoke_connection','neon_update_settings']);
+const internalControls=new Set(['neon_enable_production','neon_disable_production','neon_revoke_connection','neon_update_settings',
+// CAP-6/CAP-8 server-self lifecycle: registration metadata/delete and the
+// revoked-row purge are owner controls over this server's own store only.
+'neon_update_oauth_client','neon_delete_oauth_client','neon_purge_revoked_records']);
 const externalProjectWrites=new Set(['neon_project_create','neon_project_rename',
  'neon_project_delete','neon_project_recover',
  'neon_project_update_settings','neon_project_set_history_retention',

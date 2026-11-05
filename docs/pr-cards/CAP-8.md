@@ -1,6 +1,6 @@
 # CAP-8 — Stored-record hard delete for revoked rows, and the RTC pass list surface
 
-**Status:** Filed by the 2026-11-04 capability re-census (see `docs/COMPLETION.md` row 15 and its re-census record); build not started.
+**Status:** COMPLETE at source — built 2026-11-04 (overnight queue) on branch `ai/vivienne/cap-6-8-registration-lifecycle`. Delivered: `countPurgeableStoredRecords` / `purgeRevokedStoredRecords` in `src/db.js` (hard-deletes `neon_keys` rows and `oauth_tokens` rows where `revoked_at IS NOT NULL`, token rows also once expired; a live row is never purgeable), the guarded owner tool `neon_purge_revoked_records` in `src/tools/owner-administration.js` (preview shows per-table counts; confirm deletes and journals the counts through the change log), and the RTC pass list surface `neon_list_rtc_passes` in `src/tools/owner-reads.js` wiring the previously caller-less `db.listRtcPasses` (now also returning `created_at`; summaries carry pass id, project, created/expires and revoked state — never a token value). Proof: `tests/db/oauth-client-lifecycle.test.js` (purge deletes exactly the dead rows, live key and token rows survive, counts match rows removed; pass list over inserted pass rows) and purge cases in `tests/unit/owner-administration.test.js`. Rides the 2026-11-05 00:01 automatic promotion; no owner release fired.
 **Batch:** CAP — Maximum-authority capabilities (retroactive census program).
 **Design:** `docs/designs/MAXIMUM-AUTHORITY.md`.
 **Prerequisites:** CAP-1 (the 2026-11-04 two-source re-census supplies the census of record).
