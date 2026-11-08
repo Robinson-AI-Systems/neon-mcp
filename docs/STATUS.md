@@ -1,5 +1,9 @@
 ## Verified source and deployment checkpoint — 2026-11-01
 
+### 2026-11-08 — Rack move complete; hosted Vercel project and Neon store retired
+
+Production serves from the Robinson AI Systems development rack at `https://neon.robinsonaisystems.com`: the pinned build `91438db9d2c18d0c64e801603fe3b3952ae5d09d` (this `main`), registry 139 tools. The own-store copy reconciled exactly (18 tables) into the rack Postgres database `neon_production`; the hosted copy was fenced by a crew-side Neon API password reset, and the cutover passed its private proofs and public battery (health in its pinned degraded, probe-off shape). The seven stored project keys were re-entered crew-side the same day under the owner's one-message authorization (verify-first; the copied entries refuse under the fresh rack encryption key, as designed). The nightly rack backup and the off-PC backup leg are both proven, including a from-store restore — the end-state standard is fully met. Under the owner's dead-copy ruling (2026-11-08), the hosted Vercel project (`neon-mcp`) and the hosted Neon store project (`neon-mcp`) were **deleted** the same day and read back gone; the nightly promotion train (`.github/workflows/daily-live.yml`) is unchanged, but its deploy target no longer exists, so no promotion can produce a hosted build. Repository alignment followed the same day: the repo homepage now names the branded address, and the README and deployment guide carry this move.
+
 ### 2026-11-05 — RACK-2: standalone rack entrypoint (rack migration staging)
 
 The service can now run outside Vercel: `rack-server.mjs` at the
