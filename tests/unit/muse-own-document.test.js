@@ -7,7 +7,7 @@ import { describe, it, expect } from 'vitest';
 import { createHash } from 'node:crypto';
 import { createFakeDb } from '../../test/helpers/fake-db.js';
 import { createOAuthHandlers } from '../../src/core/oauth-handlers.js';
-import { museClientDocument, ownMuseClient, MUSE_REDIRECT_URI } from '../../src/core/muse-client.js';
+import { museClientDocument, ownMuseClient, MUSE_REDIRECT_URI, MUSE_CLIENT_ID } from '../../src/core/muse-client.js';
 import museHandler from '../../api/well-known/muse-client.js';
 import { resolveRoute } from '../../rack-server.mjs';
 
@@ -57,7 +57,7 @@ describe("Muse with this server's own client document", () => {
   it('recognises exactly its own document and nothing that looks like it', () => {
     expect(ownMuseClient(DOC, env)).toMatchObject({ client_id: DOC, token_endpoint_auth_method: 'none', client_secret_hash: null });
     expect(museClientDocument(env).client_id).toBe(DOC);
-    for (const other of ['muse', DOC + '/', DOC + '?x=1', 'http://neon-mcp.example.test/.well-known/muse-client.json',
+    for (const other of ['Muse', 'muse ', DOC + '/', DOC + '?x=1', 'http://neon-mcp.example.test/.well-known/muse-client.json',
       'https://neon-mcp.example.test.evil.example/.well-known/muse-client.json', 'https://evil.example/.well-known/muse-client.json'])
       expect(ownMuseClient(other, env)).toBeNull();
   });
@@ -81,6 +81,25 @@ describe("Muse with this server's own client document", () => {
     const revoked = await call(h.revoke, request('POST', { client_id: DOC, token: json(refreshed).refresh_token }));
     expect(revoked.statusCode).toBe(200);
     expect(fetched()).toBe(0);
+  });
+
+  // D-006 MC-8: plain `muse` is the easy Client ID anyone can type.
+  it('accepts plain muse as the Client ID through the whole flow', async () => {
+    expect(ownMuseClient(MUSE_CLIENT_ID, env)).toMatchObject({ client_id: 'muse', token_endpoint_auth_method: 'none' });
+    const { db, h, fetched } = fixture();
+    const authorized = await call(h.authorize, request('POST', { ...ask({ client_id: 'muse' }), passphrase: ownerWord }));
+    expect(authorized.statusCode).toBe(302);
+    const back = new URL(authorized.headers.Location);
+    expect(back.origin + back.pathname).toBe(MUSE_REDIRECT_URI);
+    const granted = await call(h.token, request('POST', { client_id: 'muse', grant_type: 'authorization_code',
+      redirect_uri: MUSE_REDIRECT_URI, code: back.searchParams.get('code'), code_verifier: verifier }));
+    expect(granted.statusCode).toBe(200);
+    const refreshed = await call(h.token, request('POST', { client_id: 'muse', grant_type: 'refresh_token',
+      refresh_token: json(granted).refresh_token }));
+    expect(refreshed.statusCode).toBe(200);
+    expect((await call(h.authorize, request('GET', ask({ client_id: 'muse', redirect_uri: 'https://evil.example/cb' })))).statusCode).toBe(400);
+    expect(fetched()).toBe(0);
+    expect(await db.getOAuthClient('muse')).toBeFalsy();
   });
 
   it('still refuses a wrong return address and a foreign resource', async () => {

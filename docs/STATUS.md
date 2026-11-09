@@ -16,6 +16,7 @@ address as its Client ID was refused, and so would be any client ID card
   refused);
 - authorize, token and revoke all use the funnel.
 
+Plain `muse` is also accepted as the Client ID: the easy one anyone can type (D-006 MC-8), the same built-in public client with the one Muse callback.
 The new `tests/unit/muse-own-document.test.js` fails without the fix. The
 full suite passes. Card: `docs/pr-cards/MUSE-1.md`. Not yet verified live:
 the D-006 §7 knock probe and a real Muse connect after release.

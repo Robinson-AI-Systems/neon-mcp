@@ -28,15 +28,25 @@ export function museClientDocument(env = process.env) {
 
 // The built-in public client for this server's own Muse document, shaped
 // like a validated card client, or null for any other client_id.
+// The easy Client ID anyone can type (D-006 MC-8): plain `muse` is the same
+// built-in public client as the document address, with the same one
+// callback, no secret and the same checks at every door.
+export const MUSE_CLIENT_ID = 'muse';
+
 export function ownMuseClient(clientId, env = process.env) {
+  if (clientId === MUSE_CLIENT_ID) return builtIn(MUSE_CLIENT_ID);
   if (typeof clientId !== 'string' || !clientId.startsWith('https://')) return null;
   let doc;
   try { doc = museClientDocument(env); } catch { return null; }
   if (clientId !== doc.client_id) return null;
+  return builtIn(doc.client_id);
+}
+
+function builtIn(clientId) {
   return Object.freeze({
-    client_id: doc.client_id,
-    client_name: doc.client_name,
-    redirect_uris: Object.freeze([...doc.redirect_uris]),
+    client_id: clientId,
+    client_name: 'Muse',
+    redirect_uris: Object.freeze([MUSE_REDIRECT_URI]),
     token_endpoint_auth_method: 'none',
     client_secret_hash: null,
     cimd: true
