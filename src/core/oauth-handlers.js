@@ -3,6 +3,8 @@ import {createOAuthRevocation} from './oauth-revocation.js';
 // Contract-generic OAuth HTTP handlers. No Neon-specific imports.
 import { randomToken, hashToken, secretsMatch, verifyPkce, validRedirectUri, evaluateLogin, clientIp, LOCKOUT_WINDOW_MINUTES } from './oauth.js';
 import { publicOrigin, send, escapeHtml, paramsOf, only } from './http.js';
+import { isCimdClientId, resolveCimdClient, redirectUriMatches } from './cimd.js';
+import { ownMuseClient } from './muse-client.js';
 import { PRODUCT_DISPLAY_NAME, PRODUCT_ATTRIBUTION } from './product-identity.js';
 
 const PROFILES = ['read_only', 'everyday', 'full'];
@@ -14,12 +16,42 @@ const tokenResponse = (access, refresh) => ({
 const bad = (res, status, code, description) => send(res, status, { error: code, error_description: description });
 const str = (x) => typeof x === 'string' ? x : '';
 
-export function createOAuthHandlers({ db, env = process.env }) {
+export function createOAuthHandlers({ db, env = process.env, fetchImpl, lookupImpl } = {}) {
   function urls() {
     const origin = publicOrigin(env);
     return { origin, resource: origin + '/api/mcp' };
   }
+  // RAS MCP Standard, Muse connection design (MC-2, MC-3): one funnel
+  // resolves every client at every door. This server's own Muse document is
+  // answered locally (never fetched over its own public address, never a
+  // stored row); a stored registration wins next; any other https client_id
+  // is a visiting client ID card, fetched and validated (cimd.js).
+  async function resolveClient(clientId) {
+    if (typeof clientId !== 'string' || !clientId) return null;
+    const own = ownMuseClient(clientId, env);
+    if (own) return own;
+    const stored = clientId.length <= 256 ? await db.getOAuthClient(clientId) : null;
+    if (stored) return stored;
+    if (isCimdClientId(clientId)) {
+      return resolveCimdClient(clientId, {
+        ...(fetchImpl ? { fetchImpl } : {}), ...(lookupImpl ? { lookupImpl } : {})
+      });
+    }
+    return null;
+  }
+  // Card clients match redirect addresses printed on the card (with the
+  // sanctioned loopback port relaxation); registered clients keep their
+  // exact registered match.
+  function redirectAllowed(client, requested) {
+    if (!validRedirectUri(requested)) return false;
+    if (client?.cimd) return client.redirect_uris.some((uri) => redirectUriMatches(uri, requested));
+    return !!client?.redirect_uris?.includes(requested);
+  }
+  // MC-4 and the Standard's client-compatibility rule: `resource` is
+  // optional (a mandatory resource broke real phone flows). Absent or empty
+  // means this MCP; a resource that is sent must be exactly this MCP's.
   function validateResource(value) {
+    if (value === undefined || value === null || value === '') return true;
     const { resource } = urls();
     return value === resource;
   }
@@ -80,8 +112,8 @@ export function createOAuthHandlers({ db, env = process.env }) {
     if (!only(res, req, ['GET', 'POST'])) return;
     let p;
     try { p = paramsOf(req); } catch { return bad(res, 400, 'invalid_request', 'Malformed authorization request'); }
-    const client = await db.getOAuthClient(str(p.client_id));
-    if (!client || !client.redirect_uris?.includes(p.redirect_uri) || !validRedirectUri(p.redirect_uri)) {
+    const client = await resolveClient(str(p.client_id));
+    if (!client || !redirectAllowed(client, p.redirect_uri)) {
       return bad(res, 400, 'invalid_request', 'Unknown client or redirect address');
     }
     if (p.response_type !== 'code' || p.code_challenge_method !== 'S256' ||
@@ -129,7 +161,7 @@ export function createOAuthHandlers({ db, env = process.env }) {
     let p;
     try { p = paramsOf(req); } catch { return bad(res, 400, 'invalid_request', 'Malformed token request'); }
     if (!validateResource(p.resource)) return bad(res, 400, 'invalid_target', 'Token resource must be this MCP');
-    const client = await db.getOAuthClient(str(p.client_id));
+    const client = await resolveClient(str(p.client_id));
     // Old registrations remain confidential. A request cannot downgrade a
     // persisted client by choosing its own authentication method.
     const method = client?.token_endpoint_auth_method ?? 'client_secret_post';
@@ -142,7 +174,7 @@ export function createOAuthHandlers({ db, env = process.env }) {
       return bad(res, 401, 'invalid_client', 'Client credentials rejected');
     }
     if (p.grant_type === 'authorization_code') {
-      if (!p.code || !client.redirect_uris.includes(p.redirect_uri) || !p.code_verifier) {
+      if (!p.code || !redirectAllowed(client, p.redirect_uri) || !p.code_verifier) {
         return bad(res, 400, 'invalid_grant', 'Missing or invalid authorization details');
       }
       const record = await db.consumeAuthCode(p.code, { clientId: p.client_id, redirectUri: p.redirect_uri });
@@ -180,7 +212,8 @@ export function createOAuthHandlers({ db, env = process.env }) {
       revocation_endpoint:origin+'/api/oauth/revoke',
       revocation_endpoint_auth_methods_supported:['client_secret_post','none'],
       response_types_supported: ['code'], grant_types_supported: ['authorization_code','refresh_token'],
-      code_challenge_methods_supported: ['S256'], token_endpoint_auth_methods_supported: ['client_secret_post','none'] });
+      code_challenge_methods_supported: ['S256'], token_endpoint_auth_methods_supported: ['client_secret_post','none'],
+      client_id_metadata_document_supported: true });
   }
   function resourceMetadata(req, res) {
     if (!only(res, req, ['GET'])) return;
@@ -188,5 +221,5 @@ export function createOAuthHandlers({ db, env = process.env }) {
     return send(res, 200, { resource, authorization_servers: [origin] });
   }
   return { register, authorize, token, metadata, resourceMetadata,
-    revoke:createOAuthRevocation({db,env}) };
+    revoke:createOAuthRevocation({db,env,resolveClient}) };
 }
