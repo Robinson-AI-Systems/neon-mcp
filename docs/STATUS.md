@@ -1,5 +1,25 @@
 ## Verified source and deployment checkpoint — 2026-11-01
 
+### 2026-11-09 — MUSE-1: Muse sign-in and client ID cards (RAS MCP Standard D-006)
+
+The live probe found `/.well-known/muse-client.json` and the path-scoped
+protected-resource document answering 404. A Muse connect with the document
+address as its Client ID was refused, and so would be any client ID card
+(Claude, ChatGPT). Fixed in source under D-006 (Library
+`designs/ras-mcp-muse-connection.md`):
+- the two documents are served (rack routes and `vercel.json` in parity);
+- one client funnel answers this server's own Muse document locally, then
+  stored registrations, then visiting cards fetched and validated
+  (`src/core/cimd.js`, copied from stripe-mcp's proven resolver);
+- discovery advertises `client_id_metadata_document_supported`;
+- `resource` is optional (absent means this MCP; a foreign one is still
+  refused);
+- authorize, token and revoke all use the funnel.
+
+The new `tests/unit/muse-own-document.test.js` fails without the fix. The
+full suite passes. Card: `docs/pr-cards/MUSE-1.md`. Not yet verified live:
+the D-006 §7 knock probe and a real Muse connect after release.
+
 ### 2026-11-08 — Rack move complete; hosted Vercel project and Neon store retired
 
 Production serves from the Robinson AI Systems development rack at `https://neon.robinsonaisystems.com`: the pinned build `91438db9d2c18d0c64e801603fe3b3952ae5d09d` (this `main`), registry 139 tools. The own-store copy reconciled exactly (18 tables) into the rack Postgres database `neon_production`; the hosted copy was fenced by a crew-side Neon API password reset, and the cutover passed its private proofs and public battery (health in its pinned degraded, probe-off shape). The seven stored project keys were re-entered crew-side the same day under the owner's one-message authorization (verify-first; the copied entries refuse under the fresh rack encryption key, as designed). The nightly rack backup and the off-PC backup leg are both proven, including a from-store restore — the end-state standard is fully met. Under the owner's dead-copy ruling (2026-11-08), the hosted Vercel project (`neon-mcp`) and the hosted Neon store project (`neon-mcp`) were **deleted** the same day and read back gone; the nightly promotion train (`.github/workflows/daily-live.yml`) is unchanged, but its deploy target no longer exists, so no promotion can produce a hosted build. Repository alignment followed the same day: the repo homepage now names the branded address, and the README and deployment guide carry this move.
