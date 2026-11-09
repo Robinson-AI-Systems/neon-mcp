@@ -2,7 +2,7 @@
 import {hashToken,secretsMatch} from './oauth.js';
 import {only,paramsOf,publicOrigin,send} from './http.js';
 
-export function createOAuthRevocation({db,env=process.env,allowBasic=false}){
+export function createOAuthRevocation({db,env=process.env,allowBasic=false,resolveClient=null}){
   return async function revoke(req,res){
     if(!only(res,req,['POST']))return;
     let p;
@@ -25,8 +25,11 @@ export function createOAuthRevocation({db,env=process.env,allowBasic=false}){
         }
       }
       const clientId=basic?.id??p.client_id;
-      const client=typeof clientId==='string'&&clientId.length>0&&clientId.length<=256
-        ?await db.getOAuthClient(clientId):null;
+      // Card (CIMD) clients and this server's own Muse document hold no
+      // stored row; with a resolver wired they authenticate as the public
+      // clients they are. Registered clients keep the store-only path.
+      const client=typeof clientId==='string'&&clientId.length>0&&clientId.length<=2048
+        ?(resolveClient?await resolveClient(clientId):clientId.length<=256?await db.getOAuthClient(clientId):null):null;
       const method=client?.token_endpoint_auth_method??'client_secret_post';
       const publicClient=method==='none'&&header===undefined&&
         client?.client_secret_hash===null&&p.client_secret===undefined;

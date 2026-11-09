@@ -43,6 +43,7 @@ import openapi from './api/openapi.json.js';
 import rtc, { config as rtcConfig } from './api/rtc.js';
 import wellKnownAS from './api/well-known/oauth-authorization-server.js';
 import wellKnownPR from './api/well-known/oauth-protected-resource.js';
+import wellKnownMuse from './api/well-known/muse-client.js';
 
 // Only api/mcp.js and api/rtc.js export a bodyParser config today; the
 // other functions ride Vercel's defaults, so their routes carry no
@@ -67,12 +68,15 @@ export const FILE_ROUTES = new Map([
   ['/api/rtc', route(rtc, rtcConfig)],
   ['/api/well-known/oauth-authorization-server', route(wellKnownAS)],
   ['/api/well-known/oauth-protected-resource', route(wellKnownPR)],
+  ['/api/well-known/muse-client', route(wellKnownMuse)],
 ]);
 
 const REWRITE_ROUTES = new Map([
   ['/connection', route(connectionPage)],
   ['/.well-known/oauth-authorization-server', route(wellKnownAS)],
   ['/.well-known/oauth-protected-resource', route(wellKnownPR)],
+  ['/.well-known/oauth-protected-resource/api/mcp', route(wellKnownPR)],
+  ['/.well-known/muse-client.json', route(wellKnownMuse)],
 ]);
 
 // Resolves a request path to {handler, config, query} — query carries

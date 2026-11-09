@@ -37,7 +37,7 @@ afterAll(async () => {
 
 describe('route table', () => {
   it('binds every api function file at its Vercel path', () => {
-    expect(FILE_ROUTES.size).toBe(17);
+    expect(FILE_ROUTES.size).toBe(18);
     for (const [path, entry] of FILE_ROUTES) {
       expect(typeof entry.handler, path).toBe('function');
       const resolved = resolveRoute(path);

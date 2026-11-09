@@ -27,6 +27,14 @@
     {
       "source": "/api/results/:handle",
       "destination": "/api/rtc?door=results&handle=:handle"
+    },
+    {
+      "source": "/.well-known/oauth-protected-resource/api/mcp",
+      "destination": "/api/well-known/oauth-protected-resource"
+    },
+    {
+      "source": "/.well-known/muse-client.json",
+      "destination": "/api/well-known/muse-client"
     }
   ],
   "git": {
