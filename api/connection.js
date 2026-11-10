@@ -30,6 +30,13 @@ export function createConnectionPage({env=process.env}={}){
    '<code>'+esc(origin+'/api/connect/handoff')+'</code>. Already registered older clients '+
    'may continue to use their existing callback until independently migrated; this is a normal '+
    'customer consent flow, not an internal developer login.</p>'+
+   // D-006 MC-8: one sentence for Muse on every fleet server.
+   '<h2>Muse</h2><p>In Muse, open <b>Settings</b>, then <b>Connectors</b>, then '+
+   '<b>Add custom connector</b>, and paste the endpoint address above. If Muse asks for a '+
+   'Client ID, type <code id="muse-client-id">muse</code> (the same for everyone, and nothing secret). '+
+   '<b>Client Secret: leave blank.</b> Then sign in and approve on this service\u2019s own page.</p>'+
+   '<p><small>Set up before? The longer address <code>'+esc(origin+'/.well-known/muse-client.json')+
+   '</code> still works. Other apps leave both boxes blank.</small></p>'+
    '<h2>Security and disconnect</h2><p>Authorize your own organization and requested rights '+
    'on the normal OAuth consent page. Never paste provider keys, passwords, access tokens '+
    'or pass contents into chat. The client may revoke its token at <code>'+
