@@ -126,6 +126,11 @@ describe('RAS deployed release identity',()=>{
    expect(html.body).toContain('Unavailable (not verified)');
    expect(html.body).not.toContain('malicious.example');
    expect(html.body).not.toMatch(/Developer connection|developer sign.?in/i);
+   // Owner request 2026-11-10: How connecting works (honest about owner-only sign-in), then every major app.
+   for(const app of ['How connecting works','Claude (web, desktop and phone)','ChatGPT','Muse','Claude Code','OpenAI Codex (and the ChatGPT desktop app)','Cursor','VS Code (GitHub Copilot)','Gemini CLI','Windsurf','Any other app'])
+     expect(html.body).toContain('>'+app+'</h');
+   expect(html.body).toContain('only the owner of this service');
+   expect(html.body).toContain(origin+'/api/mcp');
    const current=response();
    await createFrontDoor({env,health:async()=>({status:'ok',tools:10})})(req,current);
    expect(current.body).toContain(SHA.slice(0,12));
