@@ -31,3 +31,7 @@ no client ID card support at all, and `resource` was mandatory.
 - `tests/unit/muse-own-document.test.js` fails without the fix and passes
   with it. The full suite and `npm run check` pass at the exact head.
 - Live (after release): the D-006 §7 knock probe, then a real Muse connect.
+
+## Follow-up 2026-11-09: front-door copy (MC-8)
+
+The My connection page now has a Muse section giving `muse` as the Client ID (Client Secret blank). Wording only.
