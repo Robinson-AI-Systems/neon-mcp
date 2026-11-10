@@ -1,5 +1,8 @@
-- 2026-11-09: MUSE FRONT DOOR (this PR) — D-006 MC-8 copy: the My connection page gains a Muse section (Client ID `muse`, Client Secret blank; the document address as the older long form). Wording only. Test: tests/unit/muse-front-door.test.js. Card: docs/pr-cards/MUSE-1.md.
 ## Verified source and deployment checkpoint — 2026-11-01
+
+### 2026-11-09 — MUSE-1 follow-up: Muse front-door copy (D-006 MC-8)
+
+The My connection page gains a Muse section: Client ID `muse`, Client Secret blank; the document address remains as the older long form. Wording only. Test: tests/unit/muse-front-door.test.js.
 
 ### 2026-11-09 — MUSE-1: Muse sign-in and client ID cards (RAS MCP Standard D-006)
 
