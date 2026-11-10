@@ -2,7 +2,7 @@
 
 ### 2026-11-10 — Home page: How connecting works and every major app
 
-Owner request: every Unleashed home page gets the Workspace treatment. `api/index.js` now leads with what the service does, then How connecting works (stating plainly that today only the service owner can finish sign-in, because the sign-in page asks for the administrator passphrase), the full address from `PUBLIC_BASE_URL` (never the request Host), and steps for Claude, ChatGPT, Muse (MC-8 sentence), Claude Code, OpenAI Codex, Cursor, VS Code, Gemini CLI, Windsurf and any other app. The service facts (health, census, version) follow. `tests/unit/ras-release-entry.test.js` requires every app heading, the owner-only note and the address. Steps follow each app's current docs; only Claude has been tried live.
+Owner request: every Unleashed home page gets the Workspace treatment. `api/index.js` now leads with what the service does, then How connecting works (stating plainly that today only the service owner can finish sign-in, because the sign-in page asks for the administrator passphrase), the full address from `PUBLIC_BASE_URL` (never the request Host), and steps for Claude, ChatGPT, Muse (MC-8 sentence), Claude Code, OpenAI Codex, Cursor, VS Code, Gemini CLI, Windsurf and any other app. The service facts (health, census, version) follow. `tests/unit/ras-release-entry.test.js` requires every app heading, the owner-only note and the address. Steps follow each app's current docs; only Claude has been tried live. No PR card: public home page copy only (the PR description carries the Docs-update exception).
 
 ### 2026-11-09 — MUSE-1 follow-up: Muse front-door copy (D-006 MC-8)
 
