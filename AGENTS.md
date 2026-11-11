@@ -483,7 +483,7 @@ Never bypass deployment, provider, owner, spending or security gates.
 
 ## Daily release and build-cost policy (owner, 2026-10-12)
 
-PRs target `main`. Follow [the daily release policy](.github/RELEASE-POLICY.md): only the daily scheduled job updates `live`; Vercel builds only `live`. Do not request or wait for a Vercel preview deployment, manually deploy production, or promote at a development batch boundary. Keep all existing local/Actions tests mandatory; this policy introduces no new application build/browser requirement where none existed. This newer owner instruction supersedes older batch/weekly release guidance.
+PRs target `main`. Follow [the release policy](.github/RELEASE-POLICY.md): `live` is promoted automatically once a day as a floor, and an agent may promote an exact green `main` SHA to `live` any additional time, with no cap (owner rulings 2026-11-11); production follows `live` (the rack's branch watcher releases each new `live` commit). Do not request or wait for a Vercel preview deployment or deploy production by hand outside that promotion path. Keep all existing local/Actions tests mandatory; this policy introduces no new application build/browser requirement where none existed. This newer owner instruction supersedes older batch/weekly release guidance.
 
 ## Verified hosting and main protections — October 12, 2026
 
