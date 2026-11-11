@@ -99,6 +99,19 @@ export function isCimdClientId(clientId) {
   return url.protocol === 'https:' && !!url.hostname && !url.username && !url.password && !url.hash;
 }
 
+// True when the card lets the app use the token endpoint with no client
+// authentication. Secret-based methods never qualify, even with `none`
+// listed beside them: a secret-holding client is not a public one.
+export function cardAllowsPublicClient(doc) {
+  const method = doc.token_endpoint_auth_method === undefined
+    ? 'none' : doc.token_endpoint_auth_method;
+  if (method === 'none') return true;
+  const offered = doc.token_endpoint_auth_methods_supported;
+  return method === 'private_key_jwt' && Array.isArray(offered) &&
+    offered.length <= 10 && offered.every((x) => typeof x === 'string') &&
+    offered.includes('none');
+}
+
 function validateCard(doc, clientId) {
   if (!doc || typeof doc !== 'object' || Array.isArray(doc)) return null;
   // The card's own declared address must equal the URL it was fetched from
@@ -108,18 +121,29 @@ function validateCard(doc, clientId) {
     doc.client_name.length > 100 || /[\x00-\x1f\x7f]/.test(doc.client_name)) return null;
   // Secret-holding cards are refused outright, whatever else they declare.
   if ('client_secret' in doc || 'client_secret_expires_at' in doc) return null;
-  const method = doc.token_endpoint_auth_method === undefined
-    ? 'none' : doc.token_endpoint_auth_method;
-  if (method !== 'none') return null;
+  // A card is accepted only when the app can sign in as a public client
+  // (no client authentication, PKCE only). Most cards say so directly
+  // (`none`). ChatGPT's card (https://chatgpt.com/oauth/client.json, read
+  // 2026-11-10) names `private_key_jwt` as its preferred method and lists
+  // `none` beside it in `token_endpoint_auth_methods_supported`: it can do
+  // both. Such a card is accepted and treated as a public client, exactly
+  // like the others; its signing keys are never fetched or trusted. A card
+  // that offers only key- or secret-based methods is still refused.
+  if (!cardAllowsPublicClient(doc)) return null;
   if (!Array.isArray(doc.redirect_uris) || doc.redirect_uris.length < 1 ||
     doc.redirect_uris.length > 8 ||
     new Set(doc.redirect_uris).size !== doc.redirect_uris.length ||
     !doc.redirect_uris.every((x) => typeof x === 'string' &&
       Buffer.byteLength(x, 'utf8') <= 2048 && validRedirectUri(x))) return null;
+  // A card may list grant types this server does not offer (Claude's and
+  // ChatGPT's cards both list urn:ietf:params:oauth:grant-type:jwt-bearer
+  // beside the two used here). Extra types are ignored, never granted: this
+  // server only ever issues authorization_code and refresh_token. The card
+  // must still be able to use the code flow.
   if (doc.grant_types !== undefined && (!Array.isArray(doc.grant_types) ||
-    !doc.grant_types.includes('authorization_code') || doc.grant_types.length > 2 ||
+    !doc.grant_types.includes('authorization_code') || doc.grant_types.length > 10 ||
     new Set(doc.grant_types).size !== doc.grant_types.length ||
-    !doc.grant_types.every((x) => ['authorization_code', 'refresh_token'].includes(x)))) return null;
+    !doc.grant_types.every((x) => typeof x === 'string' && x.length > 0 && x.length <= 200))) return null;
   if (doc.response_types !== undefined && (!Array.isArray(doc.response_types) ||
     doc.response_types.length !== 1 || doc.response_types[0] !== 'code')) return null;
   return {
