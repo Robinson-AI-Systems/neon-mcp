@@ -68,7 +68,7 @@ sleeps when idle was not checked and no store was woken to check it.
 | Ledger | Reconciled state |
 |---|---|
 | Tool registry | **131 registered** live; 50 / 58 / 122 visible by profile on a production deployment. |
-| Roadmap / gates in repo | 58 tracked original/CAP work cards with unfinished implementation; CG-1…CG-6 all **OPEN** (see [COMPLETION-GATES](COMPLETION-GATES.md)); CAP-1 census in flight as draft PR #203; CAP-2…CAP-5 not complete. |
+| Roadmap / gates in repo | 62 tracked original/CAP work cards with unfinished implementation; CG-1…CG-6 all **OPEN** (see [COMPLETION-GATES](COMPLETION-GATES.md)); the CAP-1 census is superseded as census of record by the 2026-11-04 two-source re-census (row 15), which also filed CAP-6…CAP-9; CAP-2…CAP-5 not complete. |
 | RAS MCP conformance | **17 rows** below. No row is closed on live evidence by this reconciliation; rows 12–14 conform at plan level as scoped. |
 | Release identity and health | **Open.** No `server_release`, no health endpoint. Draft PR #202 carries the VER-1 source work. |
 | Branded identity/domain | **Not cut over.** Issuer is the platform domain; branded domain not serving; live front-door name is the pre-rename form (correction PR prepared separately, left open for review). |
@@ -93,9 +93,151 @@ sleeps when idle was not checked and no store was woken to check it.
 | 12. No global credential fallback | **CONFORMS at plan level.** | The design binds every connection to its own organization's keys; no service-owned global Neon credential route is present in the serving code paths read for this record. CAP-5 proof must keep demonstrating it; this row supplies no independent live pass. |
 | 13. Version evolution | **CONFORMS at plan level.** | Additive/fail-closed evolution (frozen tool names/shapes, restrictive defaults) is the repo's standing rule and its release policy's shape; a continuing rule, not a completed acceptance event. |
 | 14. Pattern appraisal guardrails | **RECORDED; remote coding runtime NOT APPLICABLE.** | No further baseline work. |
-| 15. Capability completeness | **CORRECTABLE.** | The retroactive census is in flight: draft PR #203 (CAP-1) pins the Neon API capability/credential coverage inventory. Still owed with it: beside-API/substrate dispositions, workflow-frequency (one-call) research, and the consumer test, filed as the census record; plus a front-door depth line citing the census instead of the bare tool count, which rides the branded cutover. |
+| 15. Capability completeness | **CORRECTABLE — PARTIAL under the capability-completeness grading amendment.** | **Reopened and re-issued 2026-11-04** under the RAS MCP Standard's capability-completeness grading amendment (Library D-001, as amended 2026-11-04 by Library PR #5). The census is now a two-source reconciliation — platform side from Neon's official documentation only, server side from code only, built independently and sealed — recorded in the "Capability re-census record" section below: **152 mapped units / 73 COVERED / 4 COMPOSED / 0 OWNER-EXCLUDED / 75 MISSING** on the platform surface, plus **7 MISSING lifecycle legs on the server's own registration/connection records**, the class the original census missed. Under the amendment the grade is capped at PARTIAL while any plausibly-needed capability stands MISSING; missing items with a filed plan still count as missing for the cap. Every missing unit carries a plan in the record section: cards **CAP-6…CAP-9 are filed with this PR** (registration lifecycle + consumption reads); the rest stand as missing-with-plan rows naming their card TO-BE-FILED. This reconciliation supersedes draft PR #203's single-source CAP-1 draft as the census of record. Still owed under this row: the consumer test (with CAP-5) and the front-door depth line citing this census instead of the bare tool count, which rides the branded cutover. |
 | 16. Conformance-correction process | **CORRECTABLE — process running.** | Step 0–2 are done (frozen baseline above, inventory in this record and the repo's D-001 adoption crosswalk, 17 honest rows). The row closes when every row conforms or carries a ruled exception with live proof filed. Note: `docs/STATUS.md`'s top checkpoint still reads 2026-11-01 at `1c810cb0…`; that heading is pinned verbatim by `scripts/check-doc-code-truth.mjs`, so refreshing it belongs with that check's owner — recorded here rather than breaking CI from an audit PR. |
 | 17. Owner-obedience | **CORRECTABLE — classification not yet filed.** | The code already runs guarded confirm patterns for destructive/costly tools (B-1 preview/confirm, spend previews, production enablement as an owner setting), but no inventory classifying every refusal point as aim check / convertible veto / non-convertible boundary / platform rule exists yet. Build step: file that classification in this record's successor pass, convert any owner-facing vetoes to the confirmed-action pattern (evaluate → disclose → fingerprint → confirm → re-check → journal → read back) most destructive first, each closing only on live proof. |
+
+## Capability re-census record — 2026-11-04 (row 15)
+
+**Method.** Two sources were built independently and sealed before either was
+read by the reconciler. Cartographer A mapped the platform from Neon official
+documentation only (20 doc groups, 193 operations — 177 current + 16
+legacy-deprecated — ~46 resource rows, 14 owner workflows):
+`research_notes/mcp-fleet-audit-2026-11-04/recensus/neon-service-map.md`,
+sha256 `083e422749e9631cb1e4e3236f6f522319c481711a4abc7601062b8f9318f8c9`.
+Cartographer B inventoried this server from code only, frozen at `main`
+`3fe41498633cbe4f16044d10a9cb6b350814148d` (131 registered tools, counted by
+executing the registry; production profile visibility 50 / 58 / 122 reproduced
+exactly by evaluating the served code):
+`research_notes/mcp-fleet-audit-2026-11-04/recensus/neon-server-inventory.md`,
+sha256 `e8eb949fea1271dbff28b7b2543cb7fe281ce40b7f96eec85807012cea350964`.
+Both seals verified by SHA-256 before reading. The full reconciliation (every
+resource, every leg, the symmetry ledger, the combination economy, all
+declared limits) is the standalone record at
+`research_notes/mcp-fleet-audit-2026-11-04/recensus/neon-reconciliation.md`;
+this section is its record-shaped summary.
+
+**Counting convention.** One unit = one lifecycle leg (create / read / update /
+delete / list) or one named non-CRUD operation in the service map, current
+surface only. Legs the platform does not offer are platform-absent, not
+counted. OWNER-EXCLUDED requires a recorded owner ruling; `MEMORY.md` and this
+record were searched and **no ruling excludes any mapped Neon capability**, so
+the disposition is used zero times. Anything without a tool and without a
+ruling is MISSING.
+
+**Map counts (platform surface).**
+
+| Disposition | Units |
+|---|---|
+| Mapped | **152** |
+| COVERED | **73** |
+| COMPOSED | **4** |
+| OWNER-EXCLUDED | **0** |
+| MISSING | **75** |
+| UNVERIFIED | 9 named items + 2 platform-tier surfaces (below) |
+| Legacy Auth (deprecated, tallied separately) | 16 operations, none covered |
+
+By area: Identity/orgs/keys 23 mapped (16 covered, 7 missing) · Projects &
+access 22 (20 covered, 1 composed, 1 missing) · Branches/databases/roles 29
+(22 covered, 3 composed, 4 missing) · Endpoints 8 (8 covered) · Snapshots 7
+(7 covered) · Consumption 1 (1 missing) · Neon Auth 22 (22 missing) · Data
+API/credentials/advisors 10 (10 missing) · Buckets 8 (8 missing) · Functions
+13 (13 missing) · Logs/Realtime/AI Gateway 9 (9 missing). The original core —
+projects, branches, databases, roles, computes, snapshots, keys, members — is
+covered nearly completely; the platform's newer surface is absent nearly
+completely, because the original census started from this server's own tool
+list and could not see it.
+
+**Server-self records (the class the original census missed).** The server's
+own store was censused leg by leg. Authorization codes, one-time secrets,
+secret requests, stored results and settings are complete (consumption or read
+deletes the row). Four records are asymmetric:
+
+| Record | Missing legs |
+|---|---|
+| OAuth client registrations (`oauth_clients`) | Owner-facing read/list, update, **delete** — registrations are create-only; a registered client can never be removed, only its tokens revoked |
+| Enrolled organizations (`neon_orgs`) | **Delete (unenroll)** — no delete operation exists anywhere |
+| Stored Neon API keys (`neon_keys`) | **Hard delete** — revocation is soft-only; revoked rows and their ciphertext persist indefinitely |
+| Connection token rows (`oauth_tokens`, incl. RTC passes) | **Hard delete** (revocation is soft-only); plus **RTC pass list** — `db.listRtcPasses` exists with zero call sites, so outstanding passes cannot be listed |
+
+Server-self missing total: **7 legs** — filed as cards CAP-6 (registrations),
+CAP-7 (unenroll), CAP-8 (hard delete + pass list).
+
+**Missing-with-plan register (platform, 75 units).** Cards CAP-6…CAP-9 are
+filed with this PR (CAP-9 covers consumption). Every other missing item stands
+here as a missing-with-plan row naming its card TO-BE-FILED; nothing is
+dropped.
+
+| Missing item | Units | Plan |
+|---|---|---|
+| Consumption history reads (per-project / per-branch usage) | 1 | **Card CAP-9 filed** |
+| Neon Auth management surface (integration, users, OAuth providers, OAuth clients, trusted domains, configuration set) | 22 | Card TO-BE-FILED — largest single build; sequenced after CAP-2…CAP-5 |
+| Functions + triggers + function custom domains | 13 | Card TO-BE-FILED (preview surface; platform plan-gating unverified) |
+| Data API management | 4 | Card TO-BE-FILED (its JWKS dependency is COVERED) |
+| Buckets + bucket objects | 8 | Card TO-BE-FILED (preview surface) |
+| Scoped branch credentials (issue/revoke/list/reveal/rotate) | 5 | Card TO-BE-FILED |
+| Realtime (enable/read/secret/disable/rotate) | 5 | Card TO-BE-FILED |
+| Org VPC endpoints (assign/read/delete/list) | 4 | Card TO-BE-FILED |
+| Org spending limit (set/read/remove) | 3 | Card TO-BE-FILED (interim: this server's own tighten-only spend caps are COVERED) |
+| Branch logs (fields/values/query) | 3 | Card TO-BE-FILED |
+| Masking rules read/update | 2 | Card TO-BE-FILED (rides the anonymized-branch surface; the create/status tools' production-visibility question stays with CAP-5) |
+| Transfer-request accept | 1 | Card TO-BE-FILED (rides the transfers family) |
+| Role password reveal | 1 | Owner-ruling-gated: no ruling exists, so the leg is MISSING, not OWNER-EXCLUDED; build only if the owner rules credential reveal acceptable. Covered interim path: password reset |
+| Project advisors read | 1 | Card TO-BE-FILED (small read) |
+| Branch storage state read | 1 | Card TO-BE-FILED (small read) |
+| AI Gateway read | 1 | Card TO-BE-FILED (read-only surface) |
+
+**Symmetry ledger (condensed).** Platform-has-no-leg (not server gaps):
+invitation revoke; transfer-request reject/cancel; organization
+create/delete via API; role update. Server-missing pairs: spending-limit set
+*and* remove; transfer create without accept; role create without reveal;
+Neon Auth enable without disable; Data API create without delete; scoped
+credential issue without revoke; Realtime enable without disable; bucket
+create without delete; and the four server-self records above. Confirmed
+symmetric and covered on both sides: API keys (personal and org), projects
+(create/delete/recover), branches, databases, roles (create/delete),
+endpoints (incl. start↔suspend), snapshots, permission grant/revoke, project
+member role set/remove, JWKS add/delete, project VPC restriction set/delete.
+
+**Combination economy (COMPOSITION-OWED).** Server step counts count tool
+invocations; every guarded write costs 2 (preview + confirm) under the
+confirmed-action pattern (evaluate → disclose → fingerprint → confirm →
+re-check → journal → read back) that the Standard's owner-obedience amendment
+rules and row 17 records. Jobs over 3 calls: (1) *Create project + extra
+branch + one-time URI delivery* — 5 server steps vs 3 platform —
+**COMPOSITION-OWED**: proposed composed tool, a project-quickstart creating
+project + named branch + connection delivery in one guarded flow.
+(2) *Branch for a preview + teardown* — 4 vs 2 — the excess is solely the
+confirmed-action doubling; **owner-accepted sequence cited** (the
+owner-obedience amendment); the run-owned variant is already composed
+(`neon_dev_branch_create` + `neon_dev_cleanup`). (3) *Provider API key
+rotation* — 4 — same owner-accepted doubling, and the create half already
+composes rotation delivery. All other top workflows land at 3 calls or fewer
+(project + connection string 3; password reset + reconnect 3; point-in-time
+recovery 2, beating the platform's two-call restore + finalize because
+finalize is composed inside `neon_branch_restore`).
+
+**UNVERIFIED items carried forward (declared, not upgraded).** From the
+service map: the platform-tier Partner API and OAuth app-registration
+surfaces (absent from the public index); the Functions create leg; the
+branch reset-to-parent platform mechanism (the server ships
+`neon_branch_reset_from_parent`; the workflow is covered, the platform
+operation it maps to is unverified); the backup-schedule delete leg; Neon
+Auth user read/list legs; AI Gateway configuration; per-operation
+plan/preview gating; and field-level settings detail under the covered
+update operations. From the server inventory: the live front-door HTTP
+response was not fetched (counts reconciled by evaluating the served code);
+tool semantics rest on registered descriptions plus sampled handlers, not a
+line-audit of every handler; the 9 registered tools visible in no production
+profile stay an open CAP-5 acceptance question — this census asserts neither
+deliberate-internal nor visibility-defect, and no owner ruling makes them
+OWNER-EXCLUDED; the RTC pass consumption path was not exhaustively traced.
+
+**Re-issued grade.** Row 15 is **CORRECTABLE — PARTIAL under the
+capability-completeness grading amendment**: 152 mapped / 73 COVERED /
+4 COMPOSED / 0 OWNER-EXCLUDED / 75 MISSING, plus 7 missing server-self legs.
+Missing items with filed plans (CAP-6…CAP-9 and the TO-BE-FILED rows) still
+count as missing for the cap until built.
 
 ## CI speed (standing fleet rule)
 
