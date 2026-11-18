@@ -6,7 +6,7 @@ system map required by the fleet rule adopted 2026-11-18 (see
 implementation history see `docs/ARCHITECTURE.md`, for current status
 `docs/STATUS.md`, for the tool list `docs/TOOL-CATALOG.md`.
 
-Last refreshed: 2026-11-18, from `main` (139 registered tools).
+Last refreshed: 2026-11-18, from `main` (139 registered tools; every count in this map is checked against the code in CI by `scripts/check-map-counts.mjs`, see `counts.json`).
 
 ## The system in one picture
 
@@ -53,7 +53,11 @@ flowchart LR
   source there is no separate rack adaptation layer. Fleet pattern:
   `main` = development, `live` = production (daily-live promotion);
   production currently serves from the rack, and the hosted Vercel
-  copy was retired 2026-11-08.
+  copy was retired 2026-11-08 (record: `docs/STATUS.md`, "2026-11-08 —
+  Rack move complete"). Re-checked live 2026-11-18: the rack's route
+  table serves `neon.robinsonaisystems.com` from a rack instance (route
+  generation 22), and the Vercel team's project list has no neon-mcp
+  project.
 - **MCP dispatch:** `src/core/mcp-server.js` + `src/core/registry.js`
   merge tool namespaces from `src/tools/index.js`; duplicate names or
   missing handlers throw at startup. Tools are profile-filtered
