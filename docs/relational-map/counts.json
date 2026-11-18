@@ -1,0 +1,40 @@
+{
+  "about": "MAP-COUNTS-1: every number the map states about the code, checked in CI by scripts/check-map-counts.mjs.",
+  "counts": [
+    {
+      "name": "registered tools",
+      "value": 139,
+      "files": [
+        "README.md",
+        "tools-and-guards.md"
+      ],
+      "how": {
+        "command": "node scripts/cap-coverage.mjs --check",
+        "match": "\"tools\":(\\d+)"
+      }
+    },
+    {
+      "name": "tool modules",
+      "value": 77,
+      "files": [
+        "README.md"
+      ],
+      "how": {
+        "files": "src/tools/*.js"
+      }
+    },
+    {
+      "name": "vendored Neon API operations",
+      "value": 163,
+      "files": [
+        "README.md",
+        "data-and-external.md"
+      ],
+      "how": {
+        "matches": "^\\s*operationId:",
+        "in": "vendor/neon-openapi/v2.yaml",
+        "flags": "gm"
+      }
+    }
+  ]
+}
