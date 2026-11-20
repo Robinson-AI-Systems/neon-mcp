@@ -1,0 +1,68 @@
+{
+  "claims": [
+    {
+      "file": "README.md",
+      "states": "system map required by the fleet rule adopted 2026-11-18",
+      "source": {
+        "in": "docs/RULES.md",
+        "matches": "Adopted fleet-wide by Chris, 2026-11-18"
+      }
+    },
+    {
+      "file": "README.md",
+      "states": "Last refreshed: 2026-11-18, from `main`",
+      "source": {
+        "in": "docs/STATUS.md",
+        "matches": "^### 2026-11-18 — MAP-COUNTS-1"
+      }
+    },
+    {
+      "file": "README.md",
+      "states": "live branch only; hosted copy retired 2026-11-08",
+      "source": {
+        "in": "docs/STATUS.md",
+        "matches": "^### 2026-11-08 — Rack move complete; hosted Vercel project and Neon store retired"
+      }
+    },
+    {
+      "file": "README.md",
+      "states": "copy was retired 2026-11-08 (record: `docs/STATUS.md`, \"2026-11-08 — Rack move complete\")",
+      "source": {
+        "in": "docs/STATUS.md",
+        "matches": "^### 2026-11-08 — Rack move complete; hosted Vercel project and Neon store retired"
+      }
+    },
+    {
+      "file": "README.md",
+      "states": "Re-checked live 2026-11-18: the rack's route table serves `neon.robinsonaisystems.com` from a rack instance (route generation 22)",
+      "source": {
+        "in": "docs/STATUS.md",
+        "matches": "live re-check \\(rack route generation 22; no neon-mcp project left on Vercel\\)"
+      }
+    },
+    {
+      "file": "data-and-external.md",
+      "states": "owner releases are uncapped per the 2026-11-04 rule",
+      "source": {
+        "in": "docs/STATUS.md",
+        "matches": "Owner ruling \\(2026-11-04\\): the once-per-Denver-day release cap binds the automatic promoter only"
+      }
+    },
+    {
+      "file": "data-and-external.md",
+      "states": "aggregate `ci` job is the single merge gate",
+      "source": {
+        "in": ".github/workflows/ci.yml",
+        "matches": "^  ci:\\n(?:.*\\n)*?\\s+needs: \\[check, unit, db, rtc\\]"
+      }
+    },
+    {
+      "file": "data-and-external.md",
+      "states": "enforced by `ownerReleaseInvocation` in `.github/release/promote-live.mjs` and its test \"owner release bypasses the daily cap only for the exact expected SHA\"",
+      "source": {
+        "in": ".github/release/promote-live.test.mjs",
+        "matches": "test\\('owner release bypasses the daily cap only for the exact expected SHA'"
+      }
+    }
+  ]
+}

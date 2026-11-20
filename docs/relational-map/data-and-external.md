@@ -8,7 +8,7 @@ flowchart TD
   PgPool["node-postgres pool (pg)<br/>rack Postgres in production"]
   Tables[("neon_orgs · neon_keys (encrypted)<br/>oauth_clients / codes / tokens<br/>login_attempts · rate_limits · change_log<br/>one_time_secrets · secret_requests<br/>settings · result_store")]
   Client["src/neon/client.js — only @neon/sdk importer<br/>retries off, budget injected, 423/429 bounded"]
-  OpenAPI["vendor/neon-openapi/v2.yaml<br/>163 ops, pinned SHA; offline inventory only<br/>src/neon/openapi-index.js, scripts/cap-coverage"]
+  OpenAPI["vendor/neon-openapi/v2.yaml<br/>163 operations, pinned SHA; offline inventory only<br/>src/neon/openapi-index.js, scripts/cap-coverage"]
   Target["Customer Neon branches<br/>@neondatabase/serverless Pool, 15s stmt / 5s lock<br/>own DATABASE_URL host refused as a target"]
 
   DBjs --> Transport --> NeonHTTP & PgPool --> Tables
@@ -25,7 +25,9 @@ flowchart TD
   aggregate `ci` job is the single merge gate. CI never calls Neon.
 - **Release:** `daily-live.yml` promotes `main` → `live` on the
   nightly train (owner releases are uncapped per the 2026-11-04
-  rule); `git-housekeeping.yml` and `prune-merged-branches.yml`
+  rule, enforced by `ownerReleaseInvocation` in
+  `.github/release/promote-live.mjs` and its test "owner release bypasses
+  the daily cap only for the exact expected SHA"); `git-housekeeping.yml` and `prune-merged-branches.yml`
   keep branches tidy. Production runtime is the rack (see README).
 - **Checks on docs:** `npm run check` includes
   `scripts/check-docs-updated.mjs` and

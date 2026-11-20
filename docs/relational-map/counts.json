@@ -11,7 +11,8 @@
       "how": {
         "command": "node scripts/cap-coverage.mjs --check",
         "match": "\"tools\":(\\d+)"
-      }
+      },
+      "label": "tools"
     },
     {
       "name": "tool modules",
@@ -21,7 +22,8 @@
       ],
       "how": {
         "files": "src/tools/*.js"
-      }
+      },
+      "label": "modules"
     },
     {
       "name": "vendored Neon API operations",
@@ -34,7 +36,8 @@
         "matches": "^\\s*operationId:",
         "in": "vendor/neon-openapi/v2.yaml",
         "flags": "gm"
-      }
+      },
+      "label": "operations"
     }
   ]
 }
