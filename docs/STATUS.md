@@ -1,5 +1,9 @@
 ## Verified source and deployment checkpoint — 2026-11-01
 
+### 2026-11-20 — MAP-CLAIMS-1: every count, date and policy claim in the relational map is tied to its source
+
+Second Shift run #2 findings 12-13 and the three neon lows. `scripts/check-map-counts.mjs` now checks counts as number+label pairs and reads `docs/relational-map/claims.json` (8 claims here, each tied to a STATUS entry, a rule, a workflow line or a release test); every date in the map must be tied. The owner-release rule now names its enforcement (`ownerReleaseInvocation`, `.github/release/promote-live.mjs`) and its test. Card: `docs/pr-cards/MAP-CLAIMS-1.md`. No tool change.
+
 ### 2026-11-18 — MAP-COUNTS-1: the relational map's numbers are checked against the code
 
 The Second Shift review (48-hour run, PR #226: three findings) flagged exact counts in the map with nothing tying them to the code. `scripts/check-map-counts.mjs` (run in `npm run check`) now computes each count in `docs/relational-map/counts.json` from the code — 139 registered tools (`scripts/cap-coverage.mjs`), 77 tool modules, 163 vendored API operations (counted straight from `vendor/neon-openapi/v2.yaml`) — and fails on a mismatch or on a count the map states without listing it. All correct today. The hosted-copy retirement line now cites its record below and a live re-check (rack route generation 22; no neon-mcp project left on Vercel). Card: `docs/pr-cards/MAP-COUNTS-1.md`. No tool change.
